@@ -1,0 +1,650 @@
+!+ Fortran module with grib output routines for external parameters
+!
+! History:
+! Version      Date       Name
+! ------------ ---------- ----
+! V1_0         2010/12/21 Hermann Asensio
+!  Initial release
+! V1_1         2011/01/20 Hermann Asensio
+! small bug fixes accroding to Fortran compiler warnings 
+!
+! Code Description:
+! Language: Fortran 2003.
+!=======================================================================
+!> Fortran module with grib output routines for external parameters 
+!> ouptut routines
+!> \author Hermann Asensio
+MODULE mo_extpar_output_grib
+
+
+  !> kind parameters are defined in MODULE data_parameters
+  USE mo_kind, ONLY: wp
+  USE mo_kind, ONLY: i8
+  USE mo_kind, ONLY: i4
+
+  !> data type structures form module GRID_structures
+  USE mo_grid_structures, ONLY: reg_lonlat_grid
+  USE mo_grid_structures, ONLY: rotated_lonlat_grid
+  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
+  USE mo_grid_structures, ONLY: gme_triangular_grid
+  USE mo_grid_structures, ONLY: target_grid_def
+
+  USE mo_io_utilities, ONLY: var_meta_info
+
+  USE mo_io_utilities, ONLY: dim_meta_info
+
+  USE mo_io_utilities, ONLY: vartype_int 
+  USE mo_io_utilities, ONLY: vartype_real
+  USE mo_io_utilities, ONLY: vartype_char
+
+  USE mo_io_utilities, ONLY: get_date_const_field, set_date_mm_extpar_field
+
+  !> abort_extpar defined in MODULE utilities_extpar
+  USE mo_utilities_extpar, ONLY: abort_extpar
+  USE mo_utilities_extpar, ONLY: get_rot_spol_coor
+
+
+  USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
+  USE mo_ndvi_data, ONLY: ntime_ndvi
+  USE mo_aot_data, ONLY: ntype_aot, ntime_aot
+
+  USE grib_api 
+  USE mo_io_grib_api
+
+
+
+  IMPLICIT NONE
+
+  PRIVATE
+
+  PUBLIC :: write_cosmo_grid_extpar_grib
+  PUBLIC :: write_gme_grid_extpar_grib
+
+
+
+  CONTAINS
+
+
+  !> grib output of external parameters for COSMO
+  SUBROUTINE write_cosmo_grid_extpar_grib(grib_filename,  &
+    &                                     cosmo_grid,       &
+    &                                     tg,         &
+    &                                     undefined, &
+    &                                     undef_int,   &
+    &                                     lon_geo,     &
+    &                                     lat_geo, & 
+    &                                     fr_land_lu, & ! &                                     ice_lu, &
+    &                                     z0_lu, &
+    &                                     root_lu, &
+    &                                     plcov_mn_lu, &
+    &                                     plcov_mx_lu, &
+    &                                     lai_mn_lu, &
+    &                                     lai_mx_lu, &
+    &                                     rs_min_lu, &
+    &                                     urban_lu,  &
+    &                                     for_d_lu,  &
+    &                                     for_e_lu, &
+    &                                     emissivity_lu, &
+    &                                     lake_depth, &
+    &                                     fr_lake,    &
+    &                                     soiltype_fao, &
+    &                                     ndvi_max,  &
+    &                                     ndvi_field_mom,&
+    &                                     ndvi_ratio_mom, &
+    &                                     hh_globe,            &
+    &                                     stdh_globe,          &
+    &                                     theta_globe,         &
+    &                                     aniso_globe,         &
+    &                                     slope_globe,   &
+    &                                     aot_tg, &
+    &                                     crutemp )
+ 
+  USE mo_var_meta_data, ONLY: lon_geo_meta, &
+    &                         lat_geo_meta, &
+    &                         no_raw_data_pixel_meta, &
+    &                         def_com_target_fields_meta  
+   
+ 
+  USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
+
+      
+  USE mo_var_meta_data, ONLY: dim_rlon_cosmo, &
+    &                         dim_rlat_cosmo, &
+    &                         dim_2d_cosmo,   &
+    &                         rlon_meta,      &
+    &                         rlat_meta,      &
+    &                         def_dimension_info_cosmo
+
+
+  USE mo_var_meta_data, ONLY: dim_3d_tg, &
+    &                         def_dimension_info_buffer
+
+
+  USE mo_var_meta_data, ONLY: def_lu_fields_meta
+
+  USE mo_var_meta_data, ONLY: dim_lu_tg
+
+  USE mo_var_meta_data, ONLY: fr_land_lu_meta, lu_tot_npixel_meta, &
+    &       lu_class_fraction_meta, lu_class_npixel_meta, &
+    &       ice_lu_meta, z0_lu_meta, &
+    &       plcov_mx_lu_meta, plcov_mn_lu_meta, &
+    &       lai_mx_lu_meta, lai_mn_lu_meta, &
+    &       rs_min_lu_meta, urban_lu_meta, &
+    &       for_d_lu_meta, for_e_lu_meta, &
+    &       emissivity_lu_meta, root_lu_meta
+
+  USE mo_var_meta_data, ONLY: def_flake_fields_meta
+  USE mo_var_meta_data, ONLY: lake_depth_meta, fr_lake_meta
+
+  USE mo_var_meta_data, ONLY: def_soil_meta
+  USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+  
+  USE mo_var_meta_data, ONLY: dim_ndvi_tg
+  USE mo_var_meta_data, ONLY: ndvi_max_meta, &
+      &                         ndvi_field_mom_meta, &
+      &                         ndvi_ratio_mom_meta,&
+      &                         def_ndvi_meta
+
+ USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
+ USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+
+ USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
+   &       stdh_globe_meta, theta_globe_meta, &
+   &       aniso_globe_meta, slope_globe_meta, &
+   &       hh_vert_meta, npixel_vert_meta,    &
+   &       hh_fis_meta
+
+
+
+  USE mo_var_meta_data, ONLY: dim_aot_tg, &
+    &                         aot_tg_meta, &
+    &                         def_aot_tg_meta
+  USE mo_var_meta_data, ONLY: aot_type_shortname
+
+  USE mo_var_meta_data, ONLY: crutemp_meta, &
+    &                         def_crutemp_meta
+
+  USE mo_physical_constants, ONLY: grav
+
+
+  CHARACTER (len=*), INTENT(IN)      :: grib_filename !< filename for the grib file
+  TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
+  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
+  INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
+  REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
+  REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
+  REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
+  !REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
+  REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: root_lu(:,:,:)    !< root depth due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: plcov_mn_lu(:,:,:)!< plant cover maximum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: plcov_mx_lu(:,:,:)!< plant cover minimum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: lai_mn_lu(:,:,:)  !< Leaf Area Index maximum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: lai_mx_lu(:,:,:)  !< Leaf Area Index minimum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: rs_min_lu(:,:,:)  !< minimal stomata resistance due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: urban_lu(:,:,:)   !< urban fraction due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
+
+  REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
+  REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
+
+  INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+
+  REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
+  REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
+  REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+
+  REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
+  REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
+  REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
+  REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
+  REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
+
+  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+
+  ! local variables
+
+  INTEGER :: outfile_id
+  INTEGER :: errorcode
+  REAL (KIND=wp)  :: extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file
+
+  INTEGER (KIND=i8)  :: dataDate
+  INTEGER (KIND=i8)  :: dataTime
+  INTEGER :: mm ! month
+  INTEGER :: ntype ! type of aerosol
+
+
+
+  ! prepar meta data for output
+  !set up dimensions for buffer
+  CALL  def_dimension_info_buffer(tg)
+  ! dim_3d_tg
+  
+  ! define meta information for various land use related variables (GLC2000) for netcdf output
+  CALL def_lu_fields_meta(tg,nclass_glc2000,dim_3d_tg)
+  ! dim_lu_tg
+  ! fr_land_lu_meta, lu_tot_npixel_meta, &
+  !  &       lu_class_fraction_meta, lu_class_npixel_meta, &
+  !  &       ice_lu_meta, z0_lu_meta, &
+  !  &       plcov_mx_lu_meta, plcov_mn_lu_meta, &
+  !  &       lai_mx_lu_meta, lai_mn_lu_meta, &
+  !  &       rs_min_lu_meta, urban_lu_meta, &
+  !  &       for_d_lu_meta, for_e_lu_meta, &
+  !  &       emissivity_lu_meta, root_lu_meta
+
+  ! define meta information for target field variables lon_geo, lat_geo 
+  CALL def_com_target_fields_meta(dim_3d_tg)
+  ! lon_geo_meta and lat_geo_meta
+
+ CALL def_soil_meta(dim_3d_tg)
+  !  fr_land_soil_meta, soiltype_fao_meta
+
+  !define meta information for various NDVI data related variables for netcdf output
+  CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
+  ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+  ! define meta information for various GLOBE data related variables for netcdf output
+  CALL def_globe_meta(dim_3d_tg)
+  !  hh_globe_meta, fr_land_globe_meta, &
+  !         stdh_globe_meta, theta_globe_meta, &
+  !         aniso_globe_meta, slope_globe_meta, &
+  !         hh_vert_meta, npixel_vert_meta
+
+  ! define dimensions and meta information for variable aot_tg for netcdf output
+  CALL def_aot_tg_meta(tg,ntime_aot,ntype_aot,dim_3d_tg)
+  ! dim_aot_tg and aot_tg_meta
+
+  ! define meta information for variable crutemp for netcdf output
+  CALL def_crutemp_meta(dim_3d_tg)
+  ! crutemp_meta
+
+   CALL def_flake_fields_meta(dim_3d_tg)
+   ! lake_depth_meta, fr_lake_meta
+
+
+
+  ! open a new grib file
+  CALL grib_open_file(outfile_id,TRIM(grib_filename),'w')
+
+
+  ! get dateDate according to DWD convention for invariant external parameter fields
+  CALL get_date_const_field(dataDate,dataTime)
+
+  ! write out fields to grib file
+  PRINT *,'fr_land_lu_meta%shortName: ',fr_land_lu_meta%shortName
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,fr_land_lu,fr_land_lu_meta%shortName,dataDate,dataTime)
+
+  PRINT *,'hh_globe_meta%shortName: ',hh_globe_meta%shortName
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,hh_globe,hh_globe_meta%shortName,dataDate,dataTime)
+  ! output FIS as well
+  PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,hh_globe*grav,hh_fis_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,stdh_globe,stdh_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,theta_globe,theta_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,aniso_globe,aniso_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,slope_globe,slope_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,plcov_mx_lu,plcov_mx_lu_meta%shortName,dataDate,dataTime)
+  
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,lai_mn_lu,lai_mn_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,lai_mx_lu,lai_mx_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,rs_min_lu,rs_min_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,for_e_lu,for_e_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,for_d_lu,for_d_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,emissivity_lu,emissivity_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,root_lu,root_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,z0_lu,z0_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,lake_depth,lake_depth_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,fr_lake,fr_lake_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,crutemp,crutemp_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,lon_geo,lon_geo_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,lat_geo,lat_geo_meta%shortName,dataDate,dataTime)
+
+
+ ! urban_lu
+ ! ndvi_max
+ CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,ndvi_max,ndvi_max_meta%shortName,dataDate,dataTime)
+ ! ndvi_field_mom
+ DO mm=1,12
+    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+  & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
+    CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,extpar_cosmo_buffer,ndvi_field_mom_meta%shortName,dataDate,dataTime)
+ ENDDO
+ ! ndvi_ratio_mom
+ DO mm=1,12
+    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+  & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
+    CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,extpar_cosmo_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
+ ENDDO
+
+ ! aot_tg
+
+ DO ntype=1,ntype_aot
+   DO mm=1,12
+   ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+  & aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm,ntype)
+    CALL write_extpar_cosmo_field_grib(outfile_id,cosmo_grid,extpar_cosmo_buffer,aot_type_shortname(ntype),dataDate,dataTime)
+   ENDDO
+ ENDDO
+ ! ice_lu
+
+
+  CALL grib_close_file(outfile_id)
+
+
+
+  END SUBROUTINE write_cosmo_grid_extpar_grib
+  !-----------------------------------------------------------------------
+
+  !> grib output of external parameters for GME
+  SUBROUTINE write_gme_grid_extpar_grib(grib_filename,  &
+    &                                     gme_grid,       &
+    &                                     tg,         &
+    &                                     undefined, &
+    &                                     undef_int,   &
+    &                                     lon_geo,     &
+    &                                     lat_geo, & 
+    &                                     fr_land_lu, & ! &                                     ice_lu, &
+    &                                     z0_lu, &
+    &                                     root_lu, &
+    &                                     plcov_mn_lu, &
+    &                                     plcov_mx_lu, &
+    &                                     lai_mn_lu, &
+    &                                     lai_mx_lu, &
+    &                                     rs_min_lu, &
+    &                                     urban_lu,  &
+    &                                     for_d_lu,  &
+    &                                     for_e_lu, &
+    &                                     emissivity_lu, &
+    &                                     lake_depth, &
+    &                                     fr_lake,    &
+    &                                     soiltype_fao, &
+    &                                     ndvi_max,  &
+    &                                     ndvi_field_mom,&
+    &                                     ndvi_ratio_mom, &
+    &                                     hh_globe,            &
+    &                                     stdh_globe,          &
+    &                                     theta_globe,         &
+    &                                     aniso_globe,         &
+    &                                     slope_globe,   &
+    &                                     aot_tg, &
+    &                                     crutemp )
+ 
+  USE mo_var_meta_data, ONLY: lon_geo_meta, &
+    &                         lat_geo_meta, &
+    &                         no_raw_data_pixel_meta, &
+    &                         def_com_target_fields_meta  
+   
+ 
+  USE mo_gme_grid, ONLY: gme_real_field, gme_int_field, gme_i4_field
+  USE mo_gme_grid, ONLY: cp_buf2gme
+      
+  USE mo_var_meta_data, ONLY: dim_3d_tg, &
+    &                         def_dimension_info_buffer
+
+  USE mo_var_meta_data, ONLY: def_lu_fields_meta
+
+  USE mo_var_meta_data, ONLY: dim_lu_tg
+
+  USE mo_var_meta_data, ONLY: fr_land_lu_meta, lu_tot_npixel_meta, &
+    &       lu_class_fraction_meta, lu_class_npixel_meta, &
+    &       ice_lu_meta, z0_lu_meta, &
+    &       plcov_mx_lu_meta, plcov_mn_lu_meta, &
+    &       lai_mx_lu_meta, lai_mn_lu_meta, &
+    &       rs_min_lu_meta, urban_lu_meta, &
+    &       for_d_lu_meta, for_e_lu_meta, &
+    &       emissivity_lu_meta, root_lu_meta
+
+  USE mo_var_meta_data, ONLY: def_flake_fields_meta
+  USE mo_var_meta_data, ONLY: lake_depth_meta, fr_lake_meta
+
+  USE mo_var_meta_data, ONLY: def_soil_meta
+  USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+  
+  USE mo_var_meta_data, ONLY: dim_ndvi_tg
+  USE mo_var_meta_data, ONLY: ndvi_max_meta, &
+      &                         ndvi_field_mom_meta, &
+      &                         ndvi_ratio_mom_meta,&
+      &                         def_ndvi_meta
+
+ USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
+ USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+
+ USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
+   &       stdh_globe_meta, theta_globe_meta, &
+   &       aniso_globe_meta, slope_globe_meta, &
+   &       hh_vert_meta, npixel_vert_meta,    &
+   &       hh_fis_meta
+
+
+
+  USE mo_var_meta_data, ONLY: dim_aot_tg, &
+    &                         aot_tg_meta, &
+    &                         def_aot_tg_meta
+  USE mo_var_meta_data, ONLY: aot_type_shortname
+
+  USE mo_var_meta_data, ONLY: crutemp_meta, &
+    &                         def_crutemp_meta
+
+  USE mo_physical_constants, ONLY: grav
+
+
+  CHARACTER (len=*), INTENT(IN)      :: grib_filename !< filename for the grib file
+  TYPE(gme_triangular_grid), INTENT(IN) :: gme_grid !< structure which contains the definition of the GME grid
+  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
+  INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
+  REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
+  REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
+  REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
+  !REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
+  REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: root_lu(:,:,:)    !< root depth due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: plcov_mn_lu(:,:,:)!< plant cover maximum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: plcov_mx_lu(:,:,:)!< plant cover minimum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: lai_mn_lu(:,:,:)  !< Leaf Area Index maximum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: lai_mx_lu(:,:,:)  !< Leaf Area Index minimum due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: rs_min_lu(:,:,:)  !< minimal stomata resistance due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: urban_lu(:,:,:)   !< urban fraction due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
+  REAL (KIND=wp), INTENT(IN)  :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
+
+  REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
+  REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
+
+  INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+
+  REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
+  REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
+  REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+
+  REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
+  REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
+  REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
+  REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
+  REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
+
+  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+
+  ! local variables
+
+  INTEGER :: outfile_id
+  INTEGER :: errorcode
+
+  INTEGER (KIND=i8)  :: dataDate
+  INTEGER (KIND=i8)  :: dataTime
+  INTEGER :: mm ! month
+  INTEGER :: ntype ! type of aerosol
+
+  REAL (KIND=wp) :: real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd)
+
+  INTEGER :: i,j,k,t
+
+
+
+  ! prepar meta data for output
+  !set up dimensions for buffer
+  CALL  def_dimension_info_buffer(tg)
+  ! dim_3d_tg
+  
+  ! define meta information for various land use related variables (GLC2000) for netcdf output
+  CALL def_lu_fields_meta(tg,nclass_glc2000,dim_3d_tg)
+  ! dim_lu_tg
+  ! fr_land_lu_meta, lu_tot_npixel_meta, &
+  !  &       lu_class_fraction_meta, lu_class_npixel_meta, &
+  !  &       ice_lu_meta, z0_lu_meta, &
+  !  &       plcov_mx_lu_meta, plcov_mn_lu_meta, &
+  !  &       lai_mx_lu_meta, lai_mn_lu_meta, &
+  !  &       rs_min_lu_meta, urban_lu_meta, &
+  !  &       for_d_lu_meta, for_e_lu_meta, &
+  !  &       emissivity_lu_meta, root_lu_meta
+
+  ! define meta information for target field variables lon_geo, lat_geo 
+  CALL def_com_target_fields_meta(dim_3d_tg)
+  ! lon_geo_meta and lat_geo_meta
+
+ CALL def_soil_meta(dim_3d_tg)
+  !  fr_land_soil_meta, soiltype_fao_meta
+
+  !define meta information for various NDVI data related variables for netcdf output
+  CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
+  ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+  ! define meta information for various GLOBE data related variables for netcdf output
+  CALL def_globe_meta(dim_3d_tg)
+  !  hh_globe_meta, fr_land_globe_meta, &
+  !         stdh_globe_meta, theta_globe_meta, &
+  !         aniso_globe_meta, slope_globe_meta, &
+  !         hh_vert_meta, npixel_vert_meta
+
+  ! define dimensions and meta information for variable aot_tg for netcdf output
+  CALL def_aot_tg_meta(tg,ntime_aot,ntype_aot,dim_3d_tg)
+  ! dim_aot_tg and aot_tg_meta
+
+  ! define meta information for variable crutemp for netcdf output
+  CALL def_crutemp_meta(dim_3d_tg)
+  ! crutemp_meta
+
+   CALL def_flake_fields_meta(dim_3d_tg)
+   ! lake_depth_meta, fr_lake_meta
+
+
+
+  ! open a new grib file
+  CALL grib_open_file(outfile_id,TRIM(grib_filename),'w')
+
+
+  ! get dateDate according to DWD convention for invariant external parameter fields
+  CALL get_date_const_field(dataDate,dataTime)
+
+ 
+  ! write out fields to grib file
+  PRINT *,'fr_land_lu_meta%shortName: ',fr_land_lu_meta%shortName
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,fr_land_lu,TRIM(fr_land_lu_meta%shortName),dataDate,dataTime)
+
+  PRINT *,'hh_globe_meta%shortName: ',hh_globe_meta%shortName
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,hh_globe,hh_globe_meta%shortName,dataDate,dataTime)
+  ! output FIS as well
+  PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,hh_globe*grav,hh_fis_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,stdh_globe,stdh_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,theta_globe,theta_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,aniso_globe,aniso_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,slope_globe,slope_globe_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,plcov_mx_lu,plcov_mx_lu_meta%shortName,dataDate,dataTime)
+  
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,lai_mn_lu,lai_mn_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,lai_mx_lu,lai_mx_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,rs_min_lu,rs_min_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,for_e_lu,for_e_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,for_d_lu,for_d_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,emissivity_lu,emissivity_lu_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,root_lu,root_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,z0_lu,z0_lu_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,lake_depth,lake_depth_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,fr_lake,fr_lake_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
+
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,crutemp,crutemp_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,lon_geo,lon_geo_meta%shortName,dataDate,dataTime)
+  CALL write_extpar_gme_field_grib(outfile_id,gme_grid,lat_geo,lat_geo_meta%shortName,dataDate,dataTime)
+
+
+ ! urban_lu
+ ! ndvi_max
+ CALL write_extpar_gme_field_grib(outfile_id,gme_grid,ndvi_max,ndvi_max_meta%shortName,dataDate,dataTime)
+ ! ndvi_field_mom
+ 
+ DO mm=1,12
+    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
+  & ndvi_field_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm)
+    CALL write_extpar_gme_field_grib(outfile_id,gme_grid,real_buffer,ndvi_field_mom_meta%shortName,dataDate,dataTime)
+ ENDDO
+ ! ndvi_ratio_mom
+ DO mm=1,12
+    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
+  & ndvi_ratio_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm) 
+    CALL write_extpar_gme_field_grib(outfile_id,gme_grid,real_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
+ ENDDO
+
+ ! aot_tg
+
+ DO ntype=1,ntype_aot
+   DO mm=1,12
+   ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
+  & aot_tg(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm,ntype)
+    CALL write_extpar_gme_field_grib(outfile_id,gme_grid,real_buffer,aot_type_shortname(ntype),dataDate,dataTime)
+   ENDDO
+ ENDDO
+ ! ice_lu
+
+
+  CALL grib_close_file(outfile_id)
+
+
+
+  END SUBROUTINE write_gme_grid_extpar_grib
+  !-----------------------------------------------------------------------
+
+
+
+    
+ 
+END Module mo_extpar_output_grib
+
+
