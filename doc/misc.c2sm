@@ -1,0 +1,56 @@
+
+Modifications to Extpar 1.1:                   Anne Roches,C2SM  18.09.2012
+=============================
+
+Modifications implemented in this new version
+
+1. Adaptation to the compiling environnment at CSCS
+   Tag: roa CSCS               Source: CMakeLists.txt
+                                       FindGRIB_API.cmake
+                                       FindNETCDF.cmake
+   Results: No changes
+
+
+2. Comment of the information mechanism because it does not work
+   Tag: roa info              Source: info_extpar.f90
+   Results: No changes
+
+
+3. Correction and extension of the netcdf output
+   Tag: roa nc                Source: mo_extpar_output_nc.f90
+                                      mo_var_meta_data.f90 
+                                  
+   Results: Additionnal fields for netcdf output and correct
+            variable names
+
+
+4. Use MeteoSwiss definitions/samples
+   Tag: roa mch              Source: mo_io_grib_api.f90
+   Results: Other domain
+
+
+5. Comment of sections related to a local DWD use of grib
+   Tag: roa dwdgrib          Source: mo_io_grib_api.f90
+   Results: No changes
+
+
+6. Split of lines which were too long, causing problems 
+   at compilation time
+   Tag: roa cpiler           Source: mo_io_grib_api.f90
+   Results: No changes
+
+
+7. Clean variable which was not used
+   Tag: roa clean            Source: mo_ndvi_output_nc.f90
+   Results: No changes  
+
+
+
+
+
+
+
+
+
+
+  

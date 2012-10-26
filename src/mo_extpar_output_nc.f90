@@ -456,7 +456,10 @@ MODULE mo_extpar_output_nc
   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
    &       stdh_globe_meta, theta_globe_meta, &
    &       aniso_globe_meta, slope_globe_meta, &
-   &       hh_vert_meta, npixel_vert_meta, z0_topo_meta
+   &       hh_vert_meta, npixel_vert_meta, z0_topo_meta, &
+!roa nc>
+   &       hh_fis_meta
+!roa nc<
 
 
   USE mo_var_meta_data, ONLY: dim_aot_tg, dim_aot_ty, &
@@ -472,6 +475,10 @@ MODULE mo_extpar_output_nc
   USE mo_var_meta_data, ONLY: lake_depth_meta, fr_lake_meta, &
     &       flake_tot_npixel_meta
   USE mo_flake_data, ONLY: flake_depth_undef !< default value for undefined lake depth
+
+!roa nc>
+  USE mo_physical_constants, ONLY: grav
+!roa nc<
 
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
@@ -711,21 +718,22 @@ MODULE mo_extpar_output_nc
     ! lat
     var_real_2d(:,:) = lat_geo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,lat_geo_meta,undefined)
-
+!roa nc>
     ! lai_mn_lu
-    !var_real_2d(:,:) = lai_mn_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+    var_real_2d(:,:) = lai_mn_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     !lai_mn_lu%diminfo => dim_2d_cosmo
     !lai_mn_lu%grid_mapping = TRIM(grid_mapping)
     !lai_mn_lu%coordinates = TRIM(coordinates)
     !CALL netcdf_put_var(ncid,var_real_2d,rs_min_lu_meta,undefined)
+    CALL netcdf_put_var(ncid,var_real_2d,lai_mn_lu_meta,undefined)
     !
     ! plcov_mn_lu
-    !var_real_2d(:,:) = plcov_mn_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+    var_real_2d(:,:) = plcov_mn_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     !plcov_mn_lu_meta%diminfo => dim_2d_cosmo
     !plcov_mn_lu_meta%grid_mapping = TRIM(grid_mapping)
     !plcov_mn_lu_meta%coordinates = TRIM(coordinates)
-    !CALL netcdf_put_var(ncid,var_real_2d,plcov_mn_lu_meta,undefined)
-
+    CALL netcdf_put_var(ncid,var_real_2d,plcov_mn_lu_meta,undefined)
+!roa nc<
     ! ndvi_max
     var_real_2d(:,:) = ndvi_max(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,ndvi_max_meta,undefined)
@@ -733,7 +741,11 @@ MODULE mo_extpar_output_nc
     ! hh_globe
     var_real_2d(:,:) = hh_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,hh_globe_meta,undefined)
-
+!roa nc>
+    ! hh_fis
+    var_real_2d(:,:) = grav * hh_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+    CALL netcdf_put_var(ncid,var_real_2d,hh_fis_meta,undefined)
+!roa nc<
     ! stdh_globe
     var_real_2d(:,:) = stdh_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,stdh_globe_meta,undefined)

@@ -1,14 +1,23 @@
+#roa CSCS>
+SET(CMAKE_Fortran_COMPILER "ftn")
+#roa CSCS<
 # Set project name and supported programing language i.e., Fortran
 # By default all programing languages are supported
 PROJECT(EXTPAR Fortran C)
 
 # Set cmake min. version, otherwise cmake will warn
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
+#roa CSCS>
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
 
 MESSAGE(STATUS "HA ${CMAKE_SOURCE_DIR}")
+#roa CSCS<
+
 MESSAGE(STATUS "Compiler is ${CMAKE_Fortran_COMPILER}" )
+
+#roa CSCS>
+#OPTION( BUILD_SHARED_LIBS "Set to OFF to build static libraries" OFF )
+#roa CSCS<
 
 # Default build is in debug mode
 IF (NOT CMAKE_BUILD_TYPE)
@@ -25,7 +34,11 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "NEC-SX9")
 ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   # Set the root dir of the stuff to find for HPC
   SET(CMAKE_FIND_ROOT_PATH
-    /usr/local/pkg/for0adm/
+#roa CSCS>
+    #/usr/local/pkg/for0adm/
+		 #/opt/pgi/9.0.4/linux86-64/9.0-4/bin
+     /opt/pgi/12.2.0/linux86-64/12.2/bin
+#roa CSCS<
     ${CMAKE_FIND_ROOT_PATH})
   IF (CMAKE_Fortran_COMPILER MATCHES "f95")
       SET(CMAKE_Fortran_FLAGS_DEBUG "-xpp=cpp -fpp -C -g -ftrap=common -fnonstd")
@@ -40,6 +53,14 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       SET(COMMON_COMPILE_FLAGS "-x f95-cpp-input")
       SET(COMMON_LINK_FLAGS "-g -static-libgfortran -static-libgcc")
   ENDIF (CMAKE_Fortran_COMPILER MATCHES "gfortran")
+#roa CSCS>
+  IF (CMAKE_Fortran_COMPILER MATCHES "ftn")
+      SET(CMAKE_Fortran_FLAGS_DEBUG " -Kieee -Mbyteswapio -Mfree -Mpreprocess -Minform=inform -Minfo=all -O0 -C -g -gopt -Mbounds -Mchkfpstk -Ktrap=fp -traceback -Mdepchk")
+      SET(CMAKE_Fortran_FLAGS_RELEASE " -Kieee -Mbyteswapio -Mfree -Mpreprocess -Minform=inform -Minfo=all -fast -Mlre -Mvect=noassoc -Mipa=fast,inline -O3")
+      SET(COMMON_COMPILE_FLAGS "-Kieee -Mbyteswapio -Mfree -Mpreprocess -Minform=inform -Minfo=all")
+      SET(COMMON_LINK_FLAGS "-Wl -Bstatic")
+  ENDIF (CMAKE_Fortran_COMPILER MATCHES "ftn")
+#roa CSCS<
 ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "NEC-SX9")
 
 
@@ -113,7 +134,7 @@ ADD_EXECUTABLE(extpar_aot_to_buffer            # binary name
                mo_var_meta_data.f90
                )
 
-TARGET_LINK_LIBRARIES(extpar_aot_to_buffer 
+TARGET_LINK_LIBRARIES(extpar_aot_to_buffer
                       ${NETCDF_LIBRARY}
 )
 

@@ -1,0 +1,160 @@
+=============================================================
+EXTPAR: how to compile and run
+
+Anne Roches, C2SM
+16.10.2012
+
+=============================================================
+
+Hermann Asensio uses cmake for generating the makefile
+needed for the compilation of Extpar.
+A general guide on how to compile and install Extpar
+is provided below.
+
+For the CSCS MeteoSwiss machine (Lema), cmake has been run already
+and the libraries installed. Some steps can thus be skipped
+in the installation of Extpar. However, if the compiler version
+or some system characteristics change, one has to redo the whole 
+procedure following the general guide. 
+
+
+1) Quick procedure on Lema (CSCS)
+************************************
+
+A) Libraries
+=============
+
+Nothing to do
+
+B) Compilation
+===============
+1.  cd build
+2.  Load the required modules:
+    module load netcdf
+    module swap PrgEnv-cray PrgEnv-pgi
+
+3. make
+
+! This will create a debug executable. If you want an optimized executable, 
+  please follow the general procedure
+
+C) Run
+=============
+
+1. cd ../run
+2. you can find some runscript examples there; adpat them runscript by changing the paths to the the raw data and 
+   binaries and so on in order to fit your system or create a new runscript.
+   !!! export environment variables specifying the paths towards
+       the local definitions (tables) and towards the samples 
+       for the grib_api.
+3. (chmod 755 runscript)
+4. ./extpar_cosmo_eu_v1_1.sh (or ./<name of your runscript>)
+
+D) Check
+===========
+
+1. that you haven't got any error message at runtime
+2. that you got a file in NetCDF format (.nc) and the same file in Grib1 (.g1)
+3. that Int2lm is able to read these 2 files 
+
+! Some problems still occur in the generation of the GRIB file due to missing
+  samples. To be discussed with Petra or Jean-Marie.
+
+
+
+2) General procedure
+**********************
+
+A) Libraries
+=============
+
+EXTPAR needs the following libraries:
+- NetCDF
+- GRIB API
+- JASPER
+
+Be sure that these libraries are installed on your system
+or install them yourself by following the installation
+instructions provided with the libraries.
+
+***On the CSCS machines***
+NetCDF is already installed on the CSCS machines, under /opt/cray/netcdf/4.0.1.1/netcdf-pgi/ for instance when using NetCDF4.0.1.1.
+
+In order to install the GRIB_API and JASPER, basically you can just do as follows:
+
+1. mkdir jasper_build
+2. cd jasper_build
+3. ./configure --prefix=path_to_jasper_dir
+4. make
+5. make install
+
+
+1. mkdir grib_api_build
+2. cd grib_api_build
+3. ./configure --prefix=path_to_grib_api_dir
+4. make
+5. make check
+6. make install
+
+
+
+B) Compilation
+===============
+
+1.  be sure to have cmake available on your system
+    ***On the CSCS machines***
+     /users/rochesa/bin/cmake (module load cmake seems not to work ok) 
+2.  mkdir -p extpar/src
+3.  mv extpar_source_dir on /extpar/src
+4.  cd /extpar/src
+5.  adapt the files CMakeLists.txt, FindGRIB_API.cmake and FindNETCDF.cmake
+    by changing the paths to the libraries and compiler in order to fit
+    your system.
+6.  cd ..
+7.  mkdir build
+8.  cd build
+9.  cmake -DCMAKE_BUILD_TYPE=DEBUG ../src            (debug mode)
+9 bis. check in CMakeCache.txt that the proper options/paths are used.If not, add them manually in CMakeCache.txt
+       ***On the CSCS machines***
+       the interaction with the modules can be tricky, so really check that the correct compiler, options, libraries are
+       used in CMakeCache.txt. Check especially that the static libraries are used.
+       The libraries that can currently be used on Lema are:
+          * GRIB_API_INCLUDE:PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/include
+          * GRIB_API_LIBRARY_C:FILEPATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib/libgrib_api.a
+          * GRIB_API_LIBRARY_F77:FILEPATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib/libgrib_api_f77.a
+          * GRIB_API_LIBRARY_F90:FILEPATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib/libgrib_api_f90.a
+          * JASPER_LIBRARY:FILEPATH=/oprusers/osm/lib/libjasper_1.900.1_gnu/lib/libjasper.a
+          * NETCDF_INCLUDE:PATH=/opt/cray/netcdf/4.1.3/pgi/109/include
+          * NETCDF_PREFIX:PATH=
+          * PNG_LIBRARY:FILEPATH=/users/rochesa/install/png/libpng-1.5.12/lib/libpng.a
+          * ZLIB_LIBRARY:FILEPATH=/users/rochesa/install/zlib/zlib-1.2.7/lib/lib/libz.a
+
+10. ***On the CSCS machines***
+    module load netcdf
+    module load PrgEnv-pgi
+    eventually module unload xt-libsci (if you have troubles at compilation time)
+11. make
+
+
+C) Run
+=============
+
+1. cd ..
+2. mkdir run
+3. cp runscript (e.g. extpar_cosmo_eu_v1_1.sh) into run
+4. cd run
+5. adpat the runscript by changing the paths to the the raw data and 
+   binaries and so on in order to fit your system.
+   !!! export environment variables specifying the paths towards
+       the local definitions (tables) and towards the samples 
+       for the grib_api.
+6. (chmod 755 runscript)
+7. ./extpar_cosmo_eu_v1_1.sh (or ./<name of your runscript>)
+
+
+D) Check
+===========
+
+1. that you haven't got any error message at runtime
+2. that you got a file in NetCDF format (.nc) and the same file in Grib1 (.g1)
+3. that Int2lm is able to read these 2 files 

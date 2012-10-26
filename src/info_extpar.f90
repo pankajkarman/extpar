@@ -60,14 +60,16 @@ CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2011-01-24 10:06:52'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = ''
 ! Following declarations have to be defined just before compiling:
-CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = '.false.'
+CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = '.true.'
 CHARACTER (LEN=*), PARAMETER :: INFO_CompilerCall    = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_CompilerVersion = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_DefinedMacros   = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_UndefinedMacros = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_DebugOptions    = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_LinkOptions     = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_CompiledBy      = 'hasensio'
+!roa info>
+CHARACTER (LEN=*), PARAMETER :: INFO_CompiledBy      = 'rochesa'
+!roa info<
 CHARACTER (LEN=*), PARAMETER :: INFO_CompileTime     = ''
 CHARACTER (LEN=*), PARAMETER :: INFO_CompileMachine  = ''
 !
@@ -259,56 +261,56 @@ IF ( LEN_TRIM(Options) > 0 ) THEN
 ELSE
   PrintOption = '?'
 END IF
-!
-SELECT CASE ( PrintOption )
-CASE ( 'c' )   ! Compiled timestamp
-  info_getvalue = INFO_CompileTime(1:LEN_TRIM(INFO_CompileTime))
-CASE ( 'd' )   ! Debug options
-  info_getvalue = INFO_DebugOptions(1:LEN_TRIM(INFO_DebugOptions))
-CASE ( 'i' )   ! Checkin timestamp
-  info_getvalue = INFO_CheckinDate(1:LEN_TRIM(INFO_CheckinDate))
-CASE ( 'm' )   ! Modified flag
-  info_getvalue = INFO_CodeIsModified(1:LEN_TRIM(INFO_CodeIsModified))
-CASE ( 'n' )   ! Library name
-  info_getvalue = INFO_LibraryName(1:LEN_TRIM(INFO_LibraryName))
-CASE ( 'o' )   ! machine (OS) of compilation
-  info_getvalue = INFO_CompileMachine(1:LEN_TRIM(INFO_CompileMachine))
-CASE ( 'p' )   ! Production timestamp
-  info_getvalue = INFO_ProductionDate(1:LEN_TRIM(INFO_ProductionDate))
-CASE ( 'r' )   ! Revision number
-  info_getvalue = INFO_Revisionnumber(1:LEN_TRIM(INFO_Revisionnumber))
-CASE ( 't' )   ! Version tag
-  info_getvalue = INFO_RevisionTag(1:LEN_TRIM(INFO_RevisionTag))
-CASE ( 'x' )   ! Checkout timestamp
-  info_getvalue = INFO_CheckoutDate(1:LEN_TRIM(INFO_CheckoutDate))
-CASE ( 'B' )   ! Binary name (full path)
-  info_getvalue = INFO_BinaryName(1:LEN_TRIM(INFO_BinaryName))
-CASE ( 'C' )   ! Compiling user
-  info_getvalue = INFO_CompiledBy(1:LEN_TRIM(INFO_CompiledBy))
-CASE ( 'D' )   ! Defined macros
-  info_getvalue = INFO_DefinedMacros(1:LEN_TRIM(INFO_DefinedMacros))
-CASE ( 'L' )   ! Linker call
-  info_getvalue = INFO_LinkOptions(1:LEN_TRIM(INFO_LinkOptions))
-CASE ( 'N' )   ! Compiler name
-  info_getvalue = INFO_CompilerCall(1:LEN_TRIM(INFO_CompilerCall))
-CASE ( 'O' )   ! machine (OS) during runtime
-  info_getvalue = INFO_RunMachine(1:LEN_TRIM(INFO_RunMachine))
-CASE ( 'S' )   ! Start time
-  info_getvalue = INFO_StartTime(1:LEN_TRIM(INFO_StartTime))
-CASE ( 'U' )   ! Undefined macros
-  info_getvalue = INFO_UndefinedMacros(1:LEN_TRIM(INFO_UndefinedMacros))
-CASE ( 'V' )   ! Compiler version
-  info_getvalue = INFO_CompilerVersion(1:LEN_TRIM(INFO_CompilerVersion))
-CASE ( 'W' )   ! Where running
-  info_getvalue = INFO_Nodes(1:LEN_TRIM(INFO_Nodes))
-CASE ( 'X' )   ! Data decomposition
-  info_getvalue = INFO_Domain(1:LEN_TRIM(INFO_Domain))
-CASE ( '?' )   ! List of values
-  info_getvalue = 'cdimnoprtxBCDLNOSUVWX'
-CASE DEFAULT
-  info_getvalue = 'Invalid option: ' // Options
-END SELECT
-!
+! roa info> this doesn't work
+!!$SELECT CASE ( PrintOption )
+!!$CASE ( 'c' )   ! Compiled timestamp
+!!$  info_getvalue = INFO_CompileTime(1:LEN_TRIM(INFO_CompileTime))
+!!$CASE ( 'd' )   ! Debug options
+!!$  info_getvalue = INFO_DebugOptions(1:LEN_TRIM(INFO_DebugOptions))
+!!$CASE ( 'i' )   ! Checkin timestamp
+!!$  info_getvalue = INFO_CheckinDate(1:LEN_TRIM(INFO_CheckinDate))
+!!$CASE ( 'm' )   ! Modified flag
+!!$  info_getvalue = INFO_CodeIsModified(1:LEN_TRIM(INFO_CodeIsModified))
+!!$CASE ( 'n' )   ! Library name
+!!$  info_getvalue = INFO_LibraryName(1:LEN_TRIM(INFO_LibraryName))
+!!$CASE ( 'o' )   ! machine (OS) of compilation
+!!$  info_getvalue = INFO_CompileMachine(1:LEN_TRIM(INFO_CompileMachine))
+!!$CASE ( 'p' )   ! Production timestamp
+!!$  info_getvalue = INFO_ProductionDate(1:LEN_TRIM(INFO_ProductionDate))
+!!$CASE ( 'r' )   ! Revision number
+!!$  info_getvalue = INFO_Revisionnumber(1:LEN_TRIM(INFO_Revisionnumber))
+!!$CASE ( 't' )   ! Version tag
+!!$  info_getvalue = INFO_RevisionTag(1:LEN_TRIM(INFO_RevisionTag))
+!!$CASE ( 'x' )   ! Checkout timestamp
+!!$  info_getvalue = INFO_CheckoutDate(1:LEN_TRIM(INFO_CheckoutDate))
+!!$CASE ( 'B' )   ! Binary name (full path)
+!!$  info_getvalue = INFO_BinaryName(1:LEN_TRIM(INFO_BinaryName))
+!!$CASE ( 'C' )   ! Compiling user
+!!$  info_getvalue = INFO_CompiledBy(1:LEN_TRIM(INFO_CompiledBy))
+!!$CASE ( 'D' )   ! Defined macros
+!!$  info_getvalue = INFO_DefinedMacros(1:LEN_TRIM(INFO_DefinedMacros))
+!!$CASE ( 'L' )   ! Linker call
+!!$  info_getvalue = INFO_LinkOptions(1:LEN_TRIM(INFO_LinkOptions))
+!!$CASE ( 'N' )   ! Compiler name
+!!$  info_getvalue = INFO_CompilerCall(1:LEN_TRIM(INFO_CompilerCall))
+!!$CASE ( 'O' )   ! machine (OS) during runtime
+!!$  info_getvalue = INFO_RunMachine(1:LEN_TRIM(INFO_RunMachine))
+!!$CASE ( 'S' )   ! Start time
+!!$  info_getvalue = INFO_StartTime(1:LEN_TRIM(INFO_StartTime))
+!!$CASE ( 'U' )   ! Undefined macros
+!!$  info_getvalue = INFO_UndefinedMacros(1:LEN_TRIM(INFO_UndefinedMacros))
+!!$CASE ( 'V' )   ! Compiler version
+!!$  info_getvalue = INFO_CompilerVersion(1:LEN_TRIM(INFO_CompilerVersion))
+!!$CASE ( 'W' )   ! Where running
+!!$  info_getvalue = INFO_Nodes(1:LEN_TRIM(INFO_Nodes))
+!!$CASE ( 'X' )   ! Data decomposition
+!!$  info_getvalue = INFO_Domain(1:LEN_TRIM(INFO_Domain))
+!!$CASE ( '?' )   ! List of values
+!!$  info_getvalue = 'cdimnoprtxBCDLNOSUVWX'
+!!$CASE DEFAULT
+!!$  info_getvalue = 'Invalid option: ' // Options
+!!$END SELECT
+!roa info<
 END FUNCTION info_getvalue
 !+
 SUBROUTINE info_print ( Options )
@@ -440,57 +442,58 @@ DO Count = 1, NumberOfOptions
   ELSE                                   ! Use default options
     PrintOption = DefaultOptions(Count:Count)
   END IF
-!
-  SELECT CASE ( PrintOption )
-  CASE ( ' ' )   ! Empty line
-    PRINT *, ''
-  CASE ( 'c' )   ! Compiled timestamp
-    PRINT *, 'Compile-Date ......: ', INFO_CompileTime(1:LEN_TRIM(INFO_CompileTime))
-  CASE ( 'd' )   ! Debug options
-    PRINT *, 'Debug options ..: ', INFO_DebugOptions(1:LEN_TRIM(INFO_DebugOptions))
-  CASE ( 'i' )   ! Checkin timestamp
-    PRINT *, 'Checkin-Date ......: ', INFO_CheckinDate(1:LEN_TRIM(INFO_CheckinDate))
-  CASE ( 'm' )   ! Modified flag
-    PRINT *, 'Code is modified ..: ', INFO_CodeIsModified(1:LEN_TRIM(INFO_CodeIsModified))
-  CASE ( 'n' )   ! Library name
-    PRINT *, 'Library name ......: ', INFO_LibraryName(1:LEN_TRIM(INFO_LibraryName))
-  CASE ( 'o' )   ! machine (OS) of compilation
-    PRINT *, 'Compiled on .......: ', INFO_CompileMachine(1:LEN_TRIM(INFO_CompileMachine))
-  CASE ( 'p' )   ! Production timestamp
-    PRINT *, 'Put into production: ', INFO_ProductionDate(1:LEN_TRIM(INFO_ProductionDate))
-  CASE ( 'r' )   ! Revision number
-    PRINT *, 'Revision number ...: ', INFO_Revisionnumber(1:LEN_TRIM(INFO_Revisionnumber))
-  CASE ( 't' )   ! Version tag
-    PRINT *, 'Tag name ..........: ', INFO_RevisionTag(1:LEN_TRIM(INFO_RevisionTag))
-  CASE ( 'x' )   ! Checkout timestamp
-    PRINT *, 'Checkout-Date .....: ', INFO_CheckoutDate(1:LEN_TRIM(INFO_CheckoutDate))
-  CASE ( 'B' )   ! Binary name (full path)
-    PRINT *, 'Binary name ....: ', INFO_BinaryName(1:LEN_TRIM(INFO_BinaryName))
-  CASE ( 'C' )   ! Compiling user
-    PRINT *, 'Compiled by .......: ', INFO_CompiledBy(1:LEN_TRIM(INFO_CompiledBy))
-  CASE ( 'D' )   ! Defined macros
-    PRINT *, 'Macros defined .: ', INFO_DefinedMacros(1:LEN_TRIM(INFO_DefinedMacros))
-  CASE ( 'L' )   ! Linker call
-    PRINT *, 'Linker options .: ', INFO_LinkOptions(1:LEN_TRIM(INFO_LinkOptions))
-  CASE ( 'N' )   ! Compiler name
-    PRINT *, 'Compiler call ..: ', INFO_CompilerCall(1:LEN_TRIM(INFO_CompilerCall))
-  CASE ( 'O' )   ! machine (OS) during runtime
-    PRINT *, 'Running on machine : ', INFO_RunMachine(1:LEN_TRIM(INFO_RunMachine))
-  CASE ( 'R' )   ! Info of other used libraries
-    DoRecursive = 1     ! Activate info_call of other libraries
-  CASE ( 'S' )   ! Start time
-    PRINT *, 'Current start time : ', INFO_StartTime(1:LEN_TRIM(INFO_StartTime))
-  CASE ( 'U' )   ! Undefined macros
-    PRINT *, 'Macros undefined: ', INFO_UndefinedMacros(1:LEN_TRIM(INFO_UndefinedMacros))
-  CASE ( 'V' )   ! Compiler version
-    PRINT *, 'Compiler version: ', INFO_CompilerVersion(1:LEN_TRIM(INFO_CompilerVersion))
-  CASE ( 'W' )   ! Where running
-    PRINT *, 'Running on nodes ..: ', INFO_Nodes(1:LEN_TRIM(INFO_Nodes))
-  CASE ( 'X' )   ! Data decomposition
-    PRINT *, 'Data decomposition : ', INFO_Domain(1:LEN_TRIM(INFO_Domain))
-  CASE DEFAULT
-    Error = Error + 1    ! Set error flag
-  END SELECT
+!roa info> this doesn't work... 
+!!$  SELECT CASE ( PrintOption )
+!!$  CASE ( ' ' )   ! Empty line
+!!$    PRINT *, ''
+!!$  CASE ( 'c' )   ! Compiled timestamp
+!!$    PRINT *, 'Compile-Date ......: ', INFO_CompileTime(1:LEN_TRIM(INFO_CompileTime))
+!!$  CASE ( 'd' )   ! Debug options
+!!$    PRINT *, 'Debug options ..: ', INFO_DebugOptions(1:LEN_TRIM(INFO_DebugOptions))
+!!$  CASE ( 'i' )   ! Checkin timestamp
+!!$    PRINT *, 'Checkin-Date ......: ', INFO_CheckinDate(1:LEN_TRIM(INFO_CheckinDate))
+!!$  CASE ( 'm' )   ! Modified flag
+!!$    PRINT *, 'Code is modified ..: ', INFO_CodeIsModified(1:LEN_TRIM(INFO_CodeIsModified))
+!!$  CASE ( 'n' )   ! Library name
+!!$    PRINT *, 'Library name ......: ', INFO_LibraryName(1:LEN_TRIM(INFO_LibraryName))
+!!$  CASE ( 'o' )   ! machine (OS) of compilation
+!!$    PRINT *, 'Compiled on .......: ', INFO_CompileMachine(1:LEN_TRIM(INFO_CompileMachine))
+!!$  CASE ( 'p' )   ! Production timestamp
+!!$    PRINT *, 'Put into production: ', INFO_ProductionDate(1:LEN_TRIM(INFO_ProductionDate))
+!!$  CASE ( 'r' )   ! Revision number
+!!$    PRINT *, 'Revision number ...: ', INFO_Revisionnumber(1:LEN_TRIM(INFO_Revisionnumber))
+!!$  CASE ( 't' )   ! Version tag
+!!$    PRINT *, 'Tag name ..........: ', INFO_RevisionTag(1:LEN_TRIM(INFO_RevisionTag))
+!!$  CASE ( 'x' )   ! Checkout timestamp
+!!$    PRINT *, 'Checkout-Date .....: ', INFO_CheckoutDate(1:LEN_TRIM(INFO_CheckoutDate))
+!!$  CASE ( 'B' )   ! Binary name (full path)
+!!$    PRINT *, 'Binary name ....: ', INFO_BinaryName(1:LEN_TRIM(INFO_BinaryName))
+!!$  CASE ( 'C' )   ! Compiling user
+!!$    PRINT *, 'Compiled by .......: ', INFO_CompiledBy(1:LEN_TRIM(INFO_CompiledBy))
+!!$  CASE ( 'D' )   ! Defined macros
+!!$    PRINT *, 'Macros defined .: ', INFO_DefinedMacros(1:LEN_TRIM(INFO_DefinedMacros))
+!!$  CASE ( 'L' )   ! Linker call
+!!$    PRINT *, 'Linker options .: ', INFO_LinkOptions(1:LEN_TRIM(INFO_LinkOptions))
+!!$  CASE ( 'N' )   ! Compiler name
+!!$    PRINT *, 'Compiler call ..: ', INFO_CompilerCall(1:LEN_TRIM(INFO_CompilerCall))
+!!$  CASE ( 'O' )   ! machine (OS) during runtime
+!!$    PRINT *, 'Running on machine : ', INFO_RunMachine(1:LEN_TRIM(INFO_RunMachine))
+!!$  CASE ( 'R' )   ! Info of other used libraries
+!!$    DoRecursive = 1     ! Activate info_call of other libraries
+!!$  CASE ( 'S' )   ! Start time
+!!$    PRINT *, 'Current start time : ', INFO_StartTime(1:LEN_TRIM(INFO_StartTime))
+!!$  CASE ( 'U' )   ! Undefined macros
+!!$    PRINT *, 'Macros undefined: ', INFO_UndefinedMacros(1:LEN_TRIM(INFO_UndefinedMacros))
+!!$  CASE ( 'V' )   ! Compiler version
+!!$    PRINT *, 'Compiler version: ', INFO_CompilerVersion(1:LEN_TRIM(INFO_CompilerVersion))
+!!$  CASE ( 'W' )   ! Where running
+!!$    PRINT *, 'Running on nodes ..: ', INFO_Nodes(1:LEN_TRIM(INFO_Nodes))
+!!$  CASE ( 'X' )   ! Data decomposition
+!!$    PRINT *, 'Data decomposition : ', INFO_Domain(1:LEN_TRIM(INFO_Domain))
+!!$  CASE DEFAULT
+!!$    Error = Error + 1    ! Set error flag
+!!$  END SELECT
+!roa info<
 END DO
 !
 ! Print the trailer line:

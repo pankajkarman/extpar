@@ -53,7 +53,10 @@ MODULE mo_io_grib_api
   CHARACTER (LEN=keylen_max) :: shortName !< short name of the parameter
   INTEGER                    :: centre=78 !< Identification of originating/generating centre,
   INTEGER, PARAMETER :: dwd_id_grib =78   !< the number 78 is for DWD, Offenbach
-
+  INTEGER, PARAMETER :: dwd_id_grib =78   !< the number 78 is for DWD, Offenbach
+!roa mch>
+  INTEGER, PARAMETER :: mch_id_grib=215
+!roa mch<
   ! keys for represenation of data values
   INTEGER     :: bitsPerValue       !< Number of bits containing each packed value
   INTEGER     :: decimalScaleFactor !< Units decimal scale factor D (10**decimalScaleFactor)
@@ -233,7 +236,10 @@ MODULE mo_io_grib_api
     INTEGER  :: hh
     INTEGER  :: minute
 
-    CALL grib_set(gribid,'centre',dwd_id_grib,errorcode)
+!roa mch>
+    CALL grib_set(gribid,'centre',mch_id_grib,errorcode)
+!    CALL grib_set(gribid,'centre',dwd_id_grib,errorcode)
+!roa mch<  
     
     ! define precision for the GRIB
     !decimalPrecision=2
@@ -242,8 +248,12 @@ MODULE mo_io_grib_api
     CALL grib_set(gribid,"bitsPerValue", bitsPerValue)
 
     !PRINT *,'HA debug: shortName: ',TRIM(shortName)
-    CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) ! this is an "edition independent" setting of the parameter values in the product defintion section, the GRIB1 or GRIB2 entries are taken from the data of the *.def files in $GRIB_DEFINITION_PATH/grib1 or $GRIB_DEFINITION_PATH/grib1
-
+!roa cpiler> line too long --> comment fragmented 
+    CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) ! this is an "edition independent" 
+                                                                ! setting of the parameter values in the product defintion section, 
+                                                                ! the GRIB1 or GRIB2 entries are taken from the data of the *.def files 
+                                                                ! in $GRIB_DEFINITION_PATH/grib1 or $GRIB_DEFINITION_PATH/grib1
+!roa cpiler<
     IF (TRIM(shortName)=='DEPTH_LK') THEN
     CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
     CALL grib_set(gribid,"indicatorOfParameter", 96)  ! element
@@ -260,18 +270,20 @@ MODULE mo_io_grib_api
     CALL grib_set(gribid,'dataTime ',dataTime)
 
     ! put data and time of output generation to DWD local section to the grib
-    CALL DATE_AND_TIME(ydate,ytime)
-    READ(ydate,'(4I2)') cc,yy,mm,dd
-    READ(ytime,'(2I2)') hh, minute
-    IF (cc == 20) THEN
-      yy = yy + 100 ! in the GRIB, the year yy starts with 1900 for the "localDecodeDate"?
-    ENDIF
-
-    CALL grib_set(gribid,'localDecodeDateYear ',yy)
-    CALL grib_set(gribid,'localDecodeDateMonth ',mm)
-    CALL grib_set(gribid,'localDecodeDateDay ',dd)
-    CALL grib_set(gribid,'localDecodeDateHour ',hh)
-    CALL grib_set(gribid,'localDecodeDateMinute ',minute)
+!roa dwdgrib> this is DWD LOCAL --> does not work!
+!!$    CALL DATE_AND_TIME(ydate,ytime)
+!!$    READ(ydate,'(4I2)') cc,yy,mm,dd
+!!$    READ(ytime,'(2I2)') hh, minute
+!!$    IF (cc == 20) THEN
+!!$      yy = yy + 100 ! in the GRIB, the year yy starts with 1900 for the "localDecodeDate"?
+!!$    ENDIF
+!!$
+!!$    CALL grib_set(gribid,'localDecodeDateYear ',yy)
+!!$    CALL grib_set(gribid,'localDecodeDateMonth ',mm)
+!!$    CALL grib_set(gribid,'localDecodeDateDay ',dd)
+!!$    CALL grib_set(gribid,'localDecodeDateHour ',hh)
+!!$    CALL grib_set(gribid,'localDecodeDateMinute ',minute)
+!roa dwdgrib<
 
   END SUBROUTINE set_parameter_grib
 

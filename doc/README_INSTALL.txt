@@ -1,3 +1,5 @@
+Hermann Asensio
+
 To compile the "extpar" software the netcdf and grib_api libraries are necessary. 
 Adjust the path settings with hints where to find the libs in
 CMakeLists.txt

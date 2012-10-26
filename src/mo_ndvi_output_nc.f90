@@ -71,8 +71,7 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_globe_tg_fields, ONLY: add_parameters_domain
-
+!roa clean>: deleted because not used
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -204,7 +203,7 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_globe_tg_fields, ONLY: add_parameters_domain
+!roa clean>: deleted because not used
 
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
@@ -366,8 +365,7 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_globe_tg_fields, ONLY: add_parameters_domain
-
+!roa clean>: deleted because not used
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -551,8 +549,7 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_globe_tg_fields, ONLY: add_parameters_domain
-
+!roa clean>: deleted because not used
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &

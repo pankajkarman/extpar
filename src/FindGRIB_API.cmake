@@ -10,8 +10,12 @@
 
 FIND_PATH(GRIB_API_INCLUDE grib_api.h
   ${GRIB_API_PREFIX}/include
-  /usr/local/pkg/grib_api/include          # on DWD hpc
-  /opt/grib_api/include                    # on DWD workstation
+#roa CSCS>
+/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/include
+   #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/include
+#roa CSCS<
+  #/usr/local/pkg/grib_api/include          # on DWD hpc
+  #/opt/grib_api/include                    # on DWD workstation
   NO_DEFAULT_PATH
 )
 
@@ -27,8 +31,12 @@ SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 FIND_LIBRARY(GRIB_API_LIBRARY_C
   NAMES grib_api
   PATHS
-  /usr/local/pkg/grib_api/lib
-  /opt/grib_api/lib                    # on DWD workstation
+#roa CSCS>
+/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
+   #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
+#roa CSCS<
+  #/usr/local/pkg/grib_api/lib
+  #/opt/grib_api/lib                    # on DWD workstation
   ${GRIB_API_PREFIX}
   ${GRIB_API_PREFIX}/lib64
   ${GRIB_API_PREFIX}/lib
@@ -51,8 +59,12 @@ FIND_LIBRARY(GRIB_API_LIBRARY_F90
   ${GRIB_API_PREFIX}
   ${GRIB_API_PREFIX}/lib64
   ${GRIB_API_PREFIX}/lib
-  /usr/local/pkg/grib_api/lib          # on DWD hpc
-  /opt/grib_api/lib                    # on DWD workstation
+#roa CSCS>
+/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
+    #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
+#roa CSCS<
+  #/usr/local/pkg/grib_api/lib          # on DWD hpc
+  #/opt/grib_api/lib                    # on DWD workstation
   /usr/local/lib64
   /usr/lib64
   /usr/local/lib
@@ -72,8 +84,12 @@ FIND_LIBRARY(GRIB_API_LIBRARY_F77
   ${GRIB_API_PREFIX}
   ${GRIB_API_PREFIX}/lib64
   ${GRIB_API_PREFIX}/lib
-  /usr/local/pkg/grib_api/lib          # on DWD hpc
-  /opt/grib_api/lib                    # on DWD workstation
+#roa CSCS>
+/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
+   #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
+#roa CSCS<
+#  /usr/local/pkg/grib_api/lib          # on DWD hpc
+ # /opt/grib_api/lib                    # on DWD workstation
   /usr/local/lib64
   /usr/lib64
   /usr/local/lib
@@ -92,7 +108,7 @@ IF(GRIB_API_INCLUDE AND GRIB_API_LIBRARY_C)
   FIND_LIBRARY(JASPER_LIBRARY
     NAMES jasper
     PATHS
- /data/hasensio/sw/jasper/lib            # on DWD workstation oflws87
+ #/data/hasensio/sw/jasper/lib            # on DWD workstation oflws87
   )
 
   IF(NOT JASPER_LIBRARY)
