@@ -5,6 +5,9 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_6         2011/11/29 Jan-Peter Schulz
+!  Correction of values for plant cover (min and max) for land use
+!  class no. 19 (bare areas) in the Heise (2005) look-up table.
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -79,9 +82,13 @@ PUBLIC :: lai_mn_lt_glc2000, lai_mx_lt_glc2000, rd_lt_glc2000, emiss_lt_glc2000,
 
 INTEGER (KIND=i4), PARAMETER :: nclass_glc2000 = 23 !< GLC2000 has 23 classes for the land use description
 
-INTEGER (KIND=i4), PARAMETER :: i_gme_lookup_table = 1 !< lookup_table for GLC2000 land use classes (IGBP correspondence) from the operational settings of GME (Ritter, 2007)
-INTEGER (KIND=i4), PARAMETER :: i_cosmo_lookup_table = 2 !< lookup_table for GLC2000 land use classes (IGBP correspondence) from the operational settings of COSMO (Heise, 2005)
-INTEGER (KIND=i4), PARAMETER :: i_experimental_lookup_table = 3 !< lookup_table for GLC2000 land use classes (IGBP correspondence) for experimental setting, analog to look-up tables of ECOCLIMAP (Masson 2003)
+INTEGER (KIND=i4), PARAMETER :: i_gme_lookup_table = 1 !< lookup_table for GLC2000 land use classes (IGBP correspondence) from
+                                                       !< the operational settings of GME (Ritter, 2007)
+INTEGER (KIND=i4), PARAMETER :: i_cosmo_lookup_table = 2 !< lookup_table for GLC2000 land use classes (IGBP correspondence) from
+                                                         !< the operational settings of COSMO (Heise, 2005)
+INTEGER (KIND=i4), PARAMETER :: i_experimental_lookup_table = 3 !< lookup_table for GLC2000 land use classes
+                                                                !< (IGBP correspondence) for experimental setting, analogue to
+                                                                !< look-up tables of ECOCLIMAP (Masson 2003)
 
 INTEGER (KIND=i4) :: ilookup_table_glc2000 !< integer switch to choose a lookup table
 CHARACTER (LEN=filename_max) :: name_lookup_table_glc2000 !< name of lookup table
@@ -359,7 +366,7 @@ REAL (KIND=wp) :: zplcmnc_cosmo_o(nclass_glc2000)  = (/ &      !< lookup table l
   &         0.50,  &       ! cultivated & managed areas
   &         0.65,  &       ! mosaic crop / tree / natural vegetation
   &         0.50,  &       ! mosaic crop / shrub / grass
-  &         0.20,  &       ! bare areas                         
+  &         0.02,  &       ! bare areas                         
   &         0.00,  &       ! water
   &         0.00,  &       ! snow & ice 
   &         0.10,  &       ! artificial surface  
@@ -384,7 +391,7 @@ REAL (KIND=wp) :: zplcmxc_cosmo_o(nclass_glc2000)  = (/ &     !< lookup table la
  &            0.90, &       ! cultivated & managed areas
  &            0.80, &       ! mosaic crop / tree / natural vegetation
  &            0.90, &       ! mosaic crop / shrub / grass
- &            0.50, &       ! bare areas                       
+ &            0.05, &       ! bare areas                       
  &            0.00, &       ! water
  &            0.00, &       ! snow & ice 
  &            0.20, &       ! artificial surface   

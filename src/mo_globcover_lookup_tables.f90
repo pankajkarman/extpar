@@ -5,6 +5,13 @@
 ! ------------ ---------- ----
 ! V1_3         2011/04/19 Hermann Asensio
 !  Initial release
+! V1_6         2011/11/29 Jan-Peter Schulz
+!  Let land use class no. 09 (open needleleaved deciduous or evergreen
+!  forest) contribute to FOR_E instead of FOR_D. This appears to be more
+!  realistic in high latitudes with evergreen forest. (Jan-Peter Schulz)
+!  Calculate the urban fraction in the same way as for GLC2000, i.e.
+!  set it to 1.0 instead of 0.8 for land use class no. 19 (artificial
+!  surfaces). (Kristina Trusilova)
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -23,7 +30,7 @@
 ! 06  50   'closed broadleaved deciduous forest           '
 ! 07  60   'open broadleaved deciduous forest             '
 ! 08  70   'closed needleleaved evergreen forest          '
-! 09  90   'open needleleaved deciduous forest            '
+! 09  90   'open needleleaved decid. or evergr. forest    '
 ! 10  100  'mixed broadleaved and needleleaved forest     '
 ! 11  110  'mosaic shrubland (50-70%) - grassland (20-50%)'
 ! 12  120  'mosaic grassland (50-70%) - shrubland (20-50%)'
@@ -73,7 +80,9 @@ PUBLIC :: lai_mn_lt_globcover, lai_mx_lt_globcover, rd_lt_globcover, emiss_lt_gl
 INTEGER (KIND=i4), PARAMETER :: nclass_globcover = 23 !< globcover has 23 classes for the land use description
 
 INTEGER (KIND=i4), PARAMETER :: i_extpar_lookup_table = 1 !< lookup_table for globcover land use classes (IGBP correspondence)
-INTEGER (KIND=i4), PARAMETER :: i_extpar_test_lookup_table = 3 !< lookup_table for globcover land use classes (IGBP correspondence) for experimental setting, analog to look-up tables of ECOCLIMAP (Masson 2003)
+INTEGER (KIND=i4), PARAMETER :: i_extpar_test_lookup_table = 3 !< lookup_table for globcover land use classes
+                                                               !< (IGBP correspondence) for experimental setting, analogue to
+                                                               !< look-up tables of ECOCLIMAP (Masson 2003)
 
 INTEGER (KIND=i4) :: ilookup_table_globcover !< integer switch to choose a lookup table
 CHARACTER (LEN=filename_max) :: name_lookup_table_globcover !< name of lookup table
@@ -102,7 +111,7 @@ REAL (KIND=wp) :: z0c_extpar_o(nclass_globcover)  = (/ &       !< lookup table l
  &  1.0  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.15 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  1.0  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  1.0  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  1.0  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  1.0  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.20 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.20 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -132,7 +141,7 @@ REAL (KIND=wp) :: zplcmnc_extpar_o(nclass_globcover) = (/ &      !< lookup table
  &  0.75  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.7 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.8  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.75  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.75  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.75  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.70 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.70 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -159,7 +168,7 @@ REAL (KIND=wp) :: zplcmxc_extpar_o(nclass_globcover) = (/ &     !< lookup table 
  &  0.9  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.8 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.8  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.9  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.9  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.9  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.8 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.8 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -185,7 +194,7 @@ REAL (KIND=wp) :: zlaimnc_extpar_o(nclass_globcover) = (/ &      !< lookup table
  &  1.0  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  1.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  1.3  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  1.0  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  1.0  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  1.0  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.6 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.6 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -211,7 +220,7 @@ REAL (KIND=wp) :: zlaimxc_extpar_o(nclass_globcover) = (/ &      !< lookup table
  &  6.0  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  4.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  5.0  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  5.0  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  5.0  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  5.0  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  2.5 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  2.5 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -237,7 +246,7 @@ REAL (KIND=wp) :: zrd_extpar_o(nclass_globcover)  = (/ &         !< lookup table
  &  1.0 ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  2.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.6 ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.6 ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.6 ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.8 ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  1.0 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  1.0 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -264,7 +273,7 @@ REAL (KIND=wp) :: zemiss_extpar_o(nclass_globcover) = (/ &       !< lookup table
  &  0.990 ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.993 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.996 ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.990 ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.990 ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.993 ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.985 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.989 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -290,7 +299,7 @@ REAL (KIND=wp) :: zrs_min_extpar_o(nclass_globcover) = (/ &      !< lookup table
  &  150. ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  150. ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  150. ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  150. ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  150. ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  150. ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  150. ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  150. ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -325,7 +334,7 @@ REAL (KIND=wp) :: z0c_experimental(nclass_globcover)   = (/ &       !< lookup ta
  &  1.0  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.15 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  1.0  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  1.0  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  1.0  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  1.0  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.20 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.20 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -352,7 +361,7 @@ REAL (KIND=wp) :: zplcmnc_experimental(nclass_globcover)  = (/ &      !< lookup 
  &  0.75  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.7 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.8  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.75  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.75  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.75  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.70 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.70 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -379,7 +388,7 @@ REAL (KIND=wp) :: zplcmxc_experimental(nclass_globcover)  = (/ &     !< lookup t
  &  0.9  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.8 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.8  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.9  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.9  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.9  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.8 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.8 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -407,7 +416,7 @@ REAL (KIND=wp) :: zlaimnc_experimental(nclass_globcover)   = (/ &      !< lookup
  &  1.0  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  1.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  1.3  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  1.0  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  1.0  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  1.0  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.6 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.6 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -433,7 +442,7 @@ REAL (KIND=wp) :: zlaimxc_experimental(nclass_globcover)  = (/ &      !< lookup 
  &  3.4  ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  2.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  3.8  ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  3.8  ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  3.8  ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  3.4  ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  1.5 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  1.5 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -460,7 +469,7 @@ REAL (KIND=wp) :: zrd_experimental(nclass_globcover)   = (/ &         !< lookup 
  &  1.0 ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  2.0 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.6 ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.6 ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.6 ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.8 ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  1.0 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  1.0 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -486,7 +495,7 @@ REAL (KIND=wp) :: zemiss_experimental(nclass_globcover)  = (/ &       !< lookup 
  &  0.990 ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  0.993 ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  0.996 ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  0.990 ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  0.990 ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  0.993 ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  0.985 ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  0.989 ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -513,7 +522,7 @@ REAL (KIND=wp) :: zrs_min_experimental(nclass_globcover) =(/ &
  &  240. ,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  240. ,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  500. ,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  500. ,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  500. ,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  &  350. ,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  &  300. ,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  &  300. ,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -541,7 +550,7 @@ CHARACTER(len=45) :: globcover_legend(nclass_globcover) = (/&    ! No.
  &  'closed broadleaved deciduous forest           ' , &    ! 6.    
  &  'open broadleaved deciduous forest             ' , &    ! 7.   
  &  'closed needleleaved evergreen forest          ' , &    ! 8.  
- &  'open needleleaved deciduous forest            ' , &    ! 9. 
+ &  'open needleleaved decid. or evergr. forest    ' , &    ! 9. 
  &  'mixed broadleaved and needleleaved forest     ' , &    ! 10.
  &  'mosaic shrubland (50-70%) - grassland (20-50%)' , &    ! 11.        
  &  'mosaic grassland (50-70%) - shrubland (20-50%)' , &    ! 12.       
@@ -567,7 +576,7 @@ INTEGER :: globcover_value(nclass_globcover) =          (/&    ! No.
  &  50,  & ! 'closed broadleaved deciduous forest           ' ! 6.
  &  60,  & ! 'open broadleaved deciduous forest             ' ! 7.
  &  70,  & ! 'closed needleleaved evergreen forest          ' ! 8.
- &  90,  & ! 'open needleleaved deciduous forest            ' ! 9.
+ &  90,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
  & 100,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
  & 110,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
  & 120,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
@@ -604,11 +613,11 @@ CONTAINS
     REAL (KIND=wp), INTENT(OUT) :: lnz0_lt_globcover(nclass_globcover)    !< corresponding natural logarithm of z0c_extpar_o
     REAL (KIND=wp), INTENT(OUT) :: plc_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal plant cover
     REAL (KIND=wp), INTENT(OUT) :: plc_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal plant cover
-    REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal leaf area index
-    REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal leaf area index
+    REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal LAI
+    REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal LAI
     REAL (KIND=wp), INTENT(OUT) :: rd_lt_globcover(nclass_globcover)      !< lookup table landuse class to root depth [m]
-    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_globcover(nclass_globcover)   !< lookup table landuse class to surface thermal emissivity
-    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal stomata resistance
+    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_globcover(nclass_globcover)   !< lookup table landuse class to surface thermal emiss.
+    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal stomata resis.
 
     ! local variable
     INTEGER :: i !< counter
@@ -704,11 +713,11 @@ CONTAINS
   REAL (KIND=wp), INTENT(IN) :: lnz0_lt_globcover(nclass_globcover)    !< corresponding natural logarithm of z0c_extpar_o
   REAL (KIND=wp), INTENT(IN) :: plc_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal plant cover
   REAL (KIND=wp), INTENT(IN) :: plc_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal plant cover
-  REAL (KIND=wp), INTENT(IN) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal leaf area index
-  REAL (KIND=wp), INTENT(IN) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal leaf area index
+  REAL (KIND=wp), INTENT(IN) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal LAI
+  REAL (KIND=wp), INTENT(IN) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal LAI
   REAL (KIND=wp), INTENT(IN) :: rd_lt_globcover(nclass_globcover)      !< lookup table landuse class to root depth [m]
-  REAL (KIND=wp), INTENT(IN) :: emiss_lt_globcover(nclass_globcover)   !< lookup table landuse class to surface thermal emissivity
-  REAL (KIND=wp), INTENT(IN) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal stomata resistance
+  REAL (KIND=wp), INTENT(IN) :: emiss_lt_globcover(nclass_globcover)   !< lookup table landuse class to surface thermal emiss.
+  REAL (KIND=wp), INTENT(IN) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal stomata resis.
 
   REAL (KIND=wp), INTENT(OUT) :: pland          !< land cover                      (-)
   REAL (KIND=wp), INTENT(OUT) :: pice           !< ice fraction                    (-)
@@ -749,11 +758,10 @@ CONTAINS
             pfor_e  = 0.0
             pice    = 0.0
 
-            IF (lu==190            ) purb   = 0.80  ! artificial surface
-            IF (lu==11 .OR.lu==14  ) purb   = 0.025 ! croplands
-            IF (lu== 50 .OR. lu== 60 .OR. lu== 90) pfor_d = 1.0  ! dec.forest
-            IF (lu== 40 .OR. lu== 70) pfor_e = 1.0  ! eve.forest
-            IF (lu== 100) THEN                      ! mix.forest
+            IF (lu==190             ) purb   = 1.0  ! artificial surfaces
+            IF (lu== 50 .OR. lu== 60) pfor_d = 1.0  ! deciduous forest
+            IF (lu== 40 .OR. lu== 70 .OR. lu== 90) pfor_e = 1.0  ! evergreen forest
+            IF (lu== 100) THEN                      ! mixed forest
               pfor_d = 0.5
               pfor_e = 0.5
             END IF
@@ -781,7 +789,7 @@ CONTAINS
 ! &  50,  & ! 'closed broadleaved deciduous forest           ' ! 6.
 ! &  60,  & ! 'open broadleaved deciduous forest             ' ! 7.
 ! &  70,  & ! 'closed needleleaved evergreen forest          ' ! 8.
-! &  90,  & ! 'open needleleaved deciduous forest            ' ! 9.
+! &  90,  & ! 'open needleleaved decid. or evergr. forest    ' ! 9.
 ! & 100,  & ! 'mixed broadleaved and needleleaved forest     ' ! 10.
 ! & 110,  & ! 'mosaic shrubland (50-70%) - grassland (20-50%)' ! 11.
 ! & 120,  & ! 'mosaic grassland (50-70%) - shrubland (20-50%)' ! 12.
