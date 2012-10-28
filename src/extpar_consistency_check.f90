@@ -15,8 +15,11 @@
 !  introduce Globcover 2009 land use data set for external parameters
 !  additional concistency check for vegetation on ice grid elements (glaciers)
 ! add support for GRIB1 and GRIB2
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  add a manual correction for the lake depth of Lake Constance
+! V1_5         2011/08/11 Hermann Asensio
+!  bug fix in the concistency check for FR_LAKE
+!  remove erroneous simple height correction of T_CL field
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -61,6 +64,7 @@ USE  mo_cosmo_grid, ONLY: COSMO_grid, &
 USE  mo_cosmo_grid, ONLY: calculate_cosmo_target_coordinates
 
 USE mo_gme_grid, ONLY: gme_grid
+USE mo_gme_grid, ONLY: spoke
 
 USE  mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
 USE  mo_icon_grid_data, ONLY: icon_grid_region
@@ -68,6 +72,7 @@ USE  mo_icon_grid_data, ONLY: icon_grid_level
 USE  mo_icon_grid_data, ONLY: nvertex_dom  
 USE  mo_icon_grid_data, ONLY: ncells_dom
 
+USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
 
 !  USE mo_icon_grid_routines, ONLY: allocate_icon_grid
 USE mo_icon_grid_routines, ONLY: get_icon_grid_info
@@ -388,7 +393,7 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
   INTEGER (KIND=i4) :: undef_int   !< value for undefined integer
 
   REAL(KIND=wp), PARAMETER :: undefined_lu = 0.0_wp !< value to indicate undefined land use grid elements 
-
+  REAL(KIND=wp) :: thr_cr !< control threshold
   REAL(KIND=wp) :: fill_value_real !< value to indicate undefined grid elements 
   INTEGER (KIND=i4) :: fill_value_int   !< value for undefined integer
 
@@ -412,6 +417,21 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
   INTEGER :: je !< counter
   INTEGER :: ke !< counter
 
+  INTEGER :: n
+  INTEGER :: nloops
+
+  INTEGER :: ni !< gme resolution flag
+  INTEGER :: nnb !< number of neighbor grid elements with common edge
+  INTEGER :: nv  !< number of vertices
+  INTEGER :: n_index !< help variable
+  INTEGER :: ne_ie(9) !< index for grid element neighbor
+  INTEGER :: ne_je(9) !< index for grid element neighbor
+  INTEGER :: ne_ke(9) !< index for grid element neighbor
+  INTEGER :: ks1(6) !< index for grid element neighbor
+  INTEGER :: ks2(6) !< index for grid element neighbor
+  INTEGER :: ksd(6) !< index for grid element neighbor
+
+
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
   INTEGER  :: i_landuse_data !<integer switch to choose a land use raw data set
   INTEGER  :: ilookup_table_lu !< integer switch to choose a lookup table
@@ -419,7 +439,6 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
 
 
   ! variables for the ICON grid
-  INTEGER :: n_dom                        !< number of model domains
   INTEGER :: first_dom                    !< index of first (global) model domain 
   INTEGER :: idom                         !< counter for domains
   
@@ -824,7 +843,8 @@ print *, "soil buffer: ", soil_buffer_file
      ! determine "fraction ocean" first before considering "fraction lake"
      ! fr_ocean should be determined by ocean model if available
      ! so use (1. - lsm_ocean_model) as mask instead of fr_land_globe from the orography data
-     WHERE (fr_land_globe < 0.99)
+     thr_cr = 0.99
+     WHERE (fr_land_globe < thr_cr)
        fr_ocean_lu = 1. - fr_land_lu
        fr_lake = 0.0
      ELSEWHERE
@@ -847,8 +867,9 @@ print *, "soil buffer: ", soil_buffer_file
        fr_ocean_lu = 1. - fr_land_lu
        fr_lake = 0.0
      ENDWHERE
-     ! here fr_ocean+fr_lake+fr_land = 1
-
+     ! here fr_ocean_lu + fr_lake +fr_land_lu = 1
+     ! fr_ocean_lu + fr_lake = fr_water
+     ! fr_water + fr_land_lu = 1
 
      ! check consistency for "lake depth"
      WHERE (fr_land_lu >= 0.5)  
@@ -871,10 +892,98 @@ print *, "soil buffer: ", soil_buffer_file
       lake_depth = DWD_min_lake_depth
      END WHERE
 
+     ! ha
+     ! at the coastline some target grid elements are marked as "lake" due to
+     ! inconcistencies between the orography data (fr_land_globe) and landuse
+     ! data (fr_land_lu).
+     ! check neighbour target grid element for fr_ocean_lu
+
+     DO nloops=1,3
+     DO k=1,tg%ke
+     DO j=1,tg%je
+     DO i=1,tg%ie
+
+       IF (fr_lake(i,j,k)>0.05) THEN ! concistency check for neighbour ocean elements
+
+         SELECT CASE(igrid_type) ! get indices for neighbour grid elements
+
+           CASE(igrid_icon) ! ICON GRID
+             ! get neighbour grid indices for ICON grid
+             ne_je(:) = 1
+             ne_ke(:) = 1
+             ne_ie(:) = 0
+             nnb=icon_grid%nvertex_per_cell ! number of neighbours in ICON grid
+             DO nv=1, nnb
+               n_index = icon_grid_region(icon_dom_nr)%cells%neighbor_index(i,nv) ! get cell id of neighbour cells
+               IF (n_index > 0) THEN
+                 ne_ie(nv) = n_index
+               ENDIF
+             ENDDO  
+
+           CASE(igrid_cosmo) ! COSMO grid
+             nnb = 8
+             ! northern neighbour
+             ne_ie(1) = i
+             ne_je(1) = MAX(1,j-1)
+             ne_ke(1) = k
+             ! north-eastern neighbour
+             ne_ie(2) = MIN(tg%ie,i+1)
+             ne_je(2) = MAX(1,j-1)
+             ne_ke(2) = k
+             ! eastern neighbour
+             ne_ie(3) = MIN(tg%ie,i+1)
+             ne_je(3) = j
+             ne_ke(3) = k
+             ! south-eastern neighbour
+             ne_ie(4) = MIN(tg%ie,i+1)
+             ne_je(4) = MIN(tg%je,j+1)
+             ne_ke(4) = k
+             ! southern neighbour
+             ne_ie(5) = i
+             ne_je(5) = MIN(tg%je,j+1)
+             ne_ke(5) = k
+             ! south-west neighbour
+             ne_ie(6) = MAX(1,i-1)
+             ne_je(6) = MIN(tg%je,j+1)
+             ne_ke(6) = k
+             ! western neighbour
+             ne_ie(7) = MAX(1,i-1)
+             ne_je(7) = j
+             ne_ke(7) = k
+             ! north-west neighbour
+             ne_ie(8) = MAX(1,i-1)
+             ne_je(8) = MAX(1,j-1)
+             ne_ke(8) = k
+
+           CASE(igrid_gme) ! GME grid
+             ni = gme_grid%ni
+             CALL spoke(i,j,k,ni,nnb,ks1,ks2,ksd)
+             ne_ie(1:nnb)=ks1(1:nnb)
+             ne_je(1:nnb)=ks2(1:nnb)
+             ne_ke(1:nnb)=ksd(1:nnb)
+
+         END SELECT
+
+         DO n=1,nnb
+           IF ((ne_ie(n)>= 1).AND.(ne_je(n)>=1).AND.(ne_ke(n)>=1)) THEN
+           IF (fr_ocean_lu(ne_ie(n),ne_je(n),ne_ke(n))>0.5) THEN ! if the direct neighbour element is ocean,
+             fr_lake(i,j,k) = 0.0                                ! set this grid element also to ocean.
+             fr_ocean_lu(i,j,k) = 1.0 - fr_land_lu(i,j,k)
+             lake_depth(i,j,k) = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+           ENDIF  
+           ENDIF
+         ENDDO
+
+       ENDIF ! check for ocean
+
+     ENDDO
+     ENDDO
+     ENDDO
+     ENDDO
+
      ! manual correction for lake depth of Lake Constance
      ! the raw database of the lake depth data appears not to be correct
      ! the main part of Lake Constance has a mean depth of 98 m, so set to DWD_max_lake_depth
-      ! set Death Sea to "ocean water"
      WHERE ((lon_geo > 8.8).AND.(lon_geo < 9.9).AND. &
       &     (lat_geo > 47.4).AND.(lat_geo < 48.4).AND. &
       &     (lake_depth > 9.7).AND.(lake_depth < 9.9) )
@@ -886,11 +995,6 @@ print *, "soil buffer: ", soil_buffer_file
       timediff = timeend - timestart
       PRINT *,'flake data consitency check, WHERE, done in: ', timediff
 
-!------------------------------------------------------------------------------------------
-!------------ hight correction for T_CL ---------------------------------------------------
-      WHERE (fr_land_lu >= 0.5)  
-        crutemp = crutemp - lr * hh_globe ! simple hight correction for T_CL field
-      ENDWHERE 
 !------------------------------------------------------------------------------------------
 !------------- NDVI data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
