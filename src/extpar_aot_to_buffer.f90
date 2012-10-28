@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_3         2011/04/19 Hermann Asensio
+!  clean up of code
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -127,8 +129,6 @@ PROGRAM extpar_aot_to_buffer
     &                      aot_grid
   USE mo_aot_target_fields, ONLY: allocate_aot_target_fields,&
     &                              aot_tg
-  USE mo_aot_target_fields, ONLY: meta_aot_tg
-
   
   USE mo_agg_aot, ONLY: agg_aot_data_to_target_grid
 
@@ -157,79 +157,12 @@ PROGRAM extpar_aot_to_buffer
   CHARACTER (len=filename_max) :: aot_buffer_file !< name for aerosol buffer file
   CHARACTER (len=filename_max) :: aot_output_file !< name for aerosol output file
 
-
-
   INTEGER :: i, ilev, ip, iplev, ic, in, iclev, istartlev
-
-  ! Namelist variables
-  INTEGER :: grid_root                    !< number of partitions of the icosahedron
-  INTEGER :: start_lev                    !< level of (first) global model domain
-  INTEGER :: n_dom                        !< number of model domains
-  INTEGER :: parent_id(max_dom-1)         !< id of parent model domain
-
-
-  INTEGER                      :: i_nc       !< number of cells
-  INTEGER                      :: i_ne       !< number of edges
-  INTEGER                      :: i_nv       !< number of vertices
-  INTEGER                      :: nc_p_e     !< number of cells per edge
-  INTEGER                      :: nv_p_c     !< number of vertices per cell
-  INTEGER                      :: ne_p_v     !< number of edges per vertex
-  INTEGER                      :: nchilds    !< number of child cells per cell
-
-  INTEGER                      :: n_childdom !< actual number of child domains
-
-
-
-  INTEGER :: first_dom
-  INTEGER :: idom
-
-
-
-  TYPE(icon_domain) , ALLOCATABLE, TARGET :: icon_grid_all(:)
-
-  INTEGER, ALLOCATABLE :: level_region(:)   ! level of region
-
-  TYPE(geographical_coordinates) :: tpoint
-
-  INTEGER :: start_id 
-  INTEGER :: nearest_cell_id
-
   INTEGER :: nj
-  INTEGER :: nb_cell_id
-  TYPE(cartesian_coordinates)  :: neighbour_cc     !> coordinates of a neighbour cell centre in cartesian system
-  REAL(KIND=wp)                :: sp               !> cos arc length of  of geodesic arc with endpoints x0,x1 (normalized scalar product of the two points)
-  REAL(KIND=wp)                :: sp_max
-  TYPE(geographical_coordinates) :: target_geo_co    !> target coordinates in geographical system of point for which the nearest ICON grid cell is to be determined
-  TYPE(cartesian_coordinates)  :: target_cc_co     !>  target coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-
- INTEGER, ALLOCATABLE :: nearest_cell_ids(:)    !< array with ids of nearest cell for the domains
-
-
- TYPE(cartesian_coordinates), ALLOCATABLE :: polygon(:)
- TYPE(cartesian_coordinates)              :: point
- TYPE(cartesian_coordinates)              :: out_point
- TYPE(geographical_coordinates)           :: out_point_geo
- TYPE(geographical_coordinates), ALLOCATABLE :: poly_geo(:)
-
- INTEGER                                  :: inflag
-
- INTEGER                                  :: vert_index
- INTEGER                                  :: ivert
-
- TYPE(cartesian_coordinates), ALLOCATABLE :: test_poly(:)
- TYPE(cartesian_coordinates)              :: test_point
- TYPE(geographical_coordinates)           :: test_point_geo
- TYPE(cartesian_coordinates)              :: test_out_point
- TYPE(geographical_coordinates)           :: test_out_point_geo
- TYPE(geographical_coordinates), ALLOCATABLE :: test_poly_geo(:)
-
- INTEGER :: j,k !< counter
- INTEGER :: l,m !< counter
- INTEGER (KIND=i8) :: icell
-
- REAL (KIND=wp) :: undefined
- INTEGER        :: undef_int
-
+  INTEGER :: j,k !< counter
+  INTEGER :: l,m !< counter
+  REAL (KIND=wp) :: undefined
+  INTEGER        :: undef_int
 
   !--------------------------------------------------------------------------------------
   INTEGER (KIND=i8) :: nlon_glc2000 !< number of grid elements in zonal direction for glc2000 data

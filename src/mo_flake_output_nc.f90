@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -29,7 +31,6 @@ MODULE mo_flake_output_nc
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
   USE mo_io_utilities, ONLY: vartype_int 
@@ -69,9 +70,6 @@ MODULE mo_flake_output_nc
     &                                     fr_lake,    &
     &                                     flake_tot_npixel)
 
-  USE mo_io_utilities, ONLY: struct_real_3d
-
-  USE mo_io_utilities, ONLY: struct_int_3d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -327,12 +325,6 @@ MODULE mo_flake_output_nc
     &                                     fr_lake,    &
     &                                     flake_tot_npixel)
 
-
-  USE mo_io_utilities, ONLY: struct_real_1d
-  USE mo_io_utilities, ONLY: struct_real_2d
-
-  USE mo_io_utilities, ONLY: struct_int_1d
-  USE mo_io_utilities, ONLY: struct_int_2d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer

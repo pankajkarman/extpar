@@ -15,7 +15,6 @@ data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path s
 # path to binaries
 progdir=../build                                             # adjust the path setting!
 
-
 binary_lu=extpar_landuse_to_buffer
 binary_globe=extpar_globe_to_buffer
 binary_aot=extpar_aot_to_buffer
@@ -32,35 +31,13 @@ fi
 cd ${workdir}
 pwd
 
-# set target grid definition 
-cat > INPUT_grid_org << EOF_go
-&GRID_DEF 
- igrid_type = 2,
- domain_def_namelist='INPUT_COSMO_GRID'
-/ 
-EOF_go
 
 #---
-cat > INPUT_COSMO_GRID << EOF_grid
-&lmgrid
- pollon=-170.0, 
- pollat=43.0, 
- startlon_tot=-18.25, 
- startlat_tot=-10.625,
-! startlon_tot=-11.00, 
-! startlat_tot=-6.625,
- dlon=0.125,
- dlat=0.125,
- ie_tot=211,
- je_tot=178,
-!  ie_tot=20,
-!  je_tot=20
-/
-EOF_grid
-#---
 
-grib_output_filename='external_parameter_cosmo_mch.g1'
-netcdf_output_filename='external_parameter_cosmo_mch.nc'
+grib_output_filename='external_parameter_mch_cosmo2.g1'
+stf_output_filename='external_parameter_mch_cosmo2.stf'
+netcdf_output_filename='external_parameter_mch_cosmo2.nc'
+grib_sample='DWD_rotated_ll_7km_G_grib1'
 
 raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
@@ -76,6 +53,11 @@ output_glc2000='extpar_landuse_cosmo.nc'
 raw_data_glcc='glcc_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
 output_glcc='glcc_landuse_cosmo.nc'
+
+raw_data_globcover='GLOBCOVER_L4_200901_200912_V2.3_int16.nc'
+raw_data_globcover_gz='GLOBCOVER_L4_200901_200912_V2.3_int16.nc.gz'
+buffer_lu='extpar_landuse_buffer.nc'
+output_lu='extpar_landuse_cosmo.nc'
 
 raw_data_globe_A10='GLOBE_A10.nc'
 raw_data_globe_B10='GLOBE_B10.nc'
@@ -108,6 +90,28 @@ raw_data_flake='lakedepth.nc'
 buffer_flake='flake_buffer.nc'
 output_flake='ext_par_flake_cosmo.nc'
 
+# set target grid definition 
+cat > INPUT_grid_org << EOF_go
+&GRID_DEF 
+ igrid_type = 2,
+ domain_def_namelist='INPUT_COSMO_GRID'
+/ 
+EOF_go
+
+#---
+cat > INPUT_COSMO_GRID << EOF_grid
+&lmgrid
+ pollon=-170.0, 
+ pollat=43.0, 
+ startlon_tot=-7.0, 
+ startlat_tot=-7.0,
+ dlon=0.02,
+ dlat=0.02,
+ ie_tot=701,
+ je_tot=701,
+/
+EOF_grid
+#---
 # create input namelists 
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
@@ -133,14 +137,15 @@ cat > INPUT_TCLIM << EOF_tclim
 EOF_tclim
 #---
 cat > INPUT_LU << EOF_lu
-&glc2000_raw_data
-   raw_data_glc2000_path='',
-   raw_data_glc2000_filename='${raw_data_glc2000}',
-   ilookup_table_glc2000=3
+&lu_raw_data
+   raw_data_lu_path='',
+   raw_data_lu_filename='${raw_data_globcover}',
+   i_landuse_data=1,
+   ilookup_table_lu=1
 /
-&glc2000_io_extpar
-   glc2000_buffer_file='${buffer_glc2000}',
-   glc2000_output_file='${output_glc2000}'
+&lu_io_extpar
+   lu_buffer_file='${buffer_lu}',
+   lu_output_file='${output_lu}'
 /
 &glcc_raw_data
    raw_data_glcc_path='',
@@ -162,6 +167,23 @@ cat > INPUT_ORO << EOF_oro
  GLOBE_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'  
 /
 EOF_oro
+#---
+cat > INPUT_OROSMOOTH << EOF_orosm
+&orography_smoothing
+  lfilter_oro=.FALSE.,
+!  ilow_pass_oro=4,
+!  numfilt_oro=1,
+  !ilow_pass_xso=5,
+!  ilow_pass_xso=2,
+!  lxso_first=.FALSE.,
+!  numfilt_xso=1,
+ ! rxso_mask=750.0,
+!  rxso_mask=0.0,
+!  eps_filter=0.1,
+!  rfill_valley=0.0,
+!  ifill_valley=1
+/
+EOF_orosm
 #---
 cat > INPUT_NDVI << EOF_ndvi
 &ndvi_raw_data
@@ -199,16 +221,17 @@ EOF_flake
 # consistency check
 cat > INPUT_CHECK << EOF_check
 &extpar_consistency_check_io
-  grib_output_filename='${grib_output_filename}',
-  netcdf_output_filename='${netcdf_output_filename}',
-  orography_buffer_file='${buffer_globe}',
-  soil_buffer_file='${buffer_soil}',
-  glc2000_buffer_file='${buffer_glc2000}',
-  glcc_buffer_file='${buffer_glcc}',
-  flake_buffer_file='${buffer_flake}',
-  ndvi_buffer_file='${buffer_ndvi}',
-  t_clim_buffer_file='${buffer_tclim}',
-  aot_buffer_file='${buffer_aot}'
+  grib_output_filename="${grib_output_filename}",
+  grib_sample="${grib_sample}",
+  netcdf_output_filename="${netcdf_output_filename}",
+  orography_buffer_file="${buffer_globe}",
+  soil_buffer_file="${buffer_soil}",
+  lu_buffer_file="${buffer_lu}",
+  glcc_buffer_file="${buffer_glcc}",
+  flake_buffer_file="${buffer_flake}",
+  ndvi_buffer_file="${buffer_ndvi}",
+  t_clim_buffer_file="${buffer_tclim}",
+  aot_buffer_file="${buffer_aot}"
 /  
 EOF_check
 
@@ -219,6 +242,8 @@ ln -s ${data_dir}/${raw_data_tclim}
 
 ln -s ${data_dir}/${raw_data_glc2000}
 ln -s ${data_dir}/${raw_data_glcc}
+
+ln -s ${data_dir}/${raw_data_globcover}
 
 ln -s ${data_dir}/${raw_data_globe_A10} 
 ln -s ${data_dir}/${raw_data_globe_B10}

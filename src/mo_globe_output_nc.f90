@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -27,7 +29,6 @@ MODULE mo_globe_output_nc
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
   USE mo_io_utilities, ONLY: netcdf_put_var
@@ -71,9 +72,6 @@ MODULE mo_globe_output_nc
      &                                     slope_globe,         &
      &                                     z0_topo,             &
      &                                     vertex_param)
-
-   USE mo_io_utilities, ONLY: struct_real_3d
-   USE mo_io_utilities, ONLY: struct_int_3d
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -249,9 +247,6 @@ MODULE mo_globe_output_nc
      &                                     slope_globe,         &
      &                                     z0_topo)
    
-   USE mo_io_utilities, ONLY: struct_real_1d
-   USE mo_io_utilities, ONLY: struct_real_2d
-
    USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
     &                         set_nc_grid_def_cosmo
 
@@ -442,8 +437,6 @@ MODULE mo_globe_output_nc
      &                                     slope_globe,         &
      &                                     z0_topo,             &
      &                                     vertex_param)
-
-   USE mo_io_utilities, ONLY: struct_real_1d
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer

@@ -5,6 +5,13 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Update documentation
+! V1_3         2011/04/19 Hermann Asensio
+! add support for GRIB1 and GRIB2
+! @VERSION@    @DATE@     Hermann Asensio, Anne Roche
+!  set correct stepType(GRIB1 and GRIB2) and timeRangeIndicator (GRIB1) (ha)
+!  clean up of code (roa)
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -19,6 +26,9 @@ MODULE mo_io_grib_api
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
+
+  USE mo_io_units, ONLY: filename_max
+
 
 
   IMPLICIT NONE
@@ -51,12 +61,13 @@ MODULE mo_io_grib_api
   INTEGER                    :: paramID   !< Unique identifier of the parameter. 
                                           !! A parameter in different formats (grib1/grib2) is identified by the same ID.
   CHARACTER (LEN=keylen_max) :: shortName !< short name of the parameter
-  INTEGER                    :: centre=78 !< Identification of originating/generating centre,
-  INTEGER, PARAMETER :: dwd_id_grib =78   !< the number 78 is for DWD, Offenbach
+  INTEGER                    :: centre !< Identification of originating/generating centre,
   INTEGER, PARAMETER :: dwd_id_grib =78   !< the number 78 is for DWD, Offenbach
 !roa mch>
   INTEGER, PARAMETER :: mch_id_grib=215
 !roa mch<
+
+
   ! keys for represenation of data values
   INTEGER     :: bitsPerValue       !< Number of bits containing each packed value
   INTEGER     :: decimalScaleFactor !< Units decimal scale factor D (10**decimalScaleFactor)
@@ -76,12 +87,14 @@ MODULE mo_io_grib_api
   INTEGER     :: localDecodeDateMinute !< minute of decoding data the GRIB record, local extension DWD
   INTEGER     :: localVersionNumber    !< version number, local DWD
 
+  !> write COSMO field to grib record
   INTERFACE write_extpar_cosmo_field_grib
     MODULE PROCEDURE write_extpar_cosmo_real_field_grib
     MODULE PROCEDURE write_extpar_cosmo_int_field_grib
   END INTERFACE write_extpar_cosmo_field_grib
 
-   INTERFACE write_extpar_gme_field_grib
+  !> write GME field to grib record
+  INTERFACE write_extpar_gme_field_grib
     MODULE PROCEDURE write_extpar_gme_real_field_grib
     MODULE PROCEDURE write_extpar_gme_int_field_grib
   END INTERFACE write_extpar_gme_field_grib
@@ -215,7 +228,7 @@ MODULE mo_io_grib_api
 
 
   !> set product defintion for a GRIB message with GRIB_API
-  !! the grib message should have been previously defined, pass the grib_id to this subroutine
+  !! the grib message should have been previously defined, pass the gribid to this subroutine
   SUBROUTINE set_parameter_grib(gribid,shortName,dataDate,dataTime)
 
     INTEGER, INTENT(IN)   :: gribid !< id of grib message (GRIB_API)
@@ -226,6 +239,9 @@ MODULE mo_io_grib_api
 
     !local variables
     INTEGER :: errorcode
+    INTEGER :: centre !< Identification of originating/generating centre,
+    INTEGER :: editionNumber !< GRIB edition number
+
 
     CHARACTER(len=10) :: ydate
     CHARACTER(len=10) :: ytime
@@ -236,63 +252,93 @@ MODULE mo_io_grib_api
     INTEGER  :: hh
     INTEGER  :: minute
 
-!roa mch>
-    CALL grib_set(gribid,'centre',mch_id_grib,errorcode)
-!    CALL grib_set(gribid,'centre',dwd_id_grib,errorcode)
-!roa mch<  
-    
+
+    CALL grib_get(gribid,'centre',centre,errorcode)
+    CALL grib_get(gribid,'editionNumber',editionNumber,errorcode)
+
     ! define precision for the GRIB
-    !decimalPrecision=2
-    !CALL grib_set(gribid,"changeDecimalPrecision", decimalPrecision)
     bitsPerValue=16
     CALL grib_set(gribid,"bitsPerValue", bitsPerValue)
 
-    !PRINT *,'HA debug: shortName: ',TRIM(shortName)
-!roa cpiler> line too long --> comment fragmented 
-    CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) ! this is an "edition independent" 
-                                                                ! setting of the parameter values in the product defintion section, 
-                                                                ! the GRIB1 or GRIB2 entries are taken from the data of the *.def files 
-                                                                ! in $GRIB_DEFINITION_PATH/grib1 or $GRIB_DEFINITION_PATH/grib1
-!roa cpiler<
-    IF (TRIM(shortName)=='DEPTH_LK') THEN
-    CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
-    CALL grib_set(gribid,"indicatorOfParameter", 96)  ! element
-    CALL grib_set(gribid,"table2Version", 201)        ! table
-    ENDIF
-    IF (TRIM(shortName)=='FR_LAKE') THEN
-    CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
-    CALL grib_set(gribid,"indicatorOfParameter", 55)  ! element
-    CALL grib_set(gribid,"table2Version", 202)        ! table
-    ENDIF
 
+     ! set stepType for GRIB1 and GRIB2, as the GRIB sample may not have the correct value
+     ! set timeRangeIndicator for GRIB1 explicit
+     ! the dataDate values are conventions for external parameter fields 
+     ! \TODO maybe in GRIB2 these settings have to be improved
+    CALL grib_set(gribid,"stepType","instant")
+    IF (editionNumber == 1) THEN
+      CALL  grib_set(gribid,"timeRangeIndicator",0) ! GRIB1 setting
+    ENDIF
+    IF ((dataDate >= 11110111).AND.(dataDate <= 11111211)) THEN
+      CALL grib_set(gribid,"stepType","avg")
+      IF (editionNumber == 1) THEN
+        CALL  grib_set(gribid,"timeRangeIndicator",3) ! GRIB1 setting
+      ENDIF
+    ENDIF
 
     CALL grib_set(gribid,'dataDate ',dataDate)
     CALL grib_set(gribid,'dataTime ',dataTime)
 
-    ! put data and time of output generation to DWD local section to the grib
-!roa dwdgrib> this is DWD LOCAL --> does not work!
-!!$    CALL DATE_AND_TIME(ydate,ytime)
-!!$    READ(ydate,'(4I2)') cc,yy,mm,dd
-!!$    READ(ytime,'(2I2)') hh, minute
-!!$    IF (cc == 20) THEN
-!!$      yy = yy + 100 ! in the GRIB, the year yy starts with 1900 for the "localDecodeDate"?
-!!$    ENDIF
-!!$
-!!$    CALL grib_set(gribid,'localDecodeDateYear ',yy)
-!!$    CALL grib_set(gribid,'localDecodeDateMonth ',mm)
-!!$    CALL grib_set(gribid,'localDecodeDateDay ',dd)
-!!$    CALL grib_set(gribid,'localDecodeDateHour ',hh)
-!!$    CALL grib_set(gribid,'localDecodeDateMinute ',minute)
-!roa dwdgrib<
+
+    !PRINT *,'HA debug: shortName: ',TRIM(shortName)
+    CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) 
+    ! this is an "edition independent" setting of the parameter values 
+    ! in the product defintion section, the GRIB1 or GRIB2 entries are 
+    ! taken from the data of the *.def files in $GRIB_DEFINITION_PATH/grib1 
+    ! or $GRIB_DEFINITION_PATH/grib1
+    
+    IF (editionNumber == 1) THEN
+      IF (TRIM(shortName)=='DEPTH_LK') THEN
+        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
+        CALL grib_set(gribid,"indicatorOfParameter", 96)  ! element
+        CALL grib_set(gribid,"table2Version", 201)        ! table
+      ENDIF
+      IF (TRIM(shortName)=='FR_LAKE') THEN
+        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
+        CALL grib_set(gribid,"indicatorOfParameter", 55)  ! element
+        CALL grib_set(gribid,"table2Version", 202)        ! table
+      ENDIF
+    ELSEIF (editionNumber == 2) THEN
+      IF (TRIM(shortName)=='DEPTH_LK') THEN
+        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
+        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
+        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
+        CALL grib_set(gribid,"parameterNumber",0)   ! parameterNumber 'water depth'
+      ENDIF
+      IF (TRIM(shortName)=='FR_LAKE') THEN
+        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
+        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
+        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
+        CALL grib_set(gribid,"parameterNumber",2)   ! parameterNumber 'water fraction'
+      ENDIF
+    ENDIF
+
+    IF ((centre == dwd_id_grib ).AND.(editionNumber == 1)) THEN
+      ! put data and time of output generation to DWD local section to the grib
+      CALL DATE_AND_TIME(ydate,ytime)
+      READ(ydate,'(4I2)') cc,yy,mm,dd
+      READ(ytime,'(2I2)') hh, minute
+      IF (cc == 20) THEN
+        yy = yy + 100 ! in the GRIB, the year yy starts with 1900 for the "localDecodeDate"?
+      ENDIF
+
+      CALL grib_set(gribid,'localDecodeDateYear ',yy)
+      CALL grib_set(gribid,'localDecodeDateMonth ',mm)
+      CALL grib_set(gribid,'localDecodeDateDay ',dd)
+      CALL grib_set(gribid,'localDecodeDateHour ',hh)
+      CALL grib_set(gribid,'localDecodeDateMinute ',minute)
+    ENDIF
 
   END SUBROUTINE set_parameter_grib
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_cosmo_real_field_grib(outfile_id,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_cosmo_real_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
+    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
@@ -310,7 +356,7 @@ MODULE mo_io_grib_api
     INTEGER :: i,j
 
     ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
-    CALL grib_new_from_samples(gribid_in, "DWD_rotated_ll_7km_G_grib1")
+    CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
 
@@ -339,10 +385,12 @@ MODULE mo_io_grib_api
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_cosmo_int_field_grib(outfile_id,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_cosmo_int_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
+    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     INTEGER(KIND=i4), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
@@ -361,7 +409,7 @@ MODULE mo_io_grib_api
     INTEGER :: i,j
 
     ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
-    CALL grib_new_from_samples(gribid_in, "DWD_rotated_ll_7km_G_grib1")
+    CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
 
@@ -390,10 +438,12 @@ MODULE mo_io_grib_api
   
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_gme_real_field_grib(outfile_id,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_gme_real_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
+    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) !< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
@@ -414,7 +464,7 @@ MODULE mo_io_grib_api
     INTEGER :: i,j,k
 
     ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
-    CALL grib_new_from_samples(gribid_in, "DWD_triangular_grid_30km_G_grib1")
+    CALL grib_new_from_samples(gribid_in,TRIM(grib_sample))
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
 
@@ -444,10 +494,12 @@ MODULE mo_io_grib_api
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_gme_int_field_grib(outfile_id,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_gme_int_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
+    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) !< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
@@ -465,7 +517,7 @@ MODULE mo_io_grib_api
     INTEGER :: nip1
 
     ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
-    CALL grib_new_from_samples(gribid_in, "DWD_triangular_grid_30km_G_grib1")
+    CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
 

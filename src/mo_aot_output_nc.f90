@@ -5,6 +5,10 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_3         2011/04/19 Hermann Asensio
+!  change netcdf output:  time variable
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -34,6 +38,9 @@ MODULE mo_aot_output_nc
   USE mo_io_utilities, ONLY: close_netcdf_file
   USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
 
+  USE mo_io_utilities, ONLY: get_date_const_field
+  USE mo_io_utilities, ONLY: set_date_mm_extpar_field
+
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
 
@@ -62,16 +69,12 @@ MODULE mo_aot_output_nc
    &                                     ntime,        &
    &                                     aot_tg)
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
 
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
     &                        netcdf_char_attributes, &
     &                        netcdf_real_attributes
 
   USE mo_io_utilities, ONLY: dim_meta_info
-
-  USE mo_io_utilities, ONLY: struct_real_3d
-  USE mo_io_utilities, ONLY: struct_real_5d
 
   USE mo_io_utilities, ONLY: vartype_int 
   USE mo_io_utilities, ONLY: vartype_real
@@ -100,9 +103,12 @@ MODULE mo_aot_output_nc
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
 
-  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
   ! local variables
+  REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+  INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+  INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
   INTEGER, PARAMETER :: nglob_atts=5
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -136,7 +142,14 @@ MODULE mo_aot_output_nc
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
-  
+
+  ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
+
   ! set up dimensions for netcdf output 
   ndims = 5
   ALLOCATE(dim_list(1:ndims),STAT=errorcode)
@@ -145,15 +158,17 @@ MODULE mo_aot_output_nc
   dim_list(1) = dim_3d_tg(1) ! ie
   dim_list(2) = dim_3d_tg(2) ! je
   dim_list(3) = dim_3d_tg(3) ! ke
-  dim_list(4)%dimname = 'ntime'
-  dim_list(4)%dimsize = ntime
-  dim_list(5)%dimname = 'ntype'
-  dim_list(5)%dimsize = ntype
+  dim_list(4)%dimname = 'ntype'
+  dim_list(4)%dimsize = ntype
+  dim_list(5)%dimname = 'time'
+  dim_list(5)%dimsize = ntime
+
 
   !-----------------------------------------------------------------
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
+      &                       time=time,          &
       &                       ncid=ncid)
 
   ! lon
@@ -186,7 +201,6 @@ MODULE mo_aot_output_nc
    &                                     ntime,        &
    &                                     aot_tg)
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
 
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
     &                        netcdf_char_attributes, &
@@ -238,10 +252,15 @@ MODULE mo_aot_output_nc
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
 
-  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
 
   ! local variables
+  REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+  INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+  INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
   INTEGER, PARAMETER :: nglob_atts=5
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
@@ -298,6 +317,16 @@ MODULE mo_aot_output_nc
   CALL def_com_target_fields_meta(dim_2d_cosmo,coordinates,grid_mapping)
   ! lon_geo_meta and lat_geo_meta
 
+  
+  ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
+
+
+
   !set up dimensions for buffer
   ndims = 4
   ALLOCATE(dim_list(1:ndims),STAT=errorcode)
@@ -305,10 +334,11 @@ MODULE mo_aot_output_nc
 
   dim_list(1) = dim_rlon_cosmo(1) ! rlon
   dim_list(2) = dim_rlat_cosmo(1) ! rlat
-  dim_list(3)%dimname = 'ntime' !dim_lu_tg(4) ! nclass_glc2000
-  dim_list(3)%dimsize = ntime 
-  dim_list(4)%dimname = 'ntype'
-  dim_list(4)%dimsize = ntype
+  dim_list(3)%dimname = 'ntype'
+  dim_list(3)%dimsize = ntype
+  dim_list(4)%dimname = 'time' 
+  dim_list(4)%dimsize = ntime 
+
 
   dim_2d_buffer(1:2) = dim_list(1:2)
   dim_4d_buffer(1:4) = dim_list(1:4)
@@ -316,6 +346,7 @@ MODULE mo_aot_output_nc
   CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
+      &                       time=time,                           &
       &                       ncid=ncid)
     !-----------------------------------------------------------------
 
@@ -339,7 +370,7 @@ MODULE mo_aot_output_nc
 
   ! aot_tg
    CALL netcdf_put_var(ncid,&
-                       &  aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime,1:ntype), &
+                       &  aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntype,1:ntime), &
                        & aot_tg_meta, &
                        & undefined)
   !-----------------------------------------------------------------
@@ -362,19 +393,12 @@ MODULE mo_aot_output_nc
    &                                     ntime,        &
    &                                     aot_tg)
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
-
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
     &                        netcdf_char_attributes, &
     &                        netcdf_real_attributes, &
     &                        netcdf_def_grid_mapping
 
   USE mo_io_utilities, ONLY: dim_meta_info
-
-  USE mo_io_utilities, ONLY: struct_real_1d
-  USE mo_io_utilities, ONLY: struct_real_3d 
-
-  USE mo_io_utilities, ONLY: struct_real_4d
 
   USE mo_io_utilities, ONLY: vartype_int 
   USE mo_io_utilities, ONLY: vartype_real
@@ -417,10 +441,15 @@ MODULE mo_aot_output_nc
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
 
-  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
 
   ! local variables
+  REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+  INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+  INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
 
   INTEGER, PARAMETER :: nglob_atts=5
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -475,6 +504,16 @@ MODULE mo_aot_output_nc
 
   CALL set_nc_grid_def_icon(grid_mapping)
   ! nc_grid_def_icon
+
+  
+  ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
+
+
   !set up dimensions for buffer
   ndims = 4
   ALLOCATE(dim_list(1:ndims),STAT=errorcode)
@@ -482,7 +521,7 @@ MODULE mo_aot_output_nc
 
   dim_list(1) = dim_icon(1) ! cell
   dim_list(2) = dim_icon(2) ! nv,  number of vertices per cell
-  dim_list(3)%dimname = 'ntime'
+  dim_list(3)%dimname = 'time'
   dim_list(3)%dimsize = ntime
   dim_list(4)%dimname = 'ntype'
   dim_list(4)%dimsize = ntype
@@ -498,10 +537,10 @@ MODULE mo_aot_output_nc
   n_3d_real = 1  ! for ICON write out 1 3D real variable (aot_tg)
 
   !-----------------------------------------------------------------
-    PRINT *,' CALL open_new_netcdf_file'
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
         &                       dim_list=dim_list,                  &
         &                       global_attributes=global_attributes, &
+        &                       time=time,                           &
         &                       ncid=ncid)
 
   !-----------------------------------------------------------------
@@ -516,7 +555,7 @@ MODULE mo_aot_output_nc
   !-----------------------------------------------------------------
 
   ! aot_tg
-  CALL netcdf_put_var(ncid,aot_tg(1:icon_grid%ncell,1,1,1:ntime,1:ntype), &
+  CALL netcdf_put_var(ncid,aot_tg(1:icon_grid%ncell,1,1,1:ntype,1:ntime), &
        &                 aot_tg_meta, undefined)
      
   CALL close_netcdf_file(ncid)
@@ -595,7 +634,7 @@ MODULE mo_aot_output_nc
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
 
-  REAL (KIND=wp), INTENT(OUT)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntime,ntype)
+  REAL (KIND=wp), INTENT(OUT)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
   ! local variables
 

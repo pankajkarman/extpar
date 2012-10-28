@@ -5,12 +5,15 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+! V1_3         2011/04/19 Hermann Asensio
+!  clean up of code (namelist input for icon grid)
 !
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
 !> Fortran modules to read Icon grid from netcdf file
-!!
 !!
 MODULE mo_icon_grid_routines
 
@@ -50,101 +53,194 @@ MODULE mo_icon_grid_routines
   PUBLIC :: allocate_icon_grid
 
   PUBLIC :: get_icon_grid_info
+  PUBLIC :: get_icon_domain_info
+  PUBLIC :: init_icon_grid
+
 
 
 
   CONTAINS
 
-
-  
-   !> get Information for ICON_grid from namelist INPUT_ICON_GRID
-   SUBROUTINE get_icon_grid_info(input_namelist_file,idom,tg,icon_grid)
+!> get Information for ICON_grid from namelist INPUT_ICON_GRID
+   SUBROUTINE get_icon_grid_info(input_namelist_file,idom,tg,icon_grid,icon_coor_files,parent_ids)
 
    USE mo_io_units, ONLY: filename_max
 
-   USE mo_grid_structures, ONLY: target_grid_def, icosahedral_triangular_grid
+   USE mo_grid_structures, ONLY: target_grid_def, icosahedral_triangular_grid, icon_grid_def
    USE mo_grid_structures, ONLY: igrid_icon
 
    USE mo_icon_domain, ONLY: max_dom
 
+   USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
 
    IMPLICIT NONE
 
    CHARACTER (len=filename_max), INTENT(IN) :: input_namelist_file !< file with input namelist with COSMO grid definition
-   INTEGER, INTENT(OUT) :: idom !< ICON Domain Number 
-  
+   INTEGER, INTENT(OUT) :: idom !< ICON Domain Number
    TYPE(target_grid_def), INTENT(OUT)      :: tg               !< structure with target grid description
    TYPE(icosahedral_triangular_grid), INTENT(OUT) :: icon_grid !< structure which contains the definition of the COSMO grid
-   
+   CHARACTER (len=filename_max),OPTIONAL,INTENT(OUT) :: icon_coor_files(1:max_dom) !< filnames of the ICON grid files with the coordinates
+   INTEGER,OPTIONAL,INTENT(OUT)  :: parent_ids(1:max_dom)         !< ids of parent model domain
    ! local variables
-     
-  INTEGER :: grid_levels
-  INTEGER :: nroot
-  LOGICAL :: lplane
-  NAMELIST /grid_ini/ grid_levels, nroot, lplane
-
-
-  REAL(wp) :: x_rot_angle
-  REAL(wp) :: y_rot_angle
-  REAL(wp) :: z_rot_angle
-  INTEGER :: itype_optimize  !< Type of grid-optimization:
-  ! = 0 : natural grid
-  ! = 1 : Heikes optimization
-  ! = 2 : equal area subdivision
-  ! = 3 : c-grid small circle constraint
-  ! = 4 : spring dynamics
-  LOGICAL :: l_c_grid        !< Use C-grid constraint for last refinement level
-  INTEGER :: maxlev_optim    !< For itype_optimize=1,4: highest level for which
-  !< optimization is executed
-   REAL(wp):: beta_spring     ! for spring dynamics: weighting of a larger or
-  ! a smaller target grid length
-  ! (choice: 1.11 larger target length: good for
-  !          C-grid constraint,
-  !          0.9  smaller target length: good for
-  !          similar triangle shapes
-  NAMELIST /grid_options/ x_rot_angle, y_rot_angle, z_rot_angle, &
-      & itype_optimize, l_c_grid, maxlev_optim, &
-      & beta_spring
-
-   REAL(wp):: tria_arc_km     !< grid distance (km) for the planar grid option
-  !< on the finest chosen level
-
-   NAMELIST /plane_options/tria_arc_km
 
    INTEGER  :: grid_root                    !< number of partitions of the icosahedron
    INTEGER  :: start_lev                    !< level of (first) global model domain
-   INTEGER  :: n_dom                        !< number of model domains
+   !INTEGER  :: n_dom                        !< number of model domains
    INTEGER  :: parent_id(max_dom-1)         !< id of parent model domain
 
-   LOGICAL  :: l_plot 
+   LOGICAL  :: l_plot
    LOGICAL  :: l_circ
-   LOGICAL  :: l_rotate 
-   REAL(wp), DIMENSION(max_dom-1) :: radius 
+   LOGICAL  :: l_rotate
+   REAL(wp), DIMENSION(max_dom-1) :: radius
    REAL(wp), DIMENSION(max_dom-1) :: center_lon
    REAL(wp), DIMENSION(max_dom-1) :: center_lat
-   REAL(wp), DIMENSION(max_dom-1) :: hwidth_lon 
+   REAL(wp), DIMENSION(max_dom-1) :: hwidth_lon
    REAL(wp), DIMENSION(max_dom-1) :: hwidth_lat
    LOGICAL  ::l_indexmap
 
    NAMELIST /gridref_ini/ grid_root, start_lev, n_dom, parent_id, l_plot,   &
                          &  l_circ, l_rotate, radius, center_lon, center_lat, &
                          &  hwidth_lon, hwidth_lat, l_indexmap
-  CHARACTER (len=filename_max) :: icon_grid_dir !< path to directory which contains the ICON grid files with the coordinates
+  
+  !INTEGER :: icon_dom_nr !< number of icon domain for target grid
+  INTEGER :: grid_level  !< level of current grid
+  INTEGER :: grid_id     !< domain id of current grid
+  INTEGER :: nproma     !< vector length
+  INTEGER :: i_cell_type !< Cell shape. 3: triangluar grid, 4: quadrilateral grid, 6: hexagonal/pentagonal grid
+  NAMELIST /icon_grid_ctl/ icon_dom_nr,grid_level, grid_id, nproma, i_cell_type
+
   CHARACTER (len=filename_max) :: icon_grid_nc_files(1:max_dom) !< filnames of the ICON grid files with the coordinates
+  CHARACTER (len=filename_max) :: icon_grid_dir !< path to directory which contains the ICON grid files with the coordinates
+
   NAMELIST /icon_grid_files/ icon_grid_dir, icon_grid_nc_files
 
-  INTEGER :: icon_dom_nr !< number of icon domain for target grid
-  INTEGER :: nproma     !< vector length
-  INTEGER :: i_cell_type !< Cell shape. 3: triangluar grid, 4: quadrilateral grid, 6: hexagonal/pentagonal grid 
-  !\TODO this type of information could be merged with igrid_type in namelist GRID_DEF
-  NAMELIST /icon_grid_ctl/ icon_dom_nr, nproma, i_cell_type
 
-  
   INTEGER  :: ierr !< error flag
   INTEGER  :: nuin !< unit number
   INTEGER :: i     !< counter
   CHARACTER (len=filename_max) :: filename
-     
+
+  INTEGER                :: ncell                   !< number of cells
+  INTEGER                :: nvertex                 !< number of edges
+  INTEGER                :: nedge                   !< number of vertices
+  INTEGER                :: ncells_per_edge         !< number of cells per edge
+  !INTEGER                :: nvertex_per_cell        !< number of vertices per cell
+  INTEGER                :: nedges_per_vertex       !< number of edges per vertex
+  INTEGER                :: nchilds_per_cell        !< number of child cells per cell
+  INTEGER                :: nchdom                  !< maximum number of child domains
+
+    ! set default values for gridref_ini
+    grid_root = 2
+    start_lev = 4
+    n_dom     = 2
+    ! Note: the namelist arrays parent_id, radius etc. are not defined for the
+    ! global domain, so the parent_id(1), i.e. the parent ID of the first nest,
+    ! is always 1
+    DO i = 1, max_dom-1
+      parent_id(i) = 1
+    ENDDO
+
+    l_circ     = .false.
+    l_rotate   = .false.
+    l_plot     = .false.
+    l_indexmap = .false.
+    radius     = 30.0_wp
+    center_lat = 90.0_wp
+    center_lon = 30.0_wp
+    hwidth_lat = 20.0_wp
+    hwidth_lon = 20.0_wp
+   icon_grid_dir = '' ! set default values
+   DO i=1,max_dom
+     icon_grid_nc_files(i) = ''
+   ENDDO
+
+    ! set default values for icon_grid_ctl
+    icon_dom_nr= 1
+    grid_level = 4
+    grid_id = 1
+    nproma = 1
+    i_cell_type = 3
+    ! read in values from namelist file
+    nuin = free_un()  ! functioin free_un returns free Fortran unit number
+   OPEN(nuin,FILE=TRIM(input_namelist_file), IOSTAT=ierr)
+       READ(nuin, NML=gridref_ini, IOSTAT=ierr)
+       READ(nuin, NML=icon_grid_ctl, IOSTAT=ierr)
+       READ(nuin, NML=icon_grid_files, IOSTAT=ierr)
+   CLOSE(nuin)
+  idom = icon_dom_nr
+   filename = TRIM(icon_grid_dir)//'/'//TRIM(icon_grid_nc_files(idom))
+   ! read in information from netcdf file with Icon coordinates (e.g. iconR2B04_DOM01.nc)
+    CALL inq_domain_dims( TRIM(filename),      &
+      &                      ncell,     &
+      &                      nvertex,   &
+      &                      nedge,            &
+      &                      ncells_per_edge,   &
+      &                      nvertex_per_cell,  &
+      &                      nedges_per_vertex, &
+      &                      nchilds_per_cell,   &
+      &                      nchdom)
+
+   ! describe the icon grid from the results of subroutine inq_domain_dims
+   icon_grid%n_dom = n_dom
+   icon_grid%start_lev = start_lev
+   icon_grid%grid_root = grid_root
+   icon_grid%icon_dom_nr = icon_dom_nr
+   icon_grid%nvertex_per_cell = nvertex_per_cell
+   icon_grid%nchilds_per_cell = nchilds_per_cell
+   icon_grid%ncells_per_edge = ncells_per_edge
+   icon_grid%nedges_per_vertex = nedges_per_vertex
+   icon_grid%nchdom = nchdom
+   icon_grid%ncell = ncell
+   icon_grid%nvertex = nvertex
+   icon_grid%nedge = nedge
+   icon_grid%nc_grid_file = TRIM(filename)
+
+   !describe the target grid
+   tg%igrid_type = igrid_icon      ! "2" is for the COSMO grid, "1" is for the ICON grid
+   tg%ie = ncell
+   tg%je = 1
+   tg%ke = 1              ! third dimension with length 1
+
+   IF (PRESENT(icon_coor_files)) THEN
+     icon_coor_files = ''
+     DO idom=1,n_dom
+        icon_coor_files(idom) = TRIM(icon_grid_dir)//'/'//TRIM(icon_grid_nc_files(idom))
+     ENDDO
+   ENDIF
+   IF (PRESENT(parent_ids)) THEN
+    parent_ids = 0 ! default value for all domains
+    IF(n_dom > 1 ) THEN
+     DO idom=2,n_dom
+        parent_ids(idom) = parent_id(idom-1) ! sorry for the shift in the index, but the namelists are set up like this
+     ENDDO
+    ENDIF
+   ENDIF
+
+END SUBROUTINE get_icon_grid_info
+
+
+
+   !> get Information for ICON domains from namelist INPUT_ICON_GRID and icon grid files
+   SUBROUTINE get_icon_domain_info(icon_grid,icon_coor_files,parent_ids,icon_dom_def)
+
+   USE mo_io_units, ONLY: filename_max
+
+   USE mo_grid_structures, ONLY: target_grid_def, icosahedral_triangular_grid, icon_grid_def
+   USE mo_grid_structures, ONLY: igrid_icon
+
+   USE mo_icon_domain, ONLY: max_dom
+
+   IMPLICIT NONE
+
+   TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the COSMO grid
+   CHARACTER (len=filename_max),INTENT(IN) :: icon_coor_files(1:max_dom) !< filnames of the ICON grid files with the coordinates
+   INTEGER,INTENT(IN)  :: parent_ids(1:max_dom)         !< ids of parent model domain
+
+   TYPE(icon_grid_def), INTENT(INOUT) :: icon_dom_def !< structure which contains the definition of the COSMO grid
+
+   ! local variables
+   INTEGER :: idom !< ICON Domain Number
+   CHARACTER (len=filename_max) :: filename
    INTEGER                :: ncell                   !< number of cells
    INTEGER                :: nvertex                 !< number of edges
    INTEGER                :: nedge                   !< number of vertices
@@ -154,158 +250,64 @@ MODULE mo_icon_grid_routines
    INTEGER                :: nchilds_per_cell        !< number of child cells per cell
    INTEGER                :: nchdom                  !< maximum number of child domains
 
+ !   !HA debug
+ !   IF (SIZE(icon_dom_def%ncell) /= icon_grid%ndom) THEN
+ !      CALL abort_extpar('Dimension of icon_dom_def%ncell not correct')
+ !   ENDIF
 
 
+   icon_dom_def%n_dom = icon_grid%n_dom
+   icon_dom_def%start_lev = icon_grid%start_lev
+   icon_dom_def%grid_root = icon_grid%grid_root
 
+   DO idom=1,icon_grid%n_dom
+      icon_dom_def%grid_files(idom) = TRIM(icon_coor_files(idom))
+         PRINT *,'HA debug: idom ', idom
+         PRINT *,'HA debug: icon_coor_files(idom) ', TRIM(icon_coor_files(idom))
+      filename = TRIM(icon_coor_files(idom))
+         PRINT *,'HA debug: filename ', TRIM(filename)
+      ! read in information from netcdf file with Icon coordinates (e.g. iconR2B04_DOM01.nc)
+      CALL inq_domain_dims( TRIM(filename),      &
+        &                      ncell,     &
+        &                      nvertex,   &
+        &                      nedge,            &
+        &                      ncells_per_edge,   &
+        &                      nvertex_per_cell,  &
+        &                      nedges_per_vertex, &
+        &                      nchilds_per_cell,   &
+        &                      nchdom)
 
+     ! describe the icon grid from the results of subroutine inq_domain_dims
 
-     
-    ! set default values for grid_ini
-    nroot          = 2
-    grid_levels    = 4
-    lplane         = .false.
+     icon_dom_def%nvertex_per_cell  = nvertex_per_cell
+     icon_dom_def%nchilds_per_cell  = nchilds_per_cell
+     icon_dom_def%ncells_per_edge   = ncells_per_edge
+     icon_dom_def%nedges_per_vertex = nedges_per_vertex
+     icon_dom_def%nchdom(idom) = nchdom
+     icon_dom_def%ncell(idom) = ncell
+     icon_dom_def%nvertex(idom) = nvertex
+     icon_dom_def%nedge(idom) = nedge
+     icon_dom_def%parent_ids(idom) = parent_ids(idom)
+     icon_dom_def%grid_files(idom) = TRIM(filename)
 
-  
-    ! set default values for grid_options
-    l_c_grid       = .false.
-    itype_optimize = 4
-    x_rot_angle    = 0.0_wp
-    y_rot_angle    = 0.0_wp
-    z_rot_angle    = 0.0_wp
-    maxlev_optim   = 100
-    beta_spring    = 0.90_wp
-       
-    ! set default values for plane_options
-    tria_arc_km    = 10.0_wp ! resolution in kilometers
+     !HA debug
+     PRINT *,'HA debug:'
+     PRINT *,'filename: ',TRIM(filename)
+     PRINT *,'ncell: ',ncell
+     PRINT *,'nvertex: ',nvertex
+     PRINT *,'nedge: ', nedge
+     PRINT *,'nvertex_per_cell: ',nvertex_per_cell
+     PRINT *,'nedges_per_vertex: ',nedges_per_vertex
+     PRINT *,'nchilds_per_cell: ', nchilds_per_cell
+     PRINT *,'nchdom: ', nchdom
+     PRINT *,'ncell: ',ncell
+     PRINT *,'nvertex: ',nvertex
+     PRINT *,'nedge: ', nedge
 
-    ! set default values for gridref_ini
-    grid_root = 2
-    start_lev = 4
-    n_dom     = 2
-    
-    ! Note: the namelist arrays parent_id, radius etc. are not defined for the
-    ! global domain, so the parent_id(1), i.e. the parent ID of the first nest,
-    ! is always 1
-    DO i = 1, max_dom-1
-      parent_id(i) = i
-    ENDDO
-    
-    l_circ     = .false.
-    l_rotate   = .false.
-    l_plot     = .false.
-    l_indexmap = .false.
-    
-    radius     = 30.0_wp
-    center_lat = 90.0_wp
-    center_lon = 30.0_wp
-    hwidth_lat = 20.0_wp
-    hwidth_lon = 20.0_wp
-
-    
-   icon_grid_dir = '' ! set default values
-   DO i=1,max_dom
-     icon_grid_nc_files(i) = ''
    ENDDO
-    
-    ! set default values for icon_grid_ctl
-    icon_dom_nr= 1
-    nproma = 1 
-    i_cell_type = 3
 
 
-
-
-
-    ! read in values from namelist file
-
-    nuin = free_un()  ! functioin free_un returns free Fortran unit number
-   OPEN(nuin,FILE=TRIM(input_namelist_file), IOSTAT=ierr)
-
-   READ(nuin, NML=grid_ini, IOSTAT=ierr)
-   READ(nuin, NML=grid_options, IOSTAT=ierr)
-   READ(nuin, NML=plane_options, IOSTAT=ierr)
-   READ(nuin, NML=gridref_ini, IOSTAT=ierr)
-   READ(nuin, NML=icon_grid_files, IOSTAT=ierr)
-   READ(nuin, NML=icon_grid_ctl, IOSTAT=ierr)
-
-
-   CLOSE(nuin)
-   !! HA debug
-   !PRINT *,'icon_grid_dir: ', TRIM(icon_grid_dir) 
-   !DO i=1,max_dom
-   !  PRINT *,'icon_grid_nc_files(i): ', TRIM(icon_grid_nc_files(i))
-   !ENDDO
-   PRINT *, 'icon_dom_nr: ', icon_dom_nr
-   PRINT *, 'grid_levels: ', grid_levels
-   PRINT *, 'start_lev: ', start_lev
-   PRINT *, 'beta_spring: ', beta_spring
-
-
-
-
-
-   !HA debug
-   print *, 'after reading namelist ', TRIM(input_namelist_file)
-    idom = icon_dom_nr
-    PRINT *,'HA debug: idom ', idom
-    PRINT *,'HA debug: icon_grid_dir ', TRIM(icon_grid_dir)
-    PRINT *,'HA debug: icon_grid_nc_files(idom) ', TRIM(icon_grid_nc_files(idom))
-
-
-    filename = TRIM(icon_grid_dir)//'/'//TRIM(icon_grid_nc_files(idom))
-   PRINT *,'HA debug: filename ', TRIM(filename)
-
-   ! read in filename with Icon coordinates (e.g. iconR2B04_DOM01.nc)
-    CALL inq_domain_dims( TRIM(filename),      &
-                            ncell,     &
-                            nvertex,   &
-                            nedge,            &
-                            ncells_per_edge,   &
-                            nvertex_per_cell,  &
-                            nedges_per_vertex, &
-                            nchilds_per_cell,   &
-                            nchdom)
-
-
-   ! describe the icon grid from the values above
-
-   icon_grid%n_dom = n_dom
-   icon_grid%start_lev = start_lev
-   icon_grid%grid_root = grid_root
-   icon_grid%nvertex_per_cell = nvertex_per_cell
-   icon_grid%nchilds_per_cell = nchilds_per_cell 
-   icon_grid%ncells_per_edge = ncells_per_edge
-   icon_grid%nedges_per_vertex = nedges_per_vertex
-   icon_grid%nchdom = nchdom
-   icon_grid%ncell = ncell
-   icon_grid%nvertex = nvertex
-   icon_grid%nedge = nedge
-   icon_grid%nc_grid_file = TRIM(filename)
-   
-   PRINT *,'HA debug:'
-   PRINT *,'ncell: ',ncell
-   PRINT *,'nvertex: ',nvertex
-   PRINT *,'nedge: ', nedge
-   PRINT *,'ncells_per_edge: ', ncells_per_edge
-   PRINT *,'nvertex_per_cell: ',nvertex_per_cell
-   PRINT *,'nedges_per_vertex: ',nedges_per_vertex
-   PRINT *,'nchilds_per_cell: ', nchilds_per_cell
-   PRINT *,'nchdom: ', nchdom
-   PRINT *,'ncell: ',ncell
-   PRINT *,'nvertex: ',nvertex
-   PRINT *,'nedge: ', nedge
-   
-
-   !describe the target grid
-   tg%igrid_type = igrid_icon      ! "2" is for the COSMO grid, "1" is for the ICON grid
-   tg%ie = ncell
-   tg%je = 1
-   tg%ke = 1              ! third dimension with length 1     
-
-      
-
-END SUBROUTINE get_icon_grid_info
-
+END SUBROUTINE get_icon_domain_info
 
 
   
@@ -1133,16 +1135,173 @@ END SUBROUTINE get_icon_grid_info
       ENDDO
 
 
-
-
-    
-
-
   END SUBROUTINE allocate_icon_grid
+!------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------
+
+!> initalize Icon grid
+!!
+!! allocate the icon_grid_level and icon_grid_level(:)  here, pass icon_dom_def
+  SUBROUTINE init_icon_grid(icon_dom_def)
+
+   USE mo_icon_domain,          ONLY: icon_domain, &
+     &                           grid_cells,               &
+     &                           grid_vertices,            &
+     &                           construct_icon_domain
+
+
+   USE mo_icon_grid_data, ONLY:    icon_grid, &
+     &                              icon_grid_region, &
+     &                              icon_grid_level, &
+     &                              nearest_icon_cells
+
+   USE mo_io_units,          ONLY: filename_max
+
+   USE mo_exception,         ONLY: message_text, message, finish
+
+   USE mo_utilities_extpar, ONLY: abort_extpar
+
+   USE mo_target_grid_data, ONLY: tg
+
+   USE mo_target_grid_data, ONLY: allocate_com_target_fields, &
+     &                       lon_geo, &
+     &                       lat_geo
+
+   USE mo_math_constants,  ONLY: pi, rad2deg
+
+   USE mo_grid_structures, ONLY: target_grid_def, icosahedral_triangular_grid, icon_grid_def
+
+
+   USE mo_icon_domain, ONLY: max_dom
+
+  IMPLICIT NONE
+
+  TYPE(icon_grid_def), INTENT(INOUT) :: icon_dom_def !< structure which contains the definition of the COSMO grid
+
+
+  CHARACTER(len=filename_max) :: filename
+
+
+  INTEGER :: grid_root                    !< number of partitions of the icosahedron
+  INTEGER :: start_lev                    !< level of (first) global model domain
+  INTEGER :: n_dom                        !< number of model domains
+  INTEGER :: parent_id(max_dom-1)         !< id of parent model domain
+
+   INTEGER :: i,j,k, ilev, idom, ip, iplev, ic,  iclev, istartlev
+
+
+  INTEGER                      :: i_nc       !< number of cells
+  INTEGER                      :: i_ne       !< number of edges
+  INTEGER                      :: i_nv       !< number of vertices
+  INTEGER                      :: nc_p_e     !< number of cells per edge
+  INTEGER                      :: nv_p_c     !< number of vertices per cell
+  INTEGER                      :: ne_p_v     !< number of edges per vertex
+  INTEGER                      :: nchilds    !< number of child cells per cell
+
+  INTEGER                      :: n_childdom !< actual number of child domains
+
+
+
+  INTEGER :: first_dom
+
+  INTEGER, ALLOCATABLE :: level_region(:)   ! level of region
+  INTEGER :: errorcode !< error status variable
+
+   !--------------------------------------------------------------------------------------------------------
+
+  grid_root = icon_dom_def%grid_root
+  start_lev = icon_dom_def%start_lev
+  n_dom=icon_dom_def%n_dom
+
+  print *,'HA debug:'
+  print *,'grid_root: ',grid_root
+  print *,'start_lev: ',start_lev
+  print *,'n_dom: ', n_dom
+
+
+    ! the icon grid domains are numbered from 1 to n_dom
+    first_dom=1
+
+    ALLOCATE(icon_grid_region(first_dom:n_dom))
+    ALLOCATE(level_region(first_dom:n_dom))
+    ALLOCATE(nearest_icon_cells(first_dom:n_dom))
+    nearest_icon_cells = 0
+    level_region = 0
+
+    DO idom=first_dom,n_dom
+
+
+      filename = TRIM(icon_dom_def%grid_files(idom))
+      i_nc = icon_dom_def%ncell(idom)        !< number of cells
+      i_ne = icon_dom_def%nedge(idom)        !< number of edges
+      i_nv = icon_dom_def%nvertex(idom)      !< number of vertices
+      nc_p_e = icon_dom_def%ncells_per_edge  !< number of cells per edge
+      nv_p_c = icon_dom_def%nvertex_per_cell !< number of vertices per cell
+      ne_p_v = icon_dom_def%nedges_per_vertex!< number of edges per vertex
+      nchilds = icon_dom_def%nchilds_per_cell!< number of child cells per cell
+      n_childdom = icon_dom_def%nchdom(idom) !< maximum number of child domains
+
+       !HA debug:
+        print *,'i_nc, i_ne, i_nv: ', i_nc, i_ne, i_nv
+        print *,'call construct_icon_domain'
+
+        CALL construct_icon_domain(icon_grid_region(idom),   &
+                            max_dom,          &
+                            n_childdom,       &
+                            i_nc,             &
+                            i_nv,             &
+                            i_ne,             &
+                            nc_p_e,           &
+                            nv_p_c,           &
+                            ne_p_v,           &
+                            nchilds           &
+                            )
+        print *,'i_nc, i_ne, i_nv: ', i_nc, i_ne, i_nv
+        print *,'idom: ',idom
+        print *,'icon_grid_region(idom)%ncells ',icon_grid_region(idom)%ncells
+
+
+       ! set known values for domain
+          icon_grid_region(idom)%id    = idom
+          icon_grid_region(idom)%level = ilev
+        IF (idom==first_dom) then
+          icon_grid_region(idom)%parent_id = 0
+          ilev                  = start_lev
+          level_region(idom)    = ilev
+        ELSE
+          icon_grid_region(idom)%parent_id = icon_dom_def%parent_ids(idom) ! parent_id(:) is the array which is given in the namelist
+          ilev = level_region(icon_dom_def%parent_ids(idom)) + 1        ! one level more than the parent level
+          level_region(idom)    = ilev
+        ENDIF
+       !HA debug:
+        print *,'read target domains grid'
+       ! read grid information and coordinates
+        CALL  read_domain_info_part(filename, icon_grid_region(idom))
+        ! set known values for domain
+          icon_grid_region(idom)%id    = idom
+          icon_grid_region(idom)%level = ilev
+        IF (idom==first_dom) then
+          icon_grid_region(idom)%parent_id = 0
+        ELSE
+          icon_grid_region(idom)%parent_id = parent_id(idom-1) ! parent_id(:) is the array which is given in the namelist
+        ENDIF
+
+
+        print *,'idom: ',idom
+        print *,'icon_grid_region(idom)%ncells ',icon_grid_region(idom)%ncells
+
+
+       ENDDO
+      !  read grid quantities from files produced by grid refinement
+
+
+  END SUBROUTINE init_icon_grid
 
 
 
 
 
 END MODULE mo_icon_grid_routines
+
 

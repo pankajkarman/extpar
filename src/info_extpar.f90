@@ -54,24 +54,32 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 !
 ! Following declarations have to be defined just after checkout from the version control system:
 CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_1'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2011-01-20 11:34:22'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_3'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2011-04-19 08:11:30'
 CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2011-01-24 10:06:52'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2011-04-20 11:44:13'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = ''
 ! Following declarations have to be defined just before compiling:
-CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = '.true.'
-CHARACTER (LEN=*), PARAMETER :: INFO_CompilerCall    = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_CompilerVersion = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_DefinedMacros   = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_UndefinedMacros = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_DebugOptions    = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_LinkOptions     = ''
-!roa info>
-CHARACTER (LEN=*), PARAMETER :: INFO_CompiledBy      = 'rochesa'
-!roa info<
-CHARACTER (LEN=*), PARAMETER :: INFO_CompileTime     = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_CompileMachine  = ''
+CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = &
+ '.true.'
+CHARACTER (LEN=*), PARAMETER :: INFO_CompilerCall    = &
+ 'ftn'
+CHARACTER (LEN=*), PARAMETER :: INFO_CompilerVersion = &
+ 'pgi 12.2.0'
+CHARACTER (LEN=*), PARAMETER :: INFO_DefinedMacros   = &
+ ''
+CHARACTER (LEN=*), PARAMETER :: INFO_UndefinedMacros = &
+ ''
+CHARACTER (LEN=*), PARAMETER :: INFO_DebugOptions    = &
+ ''
+CHARACTER (LEN=*), PARAMETER :: INFO_LinkOptions     = &
+ ''
+CHARACTER (LEN=*), PARAMETER :: INFO_CompiledBy      = &
+ 'rochesa'
+CHARACTER (LEN=*), PARAMETER :: INFO_CompileTime     = &
+ '2012-10-26 12:36:55'
+CHARACTER (LEN=*), PARAMETER :: INFO_CompileMachine  = &
+ 'Lema'
 !
 ! Global Variables:
 !

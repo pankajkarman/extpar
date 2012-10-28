@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Add parameter DWD_min_lake_depth for minimal lake depth         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -33,7 +35,7 @@ PUBLIC :: flake_grid, &
  &         lat_flake,  &
  &         allocate_raw_flake_fields
 
-PUBLIC :: flake_depth_undef, flake_depth_default, DWD_max_lake_depth
+PUBLIC :: flake_depth_undef, flake_depth_default, DWD_max_lake_depth, DWD_min_lake_depth
           
 
 TYPE(reg_lonlat_grid) :: flake_grid !< structure with defenition of the raw data grid for the whole GLCC dataset
@@ -44,8 +46,7 @@ REAL (KIND=wp), ALLOCATABLE    :: lat_flake(:) !< latitude of flake raw data
 REAL (KIND=wp), PARAMETER :: flake_depth_undef = -1. !< default value for undefined lake depth
 REAL (KIND=wp), PARAMETER :: flake_depth_default = 10.0 !< default value for default lake depth, 10 [m]
 REAL (KIND=wp), PARAMETER :: DWD_max_lake_depth = 50.0 !< Maximum lake depth in [m] for FLAKE
-
-
+REAL (KIND=wp), PARAMETER :: DWD_min_lake_depth = 1.0 !< Minimal lake depth in [m] for FLAKE
 
 
 CONTAINS
@@ -68,3 +69,4 @@ CONTAINS
   END  SUBROUTINE allocate_raw_flake_fields
 
 END MODULE mo_flake_data
+

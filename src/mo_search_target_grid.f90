@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -58,9 +60,12 @@ MODULE mo_search_target_grid
   !USE mo_gme_grid, ONLY: xns
 
   ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-  ! USE mo_icon_grid_data, ONLY:  icon_grid_region
+   USE mo_icon_grid_data, ONLY:  icon_grid_region
   ! USE mo_icon_grid_data, ONLY:  icon_grid_level
-  USE mo_icon_grid_data, ONLY: icon_domain_grid
+  ! USE mo_icon_grid_data, ONLY: icon_domain_grid
+   USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
+   USE mo_icon_grid_data, ONLY: icon_dom_def
+   USE mo_icon_grid_data, ONLY: nearest_icon_cells
 
 
   ! USE modules to search in ICON grid
@@ -113,18 +118,15 @@ MODULE mo_search_target_grid
          target_geo_co%lon = point_lon_geo * deg2rad ! note that the ICON coordinates do not have the unit degree but radians
          target_geo_co%lat = point_lat_geo * deg2rad
 
-         target_cc_co = gc2cc(target_geo_co) ! transform the geographical coordinates of the point to cartesian coordinates
+         !target_cc_co = gc2cc(target_geo_co) ! transform the geographical coordinates of the point to cartesian coordinates
+         CALL find_nc(target_geo_co,               &
+           &          n_dom,          &
+           &          nvertex_per_cell, &
+           &          icon_dom_def,                &
+           &          icon_grid_region,            &
+           &          nearest_icon_cells)
 
-         nearest_cell_id = 0_i8 !< result of icon grid search, set to 0 at start
-
-         CALL walk_to_nc(icon_domain_grid,   &
-           &             target_cc_co,     &
-           &             start_cell_id,    &
-           &             ICON_grid%nvertex_per_cell, &
-           &             nearest_cell_id)
-         start_cell_id = nearest_cell_id ! save for next search
-
-         tg_el_ie = nearest_cell_id
+         tg_el_ie = nearest_icon_cells(icon_dom_nr) !< result of icon grid search
          tg_el_je = 1_i8
          tg_el_ke = 1_i8
 
@@ -169,5 +171,6 @@ MODULE mo_search_target_grid
 
 
 END MODULE mo_search_target_grid
+
 
 

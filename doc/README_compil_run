@@ -15,7 +15,9 @@ For the CSCS MeteoSwiss machine (Lema), cmake has been run already
 and the libraries installed. Some steps can thus be skipped
 in the installation of Extpar. However, if the compiler version
 or some system characteristics change, one has to redo the whole 
-procedure following the general guide. 
+procedure following the general guide.
+If new source files are added, the general procedure has
+to be followed as well.
 
 
 1) Quick procedure on Lema (CSCS)
@@ -113,7 +115,7 @@ B) Compilation
 6.  cd ..
 7.  mkdir build
 8.  cd build
-9.  cmake -DCMAKE_BUILD_TYPE=DEBUG ../src            (debug mode)
+9.  ~rochesa/bin/cmake -DCMAKE_BUILD_TYPE=DEBUG ../src            (debug mode)
 9 bis. check in CMakeCache.txt that the proper options/paths are used.If not, add them manually in CMakeCache.txt
        ***On the CSCS machines***
        the interaction with the modules can be tricky, so really check that the correct compiler, options, libraries are

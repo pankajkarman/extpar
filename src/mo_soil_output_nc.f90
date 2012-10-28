@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -29,7 +31,6 @@ MODULE mo_soil_output_nc
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
   USE mo_io_utilities, ONLY: netcdf_put_var
@@ -47,7 +48,6 @@ MODULE mo_soil_output_nc
 
   USE mo_utilities_extpar, ONLY: abort_extpar
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
 
@@ -270,10 +270,6 @@ END SUBROUTINE write_netcdf_soil_icon_grid
 
 
 
-  USE mo_io_utilities, ONLY: struct_real_1d
-  USE mo_io_utilities, ONLY: struct_real_2d 
-  USE mo_io_utilities, ONLY: struct_int_1d
-  USE mo_io_utilities, ONLY: struct_int_2d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -429,8 +425,6 @@ END SUBROUTINE write_netcdf_soil_icon_grid
    &                                     soiltype_fao)
 
 
-  USE mo_io_utilities, ONLY: struct_real_3d
-  USE mo_io_utilities, ONLY: struct_int_3d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -571,6 +565,19 @@ END SUBROUTINE write_netcdf_soil_icon_grid
   !  fr_land_soil_meta, soiltype_fao_meta
 
   PRINT *,'CALL read netcdf data soil'
+!roaprint
+print *,"fn:", TRIM(netcdf_filename)
+print *, "name: ", fr_land_soil_meta%varname
+print *, "dim: ", fr_land_soil_meta%n_dim
+print *, "diminfo: ", fr_land_soil_meta%diminfo
+print *, "vartyp: ", fr_land_soil_meta%vartype
+print *, "sn: ", fr_land_soil_meta%standard_name
+print *, "ln: ", fr_land_soil_meta%long_name
+print *, "ssn: ", fr_land_soil_meta%shortName
+print *, "units: ", fr_land_soil_meta%units
+print *, "grid: ", fr_land_soil_meta%grid_mapping
+print *, "coord: ", fr_land_soil_meta%coordinates
+
 
   CALL netcdf_get_var(TRIM(netcdf_filename),fr_land_soil_meta,fr_land_soil)
   PRINT *,'fr_land_soil read'

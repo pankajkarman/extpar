@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! @VERSION@    @DATE@     Hermann Asensio
+!  Hermann Asensio
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -28,7 +30,6 @@ MODULE mo_cru_output_nc
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
   USE mo_io_utilities, ONLY: vartype_int 
@@ -63,7 +64,6 @@ MODULE mo_cru_output_nc
     &                                     lon_geo,     &
     &                                     lat_geo, &
     &                                     crutemp)
-  USE mo_io_utilities, ONLY: struct_real_3d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -442,7 +442,6 @@ MODULE mo_cru_output_nc
   SUBROUTINE read_netcdf_buffer_cru(netcdf_filename,  &
     &                                     tg,         &
     &                                     crutemp)
-  USE mo_io_utilities, ONLY: struct_real_3d
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer

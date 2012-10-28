@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Update doxygen documentation
 !
 ! Code Description:
 ! Language: Fortran 95.
@@ -15,7 +17,6 @@
 !> Note: this program is used to generate external parameters for the GME. 
 !>       It originates from old code for the GME grid from
 !>       B. Ritter, A. Mueller, D. Majewski and other DWD staff members.
-
 MODULE mo_gme_grid
 
 !> kind parameters are defined in MODULE data_parameters
@@ -89,28 +90,26 @@ MODULE mo_gme_grid
 
   TYPE(gme_triangular_grid) ::  gme_grid  !< structure which contains the definition of the GME grid
 
-  
+  !> synchronoize the diamond edges of the GME grid 
   INTERFACE sync_diamond_edge
      MODULE PROCEDURE sync_diamond_edge_contr_real
      MODULE PROCEDURE sync_diamond_edge_contr_int
      MODULE PROCEDURE sync_diamond_edge_contr_int4
   END INTERFACE sync_diamond_edge
-
+  
+  !> copy buffer data to GME field (taking care for the edges)
   INTERFACE cp_buf2gme
      MODULE PROCEDURE cp_buf2gme_r
      MODULE PROCEDURE cp_buf2gme_i
      MODULE PROCEDURE cp_buf2gme_i4
   END INTERFACE cp_buf2gme
   
+  !> copy GME field to buffer data (taking care for the edges)
   INTERFACE cp_gme2buf
      MODULE PROCEDURE cp_gme2buf_r
      MODULE PROCEDURE cp_gme2buf_i
      MODULE PROCEDURE cp_gme2buf_i4
   END INTERFACE cp_gme2buf
-
-
-
-
 
 
   CONTAINS
@@ -161,10 +160,6 @@ MODULE mo_gme_grid
 
      END  SUBROUTINE get_gme_grid_info
 
-
-
-
-
    
     !> allocate the variables for the GME grid and calcualate the coordinates rlon_gme, rlat_gme 
     !! and xn (cartesian coordinates) for each grid element
@@ -177,11 +172,9 @@ MODULE mo_gme_grid
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array xn')
       xn = 0.0
 
- !     ALLOCATE ( xns(gme_grid%ig2s:gme_grid%ig2e,gme_grid%ig2s:gme_grid%ig2e,1:3, 1:gme_grid%nd), STAT=errorcode )
+  !     ALLOCATE ( xns(gme_grid%ig2s:gme_grid%ig2e,gme_grid%ig2s:gme_grid%ig2e,1:3, 1:gme_grid%nd), STAT=errorcode )
   !      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array xn')
-   !   xn = 0.0
-
-
+  !   xn = 0.0
 
       ALLOCATE ( rlon_gme(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd), STAT=errorcode )
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array rlon_gme')
@@ -201,7 +194,6 @@ MODULE mo_gme_grid
       ALLOCATE ( gme_i4_field(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd), STAT=errorcode )
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array gme_i4_field')
       gme_i4_field=0
-
 
 
       !=======================================================================
@@ -1445,5 +1437,4 @@ MODULE mo_gme_grid
     END SUBROUTINE cp_gme2buf_i4
 
 END MODULE mo_gme_grid
-
 

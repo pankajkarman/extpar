@@ -7,6 +7,10 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -115,54 +119,19 @@ MODULE mo_agg_glcc
     USE mo_gme_grid, ONLY: gme_real_field, gme_int_field
     USE mo_gme_grid, ONLY: cp_buf2gme, cp_gme2buf
 
-
-    ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-    !USE mo_icon_grid_data, ONLY:  icon_grid_region
-    !USE mo_icon_grid_data, ONLY:  icon_grid_level
-    USE mo_icon_grid_data, ONLY: icon_domain_grid
-
     ! USE structure which contains the definition of the ICON grid
     USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
 
     ! USE structure which contains the definition of the COSMO grid
     USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
 
-    USE mo_base_geometry,   ONLY: geographical_coordinates
-    USE mo_base_geometry,   ONLY: cartesian_coordinates
     USE mo_math_constants, ONLY: pi, rad2deg, deg2rad, eps
     USE mo_physical_constants, ONLY: re
-    USE mo_additional_geometry,   ONLY: cc2gc,                  &
-      &                                 gc2cc
-       
-    ! USE modules to search in ICON grid
-    USE mo_search_icongrid, ONLY: find_nc, &
-      &                             walk_to_nc, &
-      &                              find_nchild_nlev
-
- !   USE mo_target_grid_data, ONLY: tg  !< structure with target grid description
 
     ! USE global data fields (coordinates)
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
 
-  !  ! list of modules and fields for "output"
-  !  !> target fields for glcc data
-  !  USE mo_glcc_tg_fields, ONLY: glcc_class_fraction, & ! output
-  !    &                            glcc_class_npixel, &
-  !    &                            glcc_tot_npixel,   &
-  !    &                            fr_land_glcc              ! output
-  !  USE mo_glcc_tg_fields, ONLY: ice_glcc, &
-  !    &                             z0_glcc, &
-  !    &                             root_glcc, &
-  !    &                             plcov_mn_glcc, &
-  !    &                             plcov_mx_glcc, &
-  !    &                             lai_mn_glcc,   &
-  !    &                             lai_mx_glcc, &
-  !    &                             rs_min_glcc, &
-  !    &                             urban_glcc,  &
-  !    &                             for_d_glcc,  &
-  !    &                             for_e_glcc, &
-  !    &                             emissivity_glcc
 
      CHARACTER (LEN=filename_max), INTENT(IN) :: glcc_file  !< filename glcc raw data
      INTEGER, INTENT(IN) :: ilookup_table_glcc
@@ -224,11 +193,6 @@ MODULE mo_agg_glcc
      INTEGER :: nlon
 
      REAL(KIND=wp)   :: point_lon, point_lat
-     TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-     TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-     INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id
-     LOGICAL :: l_child_dom     ! logical switch if child domain exists
-     INTEGER :: child_dom_id   ! id of child domain
 
       REAL (KIND=wp) :: pland          !< land cover                      (-)
       REAL (KIND=wp) :: pice           !< ice fraction                    (-)

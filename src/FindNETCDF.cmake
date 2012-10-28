@@ -2,13 +2,14 @@
 #
 # NETCDF_INCLUDE - where to find netcdf.h
 # NETCDF_LIBRARY - list of libraries to link against when using NETCDF
-# NETCDFF_LIBRARY - Fortran netcdf library
 # NETCDF_FOUND   - Do not attempt to use NETCDF if "no", "0", or undefined.
+
 #roa CSCS>
 SET(NETCDF_PREFIX "" CACHE PATH "/opt/cray/netcdf/4.1.3/pgi/109")
-#SET(NETCDF_PREFIX "" CACHE PATH "/usr/local/pkg/for0adm")
+#SET(NETCDF_PREFIX "" CACHE PATH "/usr/local/pkg")
 #roa CSCS<
 MESSAGE(STATUS "HA debug NETCDF_PREFIX: ${NETCDF_PREFIX}")
+
 FIND_PATH(NETCDF_INCLUDE netcdf.h
   #/usr/local/pkg/for0adm/include
 #roa CSCS>
@@ -19,8 +20,10 @@ FIND_PATH(NETCDF_INCLUDE netcdf.h
   /include
   /usr/include
   /usr/local/include
+
   NO_DEFAULT_PATH
 )
+
 
 #FIND_LIBRARY(NETCDF_LIBRARY
 #  NAMES netcdf 
@@ -43,6 +46,7 @@ FIND_PATH(NETCDF_INCLUDE netcdf.h
 #roa CSCS>
 SET(NETCDF_LIBRARY "/opt/cray/netcdf/4.1.3/pgi/109/lib/libnetcdff.a")
 #roa CSCS<
+
 IF(NETCDF_INCLUDE AND NETCDF_LIBRARY)
   SET(NETCDF_FOUND 1)
 ELSE(NETCDF_INCLUDE AND NETCDF_LIBRARY)

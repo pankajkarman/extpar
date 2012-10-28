@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! @VERSION@    @DATE@     Anne Roches
+! two new SR extend_field2D, horizontal_filtering
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -65,11 +67,24 @@
 !!     - uv2df_vec:
 !!       the same as above, but for a whole 2D field (in vectorized form).
 !!
+!roa>
+!!     - extend_field2D:
+!!       extend a 2D field with additional rows and columns.
+!!
+!!     - horizontal_filtering:
+!!       filter horizontally a field using a local filter
+!!       (weights determined by J. Foerstner, DWD).
+!!
+!!
+!roa<
+
 !!
 MODULE  mo_utilities_extpar
 
 USE mo_kind , ONLY :   &
     wp,    & ! KIND-type parameter for real variables
+    i4,        & ! KIND-type parameter for integers
+    i8,        & ! KIND-type parameter for integers
     ireals,    & ! KIND-type parameter for real variables
     iintegers, & ! KIND-type parameter for standard integer variables
     irealgrib, & ! KIND-type parameter for real variables in the grib library
@@ -818,6 +833,501 @@ REAL (KIND=wp)                       ::    &
 END SUBROUTINE uv2df_vec
 
 !==============================================================================
+!==============================================================================
+!roa>
+!==============================================================================
+!------------------------------------------------------------------------------
+!> This subroutine extends a given 2D field with additional rows and columns
+
+SUBROUTINE extend_field2D ( field_in,  ie_in,  je_in,                          &
+                          field_out, ie_out, je_out,                           &
+                          nextlines)
+
+!------------------------------------------------------------------------------
+!
+! Description:
+!   This routine extends field_in with nextlines additional rows and columns
+!   around. At the borders of the total domain, all values are set to the
+!   values of the neighboring row/column of field_in. 
+!
+! Method:
+!
+!------------------------------------------------------------------------------
+
+! Subroutine arguments:
+! ---------------------
+  INTEGER (KIND=i8), INTENT (IN) ::  &
+    ie_in,  je_in,         & ! horizontal dimensions of field_in
+    ie_out, je_out           ! dimensions of field_out
+
+  INTEGER (KIND=i4), INTENT (IN) ::  &  
+    nextlines                ! number of additional rows/columns at each side
+                             ! for the extension
+
+  REAL    (KIND=wp  ), INTENT (IN) ::  &
+    field_in (ie_in, je_in)
+
+  REAL    (KIND=wp   ), INTENT(OUT) ::  &
+    field_out(ie_out,je_out)
+
+! Local scalars:
+! -------------
+INTEGER (KIND=i8) ::  i, j
+
+INTEGER (KIND=i4) ::  nbdext
+
+!------------------------------------------------------------------------------
+
+
+
+  nbdext    = nextlines
+
+  field_out = 0.0
+
+  ! fill domain existing in both field_in and field_out
+    DO j = 1, je_in
+      DO i = 1, ie_in
+        field_out(i+nextlines,j+nextlines) = field_in(i,j)
+      END DO
+    END DO
+
+  ! set values for the boundary lines in the extended frame
+  ! western border
+      DO j = 1, je_in
+        DO i = 1, nextlines
+          field_out(i,j+nextlines) = field_in(1,j)
+        ENDDO
+      ENDDO
+
+  ! eastern border
+      DO j = 1, je_in
+        DO i = ie_in+1, ie_in+nextlines
+          field_out(i+nextlines,j+nextlines) = field_in(ie_in,j)
+        ENDDO
+      ENDDO
+  
+
+  ! southern border
+      DO j = 1, nextlines
+        DO i = 1, ie_in
+          field_out(i+nextlines,j) = field_in(i,1)
+        ENDDO
+      ENDDO 
+
+  ! northern border
+      DO j = je_in+1, je_in+nextlines
+        DO i = 1, ie_in
+          field_out(i+nextlines,j+nextlines) = field_in(i,je_in)
+        ENDDO
+      ENDDO
+
+
+  ! southwest corner
+      DO j = 1, nextlines
+        DO i = 1, nextlines
+          field_out(i,j) = field_in(1,1)
+        ENDDO
+      ENDDO
+
+  ! northwest corner
+      DO j = je_in+1, je_in+nextlines
+        DO i = 1, nextlines
+          field_out(i,j+nextlines) = field_in(1,je_in)
+        ENDDO
+      ENDDO
+
+  ! southeast corner
+      DO j = 1, nextlines
+        DO i = ie_in+1, ie_in+nextlines
+          field_out(i+nextlines,j) = field_in(ie_in,1)
+        ENDDO
+      ENDDO
+
+  ! northeast corner
+      DO j = je_in+1, je_in+nextlines
+        DO i = ie_in+1, ie_in+nextlines
+          field_out(i+nextlines,j+nextlines) = field_in(ie_in,je_in)
+        ENDDO
+      ENDDO
+
+
+
+END SUBROUTINE extend_field2D
+
+!==============================================================================
+!==============================================================================
+!------------------------------------------------------------------------------
+!> This subroutine performs horizontal fitlering of a field, using a local
+!  filter. The stencil width can be 17-, 13-, 9-, or 3-points and the weights
+!  have been determined by J. Foerstner (DWD).
+
+SUBROUTINE horizontal_filtering( field_flt, ie_in, je_in,                 &
+                                   nflt_width, ncutoff,                   &
+                                 hfx_mask, hfy_mask )
+
+!------------------------------------------------------------------------------
+!
+! Description:
+!
+! Method:
+!
+!------------------------------------------------------------------------------
+
+! Subroutine arguments:
+! ---------------------
+INTEGER (KIND=i8), INTENT(IN) :: &
+  ie_in, je_in            ! Dimensions of the field to be filtered
+
+INTEGER (KIND=i4), INTENT(IN) :: &
+  nflt_width,           & ! width of field extension for filtering
+  ncutoff                 ! filter-value for cutoff
+
+REAL    (KIND=wp   ), INTENT(INOUT) ::  &
+  field_flt(ie_in, je_in)
+
+LOGICAL, INTENT(in), OPTIONAL ::  &
+  hfx_mask(ie_in, je_in), hfy_mask(ie_in, je_in)
+
+! Local scalars:
+! -------------
+INTEGER (KIND=i8)  ::  &
+  ilow, iup,           & !
+  jlow, jup,           & !
+  i, j,                & !  Loop indices
+  istart, iend,        &
+  jstart, jend
+
+INTEGER (KIND=i4) ::  &
+  l, nfw_m_nb
+
+! Local (automatic) arrays:
+! -------------------------
+REAL    (KIND=wp   ) ::  &
+  field_tmp (ie_in, je_in), &
+  field_tmp2(ie_in, je_in), &
+  zfwnp(-nflt_width:nflt_width),   & ! filter weights for n-point filter
+  zfw3p(-1:1)                        ! filter weights for 3-point filter
+
+!------------------------------------------------------------------------------
+
+  nfw_m_nb = nflt_width 
+
+  istart = 1 
+  iend   = ie_in - 2*nfw_m_nb 
+  jstart = 1 
+  jend   = je_in - 2*nfw_m_nb 
+ 
+  ! filter weights for n-point filter
+  IF (ncutoff == 3 .AND. nflt_width == 4) THEN
+    ! --> dfilt4
+    ! filter weights for 9-point filter (approx. cutoff = 3)
+    zfwnp = (/ -0.390625E-02,     &
+               +0.3125E-01,       &
+               -0.109375,         &
+               +0.21875,          &
+               +0.7265625,        &
+               +0.21875,          &
+               -0.109375,         &
+               +0.3125E-01,       &
+               -0.390625E-02 /)
+  ELSEIF (ncutoff == 3 .AND. nflt_width == 8) THEN
+    ! --> dfilt8
+    ! filter weights for 17-point filter (approx. cutoff = 3)
+    zfwnp = (/ -0.15259E-04,      &
+               +0.2441406E-03,    &
+               -0.18310546E-02,   &
+               +0.85449218E-02,   &
+               -0.27770996E-01,   &
+               +0.666503906E-01,  &
+               -0.1221923828,     &
+               +0.1745605469,     &
+               +0.8036193848,     &
+               +0.1745605469,     &
+               -0.1221923828,     &
+               +0.666503906E-01,  &
+               -0.27770996E-01,   &
+               +0.85449218E-02,   &
+               -0.18310546E-02,   &
+               +0.2441406E-03,    &
+               -0.15259E-04 /)
+  ELSEIF (ncutoff == 4 .AND. nflt_width == 4) THEN
+    ! filter weights for 9-point filter (approx. cutoff = 4)
+    zfwnp = (/ +0.1171875E-01,    &
+               -0.3125E-01,       &
+               -0.46875E-01,      &
+               +0.28125,          &
+               +0.5703125,        &
+               +0.28125,          &
+               -0.46875E-01,      &
+               -0.3125E-01,       &
+               +0.1171875E-01 /)
+  ELSEIF (ncutoff == 5 .AND. nflt_width == 6) THEN
+    ! filter weights for 13-point filter (approx. cutoff = 5)
+    zfwnp = (/ +0.44023278E-02,   &
+               +0.13175894E-01,   &
+               -0.477203075E-01,  &
+               -0.435555245E-01,  &
+               +0.94700467E-01,   &
+               +0.2888298641,     &
+               +0.3803345582,     &
+               +0.2888298641,     &
+               +0.94700467E-01,   &
+               -0.435555245E-01,  &
+               -0.477203075E-01,  &
+               +0.13175894E-01,   &
+               +0.44023278E-02 /)
+  ELSEIF (ncutoff == 6 .AND. nflt_width == 4) THEN
+    ! filter weights for 9-point filter (approx. cutoff = 6)
+    zfwnp = (/ -0.4694126E-01,    &
+               -0.50095541E-02,   &
+               +0.13528415,       &
+               +0.25500955,       &
+               +0.32331423,       &
+               +0.25500955,       &
+               +0.13528415,       &
+               -0.50095541E-02,   &
+               -0.4694126E-01 /)
+  ELSEIF (ncutoff == 8 .AND. nflt_width == 6) THEN
+    ! filter weights for 13-point filter (approx. cutoff = 8)
+    zfwnp = (/ -0.16638111E-01,   &
+               -0.30753028E-01,   &
+               -0.17361869E-02,   &
+               +0.65428931E-01,   &
+               +0.14784805,       &
+               +0.2153241,        &
+               +0.2410525,        &
+               +0.2153241,        &
+               +0.14784805,       &
+               +0.65428931E-01,   &
+               -0.17361869E-02,   &
+               -0.30753028E-01,   &
+               -0.16638111E-01 /)
+  ELSE
+    PRINT *, ' ERROR *** Wrong cutoff value for filtering        or *** '
+    PRINT *, ' ERROR *** wrong value for filter/field extension.    *** '
+  ENDIF
+
+  ! filter weights for 3-point filter (approx. cutoff = 4)
+  zfw3p = (/ 0.25, 0.5, 0.25 /)
+
+  ! west
+    ilow = 1 + 2*nflt_width
+
+  ! east
+    iup = iend 
+
+  ! south
+    jlow = 1 + 2*nflt_width
+
+  ! north
+    jup = jend 
+
+
+  ! init working array
+  field_tmp (:,:) = field_flt(:,:)
+
+
+  IF ( PRESENT( hfx_mask ) ) THEN
+
+    ! apply n-point-filter in x-direction
+      DO j = 1, je_in
+        DO i = ilow, iup
+          IF ( hfx_mask(i,j) ) THEN
+            field_tmp(i,j) = 0.0
+          ENDIF
+        ENDDO
+        DO l = -nflt_width, nflt_width
+          DO i = ilow, iup
+            IF ( hfx_mask(i,j) ) THEN
+              field_tmp(i,j) = field_tmp(i,j)               &
+                               + zfwnp(l)*field_flt(i+l,j)
+            END IF
+          END DO
+        END DO
+      END DO
+
+    ! apply 3-point-filter in x-direction at west boundary
+        DO j = 1, je_in
+          DO i = nfw_m_nb+1, ilow-1
+            IF ( hfx_mask(i,j) ) THEN
+              field_tmp(i,j) = 0.0
+            ENDIF
+          ENDDO
+          DO l = -1, 1
+            DO i = nfw_m_nb+1, ilow-1
+              IF ( hfx_mask(i,j) ) THEN
+                field_tmp(i,j) = field_tmp(i,j)             &
+                                 + zfw3p(l)*field_flt(i+l,j)
+              END IF
+            END DO
+          END DO
+        END DO
+
+    ! apply 3-point-filter in x-direction at east boundary
+        DO j = 1, je_in
+          DO i = iup+1, ie_in-nfw_m_nb
+            IF ( hfx_mask(i,j) ) THEN
+              field_tmp(i,j) = 0.0
+            ENDIF
+          ENDDO
+          DO l = -1, 1
+            DO i = iup+1, ie_in-nfw_m_nb
+              IF ( hfx_mask(i,j) ) THEN
+                field_tmp(i,j) = field_tmp(i,j)             &
+                                 + zfw3p(l)*field_flt(i+l,j)
+              END IF
+            END DO
+          END DO
+        END DO
+
+  ELSE
+
+    !
+    ! apply n-point-filter in x-direction
+    !
+      DO j = 1, je_in
+        DO i = ilow, iup
+          field_tmp(i,j) = 0.0
+        END DO
+        DO l = -nflt_width, nflt_width
+          DO i = ilow, iup
+            field_tmp(i,j) = field_tmp(i,j)                 &
+                             + zfwnp(l)*field_flt(i+l,j)
+          END DO
+        END DO
+      END DO
+
+    ! apply 3-point-filter in x-direction at west boundary
+        DO j = 1, je_in
+          DO i = nfw_m_nb+1, ilow-1
+            field_tmp(i,j) = 0.0
+          END DO
+          DO l = -1, 1
+            DO i = nfw_m_nb+1, ilow-1
+              field_tmp(i,j) = field_tmp(i,j)               &
+                               + zfw3p(l)*field_flt(i+l,j)
+            END DO
+          END DO
+        END DO
+
+    ! apply 3-point-filter in x-direction at east boundary
+        DO j = 1, je_in
+          DO i = iup+1, ie_in-nfw_m_nb
+            field_tmp(i,j) = 0.0
+          END DO
+          DO l = -1, 1
+            DO i = iup+1, ie_in-nfw_m_nb
+              field_tmp(i,j) = field_tmp(i,j)               &
+                               + zfw3p(l)*field_flt(i+l,j)
+            END DO
+          END DO
+        END DO
+
+  END IF
+
+
+  IF ( PRESENT( hfy_mask ) ) THEN
+
+    ! apply n-point-filter in y-direction
+      DO j = jlow, jup
+        DO i = 1, ie_in
+          IF ( hfy_mask(i,j) ) THEN
+            field_flt(i,j) = 0.0
+          ELSE
+            field_flt(i,j) = field_tmp(i,j)
+          ENDIF
+        ENDDO
+        DO l = -nflt_width, nflt_width
+          DO i = 1, ie_in
+            IF ( hfy_mask(i,j) ) THEN
+              field_flt(i,j) = field_flt(i,j) + zfwnp(l)*field_tmp(i,j+l)
+            END IF
+          END DO
+        END DO
+      END DO
+
+    ! apply 3-point-filter in y-direction at south boundary
+        DO j = nfw_m_nb+1, jlow-1
+          DO i = 1, ie_in
+            IF ( hfy_mask(i,j) ) THEN
+              field_flt(i,j) = 0.0
+            ELSE
+              field_flt(i,j) = field_tmp(i,j)
+            ENDIF
+          ENDDO
+          DO l = -1, 1
+            DO i = 1, ie_in
+              IF ( hfy_mask(i,j) ) THEN
+                field_flt(i,j) = field_flt(i,j)+zfw3p(l)*field_tmp(i,j+l)
+              END IF
+            END DO
+          END DO
+        END DO
+
+    ! apply 3-point-filter in y-direction at north boundary
+        DO j = jup+1, je_in-nfw_m_nb
+          DO i = 1, ie_in
+            IF ( hfy_mask(i,j) ) THEN
+              field_flt(i,j) = 0.0
+            ELSE
+              field_flt(i,j) = field_tmp(i,j)
+            ENDIF
+          ENDDO
+          DO l = -1, 1
+            DO i = 1, ie_in
+              IF ( hfy_mask(i,j) ) THEN
+                field_flt(i,j) = field_flt(i,j)+zfw3p(l)*field_tmp(i,j+l)
+              END IF
+            END DO
+          END DO
+        END DO
+
+  ELSE
+
+    !
+    ! apply n-point-filter in y-direction
+    !
+      DO j = jlow, jup
+        DO i = 1, ie_in
+          field_flt(i,j) = 0.0
+        ENDDO
+        DO l = -nflt_width, nflt_width
+          DO i = 1, ie_in
+            field_flt(i,j) = field_flt(i,j)+zfwnp(l)*field_tmp(i,j+l)
+          END DO
+        END DO
+      END DO
+
+    ! apply 3-point-filter in y-direction at south boundary
+        DO j = nfw_m_nb+1, jlow-1
+          DO i = 1, ie_in
+            field_flt(i,j) = 0.0
+          ENDDO
+          DO l = -1, 1
+            DO i = 1, ie_in
+              field_flt(i,j) = field_flt(i,j)+zfw3p(l)*field_tmp(i,j+l)
+            END DO
+          END DO
+        END DO
+
+    ! apply 3-point-filter in y-direction at north boundary
+        DO j = jup+1, je_in-nfw_m_nb
+          DO i = 1, ie_in
+            field_flt(i,j) = 0.0
+          ENDDO
+          DO l = -1, 1
+            DO i = 1, ie_in
+              field_flt(i,j) = field_flt(i,j)+zfw3p(l)*field_tmp(i,j+l)
+            END DO
+          END DO
+        END DO
+
+  END IF
+
+END SUBROUTINE horizontal_filtering
+
+!==============================================================================
+!roa<
 !==============================================================================
 
 END MODULE mo_utilities_extpar

@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+! Update doxygen documentation 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -45,20 +47,24 @@ MODULE mo_base_geometry
   PUBLIC :: triangle_area, circum_center, arc_length, cos_arc_length, bary_center
   PUBLIC :: normal_vector, inter_section, inter_section2, vector_product
   PUBLIC :: rotate_z,rotate_x,rotate_y,x_rot_angle,y_rot_angle,z_rot_angle
-
+  
+  !> data structure for cartesion coordinates
   TYPE cartesian_coordinates
     REAL(wp) :: x(3)
   END TYPE cartesian_coordinates
-
+  
+  !> coordinates pointer
   TYPE coordinates_reference
     TYPE(cartesian_coordinates), POINTER :: px
   END TYPE coordinates_reference
-
+  
+  !> data structure for geographical coordinates
   TYPE geographical_coordinates
     REAL(wp) :: lon
     REAL(wp) :: lat
   END TYPE geographical_coordinates
-
+  
+  !> data structure for tangent vectors
   TYPE tangent_vectors
     REAL(wp) :: v1
     REAL(wp) :: v2
@@ -67,18 +73,8 @@ MODULE mo_base_geometry
   REAL(wp) :: x_rot_angle,y_rot_angle,z_rot_angle
 
 CONTAINS
-
-!EOP  
-!--------------------------------------------------------------------  
-!BOC
-!EOC  
-!-------------------------------------------------------------------------  
-!BOP
-!
-! !IROUTINE:  cc2gc
-!  
-! !SUBROUTINE INTERFACE: 
-
+  
+  !>  Converts cartesian coordinates to geographical.
   ELEMENTAL FUNCTION cc2gc(x) RESULT (position)
 ! !DESCRIPTION:
 ! Converts cartesian coordinates to geographical.
@@ -136,14 +132,7 @@ CONTAINS
 
   END FUNCTION  cc2gc
 
-!EOC  
-!-------------------------------------------------------------------------  
-!BOP
-!
-! !IROUTINE:  gc2cc
-!  
-! !SUBROUTINE INTERFACE: 
-
+  !> Converts longitude and latitude to cartesian coordinates.
   ELEMENTAL FUNCTION gc2cc(position) RESULT(x)
 ! !DESCRIPTION:
 ! Converts longitude and latitude to cartesian coordinates.
@@ -177,7 +166,8 @@ CONTAINS
 ! !IROUTINE:  cc2tv
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !>  Converts  vectors (in)  cartesian coordinate representation
+  !!  to tangent vectors.
   FUNCTION cc2tv(xx,position) RESULT (tt)
 ! !DESCRIPTION:
 ! Converts  vectors (in)  cartesian coordinate representation
@@ -206,14 +196,7 @@ CONTAINS
   END FUNCTION cc2tv
  
 
-!EOC  
-!-------------------------------------------------------------------------  
-!BOP
-!
-! !IROUTINE:  triangle_area
-!  
-! !SUBROUTINE INTERFACE:  
-
+  !> Computes area of triangular cell.
   ELEMENTAL FUNCTION triangle_area (x0, x1, x2) RESULT(area)
 
 ! !DESCRIPTION:
@@ -222,10 +205,6 @@ CONTAINS
 ! !REVISION HISTORY:  
 ! Developed  by Luis Kornblueh  (2004).
 !
-!EOP  
-!-----------------------------------------------------------------------  
-!BOC
-
 
     TYPE(cartesian_coordinates), INTENT(IN) :: x0, x1, x2
 
@@ -295,16 +274,8 @@ CONTAINS
 
   END FUNCTION triangle_area
 
-!EOC  
-!-------------------------------------------------------------------------  
-!BOP
-!
-! !IROUTINE:  vector_product
-!  
-! !SUBROUTINE INTERFACE: 
-
+  !> Computes vector product of x0,x1
   ELEMENTAL FUNCTION vector_product (x0, x1) RESULT(x2)
-
 ! !DESCRIPTION:
 ! Computes vector product of x0,x1
 !
@@ -324,6 +295,7 @@ CONTAINS
   END FUNCTION vector_product
 
 
+!> Computes vector product of 2 unit vectors
 
 ELEMENTAL FUNCTION  vecpro(geog1,geog2) RESULT (xx)
 
@@ -362,7 +334,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  rotate_z
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !>  Rotate counterclockwise
   ELEMENTAL FUNCTION rotate_z (p_phirot,x1) RESULT(x2)
 
 ! !DESCRIPTION:
@@ -393,7 +365,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  rotate_y
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !>  Rotate counterclockwise 
   ELEMENTAL FUNCTION rotate_y (p_phirot,x1) RESULT(x2)
 
 ! !DESCRIPTION:
@@ -424,7 +396,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  rotate_x
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !> ! Rotate counterclockwise
   ELEMENTAL FUNCTION rotate_x (p_phirot,x1) RESULT(x2)
 
 ! !DESCRIPTION:
@@ -455,7 +427,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  normal_vector
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !> ! Computes normal vector to plane determined by x0,x1
   ELEMENTAL FUNCTION normal_vector (x0, x1) RESULT(x2)
 
 ! !DESCRIPTION:
@@ -488,6 +460,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  bary_center
 !  
 ! !SUBROUTINE INTERFACE: 
+  !> ! Determines the bary\_center of triangle with vertices v0,v1,v2
   ELEMENTAL FUNCTION bary_center (v0, v1, v2) RESULT(center) 
 !
 ! !DESCRIPTION:
@@ -542,6 +515,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  circum_center
 !  
 ! !SUBROUTINE INTERFACE: 
+  !> ! Determines the circum\_center of triangle with vertices v0,v1,v2
   ELEMENTAL FUNCTION circum_center (v0, v1, v2) RESULT(center) 
 !
 ! !DESCRIPTION:
@@ -595,7 +569,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  arc_length
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !> ! Computes length of geodesic arc with endpoints x0,x1.
   ELEMENTAL FUNCTION arc_length (x0, x1) RESULT(arc)
 
 ! !DESCRIPTION:
@@ -634,7 +608,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  cos_arc_length
 !  
 ! !SUBROUTINE INTERFACE: 
-
+  !> ! Computes the cosine of the length of geodesic arc with endpoints x0,x1.
   ELEMENTAL FUNCTION cos_arc_length (x0, x1) RESULT(carc)
 
 ! !DESCRIPTION:
@@ -675,7 +649,7 @@ END FUNCTION vecpro
 ! !SUBROUTINE INTERFACE: 
 
   
-
+ !> Finds the intersection of two great circles.
  ELEMENTAL FUNCTION inter_section (p0, p1, v0, v1) RESULT(p)
 ! !DESCRIPTION:
 ! Finds the intersection of two great circles.
@@ -732,7 +706,7 @@ END FUNCTION vecpro
 ! !SUBROUTINE INTERFACE: 
 
   
-
+ !>  Finds the intersection of two great circles.
  ELEMENTAL FUNCTION inter_section2 (p0, p1, v0, v1) RESULT(p)
 ! !DESCRIPTION:
 ! Finds the intersection of two great circles.
@@ -815,6 +789,7 @@ END FUNCTION vecpro
 ! !IROUTINE:  gvec2cvec
 !  
 ! !SUBROUTINE INTERFACE: 
+  !>  Converts zonal $p\_gu$ and meridional vector component
   SUBROUTINE gvec2cvec (p_gu, p_gv, p_long, p_lat, p_cu, p_cv, p_cw)
 !
 ! !DESCRIPTION:
@@ -843,10 +818,6 @@ END FUNCTION vecpro
 ! !LOCAL VARIABLES:  
   REAL(wp)              :: z_cln, z_sln, z_clt, z_slt  ! sin and cos of 
                                                        ! p_long and p_lat
-    
-!EOP  
-!-------------------------------------------------------------------------  
-!BOC  
 
   z_sln = SIN(p_long)
   z_cln = COS(p_long)
@@ -861,15 +832,4 @@ END FUNCTION vecpro
   END SUBROUTINE gvec2cvec
 
 END MODULE mo_base_geometry
-
-!---------------------------------------------
-!EOC
-
-
-
-
-
-
-
-
 

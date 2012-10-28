@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  correct calculation of standard deviation of height
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+!  bug fix in interpolation routine and handling of undefined GLOBE values
+! @VERSION@    @DATE@     Anne Roches
+!  implementation of orography smoothing
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -43,6 +48,18 @@ MODULE mo_agg_globe
       &                                      globe_grid,       &
       &                                      tg,               &
       &                                      globe_files,      &
+!roa>
+      &                                      lfilter_oro,      &
+      &                                      ilow_pass_oro,    &
+      &                                      numfilt_oro,      &
+      &                                      eps_filter,       &
+      &                                      ifill_valley,     &
+      &                                      rfill_valley,     &
+      &                                      ilow_pass_xso,    &
+      &                                      numfilt_xso,      &
+      &                                      lxso_first,       &
+      &                                      rxso_mask,        & 
+!roa<   
       &                                      hh_target,         &
       &                                      stdh_target,       &
       &                                      theta_target,      &
@@ -83,9 +100,7 @@ MODULE mo_agg_globe
    USE mo_search_gme_grid, ONLY: pp_ll2gp
    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
    ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-   USE mo_icon_grid_data, ONLY: icon_domain_grid
-   !USE mo_icon_grid_data, ONLY:  icon_grid_region
-   !USE mo_icon_grid_data, ONLY:  icon_grid_level
+   USE mo_icon_grid_data, ONLY: icon_grid_region, icon_dom_nr
    ! use additional parameters for height on vertices
    ! as a test the fields are loaded from a module instead of passing in the subroutine call
    USE mo_globe_tg_fields, ONLY: add_parameters_domain !< data structure
@@ -111,12 +126,33 @@ MODULE mo_agg_globe
    USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
     &                        calc_weight_bilinear_interpol, &
     &                        calc_value_bilinear_interpol
+!roa >
+   USE mo_oro_filter, ONLY: do_orosmooth
+!roa<
+
 
    TYPE(reg_lonlat_grid) :: globe_tiles_grid(1:ntiles_gl) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
    TYPE(reg_lonlat_grid) :: globe_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
    CHARACTER (LEN=filename_max), INTENT(IN) :: globe_files(1:ntiles_gl)  !< filenames globe raw data
+   !roa>
+   LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
+   INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
+                                                            !  stencil width (1,4,5,6,8)
+   INTEGER(KIND=i4), INTENT(IN) :: numfilt_oro              !< number of applications of the filter
+   REAL(KIND=wp),    INTENT(IN) :: eps_filter               !< smoothing param ("strength" of the filtering)
+   INTEGER(KIND=i4), INTENT(IN) :: ifill_valley             !< fill valleys before or after oro smoothing 
+                                                            !  (1: before, 2: after)
+   REAL(KIND=wp),    INTENT(IN) :: rfill_valley             !< mask for valley filling (threshold value)
+   INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_xso            !< type of oro eXtra SmOothing for steep
+                                                            !  orography and stencil width (1,4,5,6,8)
+   INTEGER(KIND=i4), INTENT(IN) :: numfilt_xso              !< number of applications of the eXtra filter
+   LOGICAL,          INTENT(IN) :: lxso_first               !< eXtra SmOothing before or after oro
+                                                            !  smoothing? (TRUE/FALSE)
+   REAL(KIND=wp),    INTENT(IN) :: rxso_mask                !< mask for eXtra SmOothing (threshold value)
+!roa<
+
    REAL(KIND=wp), INTENT(OUT)   :: hh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
        REAL(KIND=wp), INTENT(OUT)   :: stdh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< standard deviation of subgrid scale orographic height
    REAL(KIND=wp), INTENT(OUT)   :: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
@@ -144,6 +180,10 @@ MODULE mo_agg_globe
    REAL(KIND=wp)   :: dhdxdy(1:nc_tot)  !< dxdy for one latitude row
    REAL(KIND=wp)   :: hh1_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of grid element
    REAL(KIND=wp)   :: hh2_target(1:tg%ie,1:tg%je,1:tg%ke)  !< square mean height of grid element
+!roa >
+   REAL(KIND=wp)   :: hsmooth(1:tg%ie,1:tg%je,1:tg%ke)  !< mean smoothed height of grid element
+!roa <
+
 
    REAL(KIND=wp)   :: h11(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
    REAL(KIND=wp)   :: h12(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
@@ -271,6 +311,10 @@ MODULE mo_agg_globe
    h11         = 0.0
    h12         = 0.0
    h22         = 0.0
+!roa >
+   hsmooth     = 0.0
+!roa <
+
    IF (tg%igrid_type == igrid_icon) THEN ! Icon grid
        vertex_param%hh_vert = 0.0
        vertex_param%npixel_vert = 0
@@ -368,8 +412,6 @@ MODULE mo_agg_globe
 
    IF(mlat /= 21600) THEN !  read raw data south of "central" row except when you are at the most southern raw data line
      h_parallel(1:nc_tot) = h_block(1:nc_tot,block_row)
-     ! CALL get_globe_data_parallel(mlat+1, ncids_globe, h_parallel)
-     !row_lat(j_s) = globe_grid%start_lat_reg + mlat * globe_grid%dlat_reg  !  ((mlat+1)-1)
      h_3rows(1:nc_tot,j_s) = h_parallel(1:nc_tot)
      hh(1:nc_tot,j_s) = h_parallel(1:nc_tot) ! put data to "southern row"
      hh(0,j_s)        = h_parallel(nc_tot) ! western wrap at -180/180 degree longitude
@@ -386,10 +428,16 @@ MODULE mo_agg_globe
      d2y = dy   ! adjust d2y in this case too
    ENDIF
 
-   ! calculate gradients of hh
-   WHERE (hh == undef_globe)  ! set undefined vaulues to 0 altitude (default)
+   ! set undefined vaulues to 0 altitude (default)
+    WHERE (hh == undef_globe)  
      hh = default_globe
    END WHERE
+    WHERE (h_parallel == undef_globe)
+     h_parallel = default_globe
+   END WHERE
+
+
+   ! calculate gradients of hh
    DO i=1,nc_tot
     dhdx(i) = (hh(i+1,j_c) - hh(i-1,j_c))/d2x  ! centered differences as gradient, except for mlat=1 and mlat= 21600
     dhdy(i) = (hh(i,j_n) - hh(i,j_s))/d2y 
@@ -414,7 +462,7 @@ MODULE mo_agg_globe
        nearest_cell_id = 0_i8 !< result of icon grid search, set to 0 at start
        nearest_vert_id = 0_i8 !< set to 0 at start
        target_cc_co = gc2cc(target_geo_co)
-       CALL walk_to_nc(icon_domain_grid,   &
+       CALL walk_to_nc(icon_grid_region(icon_dom_nr),   &
                           target_cc_co,     &
                           start_cell_id,    &
                           ICON_grid%nvertex_per_cell, &
@@ -423,7 +471,7 @@ MODULE mo_agg_globe
 
        ! additional get the nearest vertex index for accumulating height values there
 
-       CALL  find_nearest_vert(icon_domain_grid, &
+       CALL  find_nearest_vert(icon_grid_region(icon_dom_nr), &
                           target_cc_co,                  &
                           nearest_cell_id,        &
                           ICON_grid%nvertex_per_cell,    &
@@ -475,12 +523,12 @@ MODULE mo_agg_globe
            no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1
            !- summation of variables
            IF (h_3rows(i,j_c) /= undef_globe) THEN
-             ndata(ie,je,ke)        = ndata(ie,je,ke) + 1
-             hh_target(ie,je,ke)     = hh_target(ie,je,ke) + h_parallel(i)
-             hh2_target(ie,je,ke)    = hh2_target(ie,je,ke) + ( h_parallel(i) *  h_parallel(i))
-             h11(ie,je,ke)          = h11(ie,je,ke) + dhdxdx(i)
-             h12(ie,je,ke)          = h12(ie,je,ke) + dhdxdy(i)
-             h22(ie,je,ke)          = h22(ie,je,ke) + dhdydy(i)
+             ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
+             hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
+             hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
+             h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
+             h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
+             h22(ie,je,ke)        = h22(ie,je,ke) + dhdydy(i)
            ENDIF
        ENDIF
 
@@ -573,6 +621,26 @@ MODULE mo_agg_globe
       ENDDO 
       ENDDO
       ENDDO
+!roa>
+      hsmooth = hh_target
+! oro filt here
+      IF (lfilter_oro) THEN
+         CALL do_orosmooth(tg,                                 &
+      &                                      hh_target,        &
+      &                                      fr_land_globe,    &
+      &                                      lfilter_oro,      &
+      &                                      ilow_pass_oro,    &
+      &                                      numfilt_oro,      &
+      &                                      eps_filter,       &
+      &                                      ifill_valley,     &
+      &                                      rfill_valley,     &
+      &                                      ilow_pass_xso,    &
+      &                                      numfilt_xso,      &
+      &                                      lxso_first,       &
+      &                                      rxso_mask,        &
+      &                                      hsmooth           )
+      ENDIF
+!roa<
 
 
       IF (tg%igrid_type == igrid_icon) THEN ! CASE ICON grid
@@ -580,7 +648,7 @@ MODULE mo_agg_globe
        ! Average height for vertices
         DO ke=1, 1
         DO je=1, 1
-        DO ie=1, icon_domain_grid%nverts
+        DO ie=1, icon_grid_region(icon_dom_nr)%nverts
 
           IF (vertex_param%npixel_vert(ie,je,ke) /= 0) THEN ! avoid division by zero for small target grids
             vertex_param%hh_vert(ie,je,ke) =  &
@@ -597,16 +665,31 @@ MODULE mo_agg_globe
       DO ke=1, tg%ke
       DO je=1, tg%je
       DO ie=1, tg%ie
-         IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
-            znorm = 1.0/(no_raw_data_pixel(ie,je,ke) * (no_raw_data_pixel(ie,je,ke)-1))
-          ELSE
-            znorm = 0.0
-          ENDIF
+!roa>        
           ! estimation of variance
-          znfi2sum = no_raw_data_pixel(ie,je,ke) * hh2_target(ie,je,ke) 
-          zarg     = ( znfi2sum - (hh1_target(ie,je,ke)*hh1_target(ie,je,ke))) * znorm
-          zarg = MAX(zarg,0.0) ! truncation errors may cause zarg < 0.0
-          stdh_target(ie,je,ke) = SQRT(zarg)
+         IF (lfilter_oro) THEN
+            IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
+               znorm = 1.0/(no_raw_data_pixel(ie,je,ke)-1)
+            ELSE
+               znorm = 0.0
+            ENDIF
+             !!!!! standard deviation of height using oro filt !!!!!
+            zarg = znorm * (hh2_target(ie,je,ke) &
+                    -2 * hsmooth(ie,je,ke) * hh1_target(ie,je,ke)                   &
+                    + no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2)
+         ELSE
+            IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
+               znorm = 1.0/(no_raw_data_pixel(ie,je,ke) * (no_raw_data_pixel(ie,je,ke)-1))
+            ELSE
+               znorm = 0.0
+            ENDIF
+            znfi2sum = no_raw_data_pixel(ie,je,ke) * hh2_target(ie,je,ke) 
+            zarg     = ( znfi2sum - (hh1_target(ie,je,ke)*hh1_target(ie,je,ke))) * znorm
+         ENDIF
+            zarg = MAX(zarg,0.0) ! truncation errors may cause zarg < 0.0
+            stdh_target(ie,je,ke) = SQRT(zarg)
+!roa<
+
       ENDDO
       ENDDO
       ENDDO
@@ -713,6 +796,17 @@ MODULE mo_agg_globe
        ENDDO
        ENDDO
 
+       !roa>
+       ! set the orography variable hh_target to the smoothed orography variable
+       ! hsmooth in case of orogrpahy smoothing in extpar
+       IF (lfilter_oro) THEN
+          hh_target (:,:,:) = hsmooth (:,:,:)
+       ENDIF
+
+
+       ! bilinear interpolation of the orography in case of target grid points having
+       ! no corresponding points in GLOBE
+!roa<
        DO ke=1, tg%ke
        DO je=1, tg%je
        DO ie=1, tg%ie
@@ -748,10 +842,10 @@ MODULE mo_agg_globe
          CASE(igrid_icon) ! ICON GRID
          je=1
          ke=1
-         DO nv=1, icon_domain_grid%nverts
+         DO nv=1, icon_grid_region(icon_dom_nr)%nverts
            IF (vertex_param%npixel_vert(nv,je,ke) == 0) THEN ! interpolate from raw data in this case
-             point_lon_geo =  rad2deg * icon_domain_grid%verts%vertex(nv)%lon 
-             point_lat_geo =  rad2deg * icon_domain_grid%verts%vertex(nv)%lat
+             point_lon_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lon
+             point_lat_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lat
 
              CALL bilinear_interpol_globe_to_target_point(globe_grid, &
                &                                      globe_tiles_grid, &
@@ -894,6 +988,7 @@ MODULE mo_agg_globe
          &                       ncids_globe, &
          &                       h_block)
        ! check for undefined GLOBE data, which indicate ocean grid element
+
        IF( h_block(western_column,southern_row) == undef_globe) THEN
           globe_point_sw = 0.0
           h_block(western_column,southern_row) = default_globe
@@ -910,17 +1005,18 @@ MODULE mo_agg_globe
        
        IF( h_block(eastern_column,northern_row) == undef_globe) THEN
           globe_point_ne = 0.0
-          h_block(eastern_column,southern_row) = default_globe
+          h_block(eastern_column,northern_row) = default_globe
        ELSE
           globe_point_ne = 1.0
        ENDIF
 
        IF( h_block(western_column,northern_row) == undef_globe) THEN
           globe_point_nw = 0.0
-          h_block(eastern_column,southern_row) = default_globe 
+          h_block(western_column,northern_row) = default_globe 
        ELSE
           globe_point_nw = 1.0
        ENDIF
+
 
        ! perform the interpolation, first for fraction land
        fr_land_pixel = calc_value_bilinear_interpol(bwlon, &
@@ -953,3 +1049,4 @@ MODULE mo_agg_globe
 
 
 END MODULE mo_agg_globe
+

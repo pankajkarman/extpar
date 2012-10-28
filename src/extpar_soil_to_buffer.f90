@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -55,7 +57,6 @@ USE  mo_icon_grid_data, ONLY: icon_grid_region
 USE  mo_icon_grid_data, ONLY: icon_grid_level
 USE  mo_icon_grid_data, ONLY: nvertex_dom  
 USE  mo_icon_grid_data, ONLY: ncells_dom
-USE  mo_icon_grid_data, ONLY: icon_domain_grid
 
 
 !  USE mo_icon_grid_routines, ONLY: allocate_icon_grid

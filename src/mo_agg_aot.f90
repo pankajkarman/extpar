@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_3         2011/04/19 Hermann Asensio
+!  suppurt unlimited time dimension for netcdf
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -36,15 +38,12 @@ MODULE mo_agg_aot
   USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
-
-
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
 
   USE mo_bilinterpol, ONLY:  get_4_surrounding_raw_data_indices, &
     &                        calc_weight_bilinear_interpol, &
     &                        calc_value_bilinear_interpol
-
 
 
 IMPLICIT NONE
@@ -66,22 +65,6 @@ PUBLIC :: agg_aot_data_to_target_grid
         &                           gme_triangular_grid
      USE mo_grid_structures, ONLY: igrid_gme, igrid_icon, igrid_cosmo
 
-      ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-      USE mo_icon_grid_data, ONLY:  icon_grid_region
-      USE mo_icon_grid_data, ONLY:  icon_grid_level
-
-      ! USE structure which contains the definition of the ICON grid
-      USE  mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
-
-      ! USE structure which contains the definition of the COSMO grid
-      USE  mo_cosmo_grid, ONLY: cosmo_grid !< structure which contains the definition of the COSMO grid
-
-      USE mo_base_geometry,   ONLY: geographical_coordinates
-      USE mo_base_geometry,   ONLY: cartesian_coordinates
-      USE mo_math_constants, ONLY: pi, rad2deg, eps
-      USE mo_physical_constants, ONLY: re
-      USE mo_additional_geometry,   ONLY: cc2gc,                  &
-        &                                  gc2cc
       USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
 
       ! USE global data fields (coordinates)
@@ -94,13 +77,10 @@ PUBLIC :: agg_aot_data_to_target_grid
         &                     lat_aot, &
         &                     aot_data, &
         &                     aot_grid
- 
       !-------------------------------------------------------------------------------------
       ! list of modules and fields for "output"
-
       USE mo_aot_target_fields, ONLY: aot_tg
 
-                                  
       INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
       INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
       INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
@@ -109,24 +89,10 @@ PUBLIC :: agg_aot_data_to_target_grid
  
       INTEGER (KIND=i8) :: undefined_integer ! undef value
       REAL (KIND=wp)    :: default_real
- 
-      REAL (KIND=wp) :: deg2rad ! degree to radian
 
       INTEGER :: i,j,k,l ! counters
-      INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
+      INTEGER (KIND=i8) :: ie, je, ke  !  for target grid elements
 
-      INTEGER :: idom  ! counter
-      INTEGER :: n_dom ! number of Icon domains
-
-      INTEGER :: nlon
-
-      REAL(KIND=wp)   :: point_lon, point_lat
-      TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-      TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-      INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id
-      LOGICAL :: l_child_dom     ! logical switch if child domain exists
-      INTEGER :: child_dom_id   ! id of child domain
- 
       INTEGER        :: k_error     ! error return code
 
       REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
@@ -157,7 +123,7 @@ PUBLIC :: agg_aot_data_to_target_grid
       REAL (KIND=wp) :: target_array_value(ntime,ntype) !< interpolated values
 
 
-      PRINT *,'entering agg_aot_data_to_target_grid'
+      !PRINT *,'entering agg_aot_data_to_target_grid'
 
       target_array_value = -999.
 
@@ -194,49 +160,30 @@ PUBLIC :: agg_aot_data_to_target_grid
          ! data(eastern_column,southern_row)
          ! data(eastern_column,northern_row)
 
-          !PRINT *,'western_column: ', western_column
-          !PRINT *,'eastern_column: ', eastern_column
-          !PRINT *,'northern_row: ', northern_row
-          !PRINT *,'southern_row: ', southern_row
-
-
-
          ! calculate weight for bilinear interpolation
          target_array_value = -999.
-         if ((western_column /= 0) ) then  ! point is not out of data grid range
+         IF ((western_column /= 0) ) THEN  ! point is not out of data grid range
 
-         CALL calc_weight_bilinear_interpol(point_lon_geo, &
-                                        point_lat_geo, &
-                                        lon_aot(western_column),      &
-                                        lon_aot(eastern_column),      &
-                                        lat_aot(northern_row),     &
-                                        lat_aot(southern_row),     &
-                                        bwlon,         &
-                                        bwlat)
-       ! the weights are bwlon and bwlat
-       !  PRINT *,'bwlon, bwlat', bwlon,bwlat
-       ! put all relevent data to an array
-
-
-
-       data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype)  ! (ntime, ntype) for each grid point
-       data_array_se(1:ntime,1:ntype) = aot_data(eastern_column,southern_row,1:ntime,1:ntype)
-       data_array_ne(1:ntime,1:ntype) = aot_data(eastern_column,northern_row,1:ntime,1:ntype)
-       data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)
-
-       !  print *,'data_array_sw(1,1): ', data_array_sw(1,1) 
-       !  print *,'data_array_se(1,1): ', data_array_se(1,1)
-       !  print *,'data_array_ne(1,1): ', data_array_ne(1,1)
-       !  print *,'data_array_nw(1,1): ', data_array_nw(1,1) 
-
+           CALL calc_weight_bilinear_interpol(point_lon_geo, &
+                                          point_lat_geo, &
+                                          lon_aot(western_column),      &
+                                          lon_aot(eastern_column),      &
+                                          lat_aot(northern_row),     &
+                                          lat_aot(southern_row),     &
+                                          bwlon,         &
+                                          bwlat)
+         ! the weights are bwlon and bwlat
+         ! put all relevent data to an array
+         data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype)  ! (ntime, ntype) for each grid point
+         data_array_se(1:ntime,1:ntype) = aot_data(eastern_column,southern_row,1:ntime,1:ntype)
+         data_array_ne(1:ntime,1:ntype) = aot_data(eastern_column,northern_row,1:ntime,1:ntype)
+         data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)
 
          ! perform the interpolation
-
          target_array_value = calc_value_bilinear_interpol(bwlon, bwlat, &
-                                       data_array_sw, data_array_se, data_array_ne, data_array_nw)
+                                         data_array_sw, data_array_se, data_array_ne, data_array_nw)
         ENDIF
-         !print *,'target_array_value(1,1): ', target_array_value(1,1)
-         aot_tg(i,j,k,1:ntime,1:ntype) = target_array_value(1:ntime,1:ntype)
+       aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))
 
        ENDDO
        ENDDO

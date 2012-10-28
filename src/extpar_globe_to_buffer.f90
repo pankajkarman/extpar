@@ -7,7 +7,10 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !   small bug fixes accroding to Fortran compiler warnings        
-!
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+! @VERSION@    @DATE@     Anne Roches
+!  implementation of orography smoothing
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
@@ -58,7 +61,7 @@ PROGRAM extpar_globe_to_buffer
     &                          nvertex_dom,  &
     &                          ncells_dom
     
-  USE mo_icon_grid_data, ONLY: icon_domain_grid
+  USE mo_icon_grid_data, ONLY: icon_grid_region, icon_dom_nr
 
   USE mo_icon_grid_routines, ONLY: allocate_icon_grid
 
@@ -132,6 +135,9 @@ PROGRAM extpar_globe_to_buffer
   USE mo_globe_output_nc, ONLY: write_netcdf_buffer_globe
   USE mo_globe_output_nc, ONLY: write_netcdf_icon_grid_globe
   USE mo_globe_output_nc, ONLY: write_netcdf_cosmo_grid_globe
+!roa >
+  USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
+!roa <
 
   IMPLICIT NONE
 
@@ -142,6 +148,10 @@ PROGRAM extpar_globe_to_buffer
   CHARACTER(len=filename_max) :: input_namelist_file
   CHARACTER (len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
   CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
+!roa >
+  CHARACTER (len=filename_max) :: namelist_oro_smooth       !< file with orography smoothing information (switches)
+!roa <  
+
     
   CHARACTER (len=filename_max) :: raw_data_path        !< path to raw data
   CHARACTER (LEN=filename_max) :: globe_files(1:ntiles_gl)  !< filenames globe raw data
@@ -193,6 +203,25 @@ PROGRAM extpar_globe_to_buffer
   INTEGER :: nvertex  !< total number of vertices
   INTEGER :: nv ! counter
 
+  !roa >
+  LOGICAL           :: &
+    lfilter_oro,     &
+    lxso_first
+  
+  INTEGER(KIND=i4)  :: &
+    ilow_pass_oro,   & 
+    numfilt_oro,     &
+    ifill_valley,    &
+    ilow_pass_xso,   &
+    numfilt_xso
+
+  REAL(KIND=wp)     :: &
+    eps_filter,      &
+    rfill_valley,    &   
+    rxso_mask     
+!roa <
+
+
  ! Print the default information to stdout:
   CALL info_define ('globe_to_buffer')      ! Pre-define the program name as binary name
   CALL info_print ()                     ! Print the information to stdout
@@ -215,6 +244,21 @@ PROGRAM extpar_globe_to_buffer
     &                                     globe_files,           &
     &                                     orography_buffer_file, &
     &                                     orography_output_file)
+!roa >
+  namelist_oro_smooth = 'INPUT_OROSMOOTH'
+  CALL read_namelists_extpar_orosmooth(namelist_oro_smooth,      &
+                                           lfilter_oro,          &
+                                           ilow_pass_oro,        &
+                                           numfilt_oro,          &
+                                           eps_filter,           &
+                                           ifill_valley,         &
+                                           rfill_valley,         &
+                                           ilow_pass_xso,        &
+                                           numfilt_xso,          &
+                                           lxso_first,           &
+                                           rxso_mask)
+!roa <
+
 
   CALL det_globe_tiles_grid(globe_tiles_grid)
   !HA debug
@@ -238,7 +282,7 @@ PROGRAM extpar_globe_to_buffer
   SELECT CASE(igrid_type)
     CASE(igrid_icon) ! ICON GRID
     ! allocate addtional target fields
-    nvertex = icon_domain_grid%nverts
+    nvertex = icon_grid_region(icon_dom_nr)%nverts
     CALL  allocate_additional_hh_param(nvertex)
   END SELECT
 
@@ -249,6 +293,18 @@ PROGRAM extpar_globe_to_buffer
      &                                      globe_grid,       &
      &                                      tg,               &
      &                                      globe_files,      &
+!roa>
+     &                                      lfilter_oro,      &
+     &                                      ilow_pass_oro,    &
+     &                                      numfilt_oro,      &
+     &                                      eps_filter,       &
+     &                                      ifill_valley,     &
+     &                                      rfill_valley,     &
+     &                                      ilow_pass_xso,    &
+     &                                      numfilt_xso,      &
+     &                                      lxso_first,       &
+     &                                      rxso_mask,        & 
+!roa<
      &                                      hh_globe,         &
      &                                      stdh_globe,       &
      &                                      theta_globe,      &
@@ -473,3 +529,4 @@ PROGRAM extpar_globe_to_buffer
         
 
 END PROGRAM extpar_globe_to_buffer
+

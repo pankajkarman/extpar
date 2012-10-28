@@ -14,9 +14,9 @@ The following steps are performed for the generation of external parameters:
         <li> Icosahedral Hexagonal grids (GME) </li>
         <li> Icosahedral Triangular grids (ICON) with optionally higher resolution in selected regions ('local zooming') </li>
     </ul>    </li>
-  <li> The different raw data sets are aggregated to the target grid considering all raw data elements which are within the target grid element. If the target grid has a higher resolution than the input grid on which the raw data is available either an interpolation is performed or the target grid is filled with the nearest neighbor, but sub-grid scale statistical calculations (e.g. subgrid scale varianceof orograhic height) are dismissed.  </li>
+  <li> The different raw data sets are aggregated to the target grid considering all raw data elements which are within the target grid element. The user can choose in between three land use datasets, GLC2000, GLCC or Globcover. If the target grid has a higher resolution than the input grid on which the raw data is available either an interpolation is performed or the target grid is filled with the nearest neighbor, but sub-grid scale statistical calculations (e.g. subgrid scale varianceof orograhic height) are dismissed.  </li>
   <li> All the different external parameter sets have to be checked for consistency against each other. In case of conflicts default values are set automatically. </li>
-  <li> In the output Netcdf file information on the input data and the processing software is given.  </li>
+  <li> In the output netcdf file information on the input data and the processing software is given.  </li>
 </ol>
 
  \section input Overview of input data sets
@@ -42,6 +42,16 @@ A number of input dataset or raw datasets are used for the generation of the ext
     <td>30'' </td>
   </tr>
   <tr>
+    <td>GLCC land use</td>
+    <td>US Geological Survey</td>
+    <td>30'' </td>
+  </tr>
+  <tr>
+    <td>Globcover 2009</td>
+    <td>ESA</td>
+    <td>10'' </td>
+  </tr>
+  <tr>
     <td>DSMW Digital Soil Map of the World </td>
     <td>FAO </td>
     <td>5'</td>
@@ -52,8 +62,8 @@ A number of input dataset or raw datasets are used for the generation of the ext
     <td>2.5'</td>
   </tr>
   <tr>
-    <td>CRU near surface climatology</td>
-    <td>CRU University of East Anglia</td>
+    <td>HadCRU near surface climatology</td>
+    <td>CRU University of East Anglia, Hadley Centre, UK</td>
     <td>0.5 degree </td>
   </tr>
   <tr>
@@ -129,7 +139,7 @@ A number of input dataset or raw datasets are used for the generation of the ext
     <td>surface roughness </td>
     <td>Z0 </td>
     <td>\f$m\f$  </td>
-    <td>GLC2000, GLOBE </td>
+    <td>Globcover2009, GLC2000, GLCC, GLOBE </td>
   </tr>
 
   <tr>
@@ -153,56 +163,56 @@ A number of input dataset or raw datasets are used for the generation of the ext
     <td>ground fraction covered by plants (vegetation period) </td>
     <td>PLCOV_MX </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>ground fraction covered by artificial (urban) areas </td>
     <td>URBAN </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>ground fraction covered by evergreen forest </td>
     <td>FOR_E </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>ground fraction covered by deciduous forest </td>
     <td>FOR_D </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>root depth </td>
     <td>ROOTDP </td>
     <td>\f$m\f$ </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>leaf area index (vegetation period) </td>
     <td>LAI_MX </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
   
   <tr>
     <td>plant resistance </td>
     <td>PRS_MIN </td>
     <td>\f$s m^{-1}\f$  </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
   <tr>
     <td>long wave surface emissivity </td>
     <td>EMISS_RAD </td>
     <td>1 </td>
-    <td>GLC2000 </td>
+    <td>Globcover2009, GLC2000, GLCC </td>
   </tr>
 
  </table>
@@ -290,7 +300,7 @@ A number of input dataset or raw datasets are used for the generation of the ext
     <td>Near surface temperature (climatological mean) </td>
     <td>T_2M_CL </td>
     <td>\f$ K \f$  </td>
-    <td>CRU </td>
+    <td>HadCRU </td>
   </tr>
 
   <tr>

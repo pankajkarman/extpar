@@ -245,6 +245,7 @@ ADD_EXECUTABLE(extpar_globe_to_buffer            # binary name
                mo_io_utilities.f90
                mo_kind.f90
                mo_math_constants.f90
+               mo_oro_filter.f90
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
                mo_search_gmegrid.f90
@@ -271,6 +272,7 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_additional_geometry.f90
                mo_agg_glc2000.f90
                mo_agg_glcc.f90
+	             mo_agg_globcover.f90
                mo_base_geometry.f90
                mo_cosmo_grid.f90
                mo_exception.f90
@@ -280,6 +282,9 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_glcc_data.f90
                mo_glcc_lookup_tables.f90
                mo_glcc_tg_fields.f90
+	             mo_globcover_data.f90
+       	       mo_globcover_lookup_tables.f90
+      	       mo_globcover_tg_fields.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -289,6 +294,7 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_io_utilities.f90
                mo_kind.f90
                mo_landuse_routines.f90
+	             mo_landuse_tg_fields.f90
                mo_landuse_output_nc.f90
                mo_math_constants.f90
                mo_physical_constants.f90
@@ -420,6 +426,7 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                mo_glc2000_tg_fields.f90
                mo_glcc_lookup_tables.f90
                mo_glcc_tg_fields.f90
+               mo_globcover_lookup_tables.f90
                mo_globe_data.f90
                mo_globe_output_nc.f90
                mo_globe_tg_fields.f90
@@ -461,7 +468,6 @@ TARGET_LINK_LIBRARIES(extpar_consistency_check
                       ${NETCDF_LIBRARY}
                       ${GRIB_API_LIBRARY_F90}
 )
-
 
 
 

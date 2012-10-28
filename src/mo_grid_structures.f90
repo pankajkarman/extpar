@@ -5,6 +5,9 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  change definition of data type icon_grid_def
+!  update doxygen documentation
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -23,21 +26,18 @@ MODULE mo_grid_structures
 USE mo_kind, ONLY: wp
 USE mo_kind, ONLY: i8
 USE mo_kind, ONLY: i4
-
 USE mo_io_units, ONLY: filename_max
 
 
 IMPLICIT NONE
-
 PRIVATE
 
 PUBLIC :: reg_lonlat_grid
 PUBLIC :: rotated_lonlat_grid
 PUBLIC :: icosahedral_triangular_grid
+PUBLIC :: icon_grid_def
 PUBLIC :: gme_triangular_grid
-
 PUBLIC :: target_grid_def
-
 PUBLIC :: igrid_icon
 PUBLIC :: igrid_cosmo
 PUBLIC :: igrid_gme
@@ -56,13 +56,12 @@ INTEGER (KIND=i4), PARAMETER :: igrid_icon = 1 !< parameter to identify ICON gri
 INTEGER (KIND=i4), PARAMETER :: igrid_cosmo = 2 !< parameter to identify COSMO grid
 INTEGER (KIND=i4), PARAMETER :: igrid_gme = 3 !< parameter to identify GME grid
 
-
-
-!> Definition of data type with icon grid definition 
+!> Definition of data type with ICON grid definition 
 TYPE :: icosahedral_triangular_grid
   INTEGER (KIND=i4) :: n_dom             !< number of icon model domains
   INTEGER (KIND=i4) :: start_lev         !< level of (first) global model domain
   INTEGER (KIND=i4) :: grid_root         !< number of partitions of the icosahedron
+  INTEGER (KIND=i4) :: icon_dom_nr       !< icon domain number for grid
   INTEGER (KIND=i4) :: nvertex_per_cell  !< number of vertices per cell
   INTEGER (KIND=i4) :: nchilds_per_cell  !< number of child cells per cell
   INTEGER (KIND=i4) :: ncells_per_edge   !< number of cells per edge
@@ -74,7 +73,24 @@ TYPE :: icosahedral_triangular_grid
   CHARACTER (LEN=filename_max) :: nc_grid_file !< filename of grid file which contains the Icon grid coordinates 
 END TYPE icosahedral_triangular_grid
 
-!> Definition of data type with icon grid definition 
+!> Definition of data type with ICON grid definition for multiple model domains
+TYPE :: icon_grid_def
+  INTEGER (KIND=i4) :: n_dom             !< number of icon model domains
+  INTEGER (KIND=i4) :: start_lev         !< level of (first) global model domain
+  INTEGER (KIND=i4) :: grid_root         !< number of partitions of the icosahedron
+  INTEGER (KIND=i4) :: nvertex_per_cell  !< number of vertices per cell
+  INTEGER (KIND=i4) :: nchilds_per_cell  !< number of child cells per cell
+  INTEGER (KIND=i4) :: ncells_per_edge   !< number of cells per edge
+  INTEGER (KIND=i4) :: nedges_per_vertex !< number of edges per vertex
+  INTEGER (KIND=i4), ALLOCATABLE  :: nchdom(:)            !< maximum number of child domains
+  INTEGER (KIND=i4), ALLOCATABLE  :: ncell(:)             !< number of cells
+  INTEGER (KIND=i4), ALLOCATABLE  :: nvertex(:)           !< number of vertices
+  INTEGER (KIND=i4), ALLOCATABLE  :: nedge(:)             !< number of edges
+  INTEGER (KIND=i4), ALLOCATABLE  :: parent_ids(:)        !< id of parent grid level
+  CHARACTER (LEN=filename_max), ALLOCATABLE :: grid_files(:) !< filenames of Icon grid coordinates, dimension(n_dom)
+END TYPE icon_grid_def
+
+!> Definition of data type with GME grid definition 
 TYPE :: gme_triangular_grid
   INTEGER (KIND=i4) :: ni   !< resoultion parameter for GME grid, number of intervals on a main triangle side
   INTEGER (KIND=i4) :: ig1s !< first dimension of arrays, start index  (ig1s >= 0)
@@ -84,29 +100,22 @@ TYPE :: gme_triangular_grid
   INTEGER (KIND=i4) :: nd   !< number of diamonds      (nd  = 10)
   INTEGER (KIND=i4) :: nip1   !< resoultion parameter for GME grid, number of intervals on a main triangle side + 1
 END TYPE gme_triangular_grid
-          
 
-          
+!> Definition of data type to describe a rotated lonlat grid
+TYPE :: rotated_lonlat_grid
+  REAL  (KIND=wp) :: pollon !< longitude of the rotated north pole (in degrees, E>0)
+  REAL  (KIND=wp) :: pollat !< latitude of the rotated north pole (in degrees, N>0)
+  REAL  (KIND=wp) :: polgam !< longitude (in the rotated system) of the geographical north pole
+  REAL  (KIND=wp)  :: startlon_rot !< transformed longitude of the lower left grid point of the total domain (in degrees, E>0)
+  REAL  (KIND=wp)  :: startlat_rot   !< transformed latitude of the lower left grid point of the total domain (in degrees, N>0)
+  REAL  (KIND=wp)  :: dlon_rot !< grid point distance in zonal direction (in degrees, rotated system)
+  REAL  (KIND=wp)  :: dlat_rot !< grid point distance in meridional direction (in degrees, rotated system)
+  INTEGER  (KIND=i8) :: nlon_rot !< number of grid points in zonal direction (rotated system)
+  INTEGER  (KIND=i8) :: nlat_rot !< number of grid points in meridional direction (rotated system)
+  INTEGER  (KIND=i8) :: ke_tot !< number of grid points in vertical direction
+END TYPE rotated_lonlat_grid
 
-!> Definition of Data Type to describe a rotated lonlat grid
-      TYPE :: rotated_lonlat_grid
-          REAL  (KIND=wp) :: pollon !< longitude of the rotated north pole (in degrees, E>0)
-          REAL  (KIND=wp) :: pollat !< latitude of the rotated north pole (in degrees, N>0)
-          REAL  (KIND=wp) :: polgam !< longitude (in the rotated system) of the geographical north pole
-          REAL  (KIND=wp)  :: startlon_rot !< transformed longitude of the lower left grid point of the total domain (in degrees, E>0)
-          REAL  (KIND=wp)  :: startlat_rot   !< transformed latitude of the lower left grid point of the total domain (in degrees, N>0)
-          REAL  (KIND=wp)  :: dlon_rot !< grid point distance in zonal direction (in degrees, rotated system)
-          REAL  (KIND=wp)  :: dlat_rot !< grid point distance in meridional direction (in degrees, rotated system)
-          INTEGER  (KIND=i8) :: nlon_rot !< number of grid points in zonal direction (rotated system)
-          INTEGER  (KIND=i8) :: nlat_rot !< number of grid points in meridional direction (rotated system)
-          INTEGER  (KIND=i8) :: ke_tot !< number of grid points in vertical direction
-      END TYPE rotated_lonlat_grid
-
-
-
-
-
-!> Definition of Data Type to describe a regular lonlat grid 
+!> Definition of data type to describe a regular lonlat grid 
 TYPE :: reg_lonlat_grid
        REAL (KIND=wp) :: start_lon_reg !< start longitude for regular lon-lat grid (usually western boundary)
        REAL (KIND=wp) :: end_lon_reg   !< end longitude for regular lon-lat grid (usually eastern boundary)
@@ -121,7 +130,6 @@ TYPE :: reg_lonlat_grid
        INTEGER (KIND=i8) :: nlat_reg !< number of grid elements in meridional direction for regular lon-lat grid
 END TYPE reg_lonlat_grid
 
-
-
 END MODULE mo_grid_structures
+
 

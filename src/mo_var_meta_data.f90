@@ -7,6 +7,13 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  Add meta information for aerosol types         
+! V1_2         2011/03/25 Hermann Asensio
+!  Use capital letters in variable name for output variables, but minuscule letters for coordinates
+!  Adapt variable names to COSMO-CLM conventions and "standard name" to cf convention 
+! V1_3         2011/04/19 Hermann Asensio
+!  introduce Globcover 2009 land use data set for external parameters
+! @VERSION@    @DATE@     Anne Roches
+!  implementation of orography smoothing
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -42,6 +49,8 @@ MODULE mo_var_meta_data
   PUBLIC :: rlon_meta, rlat_meta
 
   PUBLIC :: dim_icon, def_dimension_info_icon
+  PUBLIC :: clon_meta, clat_meta
+  PUBLIC :: clon_vertices_meta, clat_vertices_meta
 
   PUBLIC :: dim_aot_tg, dim_aot_ty
   PUBLIC :: aot_tg_meta, aer_bc_meta, aer_dust_meta, aer_org_meta, aer_so4_meta, aer_ss_meta
@@ -123,6 +132,8 @@ MODULE mo_var_meta_data
   TYPE(dim_meta_info), TARGET :: dim_rlat_cosmo(1:1)
   TYPE(dim_meta_info), TARGET :: dim_2d_cosmo(1:2)
   TYPE(dim_meta_info), TARGET :: dim_icon(1:7)
+  TYPE(dim_meta_info), TARGET :: dim_cells_icon(1:1)
+  TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
   TYPE(dim_meta_info), TARGET :: dim_buffer_cell(1:3)
   TYPE(dim_meta_info), TARGET :: dim_buffer_vertex(1:3)
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_aot_tg(:) !< dimensions for field with all aerosol types
@@ -152,6 +163,12 @@ MODULE mo_var_meta_data
 
   TYPE(var_meta_info) :: rlon_meta !< additional information for variable
   TYPE(var_meta_info) :: rlat_meta !< additional information for variable
+
+  TYPE(var_meta_info) :: clon_meta !< additional information for variable
+  TYPE(var_meta_info) :: clat_meta !< additional information for variable
+  TYPE(var_meta_info) :: clon_vertices_meta !< additional information for variable
+  TYPE(var_meta_info) :: clat_vertices_meta !< additional information for variable
+
 
   TYPE(var_meta_info) :: fr_land_glc2000_meta  !< additional information for variable
   TYPE(var_meta_info) :: glc2000_tot_npixel_meta !< additional information for variable
@@ -320,6 +337,65 @@ MODULE mo_var_meta_data
     dim_icon(7)%dimname = 'no'
     dim_icon(7)%dimsize = icon_grid%nchilds_per_cell ! number of childs per cell
 
+    dim_cells_icon(1)= dim_icon(1)
+    
+    dim_2d_icon(1) = dim_icon(5)
+    dim_2d_icon(2) = dim_icon(1)
+    
+
+
+   ! set meta information for variable clon
+    clon_meta%varname = 'clon'
+    clon_meta%n_dim = 1
+    clon_meta%diminfo => dim_cells_icon
+    clon_meta%vartype = vartype_real !REAL variable
+    clon_meta%standard_name = "grid longitude" 
+    clon_meta%long_name =  "longitude of icon grid cell centre"
+    clon_meta%shortName = c_undef
+    clon_meta%units =  "radians"
+    clon_meta%grid_mapping = c_undef
+    clon_meta%coordinates = c_undef
+    
+    ! set meta information for variable clat
+
+    clat_meta%varname = 'clat'
+    clat_meta%n_dim = 1
+    clat_meta%diminfo =>  dim_cells_icon
+    clat_meta%vartype = vartype_real !REAL variable
+    clat_meta%standard_name = "grid latitude" 
+    clat_meta%long_name =  "latitude of icon grid cell centre"
+    clat_meta%shortName = c_undef
+    clat_meta%units =  "radians"
+    clat_meta%grid_mapping = c_undef
+    clat_meta%coordinates = c_undef
+
+ ! set meta information for variable clon_vertices_meta
+
+    clon_vertices_meta%varname = 'clon_vertices'
+    clon_vertices_meta%n_dim = 2
+    clon_vertices_meta%diminfo => dim_2d_icon
+    clon_vertices_meta%vartype = vartype_real !REAL variable
+    clon_vertices_meta%standard_name = "vertices longitude" 
+    clon_vertices_meta%long_name =  "longitude of icon grid cell vertices"
+    clon_vertices_meta%shortName = c_undef
+    clon_vertices_meta%units =  "radians"
+    clon_vertices_meta%grid_mapping = c_undef
+    clon_vertices_meta%coordinates = c_undef
+    
+    ! set meta information for variable clat_vertices_meta
+
+    clat_vertices_meta%varname = 'clat_vertices'
+    clat_vertices_meta%n_dim = 2
+    clat_vertices_meta%diminfo => dim_2d_icon
+    clat_vertices_meta%vartype = vartype_real !REAL variable
+    clat_vertices_meta%standard_name = "vertices latitude" 
+    clat_vertices_meta%long_name =  "latitude of icon grid cell vertices"
+    clat_vertices_meta%shortName = c_undef
+    clat_vertices_meta%units =  "radians"
+    clat_vertices_meta%grid_mapping = c_undef
+    clat_vertices_meta%coordinates = c_undef
+
+
   END SUBROUTINE def_dimension_info_icon
   
 
@@ -340,14 +416,12 @@ MODULE mo_var_meta_data
     IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
     IF (PRESENT(coordinates)) coord = TRIM(coordinates)
     n_dim = SIZE(diminfo)
-
-
-  
-    crutemp_meta%varname = 'tem_clim'
+    !ha change varname to CAPITAL letters
+    crutemp_meta%varname = 'T_CL'
     crutemp_meta%n_dim = n_dim
     crutemp_meta%diminfo => diminfo
     crutemp_meta%vartype = vartype_real !REAL variable
-    crutemp_meta%standard_name = 'CRU T'
+    crutemp_meta%standard_name = 'soil_temperature'
     crutemp_meta%long_name = 'CRU near surface temperature climatology'
     crutemp_meta%shortName = 'T_2M_CL'
     crutemp_meta%units = 'K'
@@ -375,7 +449,7 @@ MODULE mo_var_meta_data
     n_dim = SIZE(diminfo)
 
   
-    fr_land_soil_meta%varname = 'fr_land_soil'
+    fr_land_soil_meta%varname = 'FR_LAND_SOIL'
     fr_land_soil_meta%n_dim = n_dim
     fr_land_soil_meta%diminfo => diminfo
     fr_land_soil_meta%vartype = vartype_real !REAL variable
@@ -386,14 +460,12 @@ MODULE mo_var_meta_data
     fr_land_soil_meta%grid_mapping = gridmp
     fr_land_soil_meta%coordinates = coord
 
-!roa nc>
+     
     soiltype_fao_meta%varname = 'SOILTYP'
-    !soiltype_fao_meta%varname = 'soiltype_fao'
-!roa nc<     
     soiltype_fao_meta%n_dim = n_dim
     soiltype_fao_meta%diminfo => diminfo
     soiltype_fao_meta%vartype = vartype_int !REAL variable
-    soiltype_fao_meta%standard_name = 'SOILTYP'
+    soiltype_fao_meta%standard_name = 'soil_type'
     soiltype_fao_meta%long_name = 'soil type derived from FAO Digital Soil Map of the World'
     soiltype_fao_meta%shortName = 'SOILTYP'
     soiltype_fao_meta%units = c_undef
@@ -451,14 +523,14 @@ MODULE mo_var_meta_data
       CASE (1)
       dim_ndvi_tg(1)%dimname = diminfo(1)%dimname 
       dim_ndvi_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_ndvi_tg(2)%dimname = 'ntime'
+      dim_ndvi_tg(2)%dimname = 'time'
       dim_ndvi_tg(2)%dimsize = ntime
     CASE (2)
       dim_ndvi_tg(1)%dimname = diminfo(1)%dimname
       dim_ndvi_tg(1)%dimsize = diminfo(1)%dimsize
       dim_ndvi_tg(2)%dimname = diminfo(2)%dimname
       dim_ndvi_tg(2)%dimsize = diminfo(2)%dimsize
-      dim_ndvi_tg(3)%dimname = 'ntime'
+      dim_ndvi_tg(3)%dimname = 'time'
       dim_ndvi_tg(3)%dimsize = ntime
     CASE (3)
       dim_ndvi_tg(1)%dimname = diminfo(1)%dimname
@@ -467,40 +539,40 @@ MODULE mo_var_meta_data
       dim_ndvi_tg(2)%dimsize = diminfo(2)%dimsize
       dim_ndvi_tg(3)%dimname = diminfo(3)%dimname
       dim_ndvi_tg(3)%dimsize = diminfo(3)%dimsize
-      dim_ndvi_tg(4)%dimname = 'ntime'
+      dim_ndvi_tg(4)%dimname = 'time'
       dim_ndvi_tg(4)%dimsize = ntime
     END SELECT
 
   
-    ndvi_max_meta%varname = 'ndvi_max'
+    ndvi_max_meta%varname = 'NDVI_MAX'
     ndvi_max_meta%n_dim = n_dim
     ndvi_max_meta%diminfo => diminfo
     ndvi_max_meta%vartype = vartype_real !REAL variable
-    ndvi_max_meta%standard_name = 'NDVI_MAX soil'
+    ndvi_max_meta%standard_name = 'normalized_difference_vegetation_index'
     ndvi_max_meta%long_name = 'NDVI yearly maximum for climatology 1998-2003'
     ndvi_max_meta%shortName = 'NDVI_MAX'
     ndvi_max_meta%units = c_undef
     ndvi_max_meta%grid_mapping = gridmp
     ndvi_max_meta%coordinates = coord
      
-    ndvi_field_mom_meta%varname = 'ndvi_field_mom'
+    ndvi_field_mom_meta%varname = 'NDVI'
     ndvi_field_mom_meta%n_dim = n_dim + 1
     ndvi_field_mom_meta%diminfo => dim_ndvi_tg
     ndvi_field_mom_meta%vartype = vartype_real !REAL variable
-    ndvi_field_mom_meta%standard_name = 'NDVI'
-    ndvi_field_mom_meta%long_name = 'monthly mean NDVI climatology'
+    ndvi_field_mom_meta%standard_name = 'normalized_difference_vegetation_index'
+    ndvi_field_mom_meta%long_name = 'monthly mean NDVI climatology 1998-2003'
     ndvi_field_mom_meta%shortName = 'NDVI'
     ndvi_field_mom_meta%units = c_undef
     ndvi_field_mom_meta%grid_mapping = gridmp
     ndvi_field_mom_meta%coordinates = coord
 
-    ndvi_ratio_mom_meta%varname = 'ndvi_ratio_mom'
+    ndvi_ratio_mom_meta%varname = 'NDVI_MRAT'
     ndvi_ratio_mom_meta%n_dim = n_dim + 1
     ndvi_ratio_mom_meta%diminfo => dim_ndvi_tg
     ndvi_ratio_mom_meta%vartype = vartype_real !REAL variable
-    ndvi_ratio_mom_meta%standard_name = 'NDVIRATIO'
+    ndvi_ratio_mom_meta%standard_name = 'normalized_difference_vegetation_index'
     ndvi_ratio_mom_meta%long_name = '(monthly) proportion of actual value/maximum normalized differential vegetation index'
-    ndvi_ratio_mom_meta%shortName = 'NDVIRATIO'
+    ndvi_ratio_mom_meta%shortName = 'NDVI_MRAT'
     ndvi_ratio_mom_meta%units = c_undef
     ndvi_ratio_mom_meta%grid_mapping = gridmp
     ndvi_ratio_mom_meta%coordinates = coord
@@ -545,29 +617,27 @@ MODULE mo_var_meta_data
     CASE (1)
       dim_aot_tg(1)%dimname = diminfo(1)%dimname
       dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_aot_tg(2)%dimname = 'ntime'
-      dim_aot_tg(2)%dimsize = ntime
-      dim_aot_tg(3)%dimname = 'ntype'
-      dim_aot_tg(3)%dimsize = ntype
+      dim_aot_tg(2)%dimname = 'ntype'
+      dim_aot_tg(2)%dimsize = ntype
+      dim_aot_tg(3)%dimname = 'time'
+      dim_aot_tg(3)%dimsize = ntime
 
       dim_aot_ty(1) = dim_aot_tg(1)
-      dim_aot_ty(2) = dim_aot_tg(2)
+      dim_aot_ty(2) = dim_aot_tg(3)
 
     CASE (2)
       dim_aot_tg(1)%dimname = diminfo(1)%dimname
       dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
       dim_aot_tg(2)%dimname = diminfo(2)%dimname
       dim_aot_tg(2)%dimsize = diminfo(2)%dimsize 
-      dim_aot_tg(3)%dimname = 'ntime'
-      dim_aot_tg(3)%dimsize = ntime
-      dim_aot_tg(4)%dimname = 'ntype'
-      dim_aot_tg(4)%dimsize = ntype
+      dim_aot_tg(3)%dimname = 'ntype'
+      dim_aot_tg(3)%dimsize = ntype
+      dim_aot_tg(4)%dimname = 'time'
+      dim_aot_tg(4)%dimsize = ntime
 
       dim_aot_ty(1) = dim_aot_tg(1)
       dim_aot_ty(2) = dim_aot_tg(2)
-      dim_aot_ty(3) = dim_aot_tg(3)
-
-
+      dim_aot_ty(3) = dim_aot_tg(4)
 
     CASE (3)
       dim_aot_tg(1)%dimname = diminfo(1)%dimname
@@ -576,15 +646,15 @@ MODULE mo_var_meta_data
       dim_aot_tg(2)%dimsize = diminfo(2)%dimsize
       dim_aot_tg(3)%dimname = diminfo(3)%dimname
       dim_aot_tg(3)%dimsize = diminfo(3)%dimsize
-      dim_aot_tg(4)%dimname = 'ntime'
-      dim_aot_tg(4)%dimsize = ntime
-      dim_aot_tg(5)%dimname = 'ntype'
-      dim_aot_tg(5)%dimsize = ntype
+      dim_aot_tg(4)%dimname = 'ntype'
+      dim_aot_tg(4)%dimsize = ntype
+      dim_aot_tg(5)%dimname = 'time'
+      dim_aot_tg(5)%dimsize = ntime
 
       dim_aot_ty(1) = dim_aot_tg(1)
       dim_aot_ty(2) = dim_aot_tg(2)
       dim_aot_ty(3) = dim_aot_tg(3)
-      dim_aot_ty(4) = dim_aot_tg(4)
+      dim_aot_ty(4) = dim_aot_tg(5)
 
 
 
@@ -593,7 +663,7 @@ MODULE mo_var_meta_data
 
     
     ! set meta information for variable aot_tg
-    aot_tg_meta%varname = 'aot_tg'
+    aot_tg_meta%varname = 'AOT_TG'
     aot_tg_meta%n_dim = n_dim + 2
     aot_tg_meta%diminfo => dim_aot_tg
     aot_tg_meta%vartype = vartype_real !REAL variable
@@ -614,19 +684,19 @@ MODULE mo_var_meta_data
     aer_bc_meta%n_dim = n_dim + 1
     aer_bc_meta%diminfo => dim_aot_ty
     aer_bc_meta%vartype = vartype_real !REAL variable
-    aer_bc_meta%standard_name = 'aot bc'
+    aer_bc_meta%standard_name = 'atmosphere_absorption_optical_thickness_due_to_black_carbon_ambient_aerosol'
     aer_bc_meta%long_name = 'aerosol optical thickness of black carbon'
     aer_bc_meta%shortName = 'AER_BC'
     aer_bc_meta%units = c_undef
     aer_bc_meta%grid_mapping = gridmp
     aer_bc_meta%coordinates = coord
-
+    
     aer_dust_meta%varname = 'AER_DUST'
     aer_dust_meta%n_dim = n_dim + 1
     aer_dust_meta%diminfo => dim_aot_ty
     aer_dust_meta%vartype = vartype_real !REAL variable
     aer_dust_meta%standard_name = 'aot dust'
-    aer_dust_meta%long_name = 'aerosol optical thickness of dust'
+    aer_dust_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_dust_ambient_aerosol'
     aer_dust_meta%shortName = 'AER_DUST'
     aer_dust_meta%units = c_undef
     aer_dust_meta%grid_mapping = gridmp
@@ -637,7 +707,7 @@ MODULE mo_var_meta_data
     aer_org_meta%diminfo => dim_aot_ty
     aer_org_meta%vartype = vartype_real !REAL variable
     aer_org_meta%standard_name = 'aot org'
-    aer_org_meta%long_name = 'aerosol optical thickness of organic matter'
+    aer_org_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_particulate_organic_matter_ambient_aerosol'
     aer_org_meta%shortName = 'AER_ORG'
     aer_org_meta%units = c_undef
     aer_org_meta%grid_mapping = gridmp
@@ -648,7 +718,7 @@ MODULE mo_var_meta_data
     aer_so4_meta%diminfo => dim_aot_ty
     aer_so4_meta%vartype = vartype_real !REAL variable
     aer_so4_meta%standard_name = 'aot so4'
-    aer_so4_meta%long_name = 'aerosol optical thickness of sulfate'
+    aer_so4_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_sulfate_ambient_aerosol'
     aer_so4_meta%shortName = 'AER_SO4'
     aer_so4_meta%units = c_undef
     aer_so4_meta%grid_mapping = gridmp
@@ -659,7 +729,7 @@ MODULE mo_var_meta_data
     aer_ss_meta%diminfo => dim_aot_ty
     aer_ss_meta%vartype = vartype_real !REAL variable
     aer_ss_meta%standard_name = 'aot ss'
-    aer_ss_meta%long_name = 'aerosol optical thickness of sea salt'
+    aer_ss_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_seasalt_ambient_aerosol'
     aer_ss_meta%shortName = 'AER_SS'
     aer_ss_meta%units = c_undef
     aer_ss_meta%grid_mapping = gridmp
@@ -697,8 +767,8 @@ MODULE mo_var_meta_data
     lon_geo_meta%long_name = 'geographical longitude'
     lon_geo_meta%shortName = 'RLON'
     lon_geo_meta%units =  'degrees_east'
-    lon_geo_meta%grid_mapping = gridmp
-    lon_geo_meta%coordinates = coord
+    lon_geo_meta%grid_mapping = c_undef
+    lon_geo_meta%coordinates = c_undef
 
 
     lat_geo_meta%varname = 'lat'
@@ -709,11 +779,11 @@ MODULE mo_var_meta_data
     lat_geo_meta%long_name = 'geographical latitude'
     lat_geo_meta%shortName = 'RLAT'
     lat_geo_meta%units =  'degrees_north'
-    lat_geo_meta%grid_mapping = gridmp
-    lat_geo_meta%coordinates = coord
+    lat_geo_meta%grid_mapping = c_undef
+    lat_geo_meta%coordinates = c_undef
 
 
-    no_raw_data_pixel_meta%varname = 'no_raw_data_pixel'
+    no_raw_data_pixel_meta%varname = 'NO_RAW_DATA_PIXEL'
     no_raw_data_pixel_meta%n_dim = n_dim
     no_raw_data_pixel_meta%diminfo => diminfo
     no_raw_data_pixel_meta%vartype = vartype_int !REAL variable
@@ -779,7 +849,7 @@ MODULE mo_var_meta_data
 
 
     ! fr_land_glc2000_meta
-    fr_land_glc2000_meta%varname = 'fr_land_glc2000'
+    fr_land_glc2000_meta%varname = 'FR_LAND_GLC2000'
     fr_land_glc2000_meta%n_dim = n_dim
     fr_land_glc2000_meta%diminfo => diminfo
     fr_land_glc2000_meta%vartype = vartype_real !REAL variable
@@ -792,7 +862,7 @@ MODULE mo_var_meta_data
 
 
    ! glc2000_tot_npixel_meta
-    glc2000_tot_npixel_meta%varname = 'glc2000_tot_npixel'
+    glc2000_tot_npixel_meta%varname = 'GLC2000_TOT_NPIXEL'
     glc2000_tot_npixel_meta%n_dim = n_dim
     glc2000_tot_npixel_meta%diminfo => diminfo
     glc2000_tot_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -805,7 +875,7 @@ MODULE mo_var_meta_data
 
      
     ! glc2000_class_fraction_meta
-    glc2000_class_fraction_meta%varname = 'glc2000_class_fraction'
+    glc2000_class_fraction_meta%varname = 'GLC2000_CLASS_FRACTION'
     glc2000_class_fraction_meta%n_dim = n_dim + 1
     glc2000_class_fraction_meta%diminfo => dim_glc2000_tg
     glc2000_class_fraction_meta%vartype = vartype_real !REAL variable
@@ -817,7 +887,7 @@ MODULE mo_var_meta_data
     glc2000_class_fraction_meta%coordinates = c_undef
 
     ! glc2000_class_npixel_meta
-    glc2000_class_npixel_meta%varname = 'glc2000_class_npixel'
+    glc2000_class_npixel_meta%varname = 'GLC2000_CLASS_NPIXEL'
     glc2000_class_npixel_meta%n_dim = n_dim + 1
     glc2000_class_npixel_meta%diminfo => dim_glc2000_tg
     glc2000_class_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -829,7 +899,7 @@ MODULE mo_var_meta_data
     glc2000_class_npixel_meta%coordinates = c_undef
 
     ! ice_glc2000_meta
-    ice_glc2000_meta%varname = 'ice_glc2000'
+    ice_glc2000_meta%varname = 'ICE_GLC2000'
     ice_glc2000_meta%n_dim = n_dim
     ice_glc2000_meta%diminfo => diminfo
     ice_glc2000_meta%vartype = vartype_real !REAL variable
@@ -841,7 +911,7 @@ MODULE mo_var_meta_data
     ice_glc2000_meta%coordinates = coord
 
     ! z0_glc2000_meta
-    z0_glc2000_meta%varname = 'z0_glc2000'
+    z0_glc2000_meta%varname = 'Z0_GLC2000'
     z0_glc2000_meta%n_dim = n_dim
     z0_glc2000_meta%diminfo => diminfo
     z0_glc2000_meta%vartype = vartype_real !REAL variable
@@ -853,7 +923,7 @@ MODULE mo_var_meta_data
     z0_glc2000_meta%coordinates = coord
 
     ! root_glc2000_meta
-    root_glc2000_meta%varname = 'root_glc2000'
+    root_glc2000_meta%varname = 'ROOT_GLC2000'
     root_glc2000_meta%n_dim = n_dim
     root_glc2000_meta%diminfo => diminfo
     root_glc2000_meta%vartype = vartype_real !REAL variable
@@ -865,7 +935,7 @@ MODULE mo_var_meta_data
     root_glc2000_meta%coordinates = coord
 
     ! plcov_mx_glc2000_meta
-    plcov_mx_glc2000_meta%varname = 'plcov_mx_glc2000'
+    plcov_mx_glc2000_meta%varname = 'PLCOV_MX_GLC2000'
     plcov_mx_glc2000_meta%n_dim = n_dim
     plcov_mx_glc2000_meta%diminfo => diminfo
     plcov_mx_glc2000_meta%vartype = vartype_real !REAL variable
@@ -878,7 +948,7 @@ MODULE mo_var_meta_data
 
 
     ! plcov_mn_glc2000_meta
-    plcov_mn_glc2000_meta%varname = 'plcov_mn_glc2000'
+    plcov_mn_glc2000_meta%varname = 'PLCOV_MN_GLC2000'
     plcov_mn_glc2000_meta%n_dim = n_dim
     plcov_mn_glc2000_meta%diminfo => diminfo
     plcov_mn_glc2000_meta%vartype = vartype_real !REAL variable
@@ -890,7 +960,7 @@ MODULE mo_var_meta_data
     plcov_mn_glc2000_meta%coordinates = coord
 
     ! lai_mx_glc2000_meta
-    lai_mx_glc2000_meta%varname = 'lai_mx_glc2000'
+    lai_mx_glc2000_meta%varname = 'LAI_MX_GLC2000'
     lai_mx_glc2000_meta%n_dim = n_dim
     lai_mx_glc2000_meta%diminfo => diminfo
     lai_mx_glc2000_meta%vartype = vartype_real !REAL variable
@@ -903,7 +973,7 @@ MODULE mo_var_meta_data
 
 
     ! lai_mn_glc2000_meta
-    lai_mn_glc2000_meta%varname = 'lai_mn_glc2000'
+    lai_mn_glc2000_meta%varname = 'LAI_MN_GLC2000'
     lai_mn_glc2000_meta%n_dim = n_dim
     lai_mn_glc2000_meta%diminfo => diminfo
     lai_mn_glc2000_meta%vartype = vartype_real !REAL variable
@@ -916,7 +986,7 @@ MODULE mo_var_meta_data
 
 
     ! rs_min_glc2000_meta
-    rs_min_glc2000_meta%varname = 'rs_min_glc2000'
+    rs_min_glc2000_meta%varname = 'RSMIN_GLC2000'
     rs_min_glc2000_meta%n_dim = n_dim
     rs_min_glc2000_meta%diminfo => diminfo
     rs_min_glc2000_meta%vartype = vartype_real !REAL variable
@@ -928,7 +998,7 @@ MODULE mo_var_meta_data
     rs_min_glc2000_meta%coordinates = coord
 
     ! urban_glc2000_meta
-    urban_glc2000_meta%varname = 'urban_glc2000'
+    urban_glc2000_meta%varname = 'URBAN_GLC2000'
     urban_glc2000_meta%n_dim = n_dim
     urban_glc2000_meta%diminfo => diminfo
     urban_glc2000_meta%vartype = vartype_real !REAL variable
@@ -941,7 +1011,7 @@ MODULE mo_var_meta_data
 
 
     ! for_d_glc2000_meta
-    for_d_glc2000_meta%varname = 'for_d_glc2000'
+    for_d_glc2000_meta%varname = 'FOR_D_GLC2000'
     for_d_glc2000_meta%n_dim = n_dim
     for_d_glc2000_meta%diminfo => diminfo
     for_d_glc2000_meta%vartype = vartype_real !REAL variable
@@ -954,7 +1024,7 @@ MODULE mo_var_meta_data
 
 
     ! for_e_glc2000_meta
-    for_e_glc2000_meta%varname = 'for_e_glc2000'
+    for_e_glc2000_meta%varname = 'FOR_E_GLC2000'
     for_e_glc2000_meta%n_dim = n_dim
     for_e_glc2000_meta%diminfo => diminfo
     for_e_glc2000_meta%vartype = vartype_real !REAL variable
@@ -968,7 +1038,7 @@ MODULE mo_var_meta_data
 
 
     ! emissivity_glc2000_meta
-    emissivity_glc2000_meta%varname = 'emissivity_glc2000'
+    emissivity_glc2000_meta%varname = 'EMISSIVITY_GLC2000'
     emissivity_glc2000_meta%n_dim = n_dim
     emissivity_glc2000_meta%diminfo => diminfo
     emissivity_glc2000_meta%vartype = vartype_real !REAL variable
@@ -1035,7 +1105,7 @@ MODULE mo_var_meta_data
 
 
     ! fr_land_glcc_meta
-    fr_land_glcc_meta%varname = 'fr_land_glcc'
+    fr_land_glcc_meta%varname = 'FR_LAND_GLCC'
     fr_land_glcc_meta%n_dim = n_dim
     fr_land_glcc_meta%diminfo => diminfo
     fr_land_glcc_meta%vartype = vartype_real !REAL variable
@@ -1048,7 +1118,7 @@ MODULE mo_var_meta_data
 
 
    ! glcc_tot_npixel_meta
-    glcc_tot_npixel_meta%varname = 'glcc_tot_npixel'
+    glcc_tot_npixel_meta%varname = 'GLCC_TOT_NPIXEL'
     glcc_tot_npixel_meta%n_dim = n_dim
     glcc_tot_npixel_meta%diminfo => dim_glcc_tg
     glcc_tot_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -1061,7 +1131,7 @@ MODULE mo_var_meta_data
 
      
     ! glcc_class_fraction_meta
-    glcc_class_fraction_meta%varname = 'glcc_class_fraction'
+    glcc_class_fraction_meta%varname = 'GLCC_CLASS_FRACTION'
     glcc_class_fraction_meta%n_dim = n_dim + 1
     glcc_class_fraction_meta%diminfo => dim_glcc_tg
     glcc_class_fraction_meta%vartype = vartype_real !REAL variable
@@ -1073,7 +1143,7 @@ MODULE mo_var_meta_data
     glcc_class_fraction_meta%coordinates = c_undef
 
     ! glcc_class_npixel_meta
-    glcc_class_npixel_meta%varname = 'glcc_class_npixel'
+    glcc_class_npixel_meta%varname = 'GLCC_CLASS_NPIXEL'
     glcc_class_npixel_meta%n_dim = n_dim + 1
     glcc_class_npixel_meta%diminfo => dim_glcc_tg
     glcc_class_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -1085,7 +1155,7 @@ MODULE mo_var_meta_data
     glcc_class_npixel_meta%coordinates = c_undef
 
     ! ice_glcc_meta
-    ice_glcc_meta%varname = 'ice_glcc'
+    ice_glcc_meta%varname = 'ICE_GLCC'
     ice_glcc_meta%n_dim = n_dim
     ice_glcc_meta%diminfo => diminfo
     ice_glcc_meta%vartype = vartype_real !REAL variable
@@ -1097,7 +1167,7 @@ MODULE mo_var_meta_data
     ice_glcc_meta%coordinates = coord
 
     ! z0_glcc_meta
-    z0_glcc_meta%varname = 'z0_glcc'
+    z0_glcc_meta%varname = 'Z0_GLCC'
     z0_glcc_meta%n_dim = n_dim
     z0_glcc_meta%diminfo => diminfo
     z0_glcc_meta%vartype = vartype_real !REAL variable
@@ -1109,7 +1179,7 @@ MODULE mo_var_meta_data
     z0_glcc_meta%coordinates = coord
 
     ! root_glcc_meta
-    root_glcc_meta%varname = 'root_glcc'
+    root_glcc_meta%varname = 'ROOT_GLCC'
     root_glcc_meta%n_dim = n_dim
     root_glcc_meta%diminfo => diminfo
     root_glcc_meta%vartype = vartype_real !REAL variable
@@ -1121,7 +1191,7 @@ MODULE mo_var_meta_data
     root_glcc_meta%coordinates = coord
 
     ! plcov_mx_glcc_meta
-    plcov_mx_glcc_meta%varname = 'plcov_mx_glcc'
+    plcov_mx_glcc_meta%varname = 'PLCOV_MX_GLCC'
     plcov_mx_glcc_meta%n_dim = n_dim
     plcov_mx_glcc_meta%diminfo => diminfo
     plcov_mx_glcc_meta%vartype = vartype_real !REAL variable
@@ -1134,7 +1204,7 @@ MODULE mo_var_meta_data
 
 
     ! plcov_mn_glcc_meta
-    plcov_mn_glcc_meta%varname = 'plcov_mn_glcc'
+    plcov_mn_glcc_meta%varname = 'PLCOV_MN_GLCC'
     plcov_mn_glcc_meta%n_dim = n_dim
     plcov_mn_glcc_meta%diminfo => diminfo
     plcov_mn_glcc_meta%vartype = vartype_real !REAL variable
@@ -1146,7 +1216,7 @@ MODULE mo_var_meta_data
     plcov_mn_glcc_meta%coordinates = coord
 
     ! lai_mx_glcc_meta
-    lai_mx_glcc_meta%varname = 'lai_mx_glcc'
+    lai_mx_glcc_meta%varname = 'LAI_MX_GLCC'
     lai_mx_glcc_meta%n_dim = n_dim
     lai_mx_glcc_meta%diminfo => diminfo
     lai_mx_glcc_meta%vartype = vartype_real !REAL variable
@@ -1159,7 +1229,7 @@ MODULE mo_var_meta_data
 
 
     ! lai_mn_glcc_meta
-    lai_mn_glcc_meta%varname = 'lai_mn_glcc'
+    lai_mn_glcc_meta%varname = 'LAI_MN_GLCC'
     lai_mn_glcc_meta%n_dim = n_dim
     lai_mn_glcc_meta%diminfo => diminfo
     lai_mn_glcc_meta%vartype = vartype_real !REAL variable
@@ -1172,7 +1242,7 @@ MODULE mo_var_meta_data
 
 
     ! rs_min_glcc_meta
-    rs_min_glcc_meta%varname = 'rs_min_glcc'
+    rs_min_glcc_meta%varname = 'RSMIN_GLCC'
     rs_min_glcc_meta%n_dim = n_dim
     rs_min_glcc_meta%diminfo => diminfo
     rs_min_glcc_meta%vartype = vartype_real !REAL variable
@@ -1184,7 +1254,7 @@ MODULE mo_var_meta_data
     rs_min_glcc_meta%coordinates = coord
 
     ! urban_glcc_meta
-    urban_glcc_meta%varname = 'urban_glcc'
+    urban_glcc_meta%varname = 'URBAN_GLCC'
     urban_glcc_meta%n_dim = n_dim
     urban_glcc_meta%diminfo => diminfo
     urban_glcc_meta%vartype = vartype_real !REAL variable
@@ -1197,7 +1267,7 @@ MODULE mo_var_meta_data
 
 
     ! for_d_glcc_meta
-    for_d_glcc_meta%varname = 'for_d_glcc'
+    for_d_glcc_meta%varname = 'FOR_D_GLCC'
     for_d_glcc_meta%n_dim = n_dim
     for_d_glcc_meta%diminfo => diminfo
     for_d_glcc_meta%vartype = vartype_real !REAL variable
@@ -1210,7 +1280,7 @@ MODULE mo_var_meta_data
 
 
     ! for_e_glcc_meta
-    for_e_glcc_meta%varname = 'for_e_glcc'
+    for_e_glcc_meta%varname = 'FOR_E_GLCC'
     for_e_glcc_meta%n_dim = n_dim
     for_e_glcc_meta%diminfo => diminfo
     for_e_glcc_meta%vartype = vartype_real !REAL variable
@@ -1224,7 +1294,7 @@ MODULE mo_var_meta_data
 
 
     ! emissivity_glcc_meta
-    emissivity_glcc_meta%varname = 'emissivity_glcc'
+    emissivity_glcc_meta%varname = 'EMISSIVITY_GLCC'
     emissivity_glcc_meta%n_dim = n_dim
     emissivity_glcc_meta%diminfo => diminfo
     emissivity_glcc_meta%vartype = vartype_real !REAL variable
@@ -1244,7 +1314,7 @@ MODULE mo_var_meta_data
   !> define meta information for  landuse target fields
   SUBROUTINE def_lu_fields_meta(tg,nclass_lu,diminfo,coordinates,grid_mapping)
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-    INTEGER (KIND=i4) :: nclass_lu !< GLC2000 has 23 classes for the land use description
+    INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< GLC2000 has 23 classes for the land use description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
@@ -1291,14 +1361,11 @@ MODULE mo_var_meta_data
     END SELECT
     
     ! fr_land_lu_meta
-!roa nc >
     fr_land_lu_meta%varname = 'FR_LAND'
-    !fr_land_lu_meta%varname = 'fr_land'
-!roa nc <
     fr_land_lu_meta%n_dim = n_dim
     fr_land_lu_meta%diminfo => diminfo
     fr_land_lu_meta%vartype = vartype_real !REAL variable
-    fr_land_lu_meta%standard_name = 'fr_land'
+    fr_land_lu_meta%standard_name = 'land_area_fraction'
     fr_land_lu_meta%long_name = 'Fraction land'
     fr_land_lu_meta%shortName = 'FR_LAND'
     fr_land_lu_meta%units =  c_undef
@@ -1307,7 +1374,7 @@ MODULE mo_var_meta_data
 
 
    ! lu_tot_npixel_meta
-    lu_tot_npixel_meta%varname = 'lu_tot_npixel'
+    lu_tot_npixel_meta%varname = 'LU_TOT_NPIXEL'
     lu_tot_npixel_meta%n_dim = n_dim
     lu_tot_npixel_meta%diminfo => diminfo
     lu_tot_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -1320,7 +1387,7 @@ MODULE mo_var_meta_data
 
      
     ! lu_class_fraction_meta
-    lu_class_fraction_meta%varname = 'lu_class_fraction'
+    lu_class_fraction_meta%varname = 'LU_CLASS_FRACTION'
     lu_class_fraction_meta%n_dim = n_dim + 1
     lu_class_fraction_meta%diminfo => dim_lu_tg
     lu_class_fraction_meta%vartype = vartype_real !REAL variable
@@ -1332,7 +1399,7 @@ MODULE mo_var_meta_data
     lu_class_fraction_meta%coordinates = c_undef
 
     ! lu_class_npixel_meta
-    lu_class_npixel_meta%varname = 'lu_class_npixel'
+    lu_class_npixel_meta%varname = 'LU_CLASS_NPIXEL'
     lu_class_npixel_meta%n_dim = n_dim + 1
     lu_class_npixel_meta%diminfo => dim_lu_tg
     lu_class_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -1344,7 +1411,7 @@ MODULE mo_var_meta_data
     lu_class_npixel_meta%coordinates = c_undef
 
     ! ice_lu_meta
-    ice_lu_meta%varname = 'ice'
+    ice_lu_meta%varname = 'ICE'
     ice_lu_meta%n_dim = n_dim
     ice_lu_meta%diminfo => diminfo
     ice_lu_meta%vartype = vartype_real !REAL variable
@@ -1356,14 +1423,11 @@ MODULE mo_var_meta_data
     ice_lu_meta%coordinates = coord
 
     ! z0_lu_meta
-!roa nc>
     z0_lu_meta%varname = 'Z0'
-    !z0_lu_meta%varname = 'z0'
-!roa nc<
     z0_lu_meta%n_dim = n_dim
     z0_lu_meta%diminfo => diminfo
     z0_lu_meta%vartype = vartype_real !REAL variable
-    z0_lu_meta%standard_name = 'Z0'
+    z0_lu_meta%standard_name = 'surface_roughness_length'
     z0_lu_meta%long_name = 'Roughness length'
     z0_lu_meta%shortName = 'Z0'
     z0_lu_meta%units =  c_undef
@@ -1371,29 +1435,23 @@ MODULE mo_var_meta_data
     z0_lu_meta%coordinates = coord
 
     ! root_lu_meta
-!roa nc>
     root_lu_meta%varname = 'ROOTDP'
-    !root_lu_meta%varname = 'root'
-!roa nc<
     root_lu_meta%n_dim = n_dim
     root_lu_meta%diminfo => diminfo
     root_lu_meta%vartype = vartype_real !REAL variable
-    root_lu_meta%standard_name = 'ROOT'
-    root_lu_meta%long_name = 'Root depth due to GLC2000 land use data'
+    root_lu_meta%standard_name = 'root_depth'
+    root_lu_meta%long_name = 'Root depth'
     root_lu_meta%shortName = 'ROOTDP'
     root_lu_meta%units =  'm'
     root_lu_meta%grid_mapping = gridmp
     root_lu_meta%coordinates = coord
 
     ! plcov_mx_lu_meta
-!roa nc>
     plcov_mx_lu_meta%varname = 'PLCOV_MX'
-    !plcov_mx_lu_meta%varname = 'plcov_mx'
-!roa nc<
     plcov_mx_lu_meta%n_dim = n_dim
     plcov_mx_lu_meta%diminfo => diminfo
     plcov_mx_lu_meta%vartype = vartype_real !REAL variable
-    plcov_mx_lu_meta%standard_name = 'Plant cover maximum'
+    plcov_mx_lu_meta%standard_name = 'vegetation_area_fraction_vegetation_period'
     plcov_mx_lu_meta%long_name = 'Plant cover maximum due to GLC2000 land use data'
     plcov_mx_lu_meta%shortName = 'PLCOV_MX'
     plcov_mx_lu_meta%units =  c_undef
@@ -1402,14 +1460,11 @@ MODULE mo_var_meta_data
 
 
     ! plcov_mn_lu_meta
-!roa nc>
     plcov_mn_lu_meta%varname = 'PLCOV_MN'
-   ! plcov_mn_lu_meta%varname = 'plcov_mn'
-!roa nc<
     plcov_mn_lu_meta%n_dim = n_dim
     plcov_mn_lu_meta%diminfo => diminfo
     plcov_mn_lu_meta%vartype = vartype_real !REAL variable
-    plcov_mn_lu_meta%standard_name = 'Plant cover minimum'
+    plcov_mn_lu_meta%standard_name = 'vegetation_area_fraction_resting_period'
     plcov_mn_lu_meta%long_name = 'Plant cover minimum due to GLC2000 land use data'
     plcov_mn_lu_meta%shortName = 'PLCOV_MN'
     plcov_mn_lu_meta%units =  c_undef
@@ -1417,14 +1472,11 @@ MODULE mo_var_meta_data
     plcov_mn_lu_meta%coordinates = coord
 
     ! lai_mx_lu_meta
-!roa nc>
     lai_mx_lu_meta%varname = 'LAI_MX'
-    !lai_mx_lu_meta%varname = 'lai_mx'
-!roa nc <
     lai_mx_lu_meta%n_dim = n_dim
     lai_mx_lu_meta%diminfo => diminfo
     lai_mx_lu_meta%vartype = vartype_real !REAL variable
-    lai_mx_lu_meta%standard_name = 'LAI max'
+    lai_mx_lu_meta%standard_name = 'leaf_area_index_vegetation_period'
     lai_mx_lu_meta%long_name = 'Leaf Area Index Maximum'
     lai_mx_lu_meta%shortName = 'LAI_MX'
     lai_mx_lu_meta%units =  c_undef
@@ -1433,14 +1485,11 @@ MODULE mo_var_meta_data
 
 
     ! lai_mn_lu_meta
-!roa nc>
     lai_mn_lu_meta%varname = 'LAI_MN'
-    !lai_mn_lu_meta%varname = 'lai_mn'
-!roa nc <
     lai_mn_lu_meta%n_dim = n_dim
     lai_mn_lu_meta%diminfo => diminfo
     lai_mn_lu_meta%vartype = vartype_real !REAL variable
-    lai_mn_lu_meta%standard_name = 'LAI Minimum'
+    lai_mn_lu_meta%standard_name = 'leaf_area_index_resting_period'
     lai_mn_lu_meta%long_name = 'Leaf Area Minimum'
     lai_mn_lu_meta%shortName = 'LAI_MN'
     lai_mn_lu_meta%units =  c_undef
@@ -1449,10 +1498,7 @@ MODULE mo_var_meta_data
 
 
     ! rs_min_lu_meta
-!roa nc>
-    rs_min_lu_meta%varname = 'PRS_MIN'
-   ! rs_min_lu_meta%varname = 'rs_min'
-!roa nc<
+    rs_min_lu_meta%varname = 'RSMIN'
     rs_min_lu_meta%n_dim = n_dim
     rs_min_lu_meta%diminfo => diminfo
     rs_min_lu_meta%vartype = vartype_real !REAL variable
@@ -1464,12 +1510,12 @@ MODULE mo_var_meta_data
     rs_min_lu_meta%coordinates = coord
 
     ! urban_lu_meta
-    urban_lu_meta%varname = 'urban'
+    urban_lu_meta%varname = 'URBAN'
     urban_lu_meta%n_dim = n_dim
     urban_lu_meta%diminfo => diminfo
     urban_lu_meta%vartype = vartype_real !REAL variable
-    urban_lu_meta%standard_name = 'URBAN'
-    urban_lu_meta%long_name = 'Urban land use fraction'
+    urban_lu_meta%standard_name = 'fraction_of_urban_areas'
+    urban_lu_meta%long_name = 'urban area fraction'
     urban_lu_meta%shortName = 'URBAN'
     urban_lu_meta%units =  c_undef
     urban_lu_meta%grid_mapping = gridmp
@@ -1477,14 +1523,11 @@ MODULE mo_var_meta_data
 
 
     ! for_d_lu_meta
-!roa nc>
-  !  for_d_lu_meta%varname = 'for_d'
     for_d_lu_meta%varname = 'FOR_D'
-!roa nc<
     for_d_lu_meta%n_dim = n_dim
     for_d_lu_meta%diminfo => diminfo
     for_d_lu_meta%vartype = vartype_real !REAL variable
-    for_d_lu_meta%standard_name = 'FOREST_D'
+    for_d_lu_meta%standard_name = 'fraction_of_deciduous_forest_cover'
     for_d_lu_meta%long_name = 'Fraction of deciduous forest'
     for_d_lu_meta%shortName = 'FOR_D'
     for_d_lu_meta%units =  c_undef
@@ -1493,14 +1536,11 @@ MODULE mo_var_meta_data
 
 
     ! for_e_lu_meta
-!roa nc>
     for_e_lu_meta%varname = 'FOR_E'
-    !for_e_lu_meta%varname = 'for_e'
-!roa nc<
     for_e_lu_meta%n_dim = n_dim
     for_e_lu_meta%diminfo => diminfo
     for_e_lu_meta%vartype = vartype_real !REAL variable
-    for_e_lu_meta%standard_name = 'FOREST_E'
+    for_e_lu_meta%standard_name = 'fraction_of_evergreen_forest_cover'
     for_e_lu_meta%long_name = 'Fraction of evergreen forest'
     for_e_lu_meta%shortName = 'FOR_E' 
     for_e_lu_meta%units =  c_undef
@@ -1509,10 +1549,7 @@ MODULE mo_var_meta_data
 
 
     ! emissivity_lu_meta
-!roa nc>
     emissivity_lu_meta%varname = 'EMIS_RAD'
-    !emissivity_lu_meta%varname = 'emissivity'
-!roa nc<
     emissivity_lu_meta%n_dim = n_dim
     emissivity_lu_meta%diminfo => diminfo
     emissivity_lu_meta%vartype = vartype_real !REAL variable
@@ -1524,7 +1561,7 @@ MODULE mo_var_meta_data
     emissivity_lu_meta%coordinates = coord
 
     ! fr_ocean_lu_meta
-    fr_ocean_lu_meta%varname = 'fr_ocean'
+    fr_ocean_lu_meta%varname = 'FR_OCEAN'
     fr_ocean_lu_meta%n_dim = n_dim
     fr_ocean_lu_meta%diminfo => diminfo
     fr_ocean_lu_meta%vartype = vartype_real !REAL variable
@@ -1557,29 +1594,24 @@ MODULE mo_var_meta_data
     n_dim = SIZE(diminfo)
 
 
-
-!roa nc>
+  
     lake_depth_meta%varname = 'DEPTH_LK'
-    !lake_depth_meta%varname = 'lake_depth'
-!roa nc<  
     lake_depth_meta%n_dim = n_dim
     lake_depth_meta%diminfo => diminfo
     lake_depth_meta%vartype = vartype_real !REAL variable
-    lake_depth_meta%standard_name = 'DEPTH_LK'
+    lake_depth_meta%standard_name = 'lake_depth'
     lake_depth_meta%long_name = 'Lake depth'
     lake_depth_meta%shortName = 'DEPTH_LK'
     lake_depth_meta%units = 'm'
     lake_depth_meta%grid_mapping = gridmp
     lake_depth_meta%coordinates = coord
 
-!roa nc>
+     
     fr_lake_meta%varname = 'FR_LAKE'
-    !fr_lake_meta%varname = 'fr_lake'
-!roa nc<     
     fr_lake_meta%n_dim = n_dim
     fr_lake_meta%diminfo => diminfo
     fr_lake_meta%vartype = vartype_real !REAL variable
-    fr_lake_meta%standard_name = 'FR_LAKE'
+    fr_lake_meta%standard_name = 'fraction_lake'
     fr_lake_meta%long_name = 'fraction lake'
     fr_lake_meta%shortName = 'FR_LAKE'
     fr_lake_meta%units = c_undef
@@ -1587,7 +1619,7 @@ MODULE mo_var_meta_data
     fr_lake_meta%coordinates = coord
 
     ! flake_tot_npixel_meta
-    flake_tot_npixel_meta%varname = 'flake_tot_npixel'
+    flake_tot_npixel_meta%varname = 'FLAKE_TOT_NPIXEL'
     flake_tot_npixel_meta%n_dim = n_dim
     flake_tot_npixel_meta%diminfo => diminfo
     flake_tot_npixel_meta%vartype = vartype_int !INTEGER variable
@@ -1627,24 +1659,20 @@ MODULE mo_var_meta_data
 
     ! set meta information for strucutre dim_buffer_cell
     dim_buffer_cell = dim_3d_tg
-!roa nc>
+  
     hh_globe_meta%varname = 'HSURF'
-   ! hh_globe_meta%varname = 'altitude'
-!roa nc<  
     hh_globe_meta%n_dim = n_dim
     hh_globe_meta%diminfo => diminfo
     hh_globe_meta%vartype = vartype_real !REAL variable
-    hh_globe_meta%standard_name = 'HSURF'
-    hh_globe_meta%long_name = 'Geometric Height of the earths surface above sea level'
+    hh_globe_meta%standard_name = 'surface_height'
+    hh_globe_meta%long_name = 'geometric height of the earths surface above sea level'
     hh_globe_meta%shortName = 'HSURF'
     hh_globe_meta%units = 'm'
     hh_globe_meta%grid_mapping = gridmp
     hh_globe_meta%coordinates = coord
 
-!roa nc>
+
     hh_fis_meta%varname = 'FIS'
-    !hh_fis_meta%varname = 'fis'
-!roa nc<
     hh_fis_meta%n_dim = n_dim
     hh_fis_meta%diminfo => diminfo
     hh_fis_meta%vartype = vartype_real !REAL variable
@@ -1656,63 +1684,56 @@ MODULE mo_var_meta_data
     hh_fis_meta%coordinates = coord
 
 
-!roa nc>
+
+     
     stdh_globe_meta%varname = 'SSO_STDH'
-    !stdh_globe_meta%varname = 'sso_stdh'
-!roa nc<     
     stdh_globe_meta%n_dim = n_dim
     stdh_globe_meta%diminfo => diminfo
     stdh_globe_meta%vartype = vartype_real !REAL variable
-    stdh_globe_meta%standard_name = 'SSO_STDH'
-    stdh_globe_meta%long_name = 'Standard deviation of subgrid scale orography'
+    stdh_globe_meta%standard_name = 'standard deviation of height'
+    stdh_globe_meta%long_name = 'standard deviation of subgrid scale orography'
     stdh_globe_meta%shortName = 'SSO_STDH'
     stdh_globe_meta%units = 'm'
     stdh_globe_meta%grid_mapping = gridmp
     stdh_globe_meta%coordinates = coord
     
-!roa nc>
+
     theta_globe_meta%varname = 'SSO_THETA'
-    !theta_globe_meta%varname = 'sso_theta'
-!roa nc<
     theta_globe_meta%n_dim = n_dim
     theta_globe_meta%diminfo => diminfo
     theta_globe_meta%vartype = vartype_real !REAL variable
-    theta_globe_meta%standard_name = 'SSO_THETA'
+    theta_globe_meta%standard_name = 'angle of principal axis'
     theta_globe_meta%long_name = 'Angle of sub-gridscale orography'
     theta_globe_meta%shortName = 'SSO_THETA'
     theta_globe_meta%units = 'rad'
     theta_globe_meta%grid_mapping = gridmp
     theta_globe_meta%coordinates = coord
     
-!roa nc>
+
     aniso_globe_meta%varname = 'SSO_GAMMA'
-   ! aniso_globe_meta%varname = 'sso_gamma'
-!roa nc<
     aniso_globe_meta%n_dim = n_dim
     aniso_globe_meta%diminfo => diminfo
     aniso_globe_meta%vartype = vartype_real !REAL variable
-    aniso_globe_meta%standard_name = 'SSO_GAMMA'
-    aniso_globe_meta%long_name = 'Anisotropy of sub-gridscale orography'
+    aniso_globe_meta%standard_name = 'anisotropy factor'
+    aniso_globe_meta%long_name = 'anisotropy of sub-gridscale orography'
     aniso_globe_meta%shortName = 'SSO_GAMMA'
     aniso_globe_meta%units =  c_undef
     aniso_globe_meta%grid_mapping = gridmp
     aniso_globe_meta%coordinates = coord
     
-!roa nc>
+
     slope_globe_meta%varname = 'SSO_SIGMA'
-    !slope_globe_meta%varname = 'sso_sigma'
-!roa nc<
     slope_globe_meta%n_dim = n_dim
     slope_globe_meta%diminfo => diminfo
     slope_globe_meta%vartype = vartype_real !REAL variable
-    slope_globe_meta%standard_name = 'SSO_SIGMA'
+    slope_globe_meta%standard_name = 'slope of terrain'
     slope_globe_meta%long_name = 'Slope of sub-gridscale orography'
     slope_globe_meta%shortName = 'SSO_SIGMA'
     slope_globe_meta%units = c_undef
     slope_globe_meta%grid_mapping = gridmp
     slope_globe_meta%coordinates = coord
     
-    fr_land_globe_meta%varname = 'fr_land_globe'
+    fr_land_globe_meta%varname = 'FR_LAND_GLOBE'
     fr_land_globe_meta%n_dim = n_dim
     fr_land_globe_meta%diminfo => diminfo
     fr_land_globe_meta%vartype = vartype_real !REAL variable
@@ -1724,7 +1745,7 @@ MODULE mo_var_meta_data
     fr_land_globe_meta%coordinates = coord
 
     ! z0_topo_meta
-    z0_topo_meta%varname = 'z0_topo'
+    z0_topo_meta%varname = 'Z0_TOPO'
     z0_topo_meta%n_dim = n_dim
     z0_topo_meta%diminfo => diminfo
     z0_topo_meta%vartype = vartype_real !REAL variable
@@ -1824,5 +1845,4 @@ MODULE mo_var_meta_data
 
 
 END MODULE mo_var_meta_data
-
 

@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_3         2011/04/19 Hermann Asensio
+! introduce Globcover 2009 land use data set for external parameters
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -51,9 +53,14 @@ PUBLIC :: fr_land_lu, &
   &        for_d_lu,  &
   &        for_e_lu, &
   &        emissivity_lu, &
-  &        fr_ocean_lu
+  &        fr_ocean_lu, &
+  &        lu_class_fraction,    &
+  &        lu_class_npixel, &
+  &        lu_tot_npixel
 
-PUBLIC :: allocate_lu_target_fields
+
+PUBLIC :: allocate_lu_target_fields, allocate_add_lu_fields
+PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc
 
 PUBLIC :: fr_land, &
   &        ice, &
@@ -72,6 +79,7 @@ PUBLIC :: fr_land, &
 
 PUBLIC :: allocate_lu_ds_target_fields
 
+
        REAL (KIND=wp), ALLOCATABLE  :: fr_land_lu(:,:,:) !< fraction land due to land use raw data
        REAL (KIND=wp), ALLOCATABLE  :: ice_lu(:,:,:)     !< fraction of ice due to land use raw data
        REAL (KIND=wp), ALLOCATABLE  :: z0_lu(:,:,:)      !< roughness length due to land use land use data
@@ -89,6 +97,12 @@ PUBLIC :: allocate_lu_ds_target_fields
        REAL (KIND=wp), ALLOCATABLE  :: emissivity_lu(:,:,:) !< longwave emissivity due to land use land use data
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_ocean_lu(:,:,:) !< fraction ocean due to land use raw data
+
+       REAL (KIND=wp), ALLOCATABLE  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+
+       INTEGER (KIND=i8), ALLOCATABLE :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+
+       INTEGER (KIND=i8), ALLOCATABLE :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
        
        REAL (KIND=wp), ALLOCATABLE  :: fr_land(:,:,:,:) !< fraction land due to land use raw data
        REAL (KIND=wp), ALLOCATABLE  :: ice(:,:,:,:)     !< fraction of ice due to land use raw data
@@ -107,6 +121,12 @@ PUBLIC :: allocate_lu_ds_target_fields
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_ocean(:,:,:,:) !< fraction ocean due to land use raw data
 
+
+
+       INTEGER, PARAMETER :: i_lu_globcover = 1 !< id for landuse data set Globcover 2009
+       INTEGER, PARAMETER :: i_lu_glc2000   = 2 !< id for landuse data set GLC2000
+       INTEGER, PARAMETER :: i_lu_glcc      = 3 !< id for landuse data set GLCC
+
 CONTAINS
 
 !> allocate fields for TARGET grid
@@ -116,7 +136,7 @@ CONTAINS
 !! the target grid for the ICON model has 1 dimension (ne)
 !! depending of the target model the second and third dimension of the target fields should be 
 !! allocated with the length 1
-  subroutine allocate_lu_target_fields(tg)
+  SUBROUTINE allocate_lu_target_fields(tg)
     IMPLICIT NONE
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
     INTEGER :: errorcode !< error status variable
@@ -125,55 +145,55 @@ CONTAINS
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_land_lu')
     fr_land_lu = 0.0
 
-     allocate (ice_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (ice_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array ice_lu')
     ice_lu = 0.0
 
-     allocate (z0_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (z0_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array z0_lu')
     z0_lu = 0.0
 
-     allocate (z0_tot(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (z0_tot(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array z0_tot')
     z0_tot = 0.0
 
-     allocate (root_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (root_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array root_lu')
     root_lu = 0.0
 
-     allocate (plcov_mx_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (plcov_mx_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array plcov_mx_lu')
     plcov_mx_lu = 0.0
 
-     allocate (plcov_mn_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (plcov_mn_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array plcov_mn_lu')
     plcov_mn_lu = 0.0
         
-     allocate (lai_mx_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (lai_mx_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lai_mx_lu')
     lai_mx_lu = 0.0
 
-     allocate (lai_mn_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (lai_mn_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lai_mn_lu')
     lai_mn_lu = 0.0
 
-     allocate (rs_min_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (rs_min_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array rs_min_lu')
     rs_min_lu = 0.0
 
-     allocate (urban_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+     ALLOCATE (urban_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array urban_lu')
     urban_lu = 0.0
 
-    allocate (for_d_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+    ALLOCATE (for_d_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array for_d_lu')
     for_d_lu = 0.0
 
-    allocate (for_e_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+    ALLOCATE (for_e_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array for_e_lu')
     for_e_lu = 0.0
 
-    allocate (emissivity_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+    ALLOCATE (emissivity_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array emissivity_lu')
     emissivity_lu = 0.0
 
@@ -181,7 +201,30 @@ CONTAINS
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_ocean_lu')
     fr_ocean_lu = 0.0
 
-  end subroutine allocate_lu_target_fields
+  END SUBROUTINE allocate_lu_target_fields
+
+  !> allocate additional land use target fields
+  SUBROUTINE allocate_add_lu_fields(tg,nclass_lu)
+    IMPLICIT NONE
+    TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
+    INTEGER, INTENT(IN) :: nclass_lu !< number of land use classes
+    INTEGER :: errorcode !< error status variable
+
+    allocate (lu_tot_npixel(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lu_tot_npixel')
+    lu_tot_npixel = 0
+
+     allocate (lu_class_fraction(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_lu), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lu_class_fraction')
+    lu_class_fraction = 0.0
+
+
+     allocate (lu_class_npixel(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_lu), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lu_class_npixel')
+    lu_class_npixel = 0
+
+
+  END SUBROUTINE allocate_add_lu_fields
 
   !> allocate land use fields for TARGET grid
 !!
@@ -254,5 +297,6 @@ CONTAINS
 
   END SUBROUTINE allocate_lu_ds_target_fields
 
-END Module mo_lu_tg_fields
+END MODULE mo_lu_tg_fields
+
 

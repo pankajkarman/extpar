@@ -5,6 +5,10 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -78,7 +82,6 @@ MODULE mo_agg_flake
     &                          lon_flake,  &
     &                          lat_flake
 
-    USE mo_icon_grid_data, ONLY: icon_domain_grid
 
     ! USE structure which contains the definition of the ICON grid
     USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
@@ -91,18 +94,9 @@ MODULE mo_agg_flake
     USE mo_gme_grid, ONLY: gme_real_field, gme_int_field
     USE mo_gme_grid, ONLY: cp_buf2gme, cp_gme2buf
 
-    USE mo_base_geometry,   ONLY: geographical_coordinates
-    USE mo_base_geometry,   ONLY: cartesian_coordinates
     USE mo_math_constants, ONLY: pi, rad2deg, deg2rad, eps
     USE mo_physical_constants, ONLY: re
-    USE mo_additional_geometry,   ONLY: cc2gc,                  &
-      &                                 gc2cc
        
-    ! USE modules to search in ICON grid
-    USE mo_search_icongrid, ONLY: find_nc, &
-      &                             walk_to_nc, &
-      &                              find_nchild_nlev
-
     USE mo_flake_data, ONLY: flake_depth_undef !< default value for undefined lake depth
     USE mo_flake_data, ONLY: flake_depth_default  !< default value for default lake depth, 10 [m]
 
@@ -143,11 +137,6 @@ MODULE mo_agg_flake
      INTEGER :: nlon
 
      REAL(KIND=wp)   :: point_lon, point_lat
-     TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-     TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-     INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id
-     LOGICAL :: l_child_dom     ! logical switch if child domain exists
-     INTEGER :: child_dom_id   ! id of child domain
 
      INTEGER        :: k_error     ! error return code
 

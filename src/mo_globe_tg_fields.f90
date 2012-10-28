@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Update doxygen documetation (comments)
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -57,7 +59,8 @@ MODULE mo_globe_tg_fields
   REAL(KIND=wp), ALLOCATABLE  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
 
   REAL(KIND=wp), ALLOCATABLE  :: z0_topo(:,:,:) !< roughness length due to orography
-
+  
+  !> data structure for parameters on vertices of Icon grid
   TYPE add_parameters_domain
      REAL(KIND=wp), ALLOCATABLE     :: hh_vert(:,:,:)   !< height on vertex
      INTEGER (KIND=i8), ALLOCATABLE :: npixel_vert(:,:,:) !< number of raw data pixel corresponding to vertex
@@ -65,6 +68,7 @@ MODULE mo_globe_tg_fields
 
   TYPE(add_parameters_domain) :: vertex_param  !< additional external parameters for ICON domain
 
+  !> data structure for orography fields
   TYPE globe_buffer
     REAL(KIND=wp), ALLOCATABLE  :: hh_globe(:,:,:)  !< mean height 
     REAL(KIND=wp), ALLOCATABLE  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
@@ -131,8 +135,8 @@ CONTAINS
 
 
 
-!> allocate fields for GLOBE target data 
-  subroutine allocate_globe_target_fields(tg)
+  !> allocate fields for GLOBE target data 
+  SUBROUTINE allocate_globe_target_fields(tg)
   
 
     IMPLICIT NONE
@@ -173,7 +177,7 @@ CONTAINS
 
 
 
-  end subroutine allocate_globe_target_fields
+  END SUBROUTINE allocate_globe_target_fields
 
   !> allocate additional parameters which correspond to the vertex
   !!

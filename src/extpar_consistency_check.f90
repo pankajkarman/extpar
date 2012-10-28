@@ -7,6 +7,16 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
+!  introduce simple hight correction for T_CL field
+!  Add DWD_min_lake_depth for minimal lake depth
+! V1_3         2011/04/19 Hermann Asensio
+!  introduce Globcover 2009 land use data set for external parameters
+!  additional concistency check for vegetation on ice grid elements (glaciers)
+! add support for GRIB1 and GRIB2
+! @VERSION@    @DATE@     Hermann Asensio
+!  add a manual correction for the lake depth of Lake Constance
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -19,8 +29,6 @@ PROGRAM extpar_consistency_check
 
 ! Load the library information data:
   USE info_extpar, ONLY: info_define, info_readnl, info_print
-
-
 
 
 USE mo_kind, ONLY: wp
@@ -59,7 +67,6 @@ USE  mo_icon_grid_data, ONLY: icon_grid_region
 USE  mo_icon_grid_data, ONLY: icon_grid_level
 USE  mo_icon_grid_data, ONLY: nvertex_dom  
 USE  mo_icon_grid_data, ONLY: ncells_dom
-USE  mo_icon_grid_data, ONLY: icon_domain_grid
 
 
 !  USE mo_icon_grid_routines, ONLY: allocate_icon_grid
@@ -186,12 +193,21 @@ USE mo_glcc_tg_fields, ONLY:  fr_land_glcc, &
 USE mo_glc2000_lookup_tables, ONLY: ilookup_table_glc2000, &
   &                                 get_name_glc2000_lookup_tables, &
   &                                 name_lookup_table_glc2000
+USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
+
+USE mo_globcover_lookup_tables, ONLY: nclass_globcover
+
+USE mo_globcover_lookup_tables, ONLY: get_name_globcover_lookup_tables
+USE mo_glcc_lookup_tables, ONLY: get_name_glcc_lookup_tables
+
 
 USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_glc2000
 USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_glcc
+USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_lu
 
 USE mo_landuse_routines, ONLY: read_namelists_extpar_land_use
 
+USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
 
 USE mo_lu_tg_fields, ONLY: fr_land_lu, &
   &        ice_lu, &
@@ -207,9 +223,13 @@ USE mo_lu_tg_fields, ONLY: fr_land_lu, &
   &        for_d_lu,  &
   &        for_e_lu, &
   &        emissivity_lu, &
-  &        fr_ocean_lu
+  &        fr_ocean_lu, &
+  &        lu_class_fraction,    &
+  &        lu_class_npixel, &
+  &        lu_tot_npixel
 
-USE mo_lu_tg_fields, ONLY: allocate_lu_target_fields
+
+USE mo_lu_tg_fields, ONLY: allocate_lu_target_fields, allocate_add_lu_fields
 
 USE mo_ndvi_tg_fields, ONLY: ndvi_field, &
     &                                ndvi_max, &
@@ -256,13 +276,13 @@ USE mo_flake_tg_fields, ONLY: fr_lake, &
   &       allocate_flake_target_fields
 USE mo_flake_data, ONLY: flake_depth_undef !< default value for undefined lake depth
 USE mo_flake_data, ONLY: flake_depth_default !< default value for default lake depth, 10 [m]
-USE mo_flake_data, ONLY: DWD_max_lake_depth !< Maximum lake depth in [m] for FLAKE
+USE mo_flake_data, ONLY: DWD_max_lake_depth !< Maximum lake depth in [m] for FLAKE (50 m)
+USE mo_flake_data, ONLY: DWD_min_lake_depth !< Minimal lake depth in [m] for FLAKE (1 m)
 
 USE mo_flake_output_nc, ONLY: read_netcdf_buffer_flake
 
-USE mo_extpar_output_nc, ONLY: write_netcdf_buffer_extpar, &
-  &                        write_netcdf_cosmo_grid_extpar, &
-  &                        write_netcdf_icon_grid_extpar
+USE mo_extpar_output_nc, ONLY: write_netcdf_icon_grid_extpar, &
+  &                        write_netcdf_cosmo_grid_extpar
 
 USE mo_extpar_output_grib, ONLY: write_cosmo_grid_extpar_grib, &
   &                              write_gme_grid_extpar_grib
@@ -277,7 +297,7 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
   CHARACTER (len=filename_max) :: netcdf_output_filename
 
   CHARACTER (len=filename_max) :: grib_output_filename
-  CHARACTER (len=filename_max) :: grib_template
+  CHARACTER (len=filename_max) :: grib_sample
 
   CHARACTER (len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
   CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
@@ -312,11 +332,14 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
 
   ! land use
 
-  CHARACTER (len=filename_max) :: raw_data_glc2000_path        !< path to raw data
-  CHARACTER (len=filename_max) :: raw_data_glc2000_filename !< filename glc2000 raw data
+  CHARACTER (len=filename_max) :: raw_data_lu_path        !< path to raw data
+  CHARACTER (len=filename_max) :: raw_data_lu_filename !< filename glc2000 raw data
+  CHARACTER(len=filename_max) :: name_lookup_table_lu !< name for look up table
+  CHARACTER(len=filename_max) :: lu_dataset !< name of landuse data set
 
-  CHARACTER (len=filename_max) :: glc2000_buffer_file !< name for glc2000 buffer file
-  CHARACTER (len=filename_max) :: glc2000_output_file !< name for glc2000 output file
+
+  CHARACTER (len=filename_max) :: lu_buffer_file !< name for glc2000 buffer file
+  CHARACTER (len=filename_max) :: lu_output_file !< name for glc2000 output file
   CHARACTER (len=filename_max) :: glc2000_buffer_cons_output  !< name for glc200 output file after consistency check
 
   CHARACTER (len=filename_max) :: raw_data_glcc_path        !< path to raw data
@@ -390,6 +413,10 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
   INTEGER :: ke !< counter
 
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
+  INTEGER  :: i_landuse_data !<integer switch to choose a land use raw data set
+  INTEGER  :: ilookup_table_lu !< integer switch to choose a lookup table
+  INTEGER  :: nclass_lu !< number of land use classes 
+
 
   ! variables for the ICON grid
   INTEGER :: n_dom                        !< number of model domains
@@ -398,13 +425,16 @@ USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
   
   ! variables for the "Erdmann Heise Formel"
   REAL (KIND=wp) :: dnorm  !< scale factor 
-  REAL (KIND=wp) :: zlnorm = 2250.    !< scale factor [m]
-  REAL (KIND=wp) :: alpha  = 1.E-05 !< scale factor [1/m] 
+  REAL (KIND=wp) :: zlnorm = 2250._wp    !< scale factor [m]
+  REAL (KIND=wp) :: alpha  = 1.E-05_wp !< scale factor [1/m] 
   REAL (KIND=wp) :: factor !< factor
-  REAL (KIND=wp) :: zhp = 10.0    !< height of Prandtl-layer [m]
+  REAL (KIND=wp) :: zhp = 10.0_wp    !< height of Prandtl-layer [m]
   REAL (KIND=wp) :: zlnhp      !< ln of height of Prandtl-layer [m]
+  ! lapse rate
+  REAL (KIND=wp) :: lr = 0.0064_wp !< lapse rate [K/m] 
 
-
+  LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
+  REAL :: lu_data_southern_boundary
 
   !HA tests
   REAL :: timestart
@@ -445,14 +475,32 @@ END SELECT
 
   !---------------------------------------------------------------------------
   CALL read_namelists_extpar_land_use(namelist_file, &
-    &                                 raw_data_glc2000_path, &
-    &                                 raw_data_glc2000_filename, &
-    &                                 ilookup_table_glc2000, &
-    &                                 glc2000_buffer_file, &
-    &                                 glc2000_output_file)
+    &                                 i_landuse_data, &
+    &                                 raw_data_lu_path, &
+    &                                 raw_data_lu_filename, &
+    &                                 ilookup_table_lu, &
+    &                                 lu_buffer_file, &
+    &                                 lu_output_file)
+   SELECT CASE (i_landuse_data)
+      CASE (i_lu_globcover)
+         lu_dataset = 'GLOBCOVER2009'
+         CALL get_name_globcover_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
+         nclass_lu = nclass_globcover
+         lu_data_southern_boundary = -64.99
+      CASE (i_lu_glc2000)
+        lu_dataset = 'GLC2000'
+         CALL get_name_glc2000_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
+         nclass_lu = nclass_glc2000
+         lu_data_southern_boundary = -56.0
+      CASE(i_lu_glcc)
+         lu_dataset = 'GLCC'
+         CALL get_name_glcc_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
+         nclass_lu = nclass_glcc
+         lu_data_southern_boundary = -90.0
+    END SELECT
 
-  CALL get_name_glc2000_lookup_tables(ilookup_table_glc2000, name_lookup_table_glc2000)
-  PRINT *,'name_lookup_table_glc2000: ',TRIM(name_lookup_table_glc2000)
+  PRINT *,'name_lookup_table_lu: ',TRIM(name_lookup_table_lu)
+
   !--------------------------------------------------------------------------------------------------------
   ! get filenames from namelist
   !--------------------------------------------------------------------------------------------------------
@@ -460,27 +508,28 @@ END SELECT
 
   CALL read_namelists_extpar_check(namelist_file, &
                                      grib_output_filename, &
+                                     grib_sample, &
                                      netcdf_output_filename, &
                                      orography_buffer_file, &
                                      soil_buffer_file, &
-                                     glc2000_buffer_file, &
+                                     lu_buffer_file, &
                                      glcc_buffer_file, &
                                      flake_buffer_file, &
                                      ndvi_buffer_file, &
                                      t_clim_buffer_file, &
                                      aot_buffer_file)
+!roaprint
+print *, "soil buffer: ", soil_buffer_file
 
-
-  ! get information about GLC2000 data
-
-  CALL allocate_glc2000_target_fields(tg)
-  PRINT *,'GLC2000 fields allocated'
-
-  CALL allocate_glcc_target_fields(tg)
-  PRINT *,'GLCC fields allocated'
-  
+  ! test for glcc data
+  INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
+  IF (l_use_glcc) THEN
+    CALL allocate_glcc_target_fields(tg)
+    PRINT *,'GLCC fields allocated'
+  ENDIF
   ! allocate Land use target fields
   CALL allocate_lu_target_fields(tg)
+  CALL allocate_add_lu_fields(tg,nclass_lu)
   PRINT *,'Land Use fields allocated'
 
   CALL allocate_soil_target_fields(tg)
@@ -506,28 +555,30 @@ END SELECT
   ! Start Input
 
   PRINT *,'Read in Land Use data'
-  PRINT *,'read ', TRIM(glc2000_buffer_file)
+  PRINT *,'read ', TRIM(lu_buffer_file)
 
-  CALL read_netcdf_buffer_glc2000(glc2000_buffer_file,  &
+  CALL read_netcdf_buffer_lu(lu_buffer_file,  &
     &                                     tg,         &
+    &                                     nclass_lu, &
     &                                     undefined, &
     &                                     undef_int,   &
-    &                                     fr_land_glc2000, &
-    &                                     glc2000_class_fraction,    &
-    &                                     glc2000_class_npixel, &
-    &                                     glc2000_tot_npixel, &
-    &                                     ice_glc2000, &
-    &                                     z0_glc2000, &
-    &                                     root_glc2000, &
-    &                                     plcov_mn_glc2000, &
-    &                                     plcov_mx_glc2000, &
-    &                                     lai_mn_glc2000, &
-    &                                     lai_mx_glc2000, &
-    &                                     rs_min_glc2000, &
-    &                                     urban_glc2000,  &
-    &                                     for_d_glc2000,  &
-    &                                     for_e_glc2000, &
-    &                                     emissivity_glc2000)
+    &                                     fr_land_lu, &
+    &                                     lu_class_fraction,    &
+    &                                     lu_class_npixel, &
+    &                                     lu_tot_npixel, &
+    &                                     ice_lu, &
+    &                                     z0_lu, &
+    &                                     root_lu, &
+    &                                     plcov_mn_lu, &
+    &                                     plcov_mx_lu, &
+    &                                     lai_mn_lu, &
+    &                                     lai_mx_lu, &
+    &                                     rs_min_lu, &
+    &                                     urban_lu,  &
+    &                                     for_d_lu,  &
+    &                                     for_e_lu, &
+    &                                     emissivity_lu)
+  IF (l_use_glcc) THEN
    PRINT *,'read ', TRIM(glcc_buffer_file)
   CALL read_netcdf_buffer_glcc(glcc_buffer_file,  &
     &                                     tg,         &
@@ -549,10 +600,13 @@ END SELECT
     &                                     for_d_glcc,  &
     &                                     for_e_glcc, &
     &                                     emissivity_glcc)
+  ENDIF
 
 
 
   PRINT *,'Read in soil data'
+  PRINT *,'read ', TRIM(soil_buffer_file)
+
   CALL read_netcdf_soil_buffer(soil_buffer_file,  &
    &                                     tg,         &
    &                                     undefined, &
@@ -561,6 +615,7 @@ END SELECT
    &                                     soiltype_fao)
 
   PRINT *,'Read in NDVI data'
+  PRINT *,'read ', TRIM(ndvi_buffer_file)
   CALL read_netcdf_buffer_ndvi(ndvi_buffer_file,  &
    &                                     tg,         &
    &                                     ntime_ndvi, &
@@ -641,53 +696,44 @@ END SELECT
       PRINT *,'determine land-sea mask'
       CALL CPU_TIME(timestart)
 
-      WHERE (lat_geo >=-56.) ! glc2000 data only from -56 degrees north to 90 degrees north, excluding Antarctica
-        fr_land_lu = fr_land_glc2000
-      ELSEWHERE
-        fr_land_lu = fr_land_glcc
-      ENDWHERE
-      
+       IF (l_use_glcc) THEN
+        WHERE (lat_geo <=lu_data_southern_boundary) ! glc2000 and globcover 2009 exclude Antarctica
+          fr_land_lu = fr_land_glcc
+        ENDWHERE
+      ENDIF
+
       !set land-sea mask, spread at 0.5 due to poor accuracy of values in GRIB files
-       WHERE (fr_land_lu < 0.5) 
-        fr_land_lu = MIN(0.49,fr_land_lu)
+       WHERE (fr_land_lu < 0.5_wp) 
+        fr_land_lu = MIN(0.49_wp,fr_land_lu)
       ELSEWHERE !   fr_land_glc2000 >= 0.5
-        fr_land_lu = MAX(0.51,fr_land_lu)
+        fr_land_lu = MAX(0.51_wp,fr_land_lu)
       ENDWHERE
 
 
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart
       PRINT *,'determine land-sea mask, WHERE, done in: ', timediff
-      WHERE (lat_geo >=-56.) ! glc2000 data only from -56 degrees north to 90 degrees north, excluding Antarctica
-        ice_lu            = ice_glc2000
-        z0_lu             = z0_glc2000
-        z0_tot            = z0_glc2000 + z0_topo
-        root_lu           = root_glc2000
-        plcov_mn_lu       = plcov_mn_glc2000
-        plcov_mx_lu       = plcov_mx_glc2000
-        lai_mn_lu         = lai_mn_glc2000
-        lai_mx_lu         = lai_mx_glc2000
-        rs_min_lu         = rs_min_glc2000
-        urban_lu          = urban_glc2000
-        for_d_lu          = for_d_glc2000
-        for_e_lu          = for_e_glc2000
-        emissivity_lu     = emissivity_glc2000
-      ELSEWHERE
-        ice_lu            = ice_glcc
-        z0_lu             = z0_glcc 
-        z0_tot            = z0_glcc + z0_topo
-        root_lu           = root_glcc
-        plcov_mn_lu       = plcov_mn_glcc
-        plcov_mx_lu       = plcov_mx_glcc
-        lai_mn_lu         = lai_mn_glcc
-        lai_mx_lu         = lai_mx_glcc
-        rs_min_lu         = rs_min_glcc
-        urban_lu          = urban_glcc
-        for_d_lu          = for_d_glcc
-        for_e_lu          = for_e_glcc
-        emissivity_lu     = emissivity_glcc
-      ENDWHERE
-      
+
+      ! total roughness length
+       z0_tot = z0_lu + z0_topo
+       IF (l_use_glcc) THEN
+        WHERE (lat_geo <=lu_data_southern_boundary) ! glc2000 and globcover 2009 exclude Antarctica
+          ice_lu            = ice_glcc
+          z0_lu             = z0_glcc 
+          z0_tot            = z0_glcc + z0_topo
+          root_lu           = root_glcc
+          plcov_mn_lu       = plcov_mn_glcc
+          plcov_mx_lu       = plcov_mx_glcc
+          lai_mn_lu         = lai_mn_glcc
+          lai_mx_lu         = lai_mx_glcc
+          rs_min_lu         = rs_min_glcc
+          urban_lu          = urban_glcc
+          for_d_lu          = for_d_glcc
+          for_e_lu          = for_e_glcc
+          emissivity_lu     = emissivity_glcc
+        ENDWHERE
+      ENDIF
+
 !------------------------------------------------------------------------------------------
 !------------- land use data consistency  -------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -748,6 +794,22 @@ END SELECT
       ENDDO
       ENDDO
       ENDDO
+      !HA debug
+      PRINT *,'number of grid elements set to ice soiltype: ', db_ice_counter
+
+      !------------------------------------------------------------------------------------------
+      WHERE (soiltype_fao == soiltype_ice)  ! set vegetation to undefined (0.) for ice grid elements (e.g. glaciers)
+        ! z0, rs_min and emissivity are not set to undefined_lu
+        root_lu           = undefined_lu
+        plcov_mn_lu       = undefined_lu
+        plcov_mx_lu       = undefined_lu
+        lai_mn_lu         = undefined_lu
+        lai_mx_lu         = undefined_lu
+        urban_lu          = undefined_lu
+        for_d_lu          = undefined_lu
+        for_e_lu          = undefined_lu
+      ENDWHERE
+
 !------------------------------------------------------------------------------------------
 !------------- soil data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -799,17 +861,36 @@ END SELECT
      WHERE ((fr_lake > 0.5).AND.(lake_depth < 0.0))
        lake_depth = flake_depth_default ! set lake depth to default value (10 m)
      ENDWHERE ! 
-     ! restrict lake depth to maximum value
+     ! restrict lake depth to maximum value (50 m)
      WHERE (lake_depth > DWD_max_lake_depth)
       lake_depth = DWD_max_lake_depth
      END WHERE
 
+     ! restrict lake depth to minimal value (1 m)
+     WHERE ( (lake_depth > 0.0).AND.(lake_depth < DWD_min_lake_depth ))
+      lake_depth = DWD_min_lake_depth
+     END WHERE
 
+     ! manual correction for lake depth of Lake Constance
+     ! the raw database of the lake depth data appears not to be correct
+     ! the main part of Lake Constance has a mean depth of 98 m, so set to DWD_max_lake_depth
+      ! set Death Sea to "ocean water"
+     WHERE ((lon_geo > 8.8).AND.(lon_geo < 9.9).AND. &
+      &     (lat_geo > 47.4).AND.(lat_geo < 48.4).AND. &
+      &     (lake_depth > 9.7).AND.(lake_depth < 9.9) )
+       lake_depth = DWD_max_lake_depth
+     ENDWHERE
+     
       
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart
       PRINT *,'flake data consitency check, WHERE, done in: ', timediff
 
+!------------------------------------------------------------------------------------------
+!------------ hight correction for T_CL ---------------------------------------------------
+      WHERE (fr_land_lu >= 0.5)  
+        crutemp = crutemp - lr * hh_globe ! simple hight correction for T_CL field
+      ENDWHERE 
 !------------------------------------------------------------------------------------------
 !------------- NDVI data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -857,7 +938,7 @@ END SELECT
 !------------------------------------------------------------------------------------------
 !------------- data output ----------------------------------------------------------------
 !------------------------------------------------------------------------------------------
-fill_value_real = -999.
+fill_value_real = -1.E20_wp
 fill_value_int = -999
 
 SELECT CASE(igrid_type)
@@ -870,11 +951,13 @@ SELECT CASE(igrid_type)
     &                                     tg,         &
     &                                     fill_value_real, &
     &                                     fill_value_int,   &
-    &                                     TRIM(name_lookup_table_glc2000), &
+    &                                     TRIM(name_lookup_table_lu), &
+    &                                     TRIM(lu_dataset), &
+    &                                     nclass_lu, &
     &                                     lon_geo,     &
     &                                     lat_geo, &
     &                                     fr_land_lu, &
-    &                                     glc2000_class_fraction,    &
+    &                                     lu_class_fraction,    &
     &                                     ice_lu, &
     &                                     z0_tot, &
     &                                     root_lu, &
@@ -911,11 +994,13 @@ SELECT CASE(igrid_type)
     &                                     tg,         &
     &                                     fill_value_real, &
     &                                     fill_value_int,   &
-    &                                     TRIM(name_lookup_table_glc2000), &
+    &                                     TRIM(name_lookup_table_lu), &
+    &                                     TRIM(lu_dataset), &
+    &                                     nclass_lu, &
     &                                     lon_geo,     &
     &                                     lat_geo, &
     &                                     fr_land_lu, &
-    &                                     glc2000_class_fraction,    &
+    &                                     lu_class_fraction,    &
     &                                     ice_lu, &
     &                                     z0_tot, &
     &                                     z0_lu, &
@@ -946,7 +1031,8 @@ SELECT CASE(igrid_type)
      
      PRINT *,'write out ', TRIM(grib_output_filename)
      CALL  write_cosmo_grid_extpar_grib(TRIM(grib_output_filename),  &
-    &                                     cosmo_grid,       &
+    &                                   TRIM(grib_sample), &
+    &                                     cosmo_grid,      &
     &                                     tg,         &
     &                                     fill_value_real, &
     &                                     fill_value_int,   &
@@ -982,6 +1068,7 @@ SELECT CASE(igrid_type)
      CASE(igrid_gme) ! GME grid  
      PRINT *,'write out ', TRIM(grib_output_filename)
      CALL  write_gme_grid_extpar_grib(TRIM(grib_output_filename),  &
+    &                                 TRIM(grib_sample),       &
     &                                     gme_grid,       &
     &                                     tg,         &
     &                                     fill_value_real, &
@@ -1020,3 +1107,4 @@ END SELECT
         
 
 END PROGRAM extpar_consistency_check
+

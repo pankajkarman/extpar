@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_3         2011/04/19 Hermann Asensio
+! introduce Globcover 2009 land use data set for external parameters
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -80,16 +82,19 @@ PUBLIC :: read_namelists_extpar_land_use,  &
 PUBLIC :: get_dimension_glcc_data, &
   &       get_lonlat_glcc_data
 
+PUBLIC :: get_dimension_globcover_data, &
+  &       get_lonlat_globcover_data
 CONTAINS
 
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for orography data settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_land_use(namelist_file, &
-                                         raw_data_glc2000_path, &
-                                         raw_data_glc2000_filename, &
-                                         ilookup_table_glc2000, &
-                                         glc2000_buffer_file, &
-                                         glc2000_output_file, &
+                                         i_landuse_data, &
+                                         raw_data_lu_path, &
+                                         raw_data_lu_filename, &
+                                         ilookup_table_lu, &
+                                         lu_buffer_file, &
+                                         lu_output_file, &
                                          raw_data_glcc_path_opt, &
                                          raw_data_glcc_filename_opt, &
                                          ilookup_table_glcc_opt,         &
@@ -102,12 +107,14 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file, &
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
 ! land use
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_glc2000_path        !< path to raw data
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_glc2000_filename !< filename glc2000 raw data
-INTEGER, INTENT(OUT) :: ilookup_table_glc2000 !< integer switch to choose a lookup table
+  INTEGER, INTENT(OUT) :: i_landuse_data !< integer switch to choose a land use raw data set
+                                         !! 1 Globcover2009, 2 GLC2000, 3 GLCC
+CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_lu_path        !< path to raw data
+CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_lu_filename !< filename lu raw data
+INTEGER, INTENT(OUT) :: ilookup_table_lu !< integer switch to choose a lookup table
 
-CHARACTER (len=filename_max), INTENT(OUT) :: glc2000_buffer_file !< name for glc2000 buffer file
-CHARACTER (len=filename_max), INTENT(OUT) :: glc2000_output_file !< name for glc2000 output file
+CHARACTER (len=filename_max), INTENT(OUT) :: lu_buffer_file !< name for landuse buffer file
+CHARACTER (len=filename_max), INTENT(OUT) :: lu_output_file !< name for landuse output file
 
 !--
 CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_path_opt        !< path to raw data
@@ -125,10 +132,10 @@ INTEGER :: ilookup_table_glcc  !< integer switch to choose a lookup table
 CHARACTER (len=filename_max) :: glcc_buffer_file    !< name for glcc buffer file
 CHARACTER (len=filename_max) :: glcc_output_file    !< name for glcc output file
 
-!> namelist with land use data input, glc2000
-NAMELIST /glc2000_raw_data/ raw_data_glc2000_path, raw_data_glc2000_filename, ilookup_table_glc2000
-!> namelist with filenames for land use data output, glc2000 data
-NAMELIST /glc2000_io_extpar/ glc2000_buffer_file, glc2000_output_file
+!> namelist with land use data input
+NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu
+!> namelist with filenames for land use data output
+NAMELIST /lu_io_extpar/ lu_buffer_file, lu_output_file
 
 !> namelist with land use data input, glcc
 NAMELIST /glcc_raw_data/ raw_data_glcc_path, raw_data_glcc_filename, ilookup_table_glcc
@@ -144,8 +151,8 @@ NAMELIST /glcc_io_extpar/  glcc_buffer_file, glcc_output_file
    nuin = free_un()  ! functioin free_un returns free Fortran unit number
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 
-   READ(nuin, NML=glc2000_raw_data, IOSTAT=ierr)
-   READ(nuin, NML=glc2000_io_extpar, IOSTAT=ierr)
+   READ(nuin, NML=lu_raw_data, IOSTAT=ierr)
+   READ(nuin, NML=lu_io_extpar, IOSTAT=ierr)
    
    ! If optional argument is present for output, copy the value from the local variable to the output argument variable
    IF (PRESENT(raw_data_glcc_path_opt)) THEN
@@ -179,8 +186,6 @@ NAMELIST /glcc_io_extpar/  glcc_buffer_file, glcc_output_file
 
 END SUBROUTINE read_namelists_extpar_land_use
 !---------------------------------------------------------------------------
-
-!\TODO continue here
         !> inquire dimension information for glc2000 raw data 
         SUBROUTINE get_dimension_glc2000_data(path_glc2000_file, &
                                           nlon_glc2000, &
@@ -512,15 +517,107 @@ END SUBROUTINE read_namelists_extpar_land_use
          CALL check_netcdf( nf90_close( ncid))
        END SUBROUTINE close_netcdf_glcc
 
+               !> inquire dimension information for globcover raw data
+        SUBROUTINE get_dimension_globcover_data(nlon_globcover, &
+                                          nlat_globcover)
 
+        INTEGER (KIND=i8), INTENT(OUT) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
+        INTEGER (KIND=i8), INTENT(OUT) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
 
+        !local variables
+        INTEGER, PARAMETER :: nx=129600
+        INTEGER, PARAMETER :: ny=55800
 
+        nlon_globcover = nx
+        nlat_globcover = ny
 
+       END SUBROUTINE get_dimension_globcover_data
 
+!----------------------------------------------------------------------------------------------------------------
+        !> get coordinates for globcover raw data
+        SUBROUTINE get_lonlat_globcover_data(nlon_globcover, &
+           &                               nlat_globcover, &
+           &                               lon_globcover,  &
+           &                               lat_globcover,  &
+           &                               globcover_grid)
 
+       USE mo_grid_structures, ONLY: reg_lonlat_grid
 
+        INTEGER (KIND=i8), INTENT(IN) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
+        INTEGER (KIND=i8), INTENT(IN) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
+        REAL (KIND=wp), INTENT(OUT)    :: lon_globcover(1:nlon_globcover) !< longitude of globcover raw data
+        REAL (KIND=wp), INTENT(OUT)    :: lat_globcover(1:nlat_globcover) !< latitude of globcover raw data
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: globcover_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
 
-            
+        !local variables
+        REAL, PARAMETER ::  xmin_glc = -180.001388888889 ! area of glcover data: western longitude
+        REAL, PARAMETER ::  xmax_glc  =  179.998611111111 ! area of glcover data: eastern longitude
+        REAL, PARAMETER ::  ymax_glc  =   90.001388888888! area of glcover data: northern latitude
+        REAL, PARAMETER ::  ymin_glc = -64.9986111111111! area of glcover data: southern latitude
+
+        REAL, PARAMETER :: dx_glc =    0.0027777777  ! grid element size of glcover data pixel in zonal direction
+        REAL, PARAMETER :: dy_glc =   -0.0027777777  ! grid element size of glcover data pixel in meridional directionon
+
+        INTEGER (KIND=i8) :: jx,jy
+           DO jx=1,nlon_globcover
+              lon_globcover(jx)  = xmin_glc + (jx-1)*dx_glc
+           ENDDO
+           DO jy=1,nlat_globcover
+            lat_globcover(jy) = ymax_glc + (jy-1)*dy_glc ! note negative increment!
+           ENDDO
+
+        ! define the values for the structure globcover_grid
+
+        globcover_grid%start_lon_reg = lon_globcover(1)
+        globcover_grid%end_lon_reg   = lon_globcover(nlon_globcover)
+        globcover_grid%start_lat_reg = lat_globcover(1)
+        globcover_grid%end_lat_reg   = lat_globcover(nlat_globcover)
+        globcover_grid%dlon_reg      = dx_glc ! (lon_globcover(nlon_globcover) - lon_globcover(1)) / (nlon_globcover - 1)
+        globcover_grid%dlat_reg      = dy_glc ! (lat_globcover(nlat_globcover) - lat_globcover(1)) / (nlat_globcover - 1)
+        globcover_grid%nlon_reg      = nlon_globcover
+        globcover_grid%nlat_reg      = nlat_globcover
+
+       END SUBROUTINE get_lonlat_globcover_data
+
+        !----------------------------------------------------------------------------------------------------------------
+        !----------------------------------------------------------------------------------------------------------------
+        !> get one row of globcover raw data
+        SUBROUTINE get_row_globcover_data(path_globcover_file, &
+                                          nlon_globcover, &
+                                          data_row, &
+                                          globcover_data_row)
+
+       USE mo_grid_structures, ONLY: reg_lonlat_grid
+
+        CHARACTER (LEN=filename_max), INTENT(IN) :: path_globcover_file         !< filename with path for globcover raw data
+        INTEGER , INTENT(IN) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
+        INTEGER , INTENT(IN) :: data_row !< number or row for data to read in
+
+        INTEGER , INTENT(OUT) :: globcover_data_row(1:nlon_globcover)
+
+        !local variables
+        INTEGER :: ncid                             !< netcdf unit file number
+
+        CHARACTER (LEN=80) :: varname  !< name of variable
+        INTEGER :: varid               !< id of variable
+
+       ! open netcdf file
+        CALL check_netcdf( nf90_open(TRIM(path_globcover_file),NF90_NOWRITE, ncid))
+
+        varname = 'Band1' ! I know that the globcover data are stored in a variable called 'Band1'
+
+         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+
+         CALL check_netcdf(nf90_get_var(ncid, varid,  globcover_data_row,  &
+                       start=(/1,data_row/),count=(/nlon_globcover,1/)))
+
+       ! close netcdf file
+       CALL check_netcdf( nf90_close( ncid))
+
+       END SUBROUTINE get_row_globcover_data
+
+      !----------------------------------------------------------------------------------------------------------------
 
 
 END MODULE mo_landuse_routines
+

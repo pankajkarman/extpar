@@ -5,6 +5,15 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Update documentation
+!  use capital letters in variable names for netcdf files
+!  enhance keylen_max too 100 characters
+!  add netcdf-attribute missing_value
+! V1_3         2011/04/19 Hermann Asensio
+!  set time dimension for netcdf output as "unlimited" 
+! @VERSION@    @DATE@     Hermann Asensio
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -35,24 +44,7 @@ MODULE mo_io_utilities
   
   PUBLIC :: check_netcdf
 
-  PUBLIC :: netcdf_def_var
-  PUBLIC :: netcdf_def_var_real
-  PUBLIC :: netcdf_def_var_int
-
-  PUBLIC ::  netcdf_def_var_int_1d
-  PUBLIC ::  netcdf_def_var_int_2d
-  PUBLIC ::  netcdf_def_var_int_3d
-  PUBLIC ::  netcdf_def_var_int_4d
-  PUBLIC ::  netcdf_def_var_int_5d
-  PUBLIC ::  netcdf_def_var_real_1d
-  PUBLIC ::  netcdf_def_var_real_2d
-  PUBLIC ::  netcdf_def_var_real_3d
-  PUBLIC ::  netcdf_def_var_real_4d
-  PUBLIC ::  netcdf_def_var_real_5d
-
   PUBLIC :: netcdf_def_grid_mapping
-
-  PUBLIC :: netcdf_write_varlist
 
   PUBLIC :: netcdf_put_var
   PUBLIC :: netcdf_put_int_i4_1d
@@ -81,28 +73,11 @@ MODULE mo_io_utilities
   PUBLIC :: vartype_real
   PUBLIC :: vartype_char
 
-  PUBLIC :: struct_real
-  PUBLIC :: struct_real_1d
-  PUBLIC :: struct_real_2d
-  PUBLIC :: struct_real_3d
-  PUBLIC :: struct_real_4d
-  PUBLIC :: struct_real_5d
-
-  PUBLIC :: struct_int
-  PUBLIC :: struct_int_1d
-  PUBLIC :: struct_int_2d
-  PUBLIC :: struct_int_3d
-  PUBLIC :: struct_int_4d
-  PUBLIC :: struct_int_5d
-
   PUBLIC :: get_date_const_field
   PUBLIC :: set_date_mm_extpar_field
 
- INTEGER, PARAMETER :: keylen_max = 80 !< maximum length for the length of keys of type character
+ INTEGER, PARAMETER :: keylen_max = 100 !< maximum length for the length of keys of type character
 
-
-
-        
   !> structure to save dimension information
   TYPE dim_meta_info
     CHARACTER (len=12) :: dimname !< name of dimension
@@ -126,102 +101,9 @@ MODULE mo_io_utilities
 
   END TYPE var_meta_info
 
-  !> Data structure for real scalar variables with meta information
-  TYPE struct_real
-    REAL (KIND=wp) :: var_real !< real variable
-    REAL (KIND=wp):: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real
-
-  !> Data structure for real 1D variables with meta information
-  TYPE struct_real_1d
-    REAL (KIND=wp) , ALLOCATABLE :: var_real_1d(:) !< 1D array variable
-    REAL (KIND=wp):: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real_1d 
-
-  !> Data structure for real 2d variables with meta information
-  TYPE struct_real_2d
-    REAL (KIND=wp) , ALLOCATABLE :: var_real_2d(:,:) !< 2D array variable
-    REAL(KIND=wp) :: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real_2d 
-
-  !> Data structure for real 3d variables with meta information
-  TYPE struct_real_3d
-    REAL (KIND=wp) , ALLOCATABLE :: var_real_3d(:,:,:) !< 3D array variable
-    REAL(KIND=wp) :: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real_3d 
-
-  !> Data structure for real 4d variables with meta information
-  TYPE struct_real_4d
-    REAL (KIND=wp) , ALLOCATABLE :: var_real_4d(:,:,:,:) !< 4D array variable
-    REAL(KIND=wp) :: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real_4d 
-
-  !> Data structure for real 5d variables with meta information
-  TYPE struct_real_5d
-    REAL (KIND=wp) , ALLOCATABLE :: var_real_5d(:,:,:,:,:) !< 5D array variable
-    REAL(KIND=wp) :: fill_value_r !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_real_5d 
-
-
-
-
-  !> Data structure for integer scalar variables with meta information
-  TYPE struct_int
-    INTEGER (KIND=i8) :: var_int !< int variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int
-
-  !> Data structure for integer 1D variables with meta information
-  TYPE struct_int_1d
-    INTEGER (KIND=i8) , ALLOCATABLE :: var_int_1d(:) !< 1D array variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int_1d 
-
-  !> Data structure for integer 2d variables with meta information
-  TYPE struct_int_2d
-    INTEGER (KIND=i8) , ALLOCATABLE :: var_int_2d(:,:) !< 2D array variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int_2d 
-
-  !> Data structure for integer 3d variables with meta information
-  TYPE struct_int_3d
-    INTEGER (KIND=i8) , ALLOCATABLE :: var_int_3d(:,:,:) !< 3D array variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int_3d 
-
-  !> Data structure for integer 4d variables with meta information
-  TYPE struct_int_4d
-    INTEGER (KIND=i8) , ALLOCATABLE :: var_int_4d(:,:,:,:) !< 4D array variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int_4d 
-
-  !> Data structure for integer 5d variables with meta information
-  TYPE struct_int_5d
-    INTEGER (KIND=i8) , ALLOCATABLE :: var_int_5d(:,:,:,:,:) !< 5D array variable
-    INTEGER :: fill_value_i !< value for undefined data
-    TYPE (var_meta_info) :: meta   !< addtional information for buffer field
-  END TYPE struct_int_5d 
-
-
-
-
- 
   INTEGER, PARAMETER :: vartype_int = 1
   INTEGER, PARAMETER :: vartype_real = 2
   INTEGER, PARAMETER :: vartype_char = 3
-
-  
 
   !> structure to save global netcdf attributes
   TYPE netcdf_attributes
@@ -229,7 +111,7 @@ MODULE mo_io_utilities
      CHARACTER (len=255) :: attributetext
   END TYPE netcdf_attributes
 
-    !> structure to store character type netcdf attributes
+  !> structure to store character type netcdf attributes
   TYPE netcdf_char_attributes
      CHARACTER (len=80)  :: attname
      character (len=255) :: attributetext
@@ -256,16 +138,14 @@ MODULE mo_io_utilities
   END TYPE netcdf_grid_mapping
 
 
-!  INTERFACE netcdf_def_var
-!     MODULE PROCEDURE netcdf_def_var_real
-!     MODULE PROCEDURE netcdf_def_var_int
-!  END INTERFACE netcdf_def_var
-
+  
+  !> put attributes to netcdf file
   INTERFACE netcdf_put_att
      MODULE PROCEDURE netcdf_put_att_real
      MODULE PROCEDURE netcdf_put_att_int
   END INTERFACE netcdf_put_att
-
+  
+  !> put variables to netcdf file
   INTERFACE netcdf_put_var
      MODULE PROCEDURE netcdf_put_int_scalar
      MODULE PROCEDURE netcdf_put_int_i4_1d
@@ -286,22 +166,7 @@ MODULE mo_io_utilities
      MODULE PROCEDURE netcdf_put_real_5d
   END INTERFACE netcdf_put_var
 
-
-  INTERFACE netcdf_def_var
-     MODULE PROCEDURE netcdf_def_var_real
-     MODULE PROCEDURE netcdf_def_var_int
-     MODULE PROCEDURE netcdf_def_var_int_1d
-     MODULE PROCEDURE netcdf_def_var_int_2d
-     MODULE PROCEDURE netcdf_def_var_int_3d
-     MODULE PROCEDURE netcdf_def_var_int_4d
-     MODULE PROCEDURE netcdf_def_var_int_5d
-     MODULE PROCEDURE netcdf_def_var_real_1d
-     MODULE PROCEDURE netcdf_def_var_real_2d
-     MODULE PROCEDURE netcdf_def_var_real_3d
-     MODULE PROCEDURE netcdf_def_var_real_4d
-     MODULE PROCEDURE netcdf_def_var_real_5d
-  END INTERFACE netcdf_def_var
-
+  !> get netcdf variables
   INTERFACE netcdf_get_var
      MODULE PROCEDURE netcdf_get_var_int_3d_i8
      MODULE PROCEDURE netcdf_get_var_int_3d_i4
@@ -310,8 +175,6 @@ MODULE mo_io_utilities
      MODULE PROCEDURE netcdf_get_var_real_4d
      MODULE PROCEDURE netcdf_get_var_real_5d
   END INTERFACE netcdf_get_var
-
-
 
   CONTAINS
 
@@ -328,94 +191,6 @@ MODULE mo_io_utilities
 
   END SUBROUTINE check_netcdf
 
-  !> specific subroutine to define netcdf real variable (inclusive attributes)
-  SUBROUTINE netcdf_def_var_real(ncid, varinfo, fill_value_r, varid)
-
-   USE netcdf, ONLY: nf90_def_var, nf90_put_att
-   USE netcdf, ONLY: NF90_FLOAT
-
-   INTEGER, INTENT(IN)             :: ncid        !< id for netcdf file
-   TYPE(var_meta_info), INTENT(IN) :: varinfo     !< structure with information on the meta data
-   REAL, INTENT(IN)                :: fill_value_r  !< undefined value
-
-   INTEGER, INTENT(OUT)            :: varid       !< variable id for netcdf variable
-
-      call check_netcdf( nf90_def_var(ncid, &
-                                      TRIM(varinfo%varname), &
-                                      NF90_FLOAT, &
-                                      varinfo%diminfo(:)%dimid ,& ! the shape of the variables is defined here by the number of dimensions
-                                      varid))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('standard_name'), &
-                                      TRIM(varinfo%standard_name)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('long_name'), &
-                                      TRIM(varinfo%long_name)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('units'), &
-                                      TRIM(varinfo%units)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('_FillValue'), &
-                                      fill_value_r))
-
-
-
-
-  END SUBROUTINE netcdf_def_var_real
-
-
-
-!> specific subroutine to define netcdf integer variable (inclusive attributes)
-  SUBROUTINE netcdf_def_var_int(ncid, varinfo, fill_value_i, varid)
-
-   USE netcdf, ONLY: nf90_def_var, nf90_put_att
-   USE netcdf, ONLY: NF90_INT
-
-   INTEGER, INTENT(IN)             :: ncid        !< id for netcdf file
-   TYPE(var_meta_info), INTENT(IN) :: varinfo     !< structure with information on the meta data
-   INTEGER, INTENT(IN)             :: fill_value_i  !< undefined value
-
-   INTEGER, INTENT(OUT)            :: varid       !< variable id for netcdf variable
-
-      call check_netcdf( nf90_def_var(ncid, &
-                                      TRIM(varinfo%varname), &
-                                      NF90_INT, &
-                                      varinfo%diminfo(:)%dimid ,&
-                                      varid))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('standard_name'), &
-                                      TRIM(varinfo%standard_name)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('long_name'), &
-                                      TRIM(varinfo%long_name)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('units'), &
-                                      TRIM(varinfo%units)))
-
-      call check_netcdf( nf90_put_att(ncid, &
-                                      varid, &
-                                      TRIM('_FillValue'), &
-                                      fill_value_i))
-
-
-
-
-
-  END SUBROUTINE netcdf_def_var_int
 
   
 !> specific subroutine to put some standard attributes to an integer type netcdf variable
@@ -429,6 +204,7 @@ MODULE mo_io_utilities
 
     ! local variables
     INTEGER :: fill_value
+    INTEGER :: missing_value
 
     
       CALL check_netcdf( nf90_put_att(ncid, &
@@ -476,6 +252,11 @@ MODULE mo_io_utilities
                            &             TRIM('_FillValue'), &
                            &             fill_value))
 
+      missing_value  = fill_value_i !type conversion
+      CALL check_netcdf( nf90_put_att(ncid, &
+                        &             varid, &
+                        &             TRIM('missing_value'), &
+                        &             missing_value))
 
   END SUBROUTINE netcdf_put_att_int
 
@@ -489,6 +270,7 @@ MODULE mo_io_utilities
 
     ! local variable
     REAL :: fill_value
+    REAL :: missing_value
 
     
       CALL check_netcdf( nf90_put_att(ncid, &
@@ -534,477 +316,16 @@ MODULE mo_io_utilities
                         &             TRIM('_FillValue'), &
                         &             fill_value))
 
+      missing_value  = fill_value_r !type conversion
+      CALL check_netcdf( nf90_put_att(ncid, &
+                        &             varid, &
+                        &             TRIM('missing_value'), &
+                        &             missing_value))
+
 
   END SUBROUTINE netcdf_put_att_real
 
 
-  !> specific subroutine to define 1D integer variable for netcdf
-  SUBROUTINE netcdf_def_var_int_1d(ncid, n_1d_int, list_int_1d, varids_1d_int)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_INT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_1d_int !< number of 1D integer variables
-  TYPE(struct_int_1d), INTENT(IN) :: list_int_1d(1:n_1d_int) !< array with list of integer 1D variables
-  INTEGER, INTENT(OUT) :: varids_1d_int(1:n_1d_int) !< list of varids 1D integer
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_1d !< dimension id for 1d variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname !< name of dimension
-  CHARACTER (len=20) :: varname !< name of variable
-
-  DO n=1, n_1d_int
-    ! get dimid
-    dimname=TRIM(list_int_1d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_1d))
-    ! get varname
-    varname = TRIM(list_int_1d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_INT,           &
-                    & dimid_1d,           &
-                    varid))
-    varids_1d_int(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_int_1d(n)%meta, list_int_1d(n)%fill_value_i)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_int_1d
-
-  !> specific subroutine to define 2D integer variable for netcdf
-  SUBROUTINE netcdf_def_var_int_2d(ncid, n_2d_int, list_int_2d, varids_2d_int)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_INT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_2d_int !< number of 2D integer variables
-  TYPE(struct_int_2d), INTENT(IN) :: list_int_2d(1:n_2d_int) !< array with list of integer 2D variables
-  INTEGER, INTENT(OUT) :: varids_2d_int(1:n_2d_int) !< list of varids 2D integer
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_2d(2)  !< dimension ids for 2d variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_2d_int
-    ! get dimid
-    dimname=TRIM(list_int_2d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_2d(1)))
-    dimname=TRIM(list_int_2d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_2d(2)))
-
-
-    ! get varname
-    varname = TRIM(list_int_2d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_INT,           &
-                    & dimid_2d,           &
-                    varid))
-    varids_2d_int(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_int_2d(n)%meta, list_int_2d(n)%fill_value_i)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_int_2d
-
-   !> specific subroutine to define 3D integer variable for netcdf
-  SUBROUTINE netcdf_def_var_int_3d(ncid, n_3d_int, list_int_3d, varids_3d_int)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_INT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_3d_int !< number of 3D integer variables
-  TYPE(struct_int_3d), INTENT(IN) :: list_int_3d(1:n_3d_int) !< array with list of integer 3D variables
-  INTEGER, INTENT(OUT) :: varids_3d_int(1:n_3d_int) !< list of varids 3D integer
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_3d(3)  !< dimension ids for 3D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_3d_int
-    ! get dimid
-    dimname=TRIM(list_int_3d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(1)))
-    dimname=TRIM(list_int_3d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(2)))
-    dimname=TRIM(list_int_3d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(3)))
-
-    ! get varname
-    varname = TRIM(list_int_3d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_INT,           &
-                    & dimid_3d,           &
-                    varid))
-    varids_3d_int(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_int_3d(n)%meta, list_int_3d(n)%fill_value_i)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_int_3d
-
-  
-  !> specific subroutine to define 4D real variable for netcdf
-  SUBROUTINE netcdf_def_var_int_4d(ncid, n_4d_int, list_int_4d, varids_4d_int)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_INT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_4d_int !< number of 4D real variables
-  TYPE(struct_int_4d), INTENT(IN) :: list_int_4d(1:n_4d_int) !< array with list of real 4D variables
-  INTEGER, INTENT(OUT) :: varids_4d_int(1:n_4d_int) !< list of varids 4D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_4d(4)  !< dimension ids for 4D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_4d_int
-    ! get dimid
-    dimname=TRIM(list_int_4d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(1)))
-    dimname=TRIM(list_int_4d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(2)))
-    dimname=TRIM(list_int_4d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(3)))
-    dimname=TRIM(list_int_4d(n)%meta%diminfo(4)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(4)))
-
-    ! get varname
-    varname = TRIM(list_int_4d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_INT,           &
-                    & dimid_4d,           &
-                    varid))
-    varids_4d_int(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_int_4d(n)%meta, list_int_4d(n)%fill_value_i)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_int_4d
-
-  !> specific subroutine to define 5D real variable for netcdf
-  SUBROUTINE netcdf_def_var_int_5d(ncid, n_5d_int, list_int_5d, varids_5d_int)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_INT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_5d_int !< number of 5D real variables
-  TYPE(struct_int_5d), INTENT(IN) :: list_int_5d(1:n_5d_int) !< array with list of real 5D variables
-  INTEGER, INTENT(OUT) :: varids_5d_int(1:n_5d_int) !< list of varids 5D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_5d(5)  !< dimension ids for 5D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_5d_int
-    ! get dimid
-    dimname=TRIM(list_int_5d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(1)))
-    dimname=TRIM(list_int_5d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(2)))
-    dimname=TRIM(list_int_5d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(3)))
-    dimname=TRIM(list_int_5d(n)%meta%diminfo(4)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(4)))
-    dimname=TRIM(list_int_5d(n)%meta%diminfo(5)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(5)))
-
-    ! get varname
-    varname = TRIM(list_int_5d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_INT,           &
-                    & dimid_5d,           &
-                    varid))
-    varids_5d_int(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_int_5d(n)%meta, list_int_5d(n)%fill_value_i)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_int_5d
-
-
-
-
-   !> specific subroutine to define 1D real variable for netcdf
-  SUBROUTINE netcdf_def_var_real_1d(ncid, n_1d_real, list_real_1d, varids_1d_real)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_FLOAT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_1d_real !< number of 1D real variables
-  TYPE(struct_real_1d), INTENT(IN) :: list_real_1d(1:n_1d_real) !< array with list of real 1D variables
-  INTEGER, INTENT(OUT) :: varids_1d_real(1:n_1d_real) !< list of varids 1D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_1d !< dimension id for 1d variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname !< name of dimension
-  CHARACTER (len=20) :: varname !< name of variable
-
-  DO n=1, n_1d_real
-    ! get dimid
-    dimname=TRIM(list_real_1d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_1d))
-    ! get varname
-    varname = TRIM(list_real_1d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_FLOAT,           &
-                    & dimid_1d,           &
-                    varid))
-    varids_1d_real(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_real_1d(n)%meta, list_real_1d(n)%fill_value_r)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_real_1d
-
-  !> specific subroutine to define 2D real variable for netcdf
-  SUBROUTINE netcdf_def_var_real_2d(ncid, n_2d_real, list_real_2d, varids_2d_real)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_FLOAT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_2d_real !< number of 2D real variables
-  TYPE(struct_real_2d), INTENT(IN) :: list_real_2d(1:n_2d_real) !< array with list of real 2D variables
-  INTEGER, INTENT(OUT) :: varids_2d_real(1:n_2d_real) !< list of varids 2D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_2d(2)  !< dimension ids for 2d variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_2d_real
-    ! get dimid
-    dimname=TRIM(list_real_2d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_2d(1)))
-    dimname=TRIM(list_real_2d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_2d(2)))
-
-    ! get varname
-    varname = TRIM(list_real_2d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_FLOAT,           &
-                    & dimid_2d,           &
-                    varid))
-    varids_2d_real(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_real_2d(n)%meta, list_real_2d(n)%fill_value_r)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_real_2d
-
-   !> specific subroutine to define 3D real variable for netcdf
-  SUBROUTINE netcdf_def_var_real_3d(ncid, n_3d_real, list_real_3d, varids_3d_real)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_FLOAT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_3d_real !< number of 3D real variables
-  TYPE(struct_real_3d), INTENT(IN) :: list_real_3d(1:n_3d_real) !< array with list of real 3D variables
-  INTEGER, INTENT(OUT) :: varids_3d_real(1:n_3d_real) !< list of varids 3D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_3d(3)  !< dimension ids for 3D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_3d_real
-    ! get dimid
-    dimname=TRIM(list_real_3d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(1)))
-    dimname=TRIM(list_real_3d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(2)))
-    dimname=TRIM(list_real_3d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_3d(3)))
-
-    ! get varname
-    varname = TRIM(list_real_3d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_FLOAT,           &
-                    & dimid_3d,           &
-                    varid))
-    varids_3d_real(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_real_3d(n)%meta, list_real_3d(n)%fill_value_r)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_real_3d
-
-  
-  !> specific subroutine to define 4D real variable for netcdf
-  SUBROUTINE netcdf_def_var_real_4d(ncid, n_4d_real, list_real_4d, varids_4d_real)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_FLOAT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_4d_real !< number of 4D real variables
-  TYPE(struct_real_4d), INTENT(IN) :: list_real_4d(1:n_4d_real) !< array with list of real 4D variables
-  INTEGER, INTENT(OUT) :: varids_4d_real(1:n_4d_real) !< list of varids 4D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_4d(4)  !< dimension ids for 4D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_4d_real
-    ! get dimid
-    dimname=TRIM(list_real_4d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(1)))
-    dimname=TRIM(list_real_4d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(2)))
-    dimname=TRIM(list_real_4d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(3)))
-    dimname=TRIM(list_real_4d(n)%meta%diminfo(4)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_4d(4)))
-
-    ! get varname
-    varname = TRIM(list_real_4d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_FLOAT,           &
-                    & dimid_4d,           &
-                    varid))
-    varids_4d_real(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_real_4d(n)%meta, list_real_4d(n)%fill_value_r)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_real_4d
-
-
-
-!> specific subroutine to define 5D real variable for netcdf
-  SUBROUTINE netcdf_def_var_real_5d(ncid, n_5d_real, list_real_5d, varids_5d_real)
-
-  USE netcdf, ONLY: nf90_inq_dimid
-  USE netcdf, ONLY: nf90_def_var
-  USE netcdf, ONLY: NF90_FLOAT
-
-  INTEGER, INTENT(IN) :: ncid !< id for netcdf file
-  INTEGER, INTENT(IN) :: n_5d_real !< number of 5D real variables
-  TYPE(struct_real_5d), INTENT(IN) :: list_real_5d(1:n_5d_real) !< array with list of real 5D variables
-  INTEGER, INTENT(OUT) :: varids_5d_real(1:n_5d_real) !< list of varids 5D real
-
-  !local variables
-
-  INTEGER :: n !< counter
-  INTEGER :: dimid_5d(5)  !< dimension ids for 5D variable
-  INTEGER :: varid  !< netcdf varid of variable
-
-  CHARACTER (len=12) :: dimname  !< name of dimension
-  CHARACTER (len=20) :: varname    !< name of variable
-
-  DO n=1, n_5d_real
-    ! get dimid
-    dimname=TRIM(list_real_5d(n)%meta%diminfo(1)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(1)))
-    dimname=TRIM(list_real_5d(n)%meta%diminfo(2)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(2)))
-    dimname=TRIM(list_real_5d(n)%meta%diminfo(3)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(3)))
-    dimname=TRIM(list_real_5d(n)%meta%diminfo(4)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(4)))
-    dimname=TRIM(list_real_5d(n)%meta%diminfo(5)%dimname)
-    CALL check_netcdf(nf90_inq_dimid(ncid,dimname,dimid_5d(5)))
-
-    ! get varname
-    varname = TRIM(list_real_5d(n)%meta%varname)
-    ! define netcdf variable
-    CALL check_netcdf( nf90_def_var(ncid, &
-                    & varname,            &
-                    & NF90_FLOAT,         &
-                    & dimid_5d,           &
-                    & varid))
-    varids_5d_real(n) = varid
-    ! put standard attributes to variable
-    CALL netcdf_put_att(ncid, varid, list_real_5d(n)%meta, list_real_5d(n)%fill_value_r)
-
-  ENDDO
-
-  END SUBROUTINE netcdf_def_var_real_5d
-  !----------------------------------------------------------------------------------------
-  !----------------------------------------------------------------------------------------
 
   !> specific subroutine to define scalar real variable for netcdf
   SUBROUTINE netcdf_put_real_scalar(ncid, var_real, meta, fill_value_r)
@@ -2452,318 +1773,6 @@ MODULE mo_io_utilities
 
   END SUBROUTINE netcdf_def_grid_mapping
 
-  !> write netcdf file with external parameters from variable lists
-  SUBROUTINE netcdf_write_varlist(netcdf_filename,          &
-    &                            dim_list,                 &
-    &                            global_attributes,        &
-    &                            nc_grid_def,              &
-    &                            list_real_1d,             &
-    &                            list_real_2d,             &
-    &                            list_real_3d,             &
-    &                            list_real_4d,             &
-    &                            list_real_5d,             &
-    &                            list_int_1d,              &
-    &                            list_int_2d,              &
-    &                            list_int_3d,              &
-    &                            list_int_4d,              &
-    &                            list_int_5d)
-
-   USE mo_utilities_extpar, ONLY: abort_extpar
-
-   USE netcdf,      ONLY :     &
-     & nf90_open,              &
-     & nf90_close,             &
-     & nf90_inquire,           &
-     & nf90_inquire_dimension, &
-     & nf90_inquire_variable,  &
-     & nf90_inq_attname,       &
-     & nf90_inquire_attribute, &
-     & nf90_get_att,           &
-     & nf90_inquire_dimension, &
-     & nf90_inq_dimid,         &
-     & nf90_inq_varid,         &
-     & nf90_get_var,           &
-     & nf90_noerr,             &
-     & nf90_strerror
-
-   USE netcdf,      ONLY:     &
-     & nf90_create,           &
-     & nf90_def_dim,          &
-     & nf90_def_var,          &
-     & nf90_enddef,           &
-     & nf90_redef,            &
-     & nf90_put_att,          &
-     & nf90_put_var
-
- 
-  USE netcdf,      ONLY :     &
-    & NF90_CHAR,              &
-    & NF90_DOUBLE,            &
-    & NF90_FLOAT,             &
-    & NF90_INT,               &
-    & NF90_BYTE,              &
-    & NF90_SHORT
-
-
-  USE netcdf,      ONLY :     &
-    & NF90_GLOBAL,            &
-    & NF90_UNLIMITED,         &
-    & NF90_CLOBBER,           &
-    & NF90_NOWRITE,           &
-    & NF90_WRITE
-
-  CHARACTER (len=*), INTENT(IN)      :: netcdf_filename     !< filename for the netcdf file
-  TYPE(dim_meta_info), INTENT(IN)    :: dim_list(:)         !< dimensions for netcdf file
-  TYPE(netcdf_attributes), INTENT(IN), OPTIONAL :: global_attributes(:)  !< structure with global attributes
-  TYPE(netcdf_grid_mapping), INTENT(IN), OPTIONAL :: nc_grid_def !< mapping parameters for netcdf
-
-
-  TYPE(struct_real_1d), INTENT(IN), OPTIONAL :: list_real_1d(:) !< array with structures of real 1d variables
-  TYPE(struct_real_2d), INTENT(IN), OPTIONAL :: list_real_2d(:) !< array with structures of real 2d variables
-  TYPE(struct_real_3d), INTENT(IN), OPTIONAL :: list_real_3d(:) !< array with structures of real 3d variables
-  TYPE(struct_real_4d), INTENT(IN), OPTIONAL :: list_real_4d(:) !< array with structures of real 4d variables
-  TYPE(struct_real_5d), INTENT(IN), OPTIONAL :: list_real_5d(:) !< array with structures of real 5d variables
-
-
-
-  TYPE(struct_int_1d), INTENT(IN), OPTIONAL :: list_int_1d(:) !< array with structures of integer 1d variables
-  TYPE(struct_int_2d), INTENT(IN), OPTIONAL :: list_int_2d(:) !< array with structures of integer 2d variables
-  TYPE(struct_int_3d), INTENT(IN), OPTIONAL :: list_int_3d(:) !< array with structures of integer 3d variables
-  TYPE(struct_int_4d), INTENT(IN), OPTIONAL :: list_int_4d(:) !< array with structures of integer 4d variables
-  TYPE(struct_int_5d), INTENT(IN), OPTIONAL :: list_int_5d(:) !< array with structures of integer 5d variables
-
-
-
-  ! local variables
-  INTEGER :: ncid !< netcdf unit file number
-  INTEGER :: varid!< id of variable
-
-  INTEGER :: ndims !< number of dimension
-  INTEGER :: ng_att!< number of global attributes
-
-  INTEGER :: n_1d_real = 0 !< number of 1D real variables
-  INTEGER :: n_2d_real = 0 !< number of 2D real variables
-  INTEGER :: n_3d_real = 0 !< number of 3D real variables
-  INTEGER :: n_4d_real = 0 !< number of 3D real variables
-  INTEGER :: n_5d_real = 0 !< number of 3D real variables
-
-  INTEGER :: n_1d_int = 0 !< number of 1D integer variables
-  INTEGER :: n_2d_int = 0 !< number of 2D integer variables
-  INTEGER :: n_3d_int = 0 !< number of 3D integer variables
-  INTEGER :: n_4d_int = 0 !< number of 3D integer variables
-  INTEGER :: n_5d_int = 0 !< number of 3D integer variables
-
-
-  INTEGER, ALLOCATABLE :: dimids(:) !< list of netcdf dim ids
-
-  INTEGER, ALLOCATABLE :: varids_1d_real(:) !< list of varids 1d real
-  INTEGER, ALLOCATABLE :: varids_2d_real(:) !< list of varids 2d real
-  INTEGER, ALLOCATABLE :: varids_3d_real(:) !< list of varids 3d real
-  INTEGER, ALLOCATABLE :: varids_4d_real(:) !< list of varids 4d real
-  INTEGER, ALLOCATABLE :: varids_5d_real(:) !< list of varids 5d real
-  INTEGER, ALLOCATABLE :: varids_1d_int(:) !< list of varids 1D integer
-  INTEGER, ALLOCATABLE :: varids_2d_int(:) !< list of varids 2d integer
-  INTEGER, ALLOCATABLE :: varids_3d_int(:) !< list of varids 3d integer
-  INTEGER, ALLOCATABLE :: varids_4d_int(:) !< list of varids 4d integer
-  INTEGER, ALLOCATABLE :: varids_5d_int(:) !< list of varids 5d integer
-
-  INTEGER :: n ! counter
-  INTEGER :: errorcode !< error status variable
-  
-  PRINT*,'Enter netcdf_write_varlist'
-
-  ! create netcdf file
-  PRINT*,'create ',TRIM(netcdf_filename)
-
-  CALL check_netcdf( nf90_create(TRIM(netcdf_filename),NF90_CLOBBER,ncid))
-  ndims = SIZE(dim_list)
-  ALLOCATE(dimids(1:ndims), STAT=errorcode)
-  IF(errorcode /= 0) CALL abort_extpar('Cant allocate dimids')
-
-  ! define dimensions
-  PRINT *,'define dimensions'
-  DO n=1, ndims
-    CALL check_netcdf( nf90_def_dim(ncid,                      &
-      &                             TRIM(dim_list(n)%dimname), &
-      &                             dim_list(n)%dimsize,       &
-      &                             dimids(n)))
-  ENDDO
-
-  ! put global attributes
-  IF (PRESENT(global_attributes)) THEN
-  PRINT *,'put global attributes'
-    ng_att=SIZE(global_attributes)
-    PRINT *,'ng_att: ',ng_att
-    DO n=1, ng_att
-      CALL check_netcdf( nf90_put_att(ncid,NF90_GLOBAL, &
-        &                TRIM(global_attributes(n)%attname), &
-        &                TRIM(global_attributes(n)%attributetext)))
-    ENDDO
-  ENDIF
-
-  IF (PRESENT(list_real_1d)) THEN
-  PRINT *,'list_real_1d'
-    n_1d_real = SIZE(list_real_1d)
-    ALLOCATE(varids_1d_real(1:n_1d_real), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_1d_real')
-    CALL netcdf_def_var(ncid, n_1d_real, list_real_1d, varids_1d_real)
-  ENDIF
-
-  IF (PRESENT(list_real_2d)) THEN
-  PRINT *,'list_real_2d'
-    n_2d_real = SIZE(list_real_2d)
-    ALLOCATE(varids_2d_real(1:n_2d_real), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_2d_real')
-    CALL netcdf_def_var(ncid, n_2d_real, list_real_2d, varids_2d_real)
-  ENDIF
-
-  IF (PRESENT(list_real_3d)) THEN
-  PRINT *,'list_real_3d'
-    n_3d_real = SIZE(list_real_3d)
-    ALLOCATE(varids_3d_real(1:n_3d_real), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_3d_real')
-    CALL netcdf_def_var(ncid, n_3d_real, list_real_3d, varids_3d_real)
-  ENDIF
-
-  IF (PRESENT(list_real_4d)) THEN
-  PRINT *,'list_real_4d'
-    n_4d_real = SIZE(list_real_4d)
-    ALLOCATE(varids_4d_real(1:n_4d_real), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_4d_real')
-    CALL netcdf_def_var(ncid, n_4d_real, list_real_4d, varids_4d_real)
-  ENDIF
-
-  IF (PRESENT(list_real_5d)) THEN
-  PRINT *,'list_real_5d'
-    n_5d_real = SIZE(list_real_5d)
-    ALLOCATE(varids_5d_real(1:n_5d_real), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_5d_real')
-    CALL netcdf_def_var(ncid, n_5d_real, list_real_5d, varids_5d_real)
-  ENDIF
-
-
-  IF (PRESENT(list_int_1d)) THEN
-  PRINT *,'list_int_1d'
-    n_1d_int = SIZE(list_int_1d)
-    ALLOCATE(varids_1d_int(1:n_1d_int), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_1d_int')
-    CALL netcdf_def_var(ncid, n_1d_int, list_int_1d, varids_1d_int)
-  ENDIF
-
-  IF (PRESENT(list_int_2d)) THEN
-  PRINT *,'list_int_2d'
-    n_2d_int = SIZE(list_int_2d)
-    ALLOCATE(varids_2d_int(1:n_2d_int), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_2d_int')
-    CALL netcdf_def_var(ncid, n_2d_int, list_int_2d, varids_2d_int)
-  ENDIF
-  
-  IF (PRESENT(list_int_3d)) THEN
-  PRINT *,'list_int_3d'
-    n_3d_int = SIZE(list_int_3d)
-    ALLOCATE(varids_3d_int(1:n_3d_int), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_3d_int')
-    CALL netcdf_def_var(ncid, n_3d_int, list_int_3d, varids_3d_int)
-  ENDIF
-
-  IF (PRESENT(list_int_4d)) THEN
-  PRINT *,'list_int_4d'
-    n_4d_int = SIZE(list_int_4d)
-    ALLOCATE(varids_4d_int(1:n_4d_int), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_4d_int')
-    CALL netcdf_def_var(ncid, n_4d_int, list_int_4d, varids_4d_int)
-  ENDIF
-  
-  IF (PRESENT(list_int_5d)) THEN
-  PRINT *,'list_int_5d'
-    n_5d_int = SIZE(list_int_5d)
-    ALLOCATE(varids_5d_int(1:n_5d_int), STAT=errorcode)
-    IF(errorcode /= 0) CALL abort_extpar('Cant allocate the structure varids_5d_int')
-    CALL netcdf_def_var(ncid, n_5d_int, list_int_5d, varids_5d_int)
-  ENDIF
-
-
-  IF (PRESENT(nc_grid_def)) THEN
-  PRINT *,'nc_grid_def'
-    CALL netcdf_def_grid_mapping(ncid, nc_grid_def, varid)
-  ENDIF
-
-  ! end of definition
-  PRINT *,'end of definition'
-  CALL check_netcdf(nf90_enddef(ncid))
-
-  ! write variable values
-  PRINT *,'write variable values'
-  IF (PRESENT(list_real_1d)) THEN
-    DO n=1, n_1d_real
-      CALL check_netcdf(nf90_put_var(ncid,varids_1d_real(n),list_real_1d(n)%var_real_1d))
-    ENDDO
-
-  ENDIF
-
-  IF (PRESENT(list_real_2d)) THEN
-    DO n=1, n_2d_real
-      CALL check_netcdf(nf90_put_var(ncid,varids_2d_real(n),list_real_2d(n)%var_real_2d))
-    ENDDO
-
-  ENDIF
-
-  IF (PRESENT(list_real_3d)) THEN
-    DO n=1, n_3d_real
-      CALL check_netcdf(nf90_put_var(ncid,varids_3d_real(n),list_real_3d(n)%var_real_3d))
-    ENDDO
-  ENDIF
-
-  IF (PRESENT(list_real_4d)) THEN
-    DO n=1, n_4d_real
-      CALL check_netcdf(nf90_put_var(ncid,varids_4d_real(n),list_real_4d(n)%var_real_4d))
-    ENDDO
-  ENDIF
-
-    
-  IF (PRESENT(list_real_5d)) THEN
-    DO n=1, n_5d_real
-      CALL check_netcdf(nf90_put_var(ncid,varids_5d_real(n),list_real_5d(n)%var_real_5d))
-    ENDDO
-  ENDIF
-
-
-
-  IF (PRESENT(list_int_1d)) THEN
-    DO n=1, n_1d_int
-      CALL check_netcdf(nf90_put_var(ncid,varids_1d_int(n),list_int_1d(n)%var_int_1d))
-    ENDDO
-  ENDIF
-
-  IF (PRESENT(list_int_2d)) THEN
-    DO n=1, n_2d_int
-      CALL check_netcdf(nf90_put_var(ncid,varids_2d_int(n),list_int_2d(n)%var_int_2d))
-    ENDDO
-  ENDIF
-  
-  IF (PRESENT(list_int_3d)) THEN
-    DO n=1, n_3d_int
-      CALL check_netcdf(nf90_put_var(ncid,varids_3d_int(n),list_int_3d(n)%var_int_3d))
-    ENDDO
-  ENDIF
-
-   IF (PRESENT(list_int_4d)) THEN
-    DO n=1, n_4d_int
-      CALL check_netcdf(nf90_put_var(ncid,varids_4d_int(n),list_int_4d(n)%var_int_4d))
-    ENDDO
-  ENDIF
-
-  IF (PRESENT(list_int_5d)) THEN
-    DO n=1, n_5d_int
-      CALL check_netcdf(nf90_put_var(ncid,varids_5d_int(n),list_int_5d(n)%var_int_5d))
-    ENDDO
-  ENDIF
-
-  ! close netcdf file 
-  CALL check_netcdf( nf90_close( ncid))
-
-  END SUBROUTINE netcdf_write_varlist
-
   !> specific subroutine to read 3D real variable from netcdf file
   SUBROUTINE netcdf_get_var_real_3d(path_netcdf_file,var_real_3d_meta,var_real_3d)
 
@@ -3175,51 +2184,64 @@ MODULE mo_io_utilities
     dataTime = minute + (100*hh)
 
   END  SUBROUTINE set_date_mm_extpar_field
-
   !> open netcdf-file and get netcdf unit file number ncid
-  SUBROUTINE open_new_netcdf_file(netcdf_filename, dim_list, global_attributes, ncid)
+  SUBROUTINE open_new_netcdf_file(netcdf_filename, dim_list, global_attributes, time, ncid)
     USE netcdf, ONLY: nf90_create 
-    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL
+    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT
     USE netcdf, ONLY: nf90_def_dim
+    USE netcdf, ONLY: nf90_def_var
     USE netcdf, ONLY: nf90_put_att
+    USE netcdf, ONLY: nf90_put_var
+    USE netcdf, ONLY: nf90_redef
     USE netcdf, ONLY: nf90_enddef
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename     !< filename for the netcdf file
     TYPE(dim_meta_info), INTENT(IN)    :: dim_list(:)         !< dimensions for netcdf file
     TYPE(netcdf_attributes), INTENT(IN), OPTIONAL :: global_attributes(:)  !< structure with global attributes
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: time(:)  !< time variable
+
     INTEGER, INTENT(OUT) :: ncid                      !< netcdf unit file number
     ! local variables
     INTEGER :: ndims !< number of dimension
     INTEGER :: ng_att!< number of global attributes
     INTEGER, ALLOCATABLE :: dimids(:) !< list of netcdf dim ids
+    INTEGER :: dimsize
     INTEGER :: errorcode
     INTEGER :: n !< counter
 
-     PRINT *,' CALL  nf90_create'
+    CHARACTER (len=20) :: varname    !< name of variable
+    CHARACTER (len=12) :: dimname    !< name of dimension
+
+    INTEGER :: varid_time  !< netcdf varid of variable
+    INTEGER :: dimid_time
+    
+    INTEGER :: varid_mlev  !< netcdf varid of variable
+    INTEGER :: dimid_mlev
+    INTEGER, ALLOCATABLE :: mlev(:)
 
     CALL check_netcdf( nf90_create(TRIM(netcdf_filename),NF90_CLOBBER,ncid))
     ndims = SIZE(dim_list)
-    PRINT *,'size of dim_list ndims: ',ndims
+
+    dimid_time = -1
 
     ALLOCATE(dimids(1:ndims), STAT=errorcode)
     IF(errorcode /= 0) CALL abort_extpar('Cant allocate dimids')
 
     ! define dimensions
     DO n=1, ndims
-    PRINT *,'dim n: ',n
-    PRINT *,'TRIM(dim_list(n)%dimname): ', TRIM(dim_list(n)%dimname)
+      dimsize = dim_list(n)%dimsize
+      IF (TRIM(dim_list(n)%dimname)=='time') dimsize = NF90_UNLIMITED
       CALL check_netcdf( nf90_def_dim(ncid,                      &
         &                             TRIM(dim_list(n)%dimname), &
-        &                             dim_list(n)%dimsize,       &
+        &                             dimsize,                   &
         &                             dimids(n)))
+      IF (TRIM(dim_list(n)%dimname)=='time') dimid_time=dimids(n)
     ENDDO
 
     ! put global attributes
     IF (PRESENT(global_attributes)) THEN
       ng_att=SIZE(global_attributes)
-      PRINT *,'number of attributes ng_att: ',ng_att
 
       DO n=1, ng_att
-      PRINT *,'attribute n: ',n
         CALL check_netcdf( nf90_put_att(ncid,NF90_GLOBAL, &
           &                TRIM(global_attributes(n)%attname), &
           &                TRIM(global_attributes(n)%attributetext)))
@@ -3228,6 +2250,34 @@ MODULE mo_io_utilities
 
     ! end of definition
     CALL check_netcdf(nf90_enddef(ncid))
+
+    IF (PRESENT(time)) THEN
+      CALL check_netcdf(nf90_redef(ncid))
+     ! dimsize=SIZE(time)
+      dimname='time'
+      varname='time'
+      IF (dimid_time == -1) THEN
+        CALL check_netcdf(nf90_def_dim(ncid,dimname,NF90_UNLIMITED, dimid_time))
+      ENDIF
+      ! define netcdf variable
+      CALL check_netcdf( nf90_def_var(ncid,varname,NF90_FLOAT,dimid_time,varid_time))
+
+      dimname='mlev'
+      varname='mlev'
+      dimsize=1
+      ALLOCATE(mlev(1:dimsize), STAT=errorcode)
+      IF(errorcode /= 0) CALL abort_extpar('Cant allocate mlev')
+      mlev=1
+      CALL check_netcdf(nf90_def_dim(ncid,dimname,dimsize, dimid_mlev))
+      CALL check_netcdf( nf90_def_var(ncid,varname,NF90_FLOAT,dimid_mlev,varid_mlev))
+
+      CALL check_netcdf(nf90_enddef(ncid))
+
+      ! put time variable to netcdf file
+      CALL check_netcdf(nf90_put_var(ncid,varid_time,time))
+      CALL check_netcdf(nf90_put_var(ncid,varid_mlev,mlev))
+
+    ENDIF
 
 
   END SUBROUTINE open_new_netcdf_file
@@ -3243,17 +2293,4 @@ MODULE mo_io_utilities
 
 
 END MODULE mo_io_utilities
-
-
-
-
-
-
-
-
-
-
-
-
-
 

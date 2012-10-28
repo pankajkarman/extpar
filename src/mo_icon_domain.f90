@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  Update documentation
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -47,6 +49,7 @@ MODULE mo_icon_domain
   INTEGER, PARAMETER :: max_dom = 10
 ! from mo_grid.f90 of icon_src
 !--------------------------------------------------------------
+  !> data structure for Icon grid vertices
   TYPE grid_vertices
     INTEGER, ALLOCATABLE  :: idx(:)              ! the index of the vertex
     INTEGER, ALLOCATABLE  :: noOfNeigbors(:)     ! connectivity number = no of neighboring vertices, cells, edges
@@ -65,6 +68,7 @@ MODULE mo_icon_domain
 !--------------------------------------------------------------
 
 !--------------------------------------------------------------
+  !> data structure for Icon grid cells
   TYPE grid_cells
     INTEGER, ALLOCATABLE ::  idx(:)           ! the index of the edge
     INTEGER, ALLOCATABLE  :: parent_index(:)  !
@@ -94,9 +98,7 @@ MODULE mo_icon_domain
 ! from mo_grid.f90
 
 
-
-
-!> Data type icon_domain contains basic grid structure for the ICON grid
+  !> Data type icon_domain contains basic grid structure for the ICON grid
   !!
   !! this type is a subset of the "patch" type of the grid generator (no edges etc.)
   TYPE icon_domain

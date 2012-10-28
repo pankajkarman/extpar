@@ -5,6 +5,12 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  small bug fix: remove some USE statements for unused global variables
+! V1_3         2011/04/19 Hermann Asensio
+!  change netcdf output:  time variable
+! @VERSION@    @DATE@     Anne Roche
+!  clean up
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -28,13 +34,16 @@ MODULE mo_ndvi_output_nc
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
-  USE mo_io_utilities, ONLY: netcdf_write_varlist
   USE mo_io_utilities, ONLY: dim_meta_info
 
   USE mo_io_utilities, ONLY: netcdf_put_var
   USE mo_io_utilities, ONLY: open_new_netcdf_file
   USE mo_io_utilities, ONLY: close_netcdf_file
   USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
+
+  USE mo_io_utilities, ONLY: get_date_const_field
+  USE mo_io_utilities, ONLY: set_date_mm_extpar_field
+
 
 
   USE mo_io_utilities, ONLY: vartype_int 
@@ -58,7 +67,7 @@ MODULE mo_ndvi_output_nc
 
   SUBROUTINE write_netcdf_buffer_ndvi(netcdf_filename,  &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
@@ -71,7 +80,7 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-!roa clean>: deleted because not used
+
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -87,7 +96,7 @@ MODULE mo_ndvi_output_nc
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime_ndvi !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
@@ -97,6 +106,11 @@ MODULE mo_ndvi_output_nc
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
 
     ! local variables
+    ! local variables
+    REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
     INTEGER :: ndims  
     INTEGER :: ncid
 
@@ -125,8 +139,15 @@ MODULE mo_ndvi_output_nc
     CALL def_com_target_fields_meta(dim_3d_tg)
     ! lon_geo_meta and lat_geo_meta
     !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
+    CALL def_ndvi_meta(tg,ntime,dim_3d_tg)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+    
+    ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
 
     ! set up dimensions for netcdf output 
     ndims = 4
@@ -136,14 +157,15 @@ MODULE mo_ndvi_output_nc
     dim_list(1) = dim_3d_tg(1) ! ie
     dim_list(2) = dim_3d_tg(2) ! je
     dim_list(3) = dim_3d_tg(3) ! ke
-    dim_list(4)%dimname = 'ntime' ! ntime_ndvi
-    dim_list(4)%dimsize = ntime_ndvi 
+    dim_list(4)%dimname = 'time' ! ntime
+    dim_list(4)%dimsize = ntime 
 
     !-----------------------------------------------------------------
 
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
+      &                       time=time,          &
       &                       ncid=ncid)
 
     ! lon
@@ -174,7 +196,7 @@ MODULE mo_ndvi_output_nc
    SUBROUTINE write_netcdf_cosmo_grid_ndvi(netcdf_filename,  &
    &                                     cosmo_grid,         &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
@@ -182,10 +204,6 @@ MODULE mo_ndvi_output_nc
    &                                     ndvi_max,  &
    &                                     ndvi_field_mom,&
    &                                     ndvi_ratio_mom)
-
-    USE mo_io_utilities, ONLY: struct_real_1d
-    USE mo_io_utilities, ONLY: struct_real_2d
-    USE mo_io_utilities, ONLY: struct_real_3d
 
     
     USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
@@ -203,8 +221,6 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-!roa clean>: deleted because not used
-
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -221,7 +237,7 @@ MODULE mo_ndvi_output_nc
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: COSMO_grid      !< structure which contains the definition of the COSMO grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime_ndvi !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
@@ -232,6 +248,11 @@ MODULE mo_ndvi_output_nc
 
 
     ! local variables
+     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
 
     INTEGER :: ndims  
     INTEGER :: ncid
@@ -279,8 +300,15 @@ MODULE mo_ndvi_output_nc
 
 
     !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime_ndvi,dim_2d_cosmo,coordinates,grid_mapping)
+    CALL def_ndvi_meta(tg,ntime,dim_2d_cosmo,coordinates,grid_mapping)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+    ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
 
     ! set up dimensions for netcdf output 
     ndims = 3
@@ -288,8 +316,8 @@ MODULE mo_ndvi_output_nc
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
     dim_list(1) = dim_rlon_cosmo(1) ! rlon
     dim_list(2) = dim_rlat_cosmo(1) ! rlat
-    dim_list(3)%dimname = 'ntime'
-    dim_list(3)%dimsize = ntime_ndvi
+    dim_list(3)%dimname = 'time'
+    dim_list(3)%dimsize = ntime
     
     dim_3d_buffer = dim_list
 
@@ -299,6 +327,7 @@ MODULE mo_ndvi_output_nc
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
+      &                       time=time,          &
       &                       ncid=ncid)
     !-----------------------------------------------------------------
 
@@ -317,13 +346,13 @@ MODULE mo_ndvi_output_nc
 
     ! ndvi_field_mom
     CALL netcdf_put_var(ncid,&
-                       & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ndvi), &
+                       & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
                        & ndvi_field_mom_meta, &
                        & undefined)
 
     ! ndvi_ratio_mom
     CALL netcdf_put_var(ncid,&
-                       & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ndvi), &
+                       & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
                        & ndvi_ratio_mom_meta, &
                        & undefined)
 
@@ -342,7 +371,7 @@ MODULE mo_ndvi_output_nc
    SUBROUTINE write_netcdf_icon_grid_ndvi(netcdf_filename,  &
    &                                     icon_grid,         &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
@@ -351,9 +380,6 @@ MODULE mo_ndvi_output_nc
    &                                     ndvi_field_mom,&
    &                                     ndvi_ratio_mom)
 
-    USE mo_io_utilities, ONLY: struct_real_1d
-    USE mo_io_utilities, ONLY: struct_real_2d
-    USE mo_io_utilities, ONLY: struct_real_3d
 
     USE mo_var_meta_data, ONLY:  dim_icon, &
      &                          def_dimension_info_icon
@@ -365,7 +391,6 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-!roa clean>: deleted because not used
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -382,7 +407,7 @@ MODULE mo_ndvi_output_nc
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(icosahedral_triangular_grid), INTENT(IN)  :: icon_grid      !< structure which contains the definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime_ndvi !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
@@ -393,6 +418,11 @@ MODULE mo_ndvi_output_nc
 
 
     ! local variables
+     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
+    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
 
     INTEGER :: ndims 
     INTEGER :: ncid
@@ -448,22 +478,31 @@ MODULE mo_ndvi_output_nc
 
 
     !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime_ndvi,dim_1d_icon)
+    CALL def_ndvi_meta(tg,ntime,dim_1d_icon)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+    ALLOCATE(time(1:ntime),STAT=errorcode)
+    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
+    DO n=1,ntime
+      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
+      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
+    ENDDO
+
 
     ! set up dimensions for netcdf output 
     ndims = 2
     ALLOCATE(dim_list(1:ndims),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
     dim_list(1) =  dim_icon(1) ! cell
-    dim_list(2)%dimname = 'ntime'
-    dim_list(2)%dimsize = ntime_ndvi
+    dim_list(2)%dimname = 'time'
+    dim_list(2)%dimsize = ntime
 
      !-----------------------------------------------------------------
     PRINT *,' CALL open_new_netcdf_file'
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
         &                       dim_list=dim_list,                  &
         &                       global_attributes=global_attributes, &
+        &                       time=time,          &
         &                       ncid=ncid)
     !-----------------------------------------------------------------
 
@@ -477,11 +516,11 @@ MODULE mo_ndvi_output_nc
     CALL netcdf_put_var(ncid,ndvi_max(1:icon_grid%ncell,1,1),ndvi_max_meta,undefined)
 
     ! ndvi_field_mom
-    CALL netcdf_put_var(ncid,ndvi_field_mom(1:icon_grid%ncell,1,1,1:ntime_ndvi), &
+    CALL netcdf_put_var(ncid,ndvi_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
        &                 ndvi_field_mom_meta, undefined)
 
     ! ndvi_ratio_mom
-    CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime_ndvi), &
+    CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime), &
        &                 ndvi_ratio_mom_meta, undefined)
 
     CALL close_netcdf_file(ncid)
@@ -536,20 +575,16 @@ MODULE mo_ndvi_output_nc
 
   SUBROUTINE read_netcdf_buffer_ndvi(netcdf_filename,  &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     ndvi_max,  &
    &                                     ndvi_field_mom,&
    &                                     ndvi_ratio_mom)
 
-    USE mo_io_utilities, ONLY: struct_real_3d
-    USE mo_io_utilities, ONLY: struct_real_4d
-
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-!roa clean>: deleted because not used
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -565,7 +600,7 @@ MODULE mo_ndvi_output_nc
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(OUT) :: ntime_ndvi !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(OUT) :: ntime !< number of times of ndvi data (12 monthly mean values)
     REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(OUT) :: ndvi_max(:,:,:) !< field for ndvi maximum
@@ -573,12 +608,6 @@ MODULE mo_ndvi_output_nc
     REAL (KIND=wp), INTENT(OUT) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
 
     ! local variables
-    TYPE(struct_real_3d), ALLOCATABLE :: list_real_3d(:) !< array with list of real 2d variables
-    INTEGER :: n_3d_real = 0 !< number of 3D real variables
-
-    TYPE(struct_real_4d), ALLOCATABLE :: list_real_4d(:) !< array with list of real 4d variables
-    INTEGER :: n_4d_real = 0 !< number of 4D real variables
-
     INTEGER :: ndims  
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
     
@@ -597,7 +626,7 @@ MODULE mo_ndvi_output_nc
     CALL def_com_target_fields_meta(dim_3d_tg)
     ! lon_geo_meta and lat_geo_meta
     !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
+    CALL def_ndvi_meta(tg,ntime,dim_3d_tg)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
     PRINT *,'CALL read netcdf data NDVI'

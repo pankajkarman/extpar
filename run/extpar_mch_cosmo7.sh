@@ -34,9 +34,9 @@ pwd
 
 #---
 
-grib_output_filename='external_parameter_cosmo_eu.g1'
-stf_output_filename='external_parameter_cosmo_eu.stf'
-netcdf_output_filename='external_parameter_cosmo_eu.nc'
+grib_output_filename='external_parameter_mch_cosmo7.g1'
+stf_output_filename='external_parameter_mch_cosmo7.stf'
+netcdf_output_filename='external_parameter_mch_cosmo7.nc'
 grib_sample='DWD_rotated_ll_7km_G_grib1'
 
 raw_data_aot='aerosol_optical_thickness.nc'
@@ -102,13 +102,13 @@ EOF_go
 cat > INPUT_COSMO_GRID << EOF_grid
 &lmgrid
  pollon=-170.0, 
- pollat=40.0, 
- startlon_tot=-30.125, 
- startlat_tot=-24.125,
- dlon=0.0625,
- dlat=0.0625,
- ie_tot=965,
- je_tot=773,
+ pollat=43.0, 
+ startlon_tot=-18.0, 
+ startlat_tot=-18.0,
+ dlon=0.06,
+ dlat=0.06,
+ ie_tot=601,
+ je_tot=601,
 /
 EOF_grid
 #---

@@ -7,6 +7,9 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_3         2011/04/19 Hermann Asensio
+! introduce Globcover 2009 land use data set for external parameters
+! add support for GRIB1 and GRIB2
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -18,7 +21,7 @@ MODULE mo_read_extpar_namelists
  USE mo_kind, ONLY: wp, &
                      i4, &
                      i8
- USE mo_io_units,          ONLY: filename_max
+ USE mo_io_units, ONLY: filename_max
 
  PUBLIC :: read_namelists_extpar_grid_def
  PUBLIC :: read_namelists_extpar_check
@@ -67,10 +70,11 @@ END SUBROUTINE read_namelists_extpar_grid_def
 !> subroutine to read namelist for consitency check settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_check(namelist_file, &
                                          grib_output_filename, &
+                                         grib_sample, &
                                          netcdf_output_filename, &
                                          orography_buffer_file, &
                                          soil_buffer_file, &
-                                         glc2000_buffer_file, &
+                                         lu_buffer_file, &
                                          glcc_buffer_file, &
                                          flake_buffer_file, &
                                          ndvi_buffer_file, &
@@ -84,10 +88,11 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
 
    CHARACTER (len=filename_max) :: grib_output_filename  !< name for grib output filename
+   CHARACTER (len=filename_max) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
    CHARACTER (len=filename_max) :: netcdf_output_filename!< name for netcdf output filename
    CHARACTER (len=filename_max) :: orography_buffer_file  !< name for orography buffer file
    CHARACTER (len=filename_max) :: soil_buffer_file !< name for soil buffer file
-   CHARACTER (len=filename_max) :: glc2000_buffer_file  !< name for glc2000 buffer file
+   CHARACTER (len=filename_max) :: lu_buffer_file  !< name for glc2000 buffer file
 
    CHARACTER (len=filename_max) :: glcc_buffer_file  !< name for glcc buffer file
 
@@ -102,10 +107,11 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
    !> namelist with filenames for output of soil data
    NAMELIST /extpar_consistency_check_io/ grib_output_filename, &
+                                          grib_sample, &
                                          netcdf_output_filename, &
                                          orography_buffer_file, &
                                          soil_buffer_file, &
-                                         glc2000_buffer_file, &
+                                         lu_buffer_file, &
                                          glcc_buffer_file, &
                                          flake_buffer_file, &
                                          ndvi_buffer_file, &
@@ -118,12 +124,28 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
 
    nuin = free_un()  ! functioin free_un returns free Fortran unit number
+!roa: what the heck is that!?!
+!   grib_output_filename = 'external_parameters.grb'
+!   grib_sample = 'GRIB2'
+
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 
    READ(nuin, NML=extpar_consistency_check_io, IOSTAT=ierr)
 
    CLOSE(nuin)
   
+!roaprint
+print *,"outfn: ",  grib_output_filename
+print *,"smple: ",  grib_sample
+print *,"nfout: ",                  netcdf_output_filename
+print *,"oro: ",                    orography_buffer_file
+print *,"soil: ",                    soil_buffer_file
+print *,"lu: ",                    lu_buffer_file
+print *,"glcc: ",                    glcc_buffer_file
+print *,"flake: ",                    flake_buffer_file
+print *,"ndvi: ",                    ndvi_buffer_file
+print *,"tclm: ",                    t_clim_buffer_file
+print *,"aot: ",                    aot_buffer_file
 
 END SUBROUTINE read_namelists_extpar_check
 !---------------------------------------------------------------------------

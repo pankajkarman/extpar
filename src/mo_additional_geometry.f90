@@ -5,6 +5,9 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_2         2011/03/25 Hermann Asensio
+!  add point in polygon test for convex polygons (like grid elements)
+!  new subroutine point_in_grid_element
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -13,6 +16,7 @@
 !!
 !!
 !! - point_in_polygon_sp
+!! - point_in_grid_element
 !!
 !! @author Hermann Asensio, DWD
 !!
@@ -45,9 +49,75 @@ MODULE mo_additional_geometry
   PUBLIC :: chord_d
   PUBLIC :: inter_section
 
+  PUBLIC :: point_in_grid_element
+
   PUBLIC :: point_in_polygon_sp
 
   CONTAINS
+
+  !> Check if a point is inside a grid element (convex polygon) for ICON grid
+  !! The coordinates ar given in carteseian coordinates
+  SUBROUTINE point_in_grid_element(point,nvertices,cc_vertices,inflag)
+    TYPE(cartesian_coordinates), INTENT(IN) :: point        !< cartesian coordinates of the "test point"
+    INTEGER, INTENT(IN)                     :: nvertices    !< number of vertices of the grid element
+    TYPE(cartesian_coordinates), INTENT(IN) :: cc_vertices(1:nvertices) !< cartesian coordinates of the vertices
+
+    INTEGER, INTENT(OUT)                    :: inflag    !< flag for polygon test,
+                                                         !! 0 if point is "outside",
+                                                         !! 1 if point is "inside",
+                                                         !! 2 if point is on the edge,
+                                                         !! -1 for an error
+    ! local variables
+
+
+    TYPE(cartesian_coordinates) :: p1
+    TYPE(cartesian_coordinates) :: v0,v1,v2
+    INTEGER :: nv !< counter
+    INTEGER :: ps !< position of dimension of maximal value of normal vector
+    REAL (KIND=wp) :: sn(nvertices)
+    TYPE(cartesian_coordinates) :: rn(nvertices)
+
+    inflag = -1 ! set to "error"
+
+    v1%x = cc_vertices(2)%x - cc_vertices(1)%x
+    v2%x = cc_vertices(nvertices)%x - cc_vertices(1)%x
+    p1 = vector_product(v1,v2)
+    ps = MAXLOC(ABS(p1%x),DIM=1) ! this is the dimension (x1, x2 or x3) with the maximum value for a vector rectangular to two edges of the grid element
+                                 ! use this dimension "ps" as projection surface of the coordinates for a point in polygon test
+   ! instead of the vector product and the test for equal sign in the "projection" surface
+   ! one could perform a 3D "point in tetrahedon" test with a triple product and test for equal sign
+    DO nv=1,nvertices-1
+      v0%x = point%x - cc_vertices(nv)%x
+      v1%x = cc_vertices(nv+1)%x - cc_vertices(nv)%x
+      rn(nv) = vector_product(v1,v0)
+      sn(nv) = SIGN(1.0_wp,rn(nv)%x(ps))
+    ENDDO
+    nv = nvertices ! last vertex
+    v0%x = point%x - cc_vertices(nvertices)%x
+    v1%x = cc_vertices(1)%x - cc_vertices(nvertices)%x
+    rn(nv) = vector_product(v1,v0)
+    sn(nv) = SIGN(1.0_wp,rn(nv)%x(ps))
+
+    ! Test if point is on the edge of grid element
+    DO nv=1,nvertices
+      IF (ABS(rn(nv)%x(ps))== 0.0_wp) THEN ! point is on the edge of grid element
+        inflag = 2
+        RETURN
+      ENDIF
+    ENDDO
+
+    ! Test if point is inside the edge with an "point in convex polygon test"
+    DO nv=2,nvertices
+      IF ((sn(nv) == sn(1))) THEN ! the sign of sn(nv) and sn(1) are the same if the point is within the convex polygon
+        inflag = 1
+      ELSE
+        inflag = 0
+        RETURN ! exit if the signs are different, which means that the point is outside the polygon
+      ENDIF
+    ENDDO
+
+
+  END SUBROUTINE
 
   !> Check if a point is inside a polyon on a sphere
   !!
@@ -610,4 +680,5 @@ END FUNCTION vecpro
 
 
 END MODULE mo_additional_geometry
+
 

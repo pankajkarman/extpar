@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_2         2011/03/25 Hermann Asensio
+!  update to support ICON refinement grids
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -44,13 +46,18 @@ MODULE mo_target_grid_routines
   USE mo_grid_structures, ONLY: igrid_gme
 
   USE mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
-  USE mo_icon_grid_data, ONLY: icon_domain_grid
+  USE mo_icon_grid_data, ONLY: icon_grid_region
+  USE mo_icon_grid_data, ONLY: init_icon_dom_def, icon_dom_def
+  USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
+
 
   USE mo_icon_domain, ONLY: construct_icon_domain
   USE mo_icon_domain, ONLY: max_dom
 
-  USE mo_icon_grid_routines, ONLY: get_icon_grid_info
   USE mo_icon_grid_routines, ONLY: read_domain_info_part
+  USE mo_icon_grid_routines, ONLY: get_icon_grid_info
+  USE mo_icon_grid_routines, ONLY: get_icon_domain_info
+  USE mo_icon_grid_routines, ONLY: init_icon_grid
 
   USE mo_cosmo_grid, ONLY: cosmo_grid
   USE mo_cosmo_grid, ONLY: get_cosmo_grid_info
@@ -69,10 +76,11 @@ MODULE mo_target_grid_routines
   USE mo_target_grid_data, ONLY: no_raw_data_pixel
   USE mo_target_grid_data, ONLY: allocate_com_target_fields
 
-
+  ! local variables
+  INTEGER  :: parent_ids(1:max_dom)         !< ids of parent model domain
+  CHARACTER (len=filename_max) :: icon_coor_files(1:max_dom) !< filnames of the ICON grid files with the coordinates
   CHARACTER(len=filename_max), INTENT(IN)  :: namelist_grid_def
 
-  ! local variables
   CHARACTER (len=filename_max) :: domain_def_namelist !< namelist file with domain definition
 
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
@@ -97,28 +105,10 @@ MODULE mo_target_grid_routines
        !-----------------------------------------------------------------
        CASE(igrid_icon) ! ICON GRID
 
-       CALL get_icon_grid_info(domain_def_namelist,idom,tg,icon_grid)
-       ! read in ICON target grid domains and grid levels and allocate icon grid variables
-       PRINT *,'icon_grid%nc_grid_file: ', TRIM(icon_grid%nc_grid_file)
-
-       CALL construct_icon_domain(icon_domain_grid, &
-                            max_dom,          &
-                            icon_grid%nchdom ,       &
-                            icon_grid%ncell,         &
-                            icon_grid%nvertex,       &
-                            icon_grid%nedge,         &
-                            icon_grid%ncells_per_edge,&
-                            icon_grid%nvertex_per_cell,&
-                            icon_grid%nedges_per_vertex,&
-                            icon_grid%nchilds_per_cell   &
-                            )
-
-     
-       ! read in coordinates from ICON grid field
-       CALL read_domain_info_part(icon_grid%nc_grid_file, icon_domain_grid)
-       !HA debug:
-       PRINT*,'icon_domain_grid%id: ', icon_domain_grid%id 
-  
+         CALL get_icon_grid_info(domain_def_namelist,idom,tg,icon_grid,icon_coor_files,parent_ids)
+         CALL init_icon_dom_def(icon_grid%n_dom)
+         CALL get_icon_domain_info(icon_grid,icon_coor_files,parent_ids,icon_dom_def)
+         CALL init_icon_grid(icon_dom_def)
 
        !-----------------------------------------------------------------
        CASE(igrid_cosmo) ! COSMO grid
@@ -153,8 +143,8 @@ MODULE mo_target_grid_routines
        k=1
        j=1
        DO i=1,tg%ie
-          lon_geo(i,j,k) = rad2deg * icon_domain_grid%cells%center(i)%lon ! convert von radians to degrees
-          lat_geo(i,j,k) = rad2deg * icon_domain_grid%cells%center(i)%lat ! convert von radians to degrees
+          lon_geo(i,j,k) = rad2deg * icon_grid_region(icon_dom_nr)%cells%center(i)%lon ! convert von radians to degrees
+          lat_geo(i,j,k) = rad2deg * icon_grid_region(icon_dom_nr)%cells%center(i)%lat ! convert von radians to degrees
        ENDDO
 
        PRINT *,'lon_geo and lat_geo determined for ICON grid'
@@ -180,4 +170,5 @@ MODULE mo_target_grid_routines
 
 
 END MODULE mo_target_grid_routines
+
 
