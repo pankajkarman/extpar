@@ -42,10 +42,10 @@ EQUALS = =
 CMAKE_EDIT_COMMAND = /users/rochesa/install/cmake/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /users/rochesa/work/extpar/trunk/src
+CMAKE_SOURCE_DIR = /scratch/rochesa/extpar/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /users/rochesa/work/extpar/trunk/build
+CMAKE_BINARY_DIR = /scratch/rochesa/extpar/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -72,9 +72,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/rochesa/work/extpar/trunk/build/CMakeFiles /users/rochesa/work/extpar/trunk/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/rochesa/extpar/build/CMakeFiles /scratch/rochesa/extpar/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/rochesa/work/extpar/trunk/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/rochesa/extpar/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

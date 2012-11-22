@@ -537,8 +537,6 @@ END SELECT
                                      ndvi_buffer_file, &
                                      t_clim_buffer_file, &
                                      aot_buffer_file)
-!roaprint
-print *, "soil buffer: ", soil_buffer_file
 
   ! test for glcc data
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)

@@ -139,9 +139,9 @@ EOF_tclim
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
    raw_data_lu_path='',
-   raw_data_lu_filename='${raw_data_globcover}',
-   i_landuse_data=1,
-   ilookup_table_lu=1
+   raw_data_lu_filename='${raw_data_glc2000}',
+   i_landuse_data=2,
+   ilookup_table_lu=2
 /
 &lu_io_extpar
    lu_buffer_file='${buffer_lu}',

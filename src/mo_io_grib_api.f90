@@ -252,9 +252,12 @@ MODULE mo_io_grib_api
     INTEGER  :: hh
     INTEGER  :: minute
 
-
-    CALL grib_get(gribid,'centre',centre,errorcode)
+!roa mch>
+!    CALL grib_get(gribid,'centre',centre,errorcode)
+     centre=mch_id_grib
+!roa mch<
     CALL grib_get(gribid,'editionNumber',editionNumber,errorcode)
+
 
     ! define precision for the GRIB
     bitsPerValue=16
@@ -312,7 +315,6 @@ MODULE mo_io_grib_api
         CALL grib_set(gribid,"parameterNumber",2)   ! parameterNumber 'water fraction'
       ENDIF
     ENDIF
-
     IF ((centre == dwd_id_grib ).AND.(editionNumber == 1)) THEN
       ! put data and time of output generation to DWD local section to the grib
       CALL DATE_AND_TIME(ydate,ytime)
@@ -337,7 +339,8 @@ MODULE mo_io_grib_api
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
-    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+!roabug
+    CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id
@@ -359,10 +362,8 @@ MODULE mo_io_grib_api
     CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
-
     CALL set_rotated_ll_grid_gds(gribid_dest,cosmo_grid) ! set gds values for rotated longitude latitude grid
     CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
-
 
     ind=0
     DO i=1,cosmo_grid%nlon_rot
@@ -389,7 +390,8 @@ MODULE mo_io_grib_api
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
-    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+!roabug
+    CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     INTEGER(KIND=i4), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id

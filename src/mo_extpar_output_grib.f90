@@ -172,9 +172,9 @@ MODULE mo_extpar_output_grib
 
   USE mo_physical_constants, ONLY: grav
 
-
-  CHARACTER (len=filename_max), INTENT(IN) :: grib_filename !< filename for the grib file
-  CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+!roa bug
+  CHARACTER (len=*), INTENT(IN) :: grib_filename !< filename for the grib file
+  CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
