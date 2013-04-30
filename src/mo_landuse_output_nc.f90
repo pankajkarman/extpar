@@ -206,8 +206,6 @@ MODULE mo_landuse_output_nc
   !  dim_3d_buffer(:) = dim_list(:)
 
   undefined_i = undef_int
-!roaprint
-print *, "bef open"
 
   !-----------------------------------------------------------------
 
@@ -216,8 +214,7 @@ print *, "bef open"
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
       &                       ncid=ncid)
-!roaprint
-print *, "after open"
+
   ! lon
   CALL netcdf_put_var(ncid,lon_geo,lon_geo_meta,undefined)
 
@@ -269,14 +266,11 @@ print *, "after open"
   ! lu_class_fraction
   CALL netcdf_put_var(ncid,lu_class_fraction,lu_class_fraction_meta,undefined)
   !-----------------------------------------------------------------
-!roaprint
-print *, "class frac"
+
   ! lu_class_npixel
   CALL netcdf_put_var(ncid,lu_class_npixel,lu_class_npixel_meta,undefined_i)
   !-----------------------------------------------------------------
 
-!roaprint
-print *, "at end"
   CALL close_netcdf_file(ncid)
 
 END SUBROUTINE write_netcdf_buffer_lu

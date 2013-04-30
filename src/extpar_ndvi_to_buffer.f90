@@ -349,5 +349,6 @@ PROGRAM extpar_ndvi_to_buffer
 
 
   PRINT *,'ndvi_to_buffer done'
+  PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
 
 END PROGRAM extpar_ndvi_to_buffer

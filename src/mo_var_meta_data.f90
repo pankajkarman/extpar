@@ -43,9 +43,9 @@ MODULE mo_var_meta_data
 
   PRIVATE
 
-  PUBLIC :: dim_3d_tg, def_dimension_info_buffer
+  PUBLIC :: dim_3d_tg, dim_4d_tg, def_dimension_info_buffer
 
-  PUBLIC :: dim_rlon_cosmo, dim_rlat_cosmo, dim_2d_cosmo, def_dimension_info_cosmo
+  PUBLIC :: dim_rlon_cosmo, dim_rlat_cosmo, dim_nhori_cosmo, dim_2d_cosmo, dim_3d_cosmo, def_dimension_info_cosmo
   PUBLIC :: rlon_meta, rlat_meta
 
   PUBLIC :: dim_icon, def_dimension_info_icon
@@ -105,13 +105,15 @@ MODULE mo_var_meta_data
   PUBLIC :: def_lu_fields_meta
 
   PUBLIC :: def_glc2000_fields_meta
-  PUBLIC :: dim_buffer_cell, dim_buffer_vertex
+  PUBLIC :: dim_buffer_vertex
 
   PUBLIC :: hh_globe_meta, fr_land_globe_meta, &
     &       stdh_globe_meta, theta_globe_meta, &
     &       aniso_globe_meta, slope_globe_meta, &
     &       hh_vert_meta, npixel_vert_meta,    &
-    &       hh_fis_meta, z0_topo_meta
+    &       hh_fis_meta, z0_topo_meta,         &
+    &       slope_asp_globe_meta, slope_ang_globe_meta,    &
+    &       horizon_globe_meta, skyview_globe_meta 
   
   PUBLIC :: def_globe_meta, def_globe_vertex_meta
 
@@ -128,13 +130,15 @@ MODULE mo_var_meta_data
   PUBLIC :: ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
   
   TYPE(dim_meta_info), TARGET :: dim_3d_tg(1:3)
+  TYPE(dim_meta_info), TARGET :: dim_4d_tg(1:4)
   TYPE(dim_meta_info), TARGET :: dim_rlon_cosmo(1:1)
   TYPE(dim_meta_info), TARGET :: dim_rlat_cosmo(1:1)
+  TYPE(dim_meta_info), TARGET :: dim_nhori_cosmo(1:1)
   TYPE(dim_meta_info), TARGET :: dim_2d_cosmo(1:2)
+  TYPE(dim_meta_info), TARGET :: dim_3d_cosmo(1:3)
   TYPE(dim_meta_info), TARGET :: dim_icon(1:7)
   TYPE(dim_meta_info), TARGET :: dim_cells_icon(1:1)
   TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
-  TYPE(dim_meta_info), TARGET :: dim_buffer_cell(1:3)
   TYPE(dim_meta_info), TARGET :: dim_buffer_vertex(1:3)
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_aot_tg(:) !< dimensions for field with all aerosol types
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_aot_ty(:) !< dimensions for fields with single aerosol types 
@@ -163,6 +167,7 @@ MODULE mo_var_meta_data
 
   TYPE(var_meta_info) :: rlon_meta !< additional information for variable
   TYPE(var_meta_info) :: rlat_meta !< additional information for variable
+  TYPE(var_meta_info) :: nhori_meta !< additional information for variable
 
   TYPE(var_meta_info) :: clon_meta !< additional information for variable
   TYPE(var_meta_info) :: clat_meta !< additional information for variable
@@ -235,6 +240,10 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: hh_vert_meta  !< additional information for variable
   TYPE(var_meta_info) :: npixel_vert_meta  !< additional information for variable
   TYPE(var_meta_info) :: z0_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: slope_asp_globe_meta  !< additional information for variable
+  TYPE(var_meta_info) :: slope_ang_globe_meta  !< additional information for variable
+  TYPE(var_meta_info) :: horizon_globe_meta  !< additional information for variable
+  TYPE(var_meta_info) :: skyview_globe_meta  !< additional information for variable
 
   TYPE(var_meta_info) :: fr_land_soil_meta !< additional information for variable
   TYPE(var_meta_info) :: soiltype_fao_meta !< additional information for variable
@@ -256,8 +265,9 @@ MODULE mo_var_meta_data
   
 
   !> define buffer dimensions for netcdf output
-  SUBROUTINE def_dimension_info_buffer(tg)
+  SUBROUTINE def_dimension_info_buffer(tg,nhori)
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+    INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: nhori
 
     ! set meta information for strucutre dim_3d_tg
     dim_3d_tg(1)%dimname = 'ie'
@@ -267,12 +277,25 @@ MODULE mo_var_meta_data
     dim_3d_tg(3)%dimname = 'ke'
     dim_3d_tg(3)%dimsize = tg%ke
 
+    IF(PRESENT(nhori)) THEN
+      ! set meta information for strucutre dim_3d_tg
+      dim_4d_tg(1)%dimname = 'ie'
+      dim_4d_tg(1)%dimsize = tg%ie
+      dim_4d_tg(2)%dimname = 'je'
+      dim_4d_tg(2)%dimsize = tg%je
+      dim_4d_tg(3)%dimname = 'ke'
+      dim_4d_tg(3)%dimsize = tg%ke
+      dim_4d_tg(4)%dimname = 'nhori'
+      dim_4d_tg(4)%dimsize = nhori
+    ENDIF
+
   END SUBROUTINE def_dimension_info_buffer
   
 
   !> define COSMO grid dimensions for netcdf output
-  SUBROUTINE def_dimension_info_cosmo(cosmo_grid)
+  SUBROUTINE def_dimension_info_cosmo(cosmo_grid,nhori)
     TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
+    INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: nhori
 
     ! set meta information for strucutre dim_rlon_cosmo
     dim_rlon_cosmo(1)%dimname = 'rlon'
@@ -312,6 +335,29 @@ MODULE mo_var_meta_data
     rlat_meta%grid_mapping = c_undef
     rlat_meta%coordinates = c_undef
 
+    IF (PRESENT(nhori)) THEN
+      ! set meta information for strucutre dim_nhori_cosmo
+      dim_nhori_cosmo(1)%dimname = 'nhori'
+      dim_nhori_cosmo(1)%dimsize = nhori
+      
+      ! set meta information for strucutre dim_2d_cosmo
+      dim_3d_cosmo(1) = dim_rlon_cosmo(1)
+      dim_3d_cosmo(2) = dim_rlat_cosmo(1)
+      dim_3d_cosmo(3) = dim_nhori_cosmo(1)
+      
+      ! set meta information for variable nhori
+      
+      nhori_meta%varname = 'nhori'
+      nhori_meta%n_dim = 1
+      nhori_meta%diminfo => dim_nhori_cosmo
+      nhori_meta%vartype = vartype_int !INTEGER variable
+      nhori_meta%standard_name = "number_of_sectors" 
+      nhori_meta%long_name =  "number of sectors"
+      nhori_meta%shortName = c_undef
+      nhori_meta%units =  "-"
+      nhori_meta%grid_mapping = c_undef
+      nhori_meta%coordinates = c_undef
+    ENDIF
 
   END SUBROUTINE def_dimension_info_cosmo
 
@@ -765,7 +811,7 @@ MODULE mo_var_meta_data
     lon_geo_meta%vartype = vartype_real !REAL variable
     lon_geo_meta%standard_name = 'longitude'
     lon_geo_meta%long_name = 'geographical longitude'
-    lon_geo_meta%shortName = 'RLON'
+    lon_geo_meta%shortName = 'LON'
     lon_geo_meta%units =  'degrees_east'
     lon_geo_meta%grid_mapping = c_undef
     lon_geo_meta%coordinates = c_undef
@@ -777,7 +823,7 @@ MODULE mo_var_meta_data
     lat_geo_meta%vartype = vartype_real !REAL variable
     lat_geo_meta%standard_name = 'latitude'
     lat_geo_meta%long_name = 'geographical latitude'
-    lat_geo_meta%shortName = 'RLAT'
+    lat_geo_meta%shortName = 'LAT'
     lat_geo_meta%units =  'degrees_north'
     lat_geo_meta%grid_mapping = c_undef
     lat_geo_meta%coordinates = c_undef
@@ -1639,26 +1685,28 @@ MODULE mo_var_meta_data
 
 
   !> define meta information for target fields derived from GLOBE data
-  SUBROUTINE def_globe_meta(diminfo,coordinates,grid_mapping)
+  SUBROUTINE def_globe_meta(diminfo,coordinates,grid_mapping,diminfohor)
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+    TYPE(dim_meta_info),TARGET, OPTIONAL :: diminfohor(:)     !< pointer to dimensions of variable
 
     ! local variables
     INTEGER  :: n_dim      !< number of dimensions
     CHARACTER (len=80) :: gridmp
-    CHARACTER (len=80) :: coord
+    CHARACTER (len=80) :: coord, coordhor
+    INTEGER  :: n_dimhor   !< number of dimensions
 
     gridmp = c_undef
     coord = c_undef
+    coordhor = c_undef
     
     IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
     IF (PRESENT(coordinates)) coord = TRIM(coordinates)
     n_dim = SIZE(diminfo)
+    IF (PRESENT(diminfohor)) n_dimhor = SIZE(diminfohor)
+    IF (PRESENT(diminfohor) .AND. PRESENT(coordinates)) coordhor =  TRIM(coordinates)// ' nhori'
 
-
-    ! set meta information for strucutre dim_buffer_cell
-    dim_buffer_cell = dim_3d_tg
   
     hh_globe_meta%varname = 'HSURF'
     hh_globe_meta%n_dim = n_dim
@@ -1756,7 +1804,52 @@ MODULE mo_var_meta_data
     z0_topo_meta%grid_mapping = gridmp
     z0_topo_meta%coordinates = coord
 
+    !lradtopo parameters
+    slope_asp_globe_meta%varname = 'SLO_ASP'
+    slope_asp_globe_meta%n_dim = n_dim
+    slope_asp_globe_meta%diminfo => diminfo
+    slope_asp_globe_meta%vartype = vartype_real !REAL variable
+    slope_asp_globe_meta%standard_name = 'SLO_ASP'
+    slope_asp_globe_meta%long_name = 'slope aspect - topography'
+    slope_asp_globe_meta%shortName = 'slope_aspect'
+    slope_asp_globe_meta%units = 'rad'
+    slope_asp_globe_meta%grid_mapping = gridmp
+    slope_asp_globe_meta%coordinates = coord
 
+    slope_ang_globe_meta%varname = 'SLO_ANG'
+    slope_ang_globe_meta%n_dim = n_dim
+    slope_ang_globe_meta%diminfo => diminfo
+    slope_ang_globe_meta%vartype = vartype_real !REAL variable
+    slope_ang_globe_meta%standard_name = 'SLO_ANG'
+    slope_ang_globe_meta%long_name = 'slope angle - topography'
+    slope_ang_globe_meta%shortName = 'slope_angle'
+    slope_ang_globe_meta%units = 'rad'
+    slope_ang_globe_meta%grid_mapping = gridmp
+    slope_ang_globe_meta%coordinates = coord
+
+    IF (PRESENT(diminfohor)) THEN
+      horizon_globe_meta%varname = 'HORIZON'
+      horizon_globe_meta%n_dim = n_dimhor
+      horizon_globe_meta%diminfo => diminfohor
+      horizon_globe_meta%vartype = vartype_real !REAL variable
+      horizon_globe_meta%standard_name = 'HORIZON'
+      horizon_globe_meta%long_name = 'horizon angle - topography'
+      horizon_globe_meta%shortName = 'horizon_angle'
+      horizon_globe_meta%units = 'deg'
+      horizon_globe_meta%grid_mapping = gridmp
+      horizon_globe_meta%coordinates = coordhor
+    ENDIF
+
+    skyview_globe_meta%varname = 'SKYVIEW'
+    skyview_globe_meta%n_dim = n_dim
+    skyview_globe_meta%diminfo => diminfo
+    skyview_globe_meta%vartype = vartype_real !REAL variable
+    skyview_globe_meta%standard_name = 'SKYVIEW'
+    skyview_globe_meta%long_name = 'sky-view factor'
+    skyview_globe_meta%shortName = 'skyview'
+    skyview_globe_meta%units = '-'
+    skyview_globe_meta%grid_mapping = gridmp
+    skyview_globe_meta%coordinates = coord
     
   END SUBROUTINE def_globe_meta
 

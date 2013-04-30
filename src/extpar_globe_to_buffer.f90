@@ -11,6 +11,8 @@
 !  update to support ICON refinement grids
 ! @VERSION@    @DATE@     Anne Roches
 !  implementation of orography smoothing
+! @VERSION@    @DATE@     Martina Messmer
+!  adaptation in order to allow user to chose between GLOBE and ASTER topography
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
@@ -18,7 +20,7 @@
 !>  
 !! @par extpar_globe_to_buffer 
 !!
-!! This program read in the GLOBE orography data set and aggregates the orographic height to the target grid 
+!! This program reads in the GLOBE orography data set and aggregates the orographic height to the target grid 
 !! and computes the subgrid-scale orography parameters (SSO) required by the SSO-parameterization.
 !!
 !> Purpose: read in GLOBE orography data and aggregate to COSMO grid
@@ -66,19 +68,19 @@ PROGRAM extpar_globe_to_buffer
   USE mo_icon_grid_routines, ONLY: allocate_icon_grid
 
   USE mo_icon_grid_routines, ONLY: inq_grid_dims,            &
-    &                             inq_domain_dims,          &
-    &                             read_grid_info_part,      &
-    &                             read_domain_info_part,    &
-    &                             read_gridref_nl
+    &                              inq_domain_dims,          &
+    &                              read_grid_info_part,      &
+    &                              read_domain_info_part,    &
+    &                              read_gridref_nl
 
   USE mo_search_icongrid,   ONLY: walk_to_nc,              &
     &                             find_nc_dom1,            &
     &                             find_nc
 
   USE mo_base_geometry,    ONLY:  geographical_coordinates, &
-    &                              cartesian_coordinates
+    &                             cartesian_coordinates
 
-  USE mo_additional_geometry,   ONLY: cc2gc,                  &
+  USE mo_additional_geometry,   ONLY: cc2gc,            &
     &                           gc2cc,                  &
     &                           arc_length,             &
     &                           cos_arc_length,         &
@@ -86,7 +88,7 @@ PROGRAM extpar_globe_to_buffer
     &                           vector_product,         &
     &                           point_in_polygon_sp
 
-  USE mo_icon_domain,          ONLY: icon_domain, &
+  USE mo_icon_domain,          ONLY: icon_domain,         &
     &                           grid_cells,               &
     &                           grid_vertices,            &
     &                           construct_icon_domain,    &
@@ -111,18 +113,46 @@ PROGRAM extpar_globe_to_buffer
     &                         aniso_globe,         &
     &                         slope_globe,         &
     &                         z0_topo,             &
-    &                         allocate_globe_target_fields
+    &                         allocate_globe_target_fields,&
+    &                         slope_asp_globe,     &
+    &                         slope_ang_globe,     &
+    &                         horizon_globe,       &
+    &                         skyview_globe
 
   USE mo_globe_tg_fields, ONLY: add_parameters_domain, &
     &        vertex_param, &
     &        allocate_additional_hh_param
 
-  USE mo_globe_tg_fields, ONLY: globe_buffer
+! mes > -------------------------------------------------------------
+!  USE mo_globe_data,       ONLY:  globe_tiles_grid, &
+!    &                              globe_grid,       &
+!    &                              ntiles_gl,        &
+!    &                              nc_tot
 
-  USE mo_globe_data,       ONLY:  globe_tiles_grid, &
-    &                              globe_grid,       &
-    &                              ntiles_gl,        &
-    &                              nc_tot
+USE mo_topo_data,        ONLY:  topo_aster,        &
+    &                           topo_gl,           &
+    &                           topography,        &    
+    &                           topo_tiles_grid,   &
+    &                           topo_grid,         &
+    &                           ntiles,            &
+    &                           max_tiles,         &
+    &                           nc_tot,            &
+    &                           nr_tot,            &
+    &                           nc_tile,           &
+    &                           tiles_lon_min,     &
+    &                           tiles_lon_max,     &
+    &                           tiles_lat_min,     &
+    &                           tiles_lat_max,     &
+    &                           aster_lat_min,     &
+    &                           aster_lat_max,     &
+    &                           aster_lon_min,     &
+    &                           aster_lon_max,     &
+    &                           num_tiles,         &
+    &                           allocate_topo_data,&
+    &                           fill_topo_data,    &
+    &                           lradtopo,          &
+    &                           nhori
+! mes < -------------------------------------------------------------
 
   USE mo_globe_routines, ONLY:  read_globe_data_input_namelist, &
     &                           det_globe_tiles_grid,           &
@@ -137,6 +167,8 @@ PROGRAM extpar_globe_to_buffer
   USE mo_globe_output_nc, ONLY: write_netcdf_cosmo_grid_globe
 !roa >
   USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
+  USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo, &
+    &                      compute_lradtopo
 !roa <
 
   IMPLICIT NONE
@@ -150,11 +182,12 @@ PROGRAM extpar_globe_to_buffer
   CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
 !roa >
   CHARACTER (len=filename_max) :: namelist_oro_smooth       !< file with orography smoothing information (switches)
+  CHARACTER (len=filename_max) :: namelist_lrad             !< file with opo information (switches)
 !roa <  
 
     
   CHARACTER (len=filename_max) :: raw_data_path        !< path to raw data
-  CHARACTER (LEN=filename_max) :: globe_files(1:ntiles_gl)  !< filenames globe raw data
+  CHARACTER (LEN=24) :: topo_files(1:max_tiles)  !< filenames globe raw data
 
   CHARACTER (len=filename_max) :: orography_buffer_file !< name for orography buffer file
   CHARACTER (len=filename_max) :: orography_output_file !< name for orography output file
@@ -172,11 +205,11 @@ PROGRAM extpar_globe_to_buffer
   INTEGER (KIND=i4) :: index_tile   !< index for dummy test
   TYPE(geographical_coordinates) :: DWD_location !< geographical coordinates of DWD for dummy test
   
-  INTEGER (KIND=i4) :: globe_startrow(1:ntiles_gl)    !< startrow indeces for each GLOBE tile
-  INTEGER (KIND=i4) :: globe_endrow(1:ntiles_gl)      !< endrow indeces for each GLOBE tile
-  INTEGER (KIND=i4) :: globe_startcolumn(1:ntiles_gl)  !< starcolumn indeces for each GLOBE tile
+  INTEGER (KIND=i4) :: globe_startrow(1:ntiles)    !< startrow indeces for each GLOBE tile
+  INTEGER (KIND=i4) :: globe_endrow(1:ntiles)      !< endrow indeces for each GLOBE tile
+  INTEGER (KIND=i4) :: globe_startcolumn(1:ntiles)  !< starcolumn indeces for each GLOBE tile
 
-  INTEGER (KIND=i4) :: globe_endcolumn(1:ntiles_gl)   !< endcolumn indeces for each GLOBE tile
+  INTEGER (KIND=i4) :: globe_endcolumn(1:ntiles)   !< endcolumn indeces for each GLOBE tile
   TYPE(geographical_coordinates) :: ur   !< upper right point for test block
   TYPE(geographical_coordinates) :: ll   !< lower left point for test block
 
@@ -184,8 +217,14 @@ PROGRAM extpar_globe_to_buffer
   INTEGER :: ie !< counter
   INTEGER :: je !< counter
   INTEGER :: ke !< counter
-  INTEGER, PARAMETER :: nrows = 300   ! parameter for h_band dimension
-  INTEGER (KIND=i4) :: h_band(1:nc_tot,1:nrows) = 0  !< GLOBE altitude data along a parallel band woth nrows
+
+
+!!!!!!!!!mes >
+!  INTEGER, PARAMETER :: nrows = 300   ! parameter for h_band dimension
+!  INTEGER (KIND=i4) :: h_band(1:nc_tot,1:nrows) = 0  !< GLOBE altitude data along a parallel band woth nrows
+!!!!!!!!!mes <
+
+
   INTEGER (KIND=i4) :: startrow_index = 0      !< the index of the GLOBE data row of the first data block row
   INTEGER (KIND=i4) :: endrow_index  = 0       !< the index of the GLOBE data row of the last data block row
   INTEGER (KIND=i4) :: startcolumn_index    !< the index of the startcolumn of data to read in
@@ -202,6 +241,9 @@ PROGRAM extpar_globe_to_buffer
   INTEGER :: first_dom                    !< index of first (global) model domain 
   INTEGER :: nvertex  !< total number of vertices
   INTEGER :: nv ! counter
+
+ !mes > -------------------------
+ INTEGER (KIND=i4) :: itopo_type           !< use 1 for GLOBE data and 2 for ASTER data
 
   !roa >
   LOGICAL           :: &
@@ -228,22 +270,82 @@ PROGRAM extpar_globe_to_buffer
   !--------------------------------------------------------------------------------------------------------
  
   namelist_grid_def = 'INPUT_grid_org'
-  CALL init_target_grid(namelist_grid_def)
+
+  namelist_lrad     = 'INPUT_RADTOPO'
+
+  CALL read_namelists_extpar_lradtopo(namelist_lrad,lradtopo,nhori)
+
+  CALL init_target_grid(namelist_grid_def,lrad=lradtopo)
 
   PRINT *,' target grid tg: ',tg
+
 
   igrid_type = tg%igrid_type
   ! get information on target grid
   ! get GLOBE raw data information
+
+  ! Checks
+   IF (igrid_type /= igrid_cosmo) lradtopo = .FALSE.
+
   !--------------------------------------------------------------------------------------------------------
-  ! read namlelist with globe data information
+
+  ! read namelist with globe data information
 
   namelist_globe_data_input = 'INPUT_ORO'
   CALL read_namelists_extpar_orography(namelist_globe_data_input, &
     &                                     raw_data_orography_path,&
-    &                                     globe_files,           &
-    &                                     orography_buffer_file, &
+    &                                     topo_files,             &  !mes>
+    &                                     itopo_type,             &
+    &                                     orography_buffer_file,  &
     &                                     orography_output_file)
+
+
+
+                 
+  CALL num_tiles(itopo_type,ntiles,topography)          ! gives back the number of tiles that are available 16 for GLOBE or 36 for ASTER
+  
+!mes <
+
+! mes >
+  CALL allocate_topo_data(ntiles)                  ! allocates the data using ntiles
+
+  CALL fill_topo_data(raw_data_orography_path,topo_files, &! the allocated vectors need to be filled with the respective value.
+                                           tiles_lon_min, &
+                                           tiles_lon_max, &    
+                                           tiles_lat_min, &
+                                           tiles_lat_max, &
+                                           nc_tot,        &
+                                           nr_tot,        &
+                                           nc_tile)
+
+ !aster_lon_min, &
+ !                                          aster_lon_max, &
+ !                                          aster_lat_min, &
+ !                                          aster_lat_max, &
+  SELECT CASE(topography)
+    CASE(topo_aster)
+      PRINT*,'edges of ASTER domain: ', aster_lon_min,' ', aster_lon_max,' ', aster_lat_min,' ',aster_lat_max
+    END SELECT
+! mes <
+
+!mes >
+  PRINT*,' topography :', itopo_type
+  print*, lon_geo(tg%ie,tg%je,tg%ke), lon_geo(1,1,1)
+  print*, lat_geo(tg%ie,tg%je,tg%ke), lat_geo(1,1,1)
+
+  SELECT CASE (itopo_type)
+  CASE (topo_aster)
+   IF (lon_geo (tg%ie,tg%je,tg%ke) > aster_lon_max .OR. lon_geo(1,1,1) < aster_lon_min) THEN
+   PRINT*, 'ASTER min lon is: ', aster_lon_min, ' and ASTER max lon is: ', aster_lon_max
+   CALL abort_extpar('The chosen longitude edges are not within the ASTER domain.')
+   END IF
+   IF (lat_geo(tg%ie,tg%je,tg%ke) > aster_lat_max .OR. lat_geo(1,1,1) < aster_lat_min) THEN
+   PRINT*, 'ASTER min lat is: ', aster_lat_min, ' and ASTER max lat is: ', aster_lat_max
+   CALL abort_extpar('The chosen latitude edges are not within the ASTER domain.')
+   END IF
+  END SELECT
+
+
 !roa >
   namelist_oro_smooth = 'INPUT_OROSMOOTH'
   CALL read_namelists_extpar_orosmooth(namelist_oro_smooth,      &
@@ -259,17 +361,23 @@ PROGRAM extpar_globe_to_buffer
                                            rxso_mask)
 !roa <
 
+  IF (lradtopo .AND. (.NOT. lfilter_oro)) THEN
+    PRINT *,' Warning *** lradtopo should not be used without orography filtering *** '
+    PRINT *,'                            (consistency problem)                        ' 
+  ENDIF
 
-  CALL det_globe_tiles_grid(globe_tiles_grid)
+
+
+  CALL det_globe_tiles_grid(topo_tiles_grid)
   !HA debug
-  DO k=1,ntiles_gl
-    print *,'GLOBE files: ', TRIM(globe_files(k))
+  DO k=1,ntiles
+    print *,'GLOBE files: ', TRIM(topo_files(k))
   ENDDO
-    print *,'globe_tiles_grid(1): ', globe_tiles_grid(1)
+    print *,'topo_tiles_grid(1): ', topo_tiles_grid(1)
 
-  CALL det_globe_grid(globe_grid)
+  CALL det_globe_grid(topo_grid)
   !HA debug
-  print *,'globe_grid: ', globe_grid
+  print *,'topo_grid: ', topo_grid
 
 
   ! allocate globe fields for target grid
@@ -289,10 +397,10 @@ PROGRAM extpar_globe_to_buffer
   ! call the aggregation routine
   !--------------------------------------------------------------------------------------------------------
    PRINT *,'CALL agg_globe_data_to_target_grid'
-   CALL agg_globe_data_to_target_grid(globe_tiles_grid, &
-     &                                      globe_grid,       &
+   CALL agg_globe_data_to_target_grid(topo_tiles_grid, &
+     &                                      topo_grid,       &
      &                                      tg,               &
-     &                                      globe_files,      &
+     &                                      topo_files,      &
 !roa>
      &                                      lfilter_oro,      &
      &                                      ilow_pass_oro,    &
@@ -341,52 +449,6 @@ PROGRAM extpar_globe_to_buffer
       z0_topo     = 0.
    ENDIF
 
-!   DO ke=1,tg%ke
-!   DO je=1,tg%je
-!   DO ie=1,tg%ie
-!
-!     IF (no_raw_data_pixel(ie,je,ke) == 0 ) THEN ! interpolate from raw data in this case
-!       k = k + 1 ! count number of grid element for which a bilinear interpolation is done
-!       point_lon_geo = lon_geo(ie,je,ke)
-!       point_lat_geo = lat_geo(ie,je,ke)
-!       CALL bilinear_interpol_globe_to_target_point(globe_grid, &
-!         &                                 globe_files,      &
-!         &                                 undefined,    &
-!         &                                 point_lon_geo,      &
-!         &                                 point_lat_geo,      &
-!         &                                 nrows,              &
-!         &                                 h_band,    &
-!         &                                 startrow_index,     &
-!         &                                 endrow_index,       &
-!         &                                 globe_target_value)
-!
-!       hh_globe(ie,je,ke) = globe_target_value
-!       PRINT *,'HA debug bilinterpol, globe_target_value: ', globe_target_value
-!       PRINT *,'HE debug bilinterpol, globe_grid: ', globe_grid
-!       PRINT *,'HE debug bilinterpol, globe_grid%dlat_reg: ', globe_grid%dlat_reg
-!       PRINT *,'HE debug bilinterpol, globe_grid%dlon_reg: ', globe_grid%dlon_reg
-!       PRINT *,'HA debug bilinterpol, ie,je,ke: ', ie,je,ke
-!       fr_land_globe(ie,je,ke) = undefined
-!     ENDIF
-!
-!   ENDDO
-!   ENDDO
-!   ENDDO
-!   print *,'bilinear interpolation of GLOBE data used for no of grid cells: ',k
-
-   
-   ! consistency for small grid sizes, do not use estimates of variance for small sample size
-
-   IF ( (MAXVAL(no_raw_data_pixel)< 10).OR. (MINVAL(no_raw_data_pixel)==0)) THEN
-
-      stdh_globe  = 0.  
-      theta_globe = 0.
-      aniso_globe = 0.
-      slope_globe = 0.
-      z0_topo     = 0.
-
-
-   ENDIF
 
 
    DO ke=1,tg%ke
@@ -415,7 +477,7 @@ PROGRAM extpar_globe_to_buffer
 !         k = k + 1 ! count number of grid element for which a bilinear interpolation is done
 !          point_lon_geo =  rad2deg * icon_domain_grid%verts%vertex(nv)%lon 
 !          point_lat_geo =  rad2deg * icon_domain_grid%verts%vertex(nv)%lat
-!          CALL bilinear_interpol_globe_to_target_point(globe_grid, &
+!          CALL bilinear_interpol_globe_to_target_point(topo_files, globe_grid, &
 !            &                                 globe_files,      &
 !            &                                 undefined,    &
 !            &                                 point_lon_geo,      &
@@ -431,6 +493,13 @@ PROGRAM extpar_globe_to_buffer
 !     ENDDO
 !     print *,'bilinear interpolation of GLOBE data used for no of grid vertices: ',k
 !   END SELECT
+
+   ! compute the lradtopo parameters if needed
+   IF ( lradtopo ) THEN
+     CALL compute_lradtopo(nhori,tg,hh_globe,slope_asp_globe,slope_ang_globe,horizon_globe,skyview_globe)
+   ENDIF
+
+
    !HA debug
    PRINT *,'agg_globe_data_to_target_grid finished'
 
@@ -444,38 +513,66 @@ PROGRAM extpar_globe_to_buffer
    SELECT CASE(igrid_type)
      CASE(igrid_icon) ! ICON GRID
 
-      CALL write_netcdf_buffer_globe(netcdf_filename,  &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
+      CALL write_netcdf_buffer_globe(netcdf_filename,     &
+     &                                     tg,            &
+     &                                     undefined,     &
+     &                                     undef_int,     &
+     &                                     lon_geo,       &
+     &                                     lat_geo,       &
      &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo,             &
-     &                                     vertex_param)
+     &                                     hh_globe,      &
+     &                                     stdh_globe,    &
+     &                                     theta_globe,   &
+     &                                     aniso_globe,   &
+     &                                     slope_globe,   &
+     &                                     z0_topo,       &
+     &                                     lradtopo,      &
+     &                                     nhori,         &
+     &                                     vertex_param=vertex_param)
 
 
      CASE DEFAULT
 
+     IF (lradtopo) THEN
+       CALL write_netcdf_buffer_globe(netcdf_filename,        &
+         &                                     tg,            &
+         &                                     undefined,     &
+         &                                     undef_int,     &
+         &                                     lon_geo,       &
+         &                                     lat_geo,       &
+         &                                     fr_land_globe, &
+         &                                     hh_globe,      &
+         &                                     stdh_globe,    &
+         &                                     theta_globe,   &
+         &                                     aniso_globe,   &
+         &                                     slope_globe,   &
+         &                                     z0_topo,       &
+         &                                     lradtopo,      &
+         &                                     nhori,         &
+         &                                     slope_asp_globe=slope_asp_globe, &
+         &                                     slope_ang_globe= slope_ang_globe,&
+         &                                     horizon_globe=horizon_globe,     &
+         &                                     skyview_globe=skyview_globe)
+     ELSE
 
-     CALL write_netcdf_buffer_globe(netcdf_filename,  &
-       &                                     tg,         &
-       &                                     undefined, &
-       &                                     undef_int,   &
-       &                                     lon_geo,     &
-       &                                     lat_geo, &
-       &                                     fr_land_globe, &
-       &                                     hh_globe,            &
-       &                                     stdh_globe,          &
-       &                                     theta_globe,         &
-       &                                     aniso_globe,         &
-       &                                     slope_globe,        &
-       &                                     z0_topo)
+       CALL write_netcdf_buffer_globe(netcdf_filename,          &
+         &                                     tg,              &
+         &                                     undefined,       &
+         &                                     undef_int,       &
+         &                                     lon_geo,         &
+         &                                     lat_geo,         &
+         &                                     fr_land_globe,   &
+         &                                     hh_globe,        &
+         &                                     stdh_globe,      &
+         &                                     theta_globe,     &
+         &                                     aniso_globe,     &
+         &                                     slope_globe,     &
+         &                                     z0_topo,         &
+         &                                     lradtopo,        &
+         &                                     nhori)
+     ENDIF
+
+
    END SELECT
 
 
@@ -485,14 +582,14 @@ PROGRAM extpar_globe_to_buffer
        netcdf_filename = TRIM(orography_output_file)
        PRINT *,'write out ', TRIM(netcdf_filename)
 
-       CALL write_netcdf_icon_grid_globe(netcdf_filename,  &
-     &                                     icon_grid,       &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
-     &                                     fr_land_globe, &
+       CALL write_netcdf_icon_grid_globe(netcdf_filename,       &
+     &                                     icon_grid,           &
+     &                                     tg,                  &
+     &                                     undefined,           &
+     &                                     undef_int,           &
+     &                                     lon_geo,             &
+     &                                     lat_geo,             &
+     &                                     fr_land_globe,       &
      &                                     hh_globe,            &
      &                                     stdh_globe,          &
      &                                     theta_globe,         &
@@ -506,27 +603,54 @@ PROGRAM extpar_globe_to_buffer
        netcdf_filename = TRIM(orography_output_file)
        PRINT *,'write out ', TRIM(netcdf_filename)
 
-       CALL write_netcdf_cosmo_grid_globe(netcdf_filename,  &
-     &                                     cosmo_grid,       &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
-     &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo)
+       IF(lradtopo) THEN
+         CALL write_netcdf_cosmo_grid_globe(netcdf_filename,      &
+       &                                     cosmo_grid,          &
+       &                                     tg,                  &
+       &                                     undefined,           &
+       &                                     undef_int,           &
+       &                                     lon_geo,             &
+       &                                     lat_geo,             &
+       &                                     fr_land_globe,       &
+       &                                     hh_globe,            &
+       &                                     stdh_globe,          &
+       &                                     theta_globe,         &
+       &                                     aniso_globe,         &
+       &                                     slope_globe,         &
+       &                                     z0_topo,             &
+       &                                     lradtopo,            &
+       &                                     nhori,               &
+       &                                     slope_asp_globe=slope_asp_globe,   &
+       &                                     slope_ang_globe=slope_ang_globe,   &
+       &                                     horizon_globe=horizon_globe,       &
+       &                                     skyview_globe=skyview_globe)
+
+       ELSE
+
+         CALL write_netcdf_cosmo_grid_globe(netcdf_filename, &
+       &                                     cosmo_grid,     &
+       &                                     tg,             &
+       &                                     undefined,      &
+       &                                     undef_int,      &
+       &                                     lon_geo,        &
+       &                                     lat_geo,        &
+       &                                     fr_land_globe,  &
+       &                                     hh_globe,       &
+       &                                     stdh_globe,     &
+       &                                     theta_globe,    &
+       &                                     aniso_globe,    &
+       &                                     slope_globe,    &
+       &                                     z0_topo,        &
+       &                                     lradtopo,       &
+       &                                     nhori)
+       ENDIF
 
 
      CASE(igrid_gme) ! GME grid   
    END SELECT
 
    print *,'globe_to_buffer finished.'
-        
+   PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes     
 
 END PROGRAM extpar_globe_to_buffer
 

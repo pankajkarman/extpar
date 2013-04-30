@@ -565,19 +565,6 @@ END SUBROUTINE write_netcdf_soil_icon_grid
   !  fr_land_soil_meta, soiltype_fao_meta
 
   PRINT *,'CALL read netcdf data soil'
-!roaprint
-print *,"fn:", TRIM(netcdf_filename)
-print *, "name: ", fr_land_soil_meta%varname
-print *, "dim: ", fr_land_soil_meta%n_dim
-print *, "diminfo: ", fr_land_soil_meta%diminfo
-print *, "vartyp: ", fr_land_soil_meta%vartype
-print *, "sn: ", fr_land_soil_meta%standard_name
-print *, "ln: ", fr_land_soil_meta%long_name
-print *, "ssn: ", fr_land_soil_meta%shortName
-print *, "units: ", fr_land_soil_meta%units
-print *, "grid: ", fr_land_soil_meta%grid_mapping
-print *, "coord: ", fr_land_soil_meta%coordinates
-
 
   CALL netcdf_get_var(TRIM(netcdf_filename),fr_land_soil_meta,fr_land_soil)
   PRINT *,'fr_land_soil read'

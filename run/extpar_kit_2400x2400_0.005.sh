@@ -35,9 +35,9 @@ pwd
 
 #---
 
-grib_output_filename='external_parameter_mch_cosmo1.g1'
-stf_output_filename='external_parameter_mch_cosmo1.stf'
-netcdf_output_filename='external_parameter_mch_cosmo1.nc'
+grib_output_filename='external_parameter_kit_2400x2400.g1'
+stf_output_filename='external_parameter_kit_2400x2400.stf'
+netcdf_output_filename='external_parameter_kit_2400x2400.nc'
 grib_sample='DWD_rotated_ll_7km_G_grib1'
 
 raw_data_aot='aerosol_optical_thickness.nc'
@@ -148,14 +148,14 @@ EOF_go
 #---
 cat > INPUT_COSMO_GRID << EOF_grid
 &lmgrid
- pollon=-170.0, 
- pollat=43.0, 
- startlon_tot=-7.0, 
- startlat_tot=-7.0,
- dlon=0.01,
- dlat=0.01,
- ie_tot=1401,
- je_tot=1401,
+pollon=-180.0, 
+pollat=90.0, 
+startlon_tot=0.0,
+startlat_tot=45.0,
+dlon=0.005,
+dlat=0.005,
+ie_tot=2400,
+je_tot=2400,
 /
 EOF_grid
 #---
@@ -210,9 +210,9 @@ cat > INPUT_ORO << EOF_oro
   orography_output_file='${output_globe}'
 /
 &orography_raw_data
- itopo_type = 1
+ itopo_type = 2
  raw_data_orography_path='',
-topo_FILES ='${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
+topo_FILES ='${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'
 /
 EOF_oro
 #--- topo_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'topo_FILES = '${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'  

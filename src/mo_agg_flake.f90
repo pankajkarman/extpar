@@ -177,10 +177,10 @@ MODULE mo_agg_flake
            ke = 1
        CASE(igrid_cosmo)  ! COSMO GRID
            ke = 1
-           bound_north_cosmo = MAXVAL(lat_geo) + 0.05  ! add some "buffer"
-           bound_north_cosmo = MIN(bound_north_cosmo,90.)
-           bound_south_cosmo = MINVAL(lat_geo) - 0.05  ! add some "buffer"
-           bound_south_cosmo = MAX(bound_south_cosmo,-90.)
+           bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
+           bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
+           bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
+           bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
        CASE(igrid_gme)  ! GME GRID
 

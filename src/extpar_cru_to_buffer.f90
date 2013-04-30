@@ -371,8 +371,8 @@ PROGRAM extpar_cru_to_buffer
 
 
 
-    PRINT *,'DONE'
-
+   ! PRINT *,'DONE'
+     PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
   
 
 END PROGRAM extpar_cru_to_buffer

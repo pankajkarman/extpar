@@ -33,7 +33,7 @@ MODULE mo_target_grid_routines
   CONTAINS
 
   !> allocate target grid and determine coordinates for each grid element
-  SUBROUTINE init_target_grid(namelist_grid_def)
+  SUBROUTINE init_target_grid(namelist_grid_def,lrad)
 
   USE mo_read_extpar_namelists, ONLY: read_namelists_extpar_grid_def
 
@@ -76,16 +76,25 @@ MODULE mo_target_grid_routines
   USE mo_target_grid_data, ONLY: no_raw_data_pixel
   USE mo_target_grid_data, ONLY: allocate_com_target_fields
 
+  ! arguments
+  CHARACTER(len=filename_max), INTENT(IN)  :: namelist_grid_def
+  LOGICAL, INTENT(IN), OPTIONAL            :: lrad
+
   ! local variables
   INTEGER  :: parent_ids(1:max_dom)         !< ids of parent model domain
   CHARACTER (len=filename_max) :: icon_coor_files(1:max_dom) !< filnames of the ICON grid files with the coordinates
-  CHARACTER(len=filename_max), INTENT(IN)  :: namelist_grid_def
 
   CHARACTER (len=filename_max) :: domain_def_namelist !< namelist file with domain definition
 
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
   INTEGER :: idom  !< ICON Domain Number
   INTEGER :: i,j,k !< counters
+  LOGICAL :: lzrad
+
+  ! preparation
+  !----------------------------------------------------------------------------------------------
+  lzrad = .FALSE.
+  IF (PRESENT(lrad)) lzrad = lrad
 
   ! get information on target grid
   !-----------------------------------------------------------------------------------------------
@@ -94,6 +103,10 @@ MODULE mo_target_grid_routines
                                          igrid_type, &
                                          domain_def_namelist)
 
+  ! Checks
+  IF ((igrid_type /= igrid_cosmo) .AND. lzrad) THEN
+    CALL abort_extpar('lradtopo only implemented for the COSMO grid')
+  ENDIF
   !HA debug
   PRINT *,'namelist_grid_def: ',TRIM(namelist_grid_def)
   PRINT *,'igrid_type:', igrid_type
@@ -101,6 +114,7 @@ MODULE mo_target_grid_routines
   !--------------------------------------------------------------------------------------
   ! read in target grid information
   idom = 1
+
   SELECT CASE(igrid_type)
        !-----------------------------------------------------------------
        CASE(igrid_icon) ! ICON GRID
@@ -112,7 +126,7 @@ MODULE mo_target_grid_routines
 
        !-----------------------------------------------------------------
        CASE(igrid_cosmo) ! COSMO grid
-       CALL get_cosmo_grid_info(domain_def_namelist,tg,COSMO_grid)
+       CALL get_cosmo_grid_info(domain_def_namelist,tg,COSMO_grid,lzrad)
         
        ! allocate structure cosmo_rot_coor
        CALL allocate_cosmo_rc(tg%ie,tg%je)

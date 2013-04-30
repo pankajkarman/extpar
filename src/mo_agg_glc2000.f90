@@ -137,7 +137,7 @@ MODULE mo_agg_glc2000
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
 
-     CHARACTER (LEN=filename_max), INTENT(IN) :: glc2000_file  !< filename glc2000 raw data
+     CHARACTER (LEN=filename_max), INTENT(IN) :: glc2000_file(:)  !< filename glc2000 raw data
      INTEGER, INTENT(IN) :: ilookup_table_glc2000
      REAL (KIND=wp), INTENT(IN) :: undefined            !< undef value
 
@@ -247,10 +247,10 @@ MODULE mo_agg_glc2000
            ke = 1
        CASE(igrid_cosmo)  ! COSMO GRID
            ke = 1
-           bound_north_cosmo = MAXVAL(lat_geo) + 0.05  ! add some "buffer"
-           bound_north_cosmo = MIN(bound_north_cosmo,90.)
-           bound_south_cosmo = MINVAL(lat_geo) - 0.05  ! add some "buffer"
-           bound_south_cosmo = MAX(bound_south_cosmo,-90.)
+           bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
+           bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
+           bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
+           bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
        CASE(igrid_gme)  ! GME GRID
 
@@ -271,8 +271,8 @@ MODULE mo_agg_glc2000
 
       CALL get_name_glc2000_lookup_tables(ilookup_table_glc2000, name_lookup_table_glc2000)  
      ! open netcdf file 
-     PRINT *,'open ',TRIM(glc2000_file)
-     CALL check_netcdf( nf90_open(TRIM(glc2000_file),NF90_NOWRITE, ncid_glc2000))
+     PRINT *,'open ',TRIM(glc2000_file(1))
+     CALL check_netcdf( nf90_open(TRIM(glc2000_file(1)),NF90_NOWRITE, ncid_glc2000))
 
      varname = 'glc2000byte' ! I know that the longitude coordinates for the GLC2000 data are stored in a variable called 'glc2000byte'
 

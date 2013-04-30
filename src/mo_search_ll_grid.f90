@@ -51,11 +51,15 @@ PUBLIC :: find_rotated_lonlat_grid_element_index
        !!   for the oreder north to south a negative regular_grid_info%dlat_reg value )
        !! - the number of grid elements regular_grid_info%nlon_reg and regular_grid_info%nlat_reg for both directions
        !! the result of the routine could also be interpreted as a result of a nearest neighbour search
-       SUBROUTINE find_reg_lonlat_grid_element_index(point_lon_geo,      &
+       SUBROUTINE find_reg_lonlat_grid_element_index(point_lon_geo,&
                                                point_lat_geo,      &
                                                regular_grid_info,  &
                                                point_lon_index,    &
-                                               point_lat_index)
+                                               point_lat_index,    &
+                                               tile,               &
+                                               regular_tiles_grid_info)
+
+       USE mo_globcover_data,   ONLY: ntiles_globcover
 
        REAL (KIND=wp), INTENT(in) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
        REAL (KIND=wp), INTENT(in) :: point_lat_geo       !< latitude coordinate in geographical system of input point
@@ -65,10 +69,13 @@ PUBLIC :: find_rotated_lonlat_grid_element_index
         
        INTEGER  (KIND=i8), INTENT(out):: point_lon_index !< longitude index of point for regular lon-lat grid
        INTEGER  (KIND=i8), INTENT(out):: point_lat_index !< latitude index of point for regular lon-lat grid
+       TYPE(reg_lonlat_grid), INTENT(in), OPTIONAL:: regular_tiles_grid_info(:)!< structure with the definition of regular tile grid (startlon, startlat etc), only used for GLOBCOVER, as 6 tiles are present
+       INTEGER (KIND=i4), INTENT(out), OPTIONAL:: tile
 
        ! local variables
        INTEGER (KIND=i4) :: undefined_integer   !< value for undefined integer
-       REAL (KIND=wp) :: point_lon_geo_var         !< longitude coordinate in geographical system of input point, variable for eventual shift
+       INTEGER (KIND=i4) :: k                   !< counter
+       REAL (KIND=wp)    :: point_lon_geo_var   !< longitude coordinate in geographical system of input point, variable for eventual shift
 
 
        undefined_integer = 0 ! set undefined to zero
@@ -81,11 +88,43 @@ PUBLIC :: find_rotated_lonlat_grid_element_index
            point_lon_geo_var = point_lon_geo + 360.  ! shift coordinate value of point_lon_geo (see above)
        endif
 
+! >mes
+
+       if(present(regular_tiles_grid_info))  then
+         tiles: DO k = 1, ntiles_globcover
+
+                   point_lon_index = NINT( (point_lon_geo_var - regular_tiles_grid_info(k)%start_lon_reg)/&
+                        &                   regular_tiles_grid_info(k)%dlon_reg) + 1
+           
+                   point_lat_index = NINT(( point_lat_geo - regular_tiles_grid_info(k)%start_lat_reg)/&
+                        &                   regular_tiles_grid_info(k)%dlat_reg) + 1
+
+
+
+                   tile = k
+                   if(point_lat_index < 1) then
+                     CYCLE tiles
+                   elseif(point_lon_index < 1) then
+                     CYCLE tiles
+                   elseif(point_lon_index > regular_tiles_grid_info(k)%nlon_reg) then
+                     CYCLE tiles
+                   elseif(point_lat_index > regular_tiles_grid_info(k)%nlat_reg) then
+                     CYCLE tiles
+                   else
+                     EXIT tiles
+                   endif
+                   
+                 ENDDO tiles
+
+        else
+! <mes
+
         point_lon_index = NINT( (point_lon_geo_var - regular_grid_info%start_lon_reg)/regular_grid_info%dlon_reg) + 1  ! calculate index for regular lon-lat grid
         ! point_lon_geo = regular_grid_info%start_lon_reg + regular_grid_info%dlon_reg * (point_lon_index - 1)
 
         point_lat_index = NINT(( point_lat_geo - regular_grid_info%start_lat_reg)/regular_grid_info%dlat_reg) + 1 ! calculate index for regular lon-lat grid
         ! point_lat_geo = regular_grid_info%start_lat_reg + regular_grid_info%dlat_reg * (point_lat_index - 1)
+      endif
 
 
         if (point_lat_index < 1) then ! point out of range of regular lon-lat grid

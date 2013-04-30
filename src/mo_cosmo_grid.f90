@@ -43,6 +43,8 @@ MODULE mo_cosmo_grid
   PUBLIC :: cosmo_grid
   PUBLIC :: lon_rot
   PUBLIC :: lat_rot
+  PUBLIC :: res_in
+  PUBLIC :: nborder
   PUBLIC :: allocate_cosmo_rc
 
   PUBLIC :: calculate_cosmo_target_coordinates
@@ -50,6 +52,9 @@ MODULE mo_cosmo_grid
 
   REAL (KIND=wp), ALLOCATABLE  :: lon_rot(:)          !< longitide coordinates of the COSMO grid in the rotated system 
   REAL (KIND=wp), ALLOCATABLE  :: lat_rot(:)          !< latitude coordinates of the COSMO grid in the rotated system
+
+  REAL (KIND=wp)               :: res_in              !< horizontal resolution at the equator [m]
+  INTEGER (KIND=i8)            :: nborder             !< number of grid points required at the border for horizon computation
 
   TYPE (rotated_lonlat_grid) :: cosmo_grid  !< structure which contains the definition of the COSMO grid
 
@@ -81,7 +86,7 @@ END SUBROUTINE allocate_cosmo_rc
 !> read namelist with settings for COSMO target grid
 !> \author Hermann Asensio
 SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
-                                       COSMO_grid)
+                                      lrad, COSMO_grid)
   !! read namelist file for the coordinates
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
@@ -90,7 +95,9 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
 
 
 
-    CHARACTER (len=filename_max), INTENT(in) :: input_namelist_file !< file with input namelist with COSMO grid definition
+    CHARACTER (len=filename_max), INTENT(IN) :: input_namelist_file !< file with input namelist with COSMO grid definition
+    LOGICAL,                      INTENT(IN) :: lrad
+
     ! Variables for domain
     TYPE(rotated_lonlat_grid), INTENT(OUT) :: COSMO_grid !< structure which contains the definition of the COSMO grid
 
@@ -124,7 +131,13 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       INTEGER (KIND=i8) :: ierr !< error flag
       INTEGER                  :: nuin !< unit number
 
-      !> Define the namelist group
+      REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_ireals ! Earth circumference at equator [m]
+      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_ireals ! Radius used for horizon calculation [m]
+                                                                     ! (M. Buzzi's recommendation: 40-50 km)
+      INTEGER(KIND=i8), PARAMETER :: securi      = 4                 ! Minimum number of points required for horizon computation
+
+
+      !> Define the namelist group 
       NAMELIST /lmgrid/ pollon, pollat, polgam, dlon, dlat,          &   
                    startlon_tot,startlat_tot, ie_tot, je_tot, ke_tot
       ! Comment HA: namelist input and initialization like in COSMO model, src_setup.f90
@@ -174,18 +187,42 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       !print *, ierr
 
       close(nuin)
-      ! put values to data structure COSMO_grid
-      COSMO_grid%pollon = pollon
-      COSMO_grid%pollat = pollat
-      COSMO_grid%polgam = polgam
-      COSMO_grid%startlon_rot = startlon_tot
-      COSMO_grid%startlat_rot = startlat_tot
-      COSMO_grid%dlon_rot = dlon
-      COSMO_grid%dlat_rot = dlat
-      COSMO_grid%nlon_rot = ie_tot
-      COSMO_grid%nlat_rot = je_tot
-      COSMO_grid%ke_tot = ke_tot
 
+      ! checks
+      IF (lrad .AND. (dlon /= dlat)) THEN
+        CALL abort_extpar('dlon must equal dlat in case of lradtopo')
+      ENDIF
+
+      ! compute number of additional grid points required in case of lradtopo
+      IF (lrad) THEN
+        res_in  = dlon * (circum_earth/360.0_wp) ![m]
+        nborder = MAX(INT(horizon_radius/res_in), securi) 
+      ENDIF
+
+      ! put values to data structure COSMO_grid
+      IF (lrad) THEN
+        COSMO_grid%pollon = pollon
+        COSMO_grid%pollat = pollat
+        COSMO_grid%polgam = polgam
+        COSMO_grid%startlon_rot = startlon_tot - nborder * dlon
+        COSMO_grid%startlat_rot = startlat_tot - nborder * dlat
+        COSMO_grid%dlon_rot = dlon
+        COSMO_grid%dlat_rot = dlat
+        COSMO_grid%nlon_rot = ie_tot + 2 * nborder
+        COSMO_grid%nlat_rot = je_tot + 2 * nborder
+        COSMO_grid%ke_tot = ke_tot
+      ELSE
+        COSMO_grid%pollon = pollon
+        COSMO_grid%pollat = pollat
+        COSMO_grid%polgam = polgam
+        COSMO_grid%startlon_rot = startlon_tot
+        COSMO_grid%startlat_rot = startlat_tot
+        COSMO_grid%dlon_rot = dlon
+        COSMO_grid%dlat_rot = dlat
+        COSMO_grid%nlon_rot = ie_tot
+        COSMO_grid%nlat_rot = je_tot
+        COSMO_grid%ke_tot = ke_tot
+      ENDIF
 
 END SUBROUTINE read_cosmo_domain_namelist
 
@@ -282,7 +319,7 @@ END SUBROUTINE calculate_cosmo_target_coordinates
 
 
 !> get Information for COSMO_grid from namelist INPUT_COSMO_GRID
-SUBROUTINE get_cosmo_grid_info(input_namelist_file,tg,cosmo_grid)
+SUBROUTINE get_cosmo_grid_info(input_namelist_file,tg,cosmo_grid,lrad)
 
    USE mo_io_units,          ONLY: filename_max
 
@@ -293,14 +330,14 @@ SUBROUTINE get_cosmo_grid_info(input_namelist_file,tg,cosmo_grid)
 
    IMPLICIT NONE
 
-   CHARACTER (len=filename_max), INTENT(in) :: input_namelist_file !< file with input namelist with COSMO grid definition
-  
+   CHARACTER (len=filename_max), INTENT(IN) :: input_namelist_file !< file with input namelist with COSMO grid definition
+   LOGICAL                     , INTENT(IN) :: lrad
    TYPE(target_grid_def), INTENT(OUT)      :: tg              !< !< structure with target grid description
    TYPE(rotated_lonlat_grid), INTENT(OUT) :: cosmo_grid !< structure which contains the definition of the COSMO grid
 
 
    CALL  read_cosmo_domain_namelist(input_namelist_file,     &
-    &                                     cosmo_grid)
+                                    lrad, cosmo_grid)
 
    !HA debug
    print *, 'after reading namelist ', TRIM(input_namelist_file)

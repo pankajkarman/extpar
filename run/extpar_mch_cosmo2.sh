@@ -157,14 +157,22 @@ cat > INPUT_LU << EOF_lu
 /
 EOF_lu
 #---
+cat > INPUT_RADTOPO << EOF_rad
+&radtopo
+  lradtopo=.true.,
+  nhori=24,
+/
+EOF_rad
+#---
 cat > INPUT_ORO << EOF_oro
 &orography_io_extpar
   orography_buffer_file='${buffer_globe}',
   orography_output_file='${output_globe}'
 /
 &orography_raw_data
+ itopo_type = 1,
  raw_data_orography_path='', 
- GLOBE_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'  
+ topo_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'  
 /
 EOF_oro
 #---

@@ -306,7 +306,8 @@ PROGRAM extpar_aot_to_buffer
    &                                     aot_tg)
 
 
-       PRINT *,'DONE'
+     !  PRINT *,'DONE'
+        PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m' !mes
 
   
 

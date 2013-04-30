@@ -75,6 +75,8 @@ MODULE mo_extpar_output_grib
     &                                     grib_sample,       &
     &                                     cosmo_grid,       &
     &                                     tg,         &
+    &                                     lrad,                &
+    &                                     nhori,               &
     &                                     undefined, &
     &                                     undef_int,   &
     &                                     lon_geo,     &
@@ -103,7 +105,11 @@ MODULE mo_extpar_output_grib
     &                                     aniso_globe,         &
     &                                     slope_globe,   &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp,             &
+    &                                     slope_asp_globe,     &
+    &                                     slope_ang_globe,     &
+    &                                     horizon_globe,       &
+    &                                     skyview_globe )
  
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -123,6 +129,7 @@ MODULE mo_extpar_output_grib
 
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
+    &                         dim_4d_tg, &
     &                         def_dimension_info_buffer
 
 
@@ -152,14 +159,15 @@ MODULE mo_extpar_output_grib
       &                         def_ndvi_meta
 
  USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
- USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+ USE mo_var_meta_data, ONLY: dim_buffer_vertex
 
  USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
    &       stdh_globe_meta, theta_globe_meta, &
    &       aniso_globe_meta, slope_globe_meta, &
    &       hh_vert_meta, npixel_vert_meta,    &
-   &       hh_fis_meta
-
+   &       hh_fis_meta, slope_asp_globe_meta, & 
+   &       slope_ang_globe_meta, horizon_globe_meta, &
+   &       skyview_globe_meta
 
 
   USE mo_var_meta_data, ONLY: dim_aot_tg, &
@@ -178,6 +186,8 @@ MODULE mo_extpar_output_grib
 
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  LOGICAL,         INTENT(IN)       :: lrad  
+  INTEGER(KIND=i4),INTENT(IN)       :: nhori
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
@@ -214,6 +224,12 @@ MODULE mo_extpar_output_grib
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+
+
   ! local variables
 
   INTEGER :: outfile_id
@@ -229,7 +245,7 @@ MODULE mo_extpar_output_grib
 
   ! prepar meta data for output
   !set up dimensions for buffer
-  CALL  def_dimension_info_buffer(tg)
+  CALL  def_dimension_info_buffer(tg,nhori=nhori)
   ! dim_3d_tg
   
   ! define meta information for various land use related variables (GLC2000) for netcdf output
@@ -256,12 +272,21 @@ MODULE mo_extpar_output_grib
   ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
   ! define meta information for various GLOBE data related variables for netcdf output
-  CALL def_globe_meta(dim_3d_tg)
-  !  hh_globe_meta, fr_land_globe_meta, &
-  !         stdh_globe_meta, theta_globe_meta, &
-  !         aniso_globe_meta, slope_globe_meta, &
-  !         hh_vert_meta, npixel_vert_meta
-
+  IF (lrad) THEN
+    CALL def_globe_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+    !  hh_globe_meta, fr_land_globe_meta, &
+    !         stdh_globe_meta, theta_globe_meta, &
+    !         aniso_globe_meta, slope_globe_meta, &
+    !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
+    !         slope_asp_globe_meta, slope_ang_globe_meta, 
+    !         horizon_globe_meta, skyview_globe_meta
+  ELSE
+    CALL def_globe_meta(dim_3d_tg)
+    !  hh_globe_meta, fr_land_globe_meta, &
+    !         stdh_globe_meta, theta_globe_meta, &
+    !         aniso_globe_meta, slope_globe_meta, &
+    !         hh_vert_meta, npixel_vert_meta
+  ENDIF
   ! define dimensions and meta information for variable aot_tg for netcdf output
   CALL def_aot_tg_meta(tg,ntime_aot,ntype_aot,dim_3d_tg)
   ! dim_aot_tg and aot_tg_meta
@@ -310,6 +335,29 @@ MODULE mo_extpar_output_grib
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,slope_globe,slope_globe_meta%shortName,dataDate,dataTime)
   
+
+  IF (PRESENT(slope_asp_globe)) THEN
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,slope_asp_globe,slope_asp_globe_meta%shortName,dataDate,dataTime)
+  ENDIF
+  IF (PRESENT(slope_ang_globe)) THEN
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,slope_ang_globe,slope_ang_globe_meta%shortName,dataDate,dataTime)
+  ENDIF
+  IF (PRESENT(horizon_globe)) THEN
+    DO mm=1,nhori
+      extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+      & horizon_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
+      CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+      & cosmo_grid,extpar_cosmo_buffer,horizon_globe_meta%shortName,dataDate,dataTime)
+    ENDDO
+  ENDIF
+  IF (PRESENT(skyview_globe)) THEN
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,skyview_globe,skyview_globe_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
 
@@ -437,7 +485,7 @@ MODULE mo_extpar_output_grib
     &                                     aniso_globe,         &
     &                                     slope_globe,   &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp)
  
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -477,7 +525,7 @@ MODULE mo_extpar_output_grib
       &                         def_ndvi_meta
 
  USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
- USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+ USE mo_var_meta_data, ONLY: dim_buffer_vertex
 
  USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
    &       stdh_globe_meta, theta_globe_meta, &

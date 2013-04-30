@@ -1,56 +1,127 @@
 
-Modifications to Extpar 1.1:                   Anne Roches,C2SM  18.09.2012
+Modifications to Extpar 1.6:                   Anne Roches,C2SM  27.05.2013
 =============================
 
-Modifications implemented in this new version
+This version contains a lot of modifications as compared to the 
+original (DWD) Extpar version 1.6 stored under the vendor_tags.
 
-1. Adaptation to the compiling environnment at CSCS
+Modifications implemented in this new version include work done 
+by Martina Messmer (MCH) related to the implementation of the ASTER
+support and of the new GLOBCOVER support as well as work done
+by Anne Roches in collaboration with Daniel Luethi related to the
+implementation of the lradtopo parameters computation (based on
+previous work of Matteo Buzzi).
+
+1. Nicer and consistent standard output in case of successful
+   program completion
+   Tag: mes                    Source: extpar_aot_to_buffer.f90
+                                       extpar_cru_to_buffer.f90
+                                       extpar_flake_to_buffer.f90
+                                       extpar_globe_to_buffer.f90
+                                       extpar_landuse_to_buffer.f90
+                                       extpar_ndvi_to_buffer.f90
+                                       extpar_soil_to_buffer.f90
+   Results: -
+
+2. Small bug fixes (correct precision, etc.)
+   Tag: -                      Source: mo_agg_flake.f90
+                                       mo_agg_glc2000.f90
+                                       mo_agg_glcc.f90
+                                       mo_agg_globcover.f90
+                                       mo_agg_globe.f90
+                                       mo_agg_soil.f90
+   Results: -
+
+3. Changes related to the read of the GLOBCOVER dataset
+   (now piecewise stored in 6 files instead of 1 single file). 
+   Tag: -  (mes sometimes)     Source: mo_agg_globcover.f90
+                                       extpar_landuse_to_buffer.f90
+                                       mo_globcover_data.f90
+                                       mo_landuse_routines.f90
+                                       mo_search_ll_grid.f90
+   Results: -
+
+4. Cosmetics (spelling correction, header, alignment, renaming,
+              replace some hard coded values by parameters, remove
+              unused code, ...)
+   Tag: -                      Source: extpar_globe_to_buffer.f90
+                                       mo_agg_globcover.f90
+                                       mo_agg_globe.f90
+                                       mo_cosmo_grid.f90
+                                       mo_extpar_output_grib.f90
+                                       mo_globe_output_nc.f90
+                                       mo_globe_routines.f90
+                                       mo_globe_tg_fields.f90
+                                       mo_landuse_routines.f90
+
+   Results: -
+
+
+5. Implementation of ASTER support and new NL parameter (itopo_type) 
+   to choose between GLOBE and ASTER
+   Tag: - (mes sometimes)      Source: extpar_globe_to_buffer.f90
+                                       mo_agg_globe.f90
+                                       mo_globe_routines.f90
+   Results: -
+
+6. mo_globe_data.f90 module replaced by a module called mo_topo_data.f90
+   Tag: -                      Source: mo_globe_data.f90(deleted)
+                                       mo_topo_data.f90 (new)
+   Results: -
+
+7. Renaming of "globe" to "topo" since now 2 different topography 
+   datasets can be used (GLOBE and ASTER)
+   Tag: - (mes sometimes)              Source: extpar_globe_to_buffer.f90
+                                       mo_agg_globe.f90
+                                       mo_globe_routines.f90
+   Results: -
+
+8. Removing of the interpolation and check for the small grids
+   in the computation of the subgrid scale topography related parameters
+   Tag: -                      Source: extpar_globe_to_buffer.f90
+   Results: -
+
+9. Implementation of the lradtopo code
+   Tag: -                      Source: extpar_consistency_check.f90
+                                       extpar_globe_to_buffer.f90
+                                       mo_cosmo_grid.f90
+                                       mo_extpar_output_grib.f90
+                                       mo_extpar_output_nc.f90
+                                       mo_globe_output_nc.f90
+                                       mo_lradtopo.f90         
+                                       mo_globe_tg_fields.f90      
+                                       mo_target_grid_routines.f90
+                                       mo_var_meta_data.f90
+
+   Results: -
+
+   Remark: the history of this development can be inspected by 
+           looking at the log of $svnroot/tools/extpar/branch/rochesa/extpar_v1_6.2/
+           (svn log -v $svnroot/tools/extpar/branch/rochesa/extpar_v1_6.2/ |more)
+
+10. Adaptation to the compiling environnment at CSCS
    Tag: roa CSCS               Source: CMakeLists.txt
                                        FindGRIB_API.cmake
                                        FindNETCDF.cmake
-   Results: No changes
+   Results: -
 
 
-2. Comment of the information mechanism because it does not work
-   Tag: roa info              Source: info_extpar.f90
-   Results: No changes
 
-
-3. Correction and extension of the netcdf output
-   Tag: roa nc                Source: mo_extpar_output_nc.f90
-                                      mo_var_meta_data.f90 
-                                  
-   Results: Additionnal fields for netcdf output and correct
-            variable names
-
-
-4. Use MeteoSwiss definitions/samples
+11. Use MeteoSwiss definitions/samples
    Tag: roa mch              Source: mo_io_grib_api.f90
    Results: Other domain
 
-
-5. Comment of sections related to a local DWD use of grib
-   Tag: roa dwdgrib          Source: mo_io_grib_api.f90
-   Results: No changes
-
-
-6. Split of lines which were too long, causing problems 
-   at compilation time
-   Tag: roa cpiler           Source: mo_io_grib_api.f90
-   Results: No changes
+12. Wrong length specification corrected
+   Tag: roa bug              Source: mo_io_grib_api.f90
+                                     mo_extpar_output_grib.f90
+   Results: -
 
 
-7. Clean variable which was not used
-   Tag: roa clean            Source: mo_ndvi_output_nc.f90
-   Results: No changes  
+13. Correction and extension of the netcdf output
+   Tag: roa nc                Source: mo_extpar_output_nc.f90
+                                      mo_var_meta_data.f90 
+   Results: -
 
-
-
-
-
-
-
-
-
-
-  
+14. Comment of the information mechanism because it does not work
+   Tag: roa info              Source: info_extpar.f90
+   Results: -

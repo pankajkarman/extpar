@@ -385,7 +385,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
 
    PRINT *,'PROGRAM soil_to_buffer done.'
-
+   PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
         
 
 END PROGRAM extpar_soil_to_buffer

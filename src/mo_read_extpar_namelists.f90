@@ -124,7 +124,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
 
    nuin = free_un()  ! functioin free_un returns free Fortran unit number
-!roa: what the heck is that!?!
+!roa: what is that!?!
 !   grib_output_filename = 'external_parameters.grb'
 !   grib_sample = 'GRIB2'
 
@@ -134,18 +134,6 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
    CLOSE(nuin)
   
-!roaprint
-print *,"outfn: ",  grib_output_filename
-print *,"smple: ",  grib_sample
-print *,"nfout: ",                  netcdf_output_filename
-print *,"oro: ",                    orography_buffer_file
-print *,"soil: ",                    soil_buffer_file
-print *,"lu: ",                    lu_buffer_file
-print *,"glcc: ",                    glcc_buffer_file
-print *,"flake: ",                    flake_buffer_file
-print *,"ndvi: ",                    ndvi_buffer_file
-print *,"tclm: ",                    t_clim_buffer_file
-print *,"aot: ",                    aot_buffer_file
 
 END SUBROUTINE read_namelists_extpar_check
 !---------------------------------------------------------------------------

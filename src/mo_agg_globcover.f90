@@ -66,25 +66,28 @@ MODULE mo_agg_globcover
   CONTAINS
 
   !> Subroutine to aggregate globcover data to the target grid
-  SUBROUTINE agg_globcover_data_to_target_grid(globcover_file,ilookup_table_globcover,undefined,       &
-    &                                        tg,                                         &
-    &                                        nclass_globcover,                             &
-    &                                        globcover_class_fraction, &
-    &                                        globcover_class_npixel, &
-    &                                        globcover_tot_npixel,   &
-    &                                        fr_land_globcover ,     &
-    &                                        ice_globcover,          &
-    &                                        z0_globcover, &
-    &                                        root_globcover, &
-    &                                        plcov_mn_globcover, &
-    &                                        plcov_mx_globcover, &
-    &                                        lai_mn_globcover,   &
-    &                                        lai_mx_globcover, &
-    &                                        rs_min_globcover, &
-    &                                        urban_globcover,  &
-    &                                        for_d_globcover,  &
-    &                                        for_e_globcover, &
-    &                                        emissivity_globcover    )
+  SUBROUTINE agg_globcover_data_to_target_grid(globcover_file,          &
+    &                                          ilookup_table_globcover, &
+    &                                          undefined,               &
+    &                                          globcover_tiles_grid,    &
+    &                                          tg,                      &
+    &                                          nclass_globcover,        &
+    &                                          globcover_class_fraction,&
+    &                                          globcover_class_npixel,  &
+    &                                          globcover_tot_npixel,    &
+    &                                          fr_land_globcover ,      &
+    &                                          ice_globcover,           &
+    &                                          z0_globcover,            &
+    &                                          root_globcover,          &
+    &                                          plcov_mn_globcover,      &
+    &                                          plcov_mx_globcover,      &
+    &                                          lai_mn_globcover,        &
+    &                                          lai_mx_globcover,        &
+    &                                          rs_min_globcover,        &
+    &                                          urban_globcover,         &
+    &                                          for_d_globcover,         &
+    &                                          for_e_globcover,         &
+    &                                          emissivity_globcover)
 
 
 
@@ -97,7 +100,11 @@ MODULE mo_agg_globcover
   ! raw data grid description, here for globcover data
   USE mo_globcover_data, ONLY: globcover_grid, &
     &                          lon_globcover,  &
-    &                          lat_globcover
+    &                          lat_globcover,  &
+! >mes
+    &                          ntiles_globcover, &
+    &                          max_tiles_lu
+! <mes
 
   USE mo_globcover_lookup_tables, ONLY: name_lookup_table_globcover
   USE mo_globcover_lookup_tables, ONLY: i_extpar_lookup_table, i_extpar_test_lookup_table
@@ -115,7 +122,9 @@ MODULE mo_agg_globcover
     USE mo_gme_grid, ONLY: sync_diamond_edge
     USE mo_gme_grid, ONLY: gme_real_field, gme_int_field
     USE mo_gme_grid, ONLY: cp_buf2gme, cp_gme2buf
-
+! >mes
+    USE mo_landuse_routines, ONLY: det_band_globcover_data, &
+         &                         get_globcover_data_block
 
     ! USE structure which contains the definition of the ICON grid
     USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
@@ -131,10 +140,10 @@ MODULE mo_agg_globcover
 
 
 
-     CHARACTER (LEN=filename_max), INTENT(IN) :: globcover_file  !< filename globcover raw data
+     CHARACTER (LEN=filename_max), INTENT(IN) :: globcover_file(1:max_tiles_lu)  !< filename globcover raw data
      INTEGER, INTENT(IN) :: ilookup_table_globcover
      REAL (KIND=wp), INTENT(IN) :: undefined            !< undef value
-
+     TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(:)  ! grid structure of globcover tiles
      TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
      INTEGER, INTENT(IN) :: nclass_globcover !< globcover has 23 classes for the land use description
      REAL (KIND=wp), INTENT(OUT)  :: globcover_class_fraction(:,:,:,:)  !< fraction for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
@@ -160,13 +169,14 @@ MODULE mo_agg_globcover
     REAL (KIND=wp), INTENT(OUT)  :: emissivity_globcover(:,:,:) !< longwave emissivity due to globcover land use da
 
 
-
+     TYPE(reg_lonlat_grid):: ta_grid ! structure with definition of the target area grid (dlon must be the same for the whole GLOBCOVER dataset)
 
      INTEGER (KIND=i8) :: undefined_integer ! undef value
      REAL (KIND=wp)    :: default_real
 
 
-     INTEGER :: i,j,k,l ! counters
+     INTEGER :: i,j,k,l      ! counters
+     INTEGER :: nt           ! counter
      INTEGER :: i_col, j_row ! counter
      INTEGER (KIND=i8) :: i_lu, j_lu
      INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
@@ -176,6 +186,7 @@ MODULE mo_agg_globcover
      INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
      REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) !< area weight of all raw data pixels in target grid
      REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_globcover) !< area for each land use class grid  in target grid element (for a area weight)
+     REAL (KIND=wp), ALLOCATABLE:: lu_block(:,:)  ! a block of GLOBCOVER land use data
 
      REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
      REAL (KIND=wp)    :: apix      !< area of a raw data pixel
@@ -185,10 +196,14 @@ MODULE mo_agg_globcover
      INTEGER :: globcover_data_pixel(1:1,1:1)
      INTEGER :: lu  ! land use class
      INTEGER :: nclass ! index in array of globcover tables
-     INTEGER :: ncid_globcover                             !< netcdf unit file number
+     INTEGER :: ncid_globcover(1:ntiles_globcover)            !< netcdf unit file number
      CHARACTER (LEN=80) :: varname  !< name of variable
      INTEGER :: varid_globcover               !< id of variable
      INTEGER :: nlon
+     INTEGER :: block_row_start
+     INTEGER :: block_row
+     INTEGER :: mlat
+     INTEGER :: tile
 
      REAL(KIND=wp)   :: point_lon, point_lat
 
@@ -206,7 +221,7 @@ MODULE mo_agg_globcover
       REAL (KIND=wp) :: pemissivity    !< surface thermal emissivity      (-)
       REAL (KIND=wp) :: prs_min        !< minimum stomata resistance      (s/m)
 
-     INTEGER        :: k_error     ! error return code
+     INTEGER        :: k_error, errorcode   ! error return code
 
      REAL           :: hp ! height of Prandtl-layer
      REAL (KIND=wp) :: lnhp
@@ -242,10 +257,10 @@ MODULE mo_agg_globcover
            ke = 1
        CASE(igrid_cosmo)  ! COSMO GRID
            ke = 1
-           bound_north_cosmo = MAXVAL(lat_geo) + 0.05  ! add some "buffer"
-           bound_north_cosmo = MIN(bound_north_cosmo,90.)
-           bound_south_cosmo = MINVAL(lat_geo) - 0.05  ! add some "buffer"
-           bound_south_cosmo = MAX(bound_south_cosmo,-90.)
+           bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
+           bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
+           bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
+           bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
        CASE(igrid_gme)  ! GME GRID
 
@@ -265,48 +280,87 @@ MODULE mo_agg_globcover
         &      rs_min_lt_globcover)
 
       CALL get_name_globcover_lookup_tables(ilookup_table_globcover, name_lookup_table_globcover)
-     ! open netcdf file
-     PRINT *,'open ',TRIM(globcover_file)
-     CALL check_netcdf( nf90_open(TRIM(globcover_file),NF90_NOWRITE, ncid_globcover))
 
-     varname = 'Band1' ! I know that the globcover data are stored in a variable called 'Band1'
-
-     CALL check_netcdf( nf90_inq_varid(ncid_globcover, TRIM(varname), varid_globcover))
      nlon = globcover_grid%nlon_reg
 
-     PRINT *,'Start loop over globcover dataset '
-     ! loop over rows of globcover dataset
-     rows: DO j_row=1,globcover_grid%nlat_reg
-     !rows: DO j_row=1,100
-       point_lat = lat_globcover(j_row)
+     ! open netcdf file
+     PRINT *,'open GLOBCOVER files'
+! >mes
+     DO nt = 1,ntiles_globcover
+     CALL check_netcdf( nf90_open(TRIM(globcover_file(nt)),NF90_NOWRITE, ncid_globcover(nt)))
+     END DO
+! <mes
 
-       IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
-         IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
-           CYCLE rows
+     varname = 'GLOBCOVER' ! I know that the globcover data are stored in a variable called 'GLOBCOVER'
+
+     CALL check_netcdf(nf90_inq_varid(ncid_globcover(1), TRIM(varname), varid_globcover))
+
+! >mes
+     mlat = 1
+     block_row_start = mlat
+
+     CALL det_band_globcover_data(globcover_grid,block_row_start,ta_grid)
+
+     print*, 'ta_grid: ', ta_grid
+
+     IF (ALLOCATED(lu_block)) THEN
+       DEALLOCATE(lu_block, STAT = errorcode)
+       IF(errorcode /= 0) CALL abort_extpar('Cant deallocate the lu_block')
+     END IF
+     ALLOCATE (lu_block(1:ta_grid%nlon_reg, 1:ta_grid%nlat_reg), STAT = errorcode)
+     IF (errorcode /= 0) CALL abort_extpar('Cant allocate the lu_block')
+
+     CALL get_globcover_data_block(ta_grid,               &
+                                   globcover_tiles_grid,  &
+                                   ncid_globcover,       &
+                                   lu_block)
+
+     block_row = 0
+
+     print*, 'Start loop over GLOBCOVER rows'
+
+     globcover_rows: DO mlat = 1,globcover_grid%nlat_reg
+
+         IF (MOD(mlat,500)==0) PRINT *, 'GLOBCOVER row:', mlat
+         block_row= block_row + 1
+         IF(block_row > ta_grid%nlat_reg) THEN ! read in new block
+           block_row_start = mlat
+           block_row = 1
+           CALL det_band_globcover_data(globcover_grid,block_row_start,ta_grid)
+           IF(ALLOCATED(lu_block)) THEN
+             DEALLOCATE(lu_block, STAT=errorcode)
+             IF(errorcode/=0) CALL abort_extpar('Cant deallocate the lu_block')
+           ENDIF
+           ALLOCATE (lu_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
+           IF(errorcode/=0) CALL abort_extpar('Cant allocate lu_block')
+           CALL get_globcover_data_block(ta_grid,              &
+                &                        globcover_tiles_grid, &
+                &                        ncid_globcover,       &
+                &                        lu_block)
          ENDIF
-       ENDIF ! COSMO grid
 
-       ! read in pixels
-       !HA debug
-       IF (MOD(j_row,500) == 0  ) THEN
-       PRINT *,'nlon: ', nlon
-       PRINT *,'j_row: ', j_row
-       !HA debug
-       ENDIF
-       CALL check_netcdf(nf90_get_var(ncid_globcover, varid_globcover,  globcover_data_row,  &
-         &               start=(/1,j_row/),count=(/nlon,1/)))
-       apix = apix_e * COS(point_lat * deg2rad) ! area of raw data pixel (in [m**2])
+         point_lat = lat_globcover(mlat)
 
-  columns: DO i_col=1, globcover_grid%nlon_reg
+
+         IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
+           IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
+             CYCLE globcover_rows
+           ENDIF
+         ENDIF ! COSMO grid
+
+         globcover_data_row(1:nlon) = lu_block(1:nlon,block_row)
+         apix = apix_e * COS(point_lat * deg2rad) ! area of raw data pixel (in [m**2])
+
+  columns: DO i_col=1, nlon
   ! find the corresponding target grid indices
        point_lon = lon_globcover(i_col)
 
-       CALL  find_nearest_target_grid_element( point_lon, &
-                                              &      point_lat, &
-                                              &      tg,        &
-                                              &      ie,      &
-                                              &      je,      &
-                                              &      ke)
+       CALL  find_nearest_target_grid_element(point_lon, &
+          &                                   point_lat, &
+          &                                   tg,        &
+          &                                   ie,        &
+          &                                   je,        &
+          &                                   ke)
 
        IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
          ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
@@ -384,7 +438,7 @@ MODULE mo_agg_globcover
 
       ! end loops
     ENDDO columns
-    ENDDO rows
+    ENDDO globcover_rows
 
 
      SELECT CASE(tg%igrid_type)
@@ -538,18 +592,21 @@ MODULE mo_agg_globcover
 
       point_lon = lon_geo(ie,je,ke)
       point_lat = lat_geo(ie,je,ke)
-       CALL find_reg_lonlat_grid_element_index(point_lon,      &
+        CALL find_reg_lonlat_grid_element_index(point_lon,      &
           &                                     point_lat,      &
-          &                                     globcover_grid,  &
-          &                                     i_lu,    &
-          &                                     j_lu)
-        ! get data
-        IF ((i_lu /= 0).AND.(j_lu/=0))THEN
+          &                                     globcover_grid, &
+          &                                     i_lu,           &
+          &                                     j_lu,           &
+          &                                     tile = tile,     &
+          &                                     regular_tiles_grid_info=globcover_tiles_grid)
+
+        IF ((i_lu /= 0).AND.(j_lu /= 0))THEN
 
         i_col = i_lu
         j_row = j_lu
-        CALL check_netcdf(nf90_get_var(ncid_globcover, varid_globcover,  globcover_data_pixel,  &
+        CALL check_netcdf(nf90_get_var(ncid_globcover(tile), varid_globcover,  globcover_data_pixel,  &
           &               start=(/ i_col,j_row /),count=(/ 1,1 /)))
+        CALL check_netcdf(nf90_close(ncid_globcover(tile)))
 
         lu = globcover_data_pixel(1,1)
 
@@ -636,7 +693,6 @@ MODULE mo_agg_globcover
 
 
     ! close netcdf file
-    CALL check_netcdf( nf90_close(ncid_globcover))
 
   END SUBROUTINE agg_globcover_data_to_target_grid
 

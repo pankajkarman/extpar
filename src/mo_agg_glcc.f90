@@ -133,7 +133,7 @@ MODULE mo_agg_glcc
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
 
 
-     CHARACTER (LEN=filename_max), INTENT(IN) :: glcc_file  !< filename glcc raw data
+     CHARACTER (LEN=filename_max), INTENT(IN) :: glcc_file(:)  !< filename glcc raw data
      INTEGER, INTENT(IN) :: ilookup_table_glcc
      REAL (KIND=wp), INTENT(IN) :: undefined            !< undef value
 
@@ -244,10 +244,10 @@ MODULE mo_agg_glcc
            ke = 1
        CASE(igrid_cosmo)  ! COSMO GRID
            ke = 1
-           bound_north_cosmo = MAXVAL(lat_geo) + 0.05  ! add some "buffer"
-           bound_north_cosmo = MIN(bound_north_cosmo,90.)
-           bound_south_cosmo = MINVAL(lat_geo) - 0.05  ! add some "buffer"
-           bound_south_cosmo = MAX(bound_south_cosmo,-90.)
+           bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
+           bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
+           bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
+           bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
        CASE(igrid_gme)  ! GME GRID
 
@@ -269,8 +269,8 @@ MODULE mo_agg_glcc
       CALL get_name_glcc_lookup_tables(ilookup_table_glcc, name_lookup_table_glcc)  
          
      ! open netcdf file 
-     PRINT *,'open ',TRIM(glcc_file)
-     CALL check_netcdf( nf90_open(TRIM(glcc_file),NF90_NOWRITE, ncid_glcc))
+     PRINT *,'open ',TRIM(glcc_file(1))
+     CALL check_netcdf( nf90_open(TRIM(glcc_file(1)),NF90_NOWRITE, ncid_glcc))
 
      varname = 'glccbyte' ! I know that the longitude coordinates for the GLCC data are stored in a variable called 'glccbyte'
 

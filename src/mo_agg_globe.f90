@@ -12,6 +12,12 @@
 !  bug fix in interpolation routine and handling of undefined GLOBE values
 ! @VERSION@    @DATE@     Anne Roches
 !  implementation of orography smoothing
+! @VERSION@    @DATE@     Martina Messmer
+!  Change all 'globe' to topo in globe_files, remove all 'globe' in 
+!  change mo_GLOBE_data to mo_topo_data, globe_tiles_grid to 
+!  topo_tiles_grid, globe_files to topo_files, globe_grid to
+!  topo_grid and change ntiles_gl to ntiles to obtain a more 
+!  dynamical code.
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -44,10 +50,10 @@ MODULE mo_agg_globe
  ! PUBLIC :: bilinear_interpol_globe_to_target_point
   CONTAINS
     !> aggregate GLOBE orography to target grid
-    SUBROUTINE agg_globe_data_to_target_grid(globe_tiles_grid, &
-      &                                      globe_grid,       &
+    SUBROUTINE agg_globe_data_to_target_grid(topo_tiles_grid, &
+      &                                      topo_grid,       &
       &                                      tg,               &
-      &                                      globe_files,      &
+      &                                      topo_files,      &
 !roa>
       &                                      lfilter_oro,      &
       &                                      ilow_pass_oro,    &
@@ -68,10 +74,17 @@ MODULE mo_agg_globe
       &                                      fr_land_globe,    &
       &                                      z0_topo,          &
       &                                      no_raw_data_pixel)
-    USE mo_globe_data, ONLY : ntiles_gl  !< there are 16 GLOBE tiles 
+    USE mo_topo_data, ONLY : ntiles,   &  !< there are 16 GLOBE tiles 
+                             max_tiles
        
-    USE mo_globe_data, ONLY: nc_tot !< number of total GLOBE columns un a latitude circle (43200)
-    USE mo_globe_data, ONLY: nr_tot !< total number of rows in GLOBE data (21600)
+    USE mo_topo_data, ONLY: nc_tot !< number of total GLOBE columns un a latitude circle (43200)
+    USE mo_topo_data, ONLY: nr_tot !< total number of rows in GLOBE data (21600)
+!mes >
+    USE mo_topo_data, ONLY: get_fill_value   !< determines the _FillValue of either GLOBE or ASTER
+    USE mo_topo_data, ONLY: topography
+    USE mo_topo_data, ONLY: topo_gl
+    USE mo_topo_data, ONLY: topo_aster
+!mes <
 
     USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
     USE mo_grid_structures, ONLY: rotated_lonlat_grid !< Definition of Data Type to describe a rotated lonlat grid
@@ -131,11 +144,11 @@ MODULE mo_agg_globe
 !roa<
 
 
-   TYPE(reg_lonlat_grid) :: globe_tiles_grid(1:ntiles_gl) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+   TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
-   TYPE(reg_lonlat_grid) :: globe_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
-   CHARACTER (LEN=filename_max), INTENT(IN) :: globe_files(1:ntiles_gl)  !< filenames globe raw data
+   TYPE(reg_lonlat_grid) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
+   CHARACTER (LEN=24), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe raw data
    !roa>
    LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
    INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
@@ -154,7 +167,7 @@ MODULE mo_agg_globe
 !roa<
 
    REAL(KIND=wp), INTENT(OUT)   :: hh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
-       REAL(KIND=wp), INTENT(OUT)   :: stdh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< standard deviation of subgrid scale orographic height
+       REAL(KIND=wp), INTENT(OUT)   :: stdh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< standard deviation of subgrid scale orographic height 
    REAL(KIND=wp), INTENT(OUT)   :: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
    REAL(KIND=wp), INTENT(OUT)   :: aniso_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, anisotropie factor
    REAL(KIND=wp), INTENT(OUT)   :: slope_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, mean slope
@@ -165,12 +178,21 @@ MODULE mo_agg_globe
    ! local variables
    REAL (KIND=wp)  :: lon_globe(1:nc_tot)   !< longitude coordinates of the GLOBE grid
    REAL (KIND=wp)  :: lat_globe(1:nr_tot)   !< latititude coordinates of the GLOBE grid
-   INTEGER (KIND=i4), PARAMETER :: nc_tot_p1 = nc_tot +1
-   INTEGER  :: ncids_globe(1:ntiles_gl)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+
+!!!!!!!!mes >
+!   INTEGER (KIND=i4), PARAMETER :: nc_tot_p1 = nc_tot +1
+   INTEGER (KIND=i4):: nc_tot_p1
+!!!!!!!!mes <
+
+
+   INTEGER  :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
    INTEGER (KIND=i4) :: h_parallel(1:nc_tot)  !< one line with GLOBE data
    INTEGER (KIND=i4) :: h_3rows(1:nc_tot,1:3) !< three rows with GLOBE data
 
-   INTEGER (KIND=i4) :: hh(0:nc_tot_p1,1:3) !< topographic height for gradient calculations
+!!!!!!!!mes >
+!   INTEGER (KIND=i4) :: hh(0:nc_tot_p1,1:3) !< topographic height for gradient calculations
+   INTEGER (KIND=i4) :: hh(0:nc_tot+1,1:3) !< topographic height for gradient calculations
+!!!!!!!!mes <
 
    REAL(KIND=wp)   :: dhdx(1:nc_tot)  !< x-gradient for one latitude row
    REAL(KIND=wp)   :: dhdy(1:nc_tot)  !< y-gradient for one latitude row
@@ -195,7 +217,7 @@ MODULE mo_agg_globe
    INTEGER (KIND=i8) :: nearest_cell_id  !< result of icon grid search
    INTEGER (KIND=i8) :: nearest_vert_id  !< result of icon grid search for vertices
    INTEGER :: n_dom ! number of Icon domains
-   INTEGER (KIND=i4) :: undef_globe
+   INTEGER (KIND=i4) :: undef_topo
    INTEGER (KIND=i4) :: default_globe
    INTEGER :: i,j,k,l ! counters
    INTEGER (KIND=i8) :: ie, je, ke  ! indices for grid elements
@@ -269,6 +291,12 @@ MODULE mo_agg_globe
    REAL (KIND=wp) :: zlnhp      !< ln of height of Prandtl-layer [m]
    REAL (KIND=wp) :: z0_globe   !< rougness length according to Erdmann Heise Formula
 
+!mes >
+
+   CHARACTER(LEN=24) :: topo_file_1
+   nc_tot_p1 = nc_tot + 1
+   topo_file_1 = topo_files(1)
+!mes <
 
    SELECT CASE(tg%igrid_type)
    CASE(igrid_icon)  ! ICON GRID
@@ -278,10 +306,10 @@ MODULE mo_agg_globe
        nearest_vert_id = 0_i8 !< set to 0 at start
    CASE(igrid_cosmo)  ! COSMO GRID
        ke = 1
-       bound_north_cosmo = MAXVAL(lat_geo) + 0.05  ! add some "buffer"
-       bound_north_cosmo = MIN(bound_north_cosmo,90.)
-       bound_south_cosmo = MINVAL(lat_geo) - 0.05  ! add some "buffer"
-       bound_south_cosmo = MAX(bound_south_cosmo,-90.)
+       bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
+       bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
+       bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
+       bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
        n_dom = 1 ! no grid refinements
    CASE(igrid_gme)  ! GME GRID
        n_dom = 1 ! no grid refinements
@@ -291,11 +319,21 @@ MODULE mo_agg_globe
    j_c = 2 ! index for central row
    j_s = 3 ! index for southern row
 
-   undef_globe = -500 ! \TODO read undef value from netcdf attribute
+!mes >
+   CALL get_fill_value(topo_file_1,undef_topo)
+
+!   undef_globe = -500 ! \TODO read undef value from netcdf attribute
+! mes <
    default_globe = 0
 
-   hh = undef_globe
-   h_3rows = undef_globe
+   SELECT CASE(topography)
+    CASE(topo_aster)
+      hh = default_globe
+      h_3rows = default_globe
+    CASE(topo_gl)
+      hh = undef_topo
+      h_3rows = undef_topo
+   END SELECT
 
    ! initialize some variables
    no_raw_data_pixel     = 0
@@ -322,33 +360,33 @@ MODULE mo_agg_globe
    
    ! calculate the longitude coordinate of the GLOBE columns
    DO i=1,nc_tot
-     lon_globe(i) = globe_grid%start_lon_reg + (i-1) * globe_grid%dlon_reg
+     lon_globe(i) = topo_grid%start_lon_reg + (i-1) * topo_grid%dlon_reg
    ENDDO
 
    ! calculate the latitiude coordinate of the GLOBE columns
    DO j=1,nr_tot
-     lat_globe(j) = globe_grid%start_lat_reg + (j-1) * globe_grid%dlat_reg
+     lat_globe(j) = topo_grid%start_lat_reg + (j-1) * topo_grid%dlat_reg
    ENDDO
        !HA debug:
        print *,'lat_globe(1): ', lat_globe(1)
        print *,'lat_globe(nr_tot) ', lat_globe(nr_tot)
 
    nt = 1
-   dx0 =  globe_tiles_grid(nt)%dlon_reg * deg2rad * re ! longitudinal distance between to GLOBE grid elemtens at equator 
+   dx0 =  topo_tiles_grid(nt)%dlon_reg * deg2rad * re ! longitudinal distance between to GLOBE grid elemtens at equator 
    print *, 'dx0: ',dx0
-   dy = globe_tiles_grid(nt)%dlat_reg * deg2rad * re ! latitudinal distance  between to GLOBE grid elemtens ! note the negative increment, as direction of data from north to south
+   dy = topo_tiles_grid(nt)%dlat_reg * deg2rad * re ! latitudinal distance  between to GLOBE grid elemtens ! note the negative increment, as direction of data from north to south
    print *,'dy: ',dy
    d2y = 2. * dy
 
    print *,'open GLOBE netcdf files'
    ! first open the GLOBE netcdf files
-   DO nt=1,ntiles_gl
-     CALL open_netcdf_GLOBE_tile(globe_files(nt), ncids_globe(nt))
+   DO nt=1,ntiles
+     CALL open_netcdf_GLOBE_tile(topo_files(nt), ncids_globe(nt))
    ENDDO
    mlat = 1
    block_row_start = mlat
 
-   CALL det_band_gd(globe_grid,block_row_start, ta_grid)
+   CALL det_band_gd(topo_grid,block_row_start, ta_grid)
    PRINT *,'first call of det_band_gd'
    PRINT *,'ta_grid: ',ta_grid
     
@@ -359,8 +397,9 @@ MODULE mo_agg_globe
    ALLOCATE (h_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
     IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block')
 
-   CALL get_globe_data_block(ta_grid,              &
-      &                       globe_tiles_grid, &
+   CALL get_globe_data_block(topo_file_1,     &   !mes ><
+      &                       ta_grid,         &
+      &                       topo_tiles_grid, &
       &                       ncids_globe, &
       &                       h_block)
 
@@ -368,7 +407,7 @@ MODULE mo_agg_globe
 
    print *,'Start loop over GLOBE rows'
    !-----------------------------------------------------------------------------
-   globe_rows: DO mlat=1,21600
+   globe_rows: DO mlat=1,nr_tot            !mes ><
    !globe_rows: DO mlat=1,2000
    !-----------------------------------------------------------------------------
    !-----------------------------------------------------------------------------
@@ -377,7 +416,7 @@ MODULE mo_agg_globe
    IF(block_row > ta_grid%nlat_reg) THEN ! read in new block
      block_row_start = mlat
      block_row = 1
-     CALL det_band_gd(globe_grid,block_row_start, ta_grid)
+     CALL det_band_gd(topo_grid,block_row_start, ta_grid)
      PRINT *,'next call of det_band_gd'
      PRINT *,'ta_grid: ',ta_grid
      IF(ALLOCATED(h_block)) THEN
@@ -386,8 +425,9 @@ MODULE mo_agg_globe
      ENDIF
      ALLOCATE (h_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
      IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block')
-      CALL get_globe_data_block(ta_grid,              &
-        &                       globe_tiles_grid, &
+      CALL get_globe_data_block(topo_file_1,     &            !mes ><
+        &                       ta_grid,         &
+        &                       topo_tiles_grid, &
         &                       ncids_globe, &
         &                       h_block)
    ENDIF
@@ -395,14 +435,14 @@ MODULE mo_agg_globe
    IF (mlat==1) THEN  !first row of globe data
      !CALL get_globe_data_parallel(mlat, ncids_globe, h_parallel)
      h_parallel(1:nc_tot) = h_block(1:nc_tot,block_row)
-     row_lat(j_c) = globe_grid%start_lat_reg + (mlat-1) * globe_grid%dlat_reg
+     row_lat(j_c) = topo_grid%start_lat_reg + (mlat-1) * topo_grid%dlat_reg
 
      h_3rows(1:nc_tot,j_c) = h_parallel(1:nc_tot)  ! put data to "central row"
      hh(1:nc_tot,j_c) = h_parallel(1:nc_tot)  ! put data to "central row"
      hh(0,j_c)        = h_parallel(nc_tot) ! western wrap at -180/180 degree longitude
      hh(nc_tot_p1,j_c) = h_parallel(1)      ! eastern wrap at -180/180 degree longitude
    ENDIF
-   row_lat(j_s) = globe_grid%start_lat_reg + mlat * globe_grid%dlat_reg  !  ((mlat+1)-1)
+   row_lat(j_s) = topo_grid%start_lat_reg + mlat * topo_grid%dlat_reg  !  ((mlat+1)-1)
 
    IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid
      IF ((row_lat(j_s) > bound_north_cosmo).OR.(row_lat(j_s) < bound_south_cosmo) ) THEN ! raw data out of target grid
@@ -410,7 +450,7 @@ MODULE mo_agg_globe
      ENDIF
    ENDIF ! COSMO grid
 
-   IF(mlat /= 21600) THEN !  read raw data south of "central" row except when you are at the most southern raw data line
+   IF(mlat /= nr_tot) THEN !  read raw data south of "central" row except when you are at the most southern raw data line     !mes ><
      h_parallel(1:nc_tot) = h_block(1:nc_tot,block_row)
      h_3rows(1:nc_tot,j_s) = h_parallel(1:nc_tot)
      hh(1:nc_tot,j_s) = h_parallel(1:nc_tot) ! put data to "southern row"
@@ -423,16 +463,16 @@ MODULE mo_agg_globe
    IF (mlat==1) THEN ! most northern row of raw data
      j_n = j_c  ! put the index of "northern row" to the same index as "central row"
      d2y = dy   ! adjust d2y in this case too
-   ELSEIF (mlat==21600) THEN ! most southern row of raw data
+   ELSEIF (mlat==nr_tot) THEN ! most southern row of raw data   !mes ><
      j_s = j_c  ! put the index of "southern row" to the same index as "central row"
      d2y = dy   ! adjust d2y in this case too
    ENDIF
 
    ! set undefined vaulues to 0 altitude (default)
-    WHERE (hh == undef_globe)  
+    WHERE (hh == undef_topo)  
      hh = default_globe
    END WHERE
-    WHERE (h_parallel == undef_globe)
+    WHERE (h_parallel == undef_topo)
      h_parallel = default_globe
    END WHERE
 
@@ -522,14 +562,29 @@ MODULE mo_agg_globe
        IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
            no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1
            !- summation of variables
-           IF (h_3rows(i,j_c) /= undef_globe) THEN
-             ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
-             hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
-             hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
-             h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
-             h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
-             h22(ie,je,ke)        = h22(ie,je,ke) + dhdydy(i)
-           ENDIF
+! mes >
+           SELECT CASE(topography)
+            CASE(topo_aster)
+             IF (h_3rows(i,j_c) /= default_globe) THEN       
+               ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
+               hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
+               hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
+               h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
+               h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
+               h22(ie,je,ke)        = h22(ie,je,ke) + dhdydy(i)
+             ENDIF
+            CASE(topo_gl)
+             IF (h_3rows(i,j_c) /= undef_topo) THEN            
+               ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
+               hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
+               hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
+               h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
+               h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
+               h22(ie,je,ke)        = h22(ie,je,ke) + dhdydy(i)
+             ENDIF
+           END SELECT
+! mes <
+
        ENDIF
 
        ENDDO ! loop over one latitude circle of the raw data
@@ -686,7 +741,7 @@ MODULE mo_agg_globe
             znfi2sum = no_raw_data_pixel(ie,je,ke) * hh2_target(ie,je,ke) 
             zarg     = ( znfi2sum - (hh1_target(ie,je,ke)*hh1_target(ie,je,ke))) * znorm
          ENDIF
-            zarg = MAX(zarg,0.0) ! truncation errors may cause zarg < 0.0
+            zarg = MAX(zarg,0.0_wp) ! truncation errors may cause zarg < 0.0
             stdh_target(ie,je,ke) = SQRT(zarg)
 !roa<
 
@@ -790,7 +845,7 @@ MODULE mo_agg_globe
        DO je=1, tg%je
        DO ie=1, tg%ie
          z0_globe = factor*stdh_target(ie,je,ke)**2
-         z0_globe = MIN(z0_globe,zhp-1.)
+         z0_globe = MIN(z0_globe,zhp-1.0_wp)
          z0_topo(ie,je,ke) = z0_globe
        ENDDO
        ENDDO
@@ -815,8 +870,9 @@ MODULE mo_agg_globe
            point_lon_geo = lon_geo(ie,je,ke)
            point_lat_geo = lat_geo(ie,je,ke)
  
-           CALL bilinear_interpol_globe_to_target_point(globe_grid, &
-             &                                      globe_tiles_grid, &
+           CALL bilinear_interpol_globe_to_target_point(topo_files, & !mes ><
+             &                                      topo_grid, &
+             &                                      topo_tiles_grid, &
              &                                      ncids_globe,      &
              &                                      lon_globe,        &
              &                                      lat_globe,        &
@@ -847,8 +903,9 @@ MODULE mo_agg_globe
              point_lon_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lon
              point_lat_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lat
 
-             CALL bilinear_interpol_globe_to_target_point(globe_grid, &
-               &                                      globe_tiles_grid, &
+             CALL bilinear_interpol_globe_to_target_point(topo_files,  & !mes ><
+               &                                      topo_grid, &
+               &                                      topo_tiles_grid, &
                &                                      ncids_globe,      &
                &                                      lon_globe,        &
                &                                      lat_globe,        &
@@ -862,7 +919,7 @@ MODULE mo_agg_globe
          ENDDO
        END SELECT
        ! close the GLOBE netcdf files
-       DO nt=1,ntiles_gl
+       DO nt=1,ntiles
           CALL close_netcdf_GLOBE_tile(ncids_globe(nt))
        ENDDO
        PRINT *,'GLOBE netcdf files closed'
@@ -881,20 +938,24 @@ MODULE mo_agg_globe
        !! - the coordinates of the north-western point of the domain ("upper left") startlon_reg_lonlat and startlat_reg_lonlat
        !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the grid definiton goes from the west to the east and from the north to the south)
        !! - the number of grid elements nlon_reg_lonlat and nlat_reg_lonlat for both directions
-       SUBROUTINE bilinear_interpol_globe_to_target_point(globe_grid, &
-                                               globe_tiles_grid, &
-                                               ncids_globe,      &
-                                               lon_globe,        &
-                                               lat_globe,        &
-                                               point_lon_geo,      &
-                                               point_lat_geo,      &
-                                               fr_land_pixel,      &
+       SUBROUTINE bilinear_interpol_globe_to_target_point(topo_files, & !mes ><
+                                               topo_grid,             &
+                                               topo_tiles_grid,       &
+                                               ncids_globe,           &
+                                               lon_globe,             &
+                                               lat_globe,             &
+                                               point_lon_geo,         &
+                                               point_lat_geo,         &
+                                               fr_land_pixel,         &
                                                globe_target_value)
        
-       USE mo_globe_data, ONLY : ntiles_gl  !< there are 16 GLOBE tiles 
-       USE mo_globe_data, ONLY: nc_tot      !< number of total GLOBE columns at a latitude circle (43200)
-       USE mo_globe_data, ONLY: nr_tot      !< number of total GLOBE rows at a latitude circle (43200)
-
+       USE mo_topo_data, ONLY: ntiles  !< there are 16 GLOBE tiles 
+       USE mo_topo_data, ONLY: nc_tot      !< number of total GLOBE columns at a latitude circle (43200)
+       USE mo_topo_data, ONLY: nr_tot      !< number of total GLOBE rows at a latitude circle (43200)
+!mes >
+       USE mo_topo_data, ONLY: get_fill_value  ! determines the corresponding _FillValue of GLOBE or ASTER
+       USE mo_topo_data, ONLY: max_tiles
+! mes <
        USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
        USE mo_grid_structures, ONLY: rotated_lonlat_grid !< Definition of Data Type to describe a rotated lonlat grid
        USE mo_globe_routines, ONLY: open_netcdf_globe_tile
@@ -904,10 +965,10 @@ MODULE mo_agg_globe
        USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
           &                        calc_weight_bilinear_interpol, &
           &                        calc_value_bilinear_interpol
-
-       TYPE(reg_lonlat_grid), INTENT(IN) :: globe_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
-       TYPE(reg_lonlat_grid), INTENT(IN) :: globe_tiles_grid(1:ntiles_gl) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
-       INTEGER (KIND=i4), INTENT(IN) :: ncids_globe(1:ntiles_gl)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       CHARACTER(LEN=24), INTENT(IN)     :: topo_files(1:max_tiles)
+       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
+       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+       INTEGER (KIND=i4), INTENT(IN) :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
        
        REAL (KIND=wp), INTENT(IN) :: lon_globe(1:nc_tot)   !< longitude coordinates of the GLOBE grid
        REAL (KIND=wp), INTENT(IN) :: lat_globe(1:nr_tot)   !< latititude coordinates of the GLOBE grid
@@ -942,13 +1003,22 @@ MODULE mo_agg_globe
        LOGICAL :: gldata=.TRUE. ! GLOBE data are global
        INTEGER :: ndata
        INTEGER :: nland
-       INTEGER (KIND=i4) :: undef_globe
+       INTEGER (KIND=i4) :: undef_topo
        INTEGER (KIND=i4) :: default_globe
-       undef_globe = -500 ! \TODO read undef value from netcdf attribute
+!mes >
+       CHARACTER(LEN=24) :: topo_file_1   
+!mes >
+       topo_file_1 = topo_files(1)
+
+       CALL get_fill_value(topo_file_1,undef_topo)
+
+!       print*, undef_topo
+!       undef_globe = -500 ! \TODO read undef value from netcdf attribute
+!mes <
        default_globe = 0
 
        ! get four surrounding raw data indices
-       CALL  get_4_surrounding_raw_data_indices(globe_grid, &
+       CALL  get_4_surrounding_raw_data_indices(topo_grid, &
          &                                      lon_globe,     &
          &                                      lat_globe,     &
          &                                      gldata,        &
@@ -962,8 +1032,8 @@ MODULE mo_agg_globe
          !print *, western_column, eastern_column, northern_row, southern_row  
 
          
-       ta_grid%dlon_reg = globe_grid%dlon_reg
-       ta_grid%dlat_reg = globe_grid%dlat_reg
+       ta_grid%dlon_reg = topo_grid%dlon_reg
+       ta_grid%dlat_reg = topo_grid%dlat_reg
        ta_grid%nlon_reg = eastern_column - western_column + 1
        ta_grid%nlat_reg = southern_row - northern_row + 1
        ta_grid%start_lon_reg = lon_globe(western_column)
@@ -983,34 +1053,35 @@ MODULE mo_agg_globe
 
        ALLOCATE (h_block(western_column:eastern_column,northern_row:southern_row), STAT=errorcode)
        IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block')
-       CALL get_globe_data_block(ta_grid,              &
-         &                       globe_tiles_grid, &
+       CALL get_globe_data_block(topo_file_1,     &   !mes ><
+         &                       ta_grid,         &
+         &                       topo_tiles_grid, &
          &                       ncids_globe, &
          &                       h_block)
        ! check for undefined GLOBE data, which indicate ocean grid element
 
-       IF( h_block(western_column,southern_row) == undef_globe) THEN
+       IF( h_block(western_column,southern_row) == undef_topo) THEN
           globe_point_sw = 0.0
           h_block(western_column,southern_row) = default_globe
        ELSE
           globe_point_sw = 1.0
        ENDIF
 
-       IF( h_block(eastern_column,southern_row) == undef_globe) THEN
+       IF( h_block(eastern_column,southern_row) == undef_topo) THEN
           globe_point_se = 0.0
           h_block(eastern_column,southern_row) = default_globe
        ELSE
           globe_point_se = 1.0
        ENDIF
        
-       IF( h_block(eastern_column,northern_row) == undef_globe) THEN
+       IF( h_block(eastern_column,northern_row) == undef_topo) THEN
           globe_point_ne = 0.0
           h_block(eastern_column,northern_row) = default_globe
        ELSE
           globe_point_ne = 1.0
        ENDIF
 
-       IF( h_block(western_column,northern_row) == undef_globe) THEN
+       IF( h_block(western_column,northern_row) == undef_topo) THEN
           globe_point_nw = 0.0
           h_block(western_column,northern_row) = default_globe 
        ELSE

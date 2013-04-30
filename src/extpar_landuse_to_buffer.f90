@@ -117,6 +117,10 @@ PROGRAM extpar_landuse_to_buffer
     &                             get_lonlat_glcc_data, &
     &                             get_dimension_glc2000_data,       &
     &                             get_lonlat_glc2000_data
+! >mes
+  USE mo_landuse_routines, ONLY:  get_globcover_tiles_grid,  &
+    &                             det_band_globcover_data
+! <mes
 
 
 
@@ -228,10 +232,20 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   USE mo_landuse_routines, ONLY: get_dimension_globcover_data,       &
     &                             get_lonlat_globcover_data
 
-  USE mo_globcover_data, ONLY: globcover_grid, &
-    &                         lon_globcover,  &
-    &                         lat_globcover,  &
-    &                         allocate_raw_globcover_fields
+  USE mo_globcover_data, ONLY: globcover_grid,                &
+    &                          lon_globcover,                 &
+    &                          lat_globcover,                 &
+    &                          globcover_tiles_grid,          &
+    &                          ntiles_globcover,              &
+    &                          max_tiles_lu,                  &
+    &                          lu_tiles_lon_min,              &
+    &                          lu_tiles_lon_max,              &
+    &                          lu_tiles_lat_min,              &
+    &                          lu_tiles_lat_max,              &
+    &                          nc_tiles_lu,                   &
+    &                          allocate_raw_globcover_fields, &
+    &                          allocate_globcover_data,       &
+    &                          fill_globcover_data
 
  USE mo_agg_globcover, ONLY : agg_globcover_data_to_target_grid
 
@@ -247,11 +261,11 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
   CHARACTER(len=filename_max) :: input_lu_namelist_file
-  CHARACTER(len=filename_max) :: lu_file
+  CHARACTER(len=filename_max), ALLOCATABLE:: lu_file(:)
 
   CHARACTER (len=filename_max) :: raw_data_lu_path        !< path to raw data
-  CHARACTER (len=filename_max) :: raw_data_lu_filename !< filename glc2000 raw data
-  CHARACTER(len=filename_max) :: glcc_file
+  CHARACTER (len=filename_max) :: raw_data_lu_filename(1:max_tiles_lu) !< filename glc2000 raw data
+  CHARACTER(len=filename_max) :: glcc_file(1)
 
   CHARACTER (len=filename_max) :: lu_buffer_file !< name for glc2000 buffer file
   CHARACTER (len=filename_max) :: lu_output_file !< name for glc2000 output file
@@ -263,6 +277,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   CHARACTER (len=filename_max) :: glcc_output_file !< name for glcc output file
 
   INTEGER :: i,j,k !< counter
+  INTEGER :: errorcode
 
   REAL (KIND=wp) :: undefined
   REAL (KIND=wp) :: tg_southern_bound
@@ -270,6 +285,10 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   LOGICAL :: l_use_glcc=.FALSE.
 
   INTEGER :: undef_int
+
+! >mes
+  INTEGER(KIND=i4)  :: ntiles_lu
+! <mes
 
   INTEGER (KIND=i8) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
   INTEGER (KIND=i8) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
@@ -310,26 +329,55 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   !---------------------------------------------------------------------------
   CALL read_namelists_extpar_land_use(input_lu_namelist_file, &
-    &                                 i_landuse_data, &
-    &                                 raw_data_lu_path, &
-    &                                 raw_data_lu_filename, &
-    &                                 ilookup_table_lu, &
-    &                                 lu_buffer_file, &
-    &                                 lu_output_file, &
-    &                                 raw_data_glcc_path, &
-    &                                  raw_data_glcc_filename, &
-    &                                  ilookup_table_glcc,         &
-    &                                  glcc_buffer_file, &
-    &                                  glcc_output_file)
+    &                                 i_landuse_data,         &
+    &                                 raw_data_lu_path,       &
+    &                                 raw_data_lu_filename,   &
+    &                                 ilookup_table_lu,       &
+    &                                 lu_buffer_file,         &
+    &                                 lu_output_file,         &
+    &                                 raw_data_glcc_path,     &
+    &                                 raw_data_glcc_filename, &
+    &                                 ilookup_table_glcc,     &
+    &                                 glcc_buffer_file,       &
+    &                                 glcc_output_file)
 
+! >mes
+  ntiles_lu = 1
+  SELECT CASE(i_landuse_data)
+    CASE (i_lu_globcover)
+      ntiles_lu = ntiles_globcover
+       
+      CALL allocate_globcover_data(ntiles_lu)                  ! allocates the data using ntiles
+      CALL fill_globcover_data(raw_data_lu_path,     &
+                          raw_data_lu_filename, &  ! the allocated vectors need to be filled with the respective value.
+                          lu_tiles_lon_min, &
+                          lu_tiles_lon_max, &    
+                          lu_tiles_lat_min, &
+                          lu_tiles_lat_max, &
+                          nc_tiles_lu)
+      print*, 'lon_min: ', lu_tiles_lon_min
+      print*, 'lon_max: ', lu_tiles_lon_max
+      print*, 'lat_min: ', lu_tiles_lat_min
+      print*, 'lat_max: ', lu_tiles_lat_max
 
+    END SELECT
+
+    ALLOCATE(lu_file(1:ntiles_lu), STAT= errorcode)
+    IF(errorcode /= 0) CALL abort_extpar('Cant allocate lu_file')
+! <mes
+    print*, 'ntiles_lu: ', ntiles_lu
   PRINT *,'raw_data_glcc_filename: ',TRIM(raw_data_glcc_filename)
-  lu_file = TRIM(raw_data_lu_path) // TRIM(raw_data_lu_filename)
 
-  glcc_file = TRIM(raw_data_glcc_path) // TRIM(raw_data_glcc_filename)
+! >mes
+  DO k = 1,ntiles_lu
+    lu_file(k) = TRIM(raw_data_lu_path) // TRIM(raw_data_lu_filename(k))
+    PRINT *,'lu_file: ', TRIM(lu_file(k))
 
-  PRINT *,'lu_file: ', TRIM(lu_file)
-  PRINT *,'glcc file: ', TRIM(glcc_file)
+  END DO
+! <mes
+
+  glcc_file(1) = TRIM(raw_data_glcc_path) // TRIM(raw_data_glcc_filename)
+  PRINT *,'glcc file: ', TRIM(glcc_file(1))
 
   SELECT CASE (i_landuse_data)
     CASE (i_lu_globcover)
@@ -352,7 +400,13 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
         IF (tg_southern_bound < globcover_grid%end_lat_reg) THEN
           l_use_glcc=.TRUE.
           CALL allocate_glcc_target_fields(tg)
-        ENDIF  
+        ENDIF 
+
+! >mes
+      CALL get_globcover_tiles_grid(globcover_tiles_grid)
+      print*,'globcover_tiles_grid(1): ', globcover_tiles_grid(1)
+! <mes
+
     CASE (i_lu_glc2000)
       nclass_lu = nclass_glc2000
 
@@ -399,24 +453,27 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
  SELECT CASE (i_landuse_data)
     CASE(i_lu_globcover)
 
-    CALL agg_globcover_data_to_target_grid(lu_file,ilookup_table_lu,undefined,       &
-    &                                        tg,                                         &
-    &                                        nclass_globcover,                             &
-    &                                        lu_class_fraction, &
-    &                                        lu_class_npixel, &
-    &                                        lu_tot_npixel,   &
-    &                                        fr_land_lu ,     &
-    &                                        ice_lu,          &
-    &                                        z0_lu, &
-    &                                        root_lu, &
-    &                                        plcov_mn_lu, &
-    &                                        plcov_mx_lu, &
-    &                                        lai_mn_lu,   &
-    &                                        lai_mx_lu, &
-    &                                        rs_min_lu, &
-    &                                        urban_lu,  &
-    &                                        for_d_lu,  &
-    &                                        for_e_lu, &
+    CALL agg_globcover_data_to_target_grid(lu_file,                &  
+    &                                        ilookup_table_lu,     &
+    &                                        undefined,            &
+    &                                        globcover_tiles_grid, &
+    &                                        tg,                   &
+    &                                        nclass_globcover,     &
+    &                                        lu_class_fraction,    &
+    &                                        lu_class_npixel,      &
+    &                                        lu_tot_npixel,        &
+    &                                        fr_land_lu ,          &
+    &                                        ice_lu,               &
+    &                                        z0_lu,                &
+    &                                        root_lu,              &
+    &                                        plcov_mn_lu,          &
+    &                                        plcov_mx_lu,          &
+    &                                        lai_mn_lu,            &
+    &                                        lai_mx_lu,            &
+    &                                        rs_min_lu,            &
+    &                                        urban_lu,             &
+    &                                        for_d_lu,             &
+    &                                        for_e_lu,             &
     &                                        emissivity_lu    )
 
 
@@ -551,6 +608,8 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                     for_e_glcc, &
     &                                     emissivity_glcc)
    ENDIF
+
+   PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'    !mes
 
 
 END PROGRAM extpar_landuse_to_buffer

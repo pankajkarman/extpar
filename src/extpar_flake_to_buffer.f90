@@ -363,7 +363,7 @@ PROGRAM extpar_flake_to_buffer
       CASE(igrid_gme) ! GME grid   
 
     END SELECT
-
-
+   
+    PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
 
 END PROGRAM extpar_flake_to_buffer

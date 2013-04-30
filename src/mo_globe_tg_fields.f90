@@ -26,6 +26,7 @@ MODULE mo_globe_tg_fields
 
   USE mo_grid_structures, ONLY: target_grid_def
 
+  USE mo_topo_data,      ONLY: lradtopo, nhori
 
   IMPLICIT NONE
 
@@ -38,11 +39,12 @@ MODULE mo_globe_tg_fields
     &        aniso_globe,         &
     &        slope_globe,         &
     &        z0_topo,             &
+    &        slope_asp_globe,     &
+    &        slope_ang_globe,     &
+    &        horizon_globe,       &
+    &        skyview_globe,       &    
     &        allocate_globe_target_fields
             
-  PUBLIC :: globe_buffer
-  PUBLIC :: oro_tg
-  PUBLIC :: allocate_oro_tg
 
   PUBLIC ::   add_parameters_domain, &
     &          vertex_param, &
@@ -59,7 +61,13 @@ MODULE mo_globe_tg_fields
   REAL(KIND=wp), ALLOCATABLE  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
 
   REAL(KIND=wp), ALLOCATABLE  :: z0_topo(:,:,:) !< roughness length due to orography
-  
+    
+
+  REAL(KIND=wp), ALLOCATABLE  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope aspect
+  REAL(KIND=wp), ALLOCATABLE  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope angle
+  REAL(KIND=wp), ALLOCATABLE  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
+  REAL(KIND=wp), ALLOCATABLE  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+
   !> data structure for parameters on vertices of Icon grid
   TYPE add_parameters_domain
      REAL(KIND=wp), ALLOCATABLE     :: hh_vert(:,:,:)   !< height on vertex
@@ -68,70 +76,9 @@ MODULE mo_globe_tg_fields
 
   TYPE(add_parameters_domain) :: vertex_param  !< additional external parameters for ICON domain
 
-  !> data structure for orography fields
-  TYPE globe_buffer
-    REAL(KIND=wp), ALLOCATABLE  :: hh_globe(:,:,:)  !< mean height 
-    REAL(KIND=wp), ALLOCATABLE  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
-    REAL(KIND=wp), ALLOCATABLE  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-    REAL(KIND=wp), ALLOCATABLE  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-    REAL(KIND=wp), ALLOCATABLE  :: slope_globe(:,:,:) !< sso parameter, mean slope
-    REAL(KIND=wp), ALLOCATABLE  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
-  END TYPE globe_buffer
-
-  TYPE(globe_buffer) :: oro_tg !< structure for globe buffer 
 
 
 CONTAINS
-  !> allocate fields for GLOBE target data 
-  SUBROUTINE allocate_oro_tg(tg)
-  USE mo_grid_structures, ONLY : target_grid_def
-  TYPE(target_grid_def), INTENT(IN) :: tg
-
-  !local variables
-  INTEGER :: ie,je,ke !< indices
-  INTEGER :: errorcode !< error status variable
-
-    ie=tg%ie
-    je=tg%je
-    ke=tg%ke
-
-    ALLOCATE(oro_tg%hh_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-    ALLOCATE(oro_tg%stdh_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-
-    ALLOCATE(oro_tg%theta_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-
-    ALLOCATE(oro_tg%aniso_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-
-    ALLOCATE(oro_tg%slope_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-    ALLOCATE(oro_tg%fr_land_globe(ie,je,ke), STAT=errorcode)
-    IF (errorcode /= 0 ) THEN
-      CALL abort_extpar('Can not allocate the structure oro_ntarget')
-    ENDIF
-
-
-  END SUBROUTINE allocate_oro_tg
-
-
 
 
 
@@ -175,6 +122,18 @@ CONTAINS
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array z0_topo')
     z0_topo = 0.0
 
+    ALLOCATE (slope_asp_globe(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array slope_asp_globe')
+    slope_asp_globe = 0.0
+    ALLOCATE (slope_ang_globe(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array slope_ang_globe')
+    slope_ang_globe = 0.0
+    ALLOCATE (horizon_globe(1:tg%ie,1:tg%je,1:tg%ke,nhori), STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array horizon_globe')
+    horizon_globe = 0.0
+    ALLOCATE (skyview_globe(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array skyview_globe')
+    skyview_globe = 0.0
 
 
   END SUBROUTINE allocate_globe_target_fields

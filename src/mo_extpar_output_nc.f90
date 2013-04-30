@@ -78,6 +78,8 @@ MODULE mo_extpar_output_nc
   SUBROUTINE write_netcdf_cosmo_grid_extpar(netcdf_filename,  &
     &                                     cosmo_grid,       &
     &                                     tg,         &
+    &                                     lrad,       &
+    &                                     nhori,      &
     &                                     undefined, &
     &                                     undef_int,   &
     &                                     name_lookup_table_lu, &
@@ -113,7 +115,11 @@ MODULE mo_extpar_output_nc
     &                                     aniso_globe,         &
     &                                     slope_globe,   &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp, &
+    &                                     slope_asp_globe,     &
+    &                                     slope_ang_globe,     &
+    &                                     horizon_globe,       &
+    &                                     skyview_globe)
   
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
@@ -131,6 +137,7 @@ MODULE mo_extpar_output_nc
   USE mo_var_meta_data, ONLY: dim_rlon_cosmo, &
     &                         dim_rlat_cosmo, &
     &                         dim_2d_cosmo,   &
+    &                         dim_3d_cosmo,   &
     &                         rlon_meta,      &
     &                         rlat_meta,      &
     &                         def_dimension_info_cosmo
@@ -160,16 +167,17 @@ MODULE mo_extpar_output_nc
       &                         def_ndvi_meta
 
   USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
-  USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+  USE mo_var_meta_data, ONLY: dim_buffer_vertex
 
   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
    &       stdh_globe_meta, theta_globe_meta, &
    &       aniso_globe_meta, slope_globe_meta, &
    &       hh_vert_meta, npixel_vert_meta, z0_topo_meta, &
 !roa nc>
-   &       hh_fis_meta
+   &       hh_fis_meta, &
 !roa nc<
-
+   &       slope_asp_globe_meta, slope_ang_globe_meta,   &
+   &       horizon_globe_meta, skyview_globe_meta    
 
 
   USE mo_var_meta_data, ONLY: dim_aot_tg, dim_aot_ty, &
@@ -194,6 +202,8 @@ MODULE mo_extpar_output_nc
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  LOGICAL,               INTENT(IN) :: lrad
+  INTEGER(KIND=i4),      INTENT(IN) :: nhori
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   CHARACTER (len=filename_max), INTENT(IN) :: name_lookup_table_lu !< name of lookup table
@@ -231,8 +241,15 @@ MODULE mo_extpar_output_nc
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+
+
   ! local variables
   REAL(KIND=wp), ALLOCATABLE :: var_real_2d(:,:)
+  REAL(KIND=wp), ALLOCATABLE :: var_real_hor(:,:,:)
 
   INTEGER :: ndims  
   INTEGER :: ncid
@@ -263,11 +280,11 @@ MODULE mo_extpar_output_nc
     PRINT *,'global_attributes: ', global_attributes
 
     !set up dimensions for buffer
-    CALL  def_dimension_info_buffer(tg)
-    ! dim_3d_tg
+    CALL  def_dimension_info_buffer(tg,nhori=nhori)
+    ! dim_3d_tg, dim_4d_tg
 
     !set up dimensions for COSMO grid
-    CALL def_dimension_info_cosmo(cosmo_grid)
+    CALL def_dimension_info_cosmo(cosmo_grid,nhori=nhori)
     ! dim_rlon_cosmo, dim_rlat_cosmo, dim_2d_cosmo, rlon_meta, rlat_meta
 
     ! set mapping parameters for netcdf
@@ -307,11 +324,22 @@ MODULE mo_extpar_output_nc
 
     ! define meta information for various GLOBE data related variables for netcdf output
     PRINT *,'def_globe_meta'
-    CALL def_globe_meta(dim_2d_cosmo,coordinates,grid_mapping)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !  stdh_globe_meta, theta_globe_meta, &
-    !  aniso_globe_meta, slope_globe_meta, &
-    !  hh_vert_meta, npixel_vert_meta
+
+    IF(lrad) THEN
+      CALL def_globe_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
+      !  hh_globe_meta, fr_land_globe_meta, &
+      !  stdh_globe_meta, theta_globe_meta, &
+      !  aniso_globe_meta, slope_globe_meta, &
+      !  hh_vert_meta, npixel_vert_meta
+      !  slope_asp_globe_meta, slope_ang_globe_meta, 
+      !  horizon_globe_meta, skyview_globe_meta
+    ELSE
+      CALL def_globe_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping)
+      !  hh_globe_meta, fr_land_globe_meta, &
+      !  stdh_globe_meta, theta_globe_meta, &
+      !  aniso_globe_meta, slope_globe_meta, &
+      !  hh_vert_meta, npixel_vert_meta
+    ENDIF
 
     ! define dimensions and meta information for variable aot_tg for netcdf output
      PRINT *,'def_aot_tg_meta'
@@ -333,9 +361,14 @@ MODULE mo_extpar_output_nc
 
     ALLOCATE(var_real_2d(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot), STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate var_real_2d')
-
-    !set up dimensions for buffer netcdf output 
+    IF(PRESENT(horizon_globe)) THEN
+      ALLOCATE(var_real_hor(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:nhori), STAT=errorcode)
+      IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate var_real_hor')
+    ENDIF
+    !set up dimensions for buffer netcdf output
     ndims = 4
+    IF(PRESENT(horizon_globe)) ndims = ndims + 1
+ 
     PRINT *,'ALLOCATE(dim_list(1:ndims))'
     ALLOCATE(time(1:ntime_aot),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
@@ -352,6 +385,11 @@ MODULE mo_extpar_output_nc
     dim_list(3)%dimsize = nclass_lu 
     dim_list(4)%dimname = 'time'
     dim_list(4)%dimsize = ntime_aot
+
+    IF (PRESENT(horizon_globe)) THEN
+      dim_list(5)%dimname = 'nhori'
+      dim_list(5)%dimsize = nhori
+    ENDIF
 
     !-----------------------------------------------------------------
     PRINT *,' CALL open_new_netcdf_file'
@@ -459,6 +497,34 @@ MODULE mo_extpar_output_nc
     ! slope_globe
     var_real_2d(:,:) = slope_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,slope_globe_meta,undefined)
+
+    ! slope_asp_globe
+    IF (PRESENT(slope_asp_globe)) THEN
+      var_real_2d(:,:) = slope_asp_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d, slope_asp_globe_meta,undefined)
+      PRINT *, "write slope_asp"
+    ENDIF
+ 
+    ! slope_ang_globe
+    IF (PRESENT(slope_ang_globe)) THEN
+      var_real_2d(:,:) = slope_ang_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d, slope_ang_globe_meta,undefined)
+      PRINT *, "write slope_ang"
+    ENDIF
+
+    ! horizon_globe
+    IF (PRESENT(horizon_globe)) THEN
+      var_real_hor(:,:,:) = horizon_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:nhori)
+      CALL netcdf_put_var(ncid,var_real_hor, horizon_globe_meta,undefined)
+      PRINT *, "write horizon"
+    ENDIF
+
+    ! skyview
+    IF (PRESENT(skyview_globe)) THEN
+      var_real_2d(:,:) = skyview_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d, skyview_globe_meta,undefined)
+      PRINT *, "write skyview"
+    ENDIF
 
     ! crutemp
     var_real_2d(:,:) = crutemp(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
@@ -613,7 +679,7 @@ MODULE mo_extpar_output_nc
     &                         def_ndvi_meta
 
   USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
-  USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
+  USE mo_var_meta_data, ONLY: dim_buffer_vertex
 
   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
    &       stdh_globe_meta, theta_globe_meta, &
