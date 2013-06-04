@@ -10,8 +10,15 @@
 ! V1_2         2011/03/25 Hermann Asensio
 !  update to support ICON refinement grids
 !  bug fix in interpolation routine and handling of undefined GLOBE values
-! @VERSION@    @DATE@     Anne Roches
+! V1_4         2011/04/21 Anne Roches
 !  implementation of orography smoothing
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON
+!   Potential bugfix in treatment of GLOBE data for COSMO -
+!   no impact on results detected so far   
 ! @VERSION@    @DATE@     Martina Messmer
 !  Change all 'globe' to topo in globe_files, remove all 'globe' in 
 !  change mo_GLOBE_data to mo_topo_data, globe_tiles_grid to 
@@ -90,7 +97,8 @@ MODULE mo_agg_globe
     USE mo_grid_structures, ONLY: rotated_lonlat_grid !< Definition of Data Type to describe a rotated lonlat grid
     USE mo_grid_structures, ONLY: target_grid_def  !< Definition of data type with target grid definition
     
-   USE mo_utilities_extpar, ONLY: uv2uvrot          !< This routine converts the components u and v from the real geographical system to the rotated system
+   USE mo_utilities_extpar, ONLY: uv2uvrot          
+!< This routine converts the components u and v from the real geographical system to the rotated system
    USE mo_globe_routines, ONLY: get_globe_tile_block_indices
    USE mo_globe_routines, ONLY: open_netcdf_GLOBE_tile
    USE mo_globe_routines, ONLY: close_netcdf_GLOBE_tile
@@ -103,7 +111,8 @@ MODULE mo_agg_globe
    USE mo_gme_grid, ONLY: cp_buf2gme, cp_gme2buf
    ! USE global data fields (coordinates)
    USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the grid in the geographical system 
-     &                              lat_geo !< latitude coordinates of the grid in the geographical system
+     &                            lat_geo !< latitude coordinates of the grid in the geographical system
+   USE mo_target_grid_data, ONLY: search_res ! resolution of ICON grid search index list
 
    ! USE structure which contains the definition of the COSMO grid
    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
@@ -111,19 +120,16 @@ MODULE mo_agg_globe
    USE mo_gme_grid, ONLY: gme_grid
    USE mo_gme_grid, ONLY: xn, rlon_gme, rlat_gme
    USE mo_search_gme_grid, ONLY: pp_ll2gp
-   USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
+   USE  mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
    ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-   USE mo_icon_grid_data, ONLY: icon_grid_region, icon_dom_nr
+   USE mo_icon_grid_data, ONLY: icon_grid_region
    ! use additional parameters for height on vertices
    ! as a test the fields are loaded from a module instead of passing in the subroutine call
    USE mo_globe_tg_fields, ONLY: add_parameters_domain !< data structure
    USE mo_globe_tg_fields, ONLY: vertex_param          !< this structure contains the fields 
                                                            !! vertex_param%npixel_vert
    ! USE modules to search in ICON grid
-   USE mo_search_icongrid, ONLY: find_nc, &
-                                    walk_to_nc, &
-                                    find_nchild_nlev, &
-                                    find_nearest_vert
+   USE mo_search_icongrid, ONLY:   walk_to_nc, find_nearest_vert
 
    USE mo_icon_domain,     ONLY: icon_domain
 
@@ -145,10 +151,12 @@ MODULE mo_agg_globe
 
 
    TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
    TYPE(reg_lonlat_grid) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
    CHARACTER (LEN=24), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe raw data
+
    !roa>
    LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
    INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
@@ -167,13 +175,15 @@ MODULE mo_agg_globe
 !roa<
 
    REAL(KIND=wp), INTENT(OUT)   :: hh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
-       REAL(KIND=wp), INTENT(OUT)   :: stdh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< standard deviation of subgrid scale orographic height 
+       REAL(KIND=wp), INTENT(OUT)   :: stdh_target(1:tg%ie,1:tg%je,1:tg%ke)  
+!< standard deviation of subgrid scale orographic height
    REAL(KIND=wp), INTENT(OUT)   :: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
    REAL(KIND=wp), INTENT(OUT)   :: aniso_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, anisotropie factor
    REAL(KIND=wp), INTENT(OUT)   :: slope_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, mean slope
    REAL(KIND=wp), INTENT(OUT)   :: z0_topo(1:tg%ie,1:tg%je,1:tg%ke) !< roughness length due to orography
    REAL(KIND=wp), INTENT(OUT)   :: fr_land_globe(1:tg%ie,1:tg%je,1:tg%ke) !< fraction land
-   INTEGER (KIND=i8), INTENT(OUT) :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel for a target grid element
+   INTEGER (KIND=i8), INTENT(OUT) :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)  
+!< number of raw data pixel for a target grid element
 
    ! local variables
    REAL (KIND=wp)  :: lon_globe(1:nc_tot)   !< longitude coordinates of the GLOBE grid
@@ -185,7 +195,9 @@ MODULE mo_agg_globe
 !!!!!!!!mes <
 
 
-   INTEGER  :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+   INTEGER  :: ncids_globe(1:ntiles)  
+!< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+
    INTEGER (KIND=i4) :: h_parallel(1:nc_tot)  !< one line with GLOBE data
    INTEGER (KIND=i4) :: h_3rows(1:nc_tot,1:3) !< three rows with GLOBE data
 
@@ -214,14 +226,13 @@ MODULE mo_agg_globe
    INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
 
    TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-   INTEGER (KIND=i8) :: nearest_cell_id  !< result of icon grid search
-   INTEGER (KIND=i8) :: nearest_vert_id  !< result of icon grid search for vertices
-   INTEGER :: n_dom ! number of Icon domains
    INTEGER (KIND=i4) :: undef_topo
    INTEGER (KIND=i4) :: default_globe
    INTEGER :: i,j,k,l ! counters
    INTEGER (KIND=i8) :: ie, je, ke  ! indices for grid elements
+   INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), iev_vec(:)  ! indices for target grid elements
    INTEGER (KIND=i8) :: i_vert, j_vert, k_vert ! indeces for ICON grid vertices
+   INTEGER (KIND=i8) :: i1, i2
    INTEGER :: nv ! counter
    INTEGER :: nt      ! counter
    INTEGER :: j_n, j_c, j_s ! counter for northern, central and southern row
@@ -233,8 +244,10 @@ MODULE mo_agg_globe
    REAL(KIND=wp)   :: row_lat(1:3)    ! latitude of the row for the topographic height array hh
    REAL(KIND=wp)   :: lat0
    REAL(KIND=wp) :: znorm, znfi2sum, zarg ! help variables for the estiamtion of the variance
-   REAL(KIND=wp) :: K_lm, L_lm, M_lm      ! variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
-   REAL(KIND=wp) :: K_lm_prime, L_lm_prime, M_lm_prime      ! variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
+   REAL(KIND=wp) :: K_lm, L_lm, M_lm      
+! variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
+   REAL(KIND=wp) :: K_lm_prime, L_lm_prime, M_lm_prime !
+! variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
    REAL (KIND=wp) :: theta                ! angle of principle axis
    REAL (KIND=wp) :: theta_rot            ! angle of principle axis in the rotated system
    REAL (KIND=wp) :: theta_u, theta_v     ! help variables for the rotation of theta into the rotated system
@@ -246,16 +259,24 @@ MODULE mo_agg_globe
    REAL (KIND=wp) :: sigma   ! slope parameter
    REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
    REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
-   TYPE(reg_lonlat_grid) :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
+   REAL (KIND=wp) :: bound_west_cosmo  !< western  boundary for COSMO target domain
+   REAL (KIND=wp) :: bound_east_cosmo  !< eastern  boundary for COSMO target domain
+
+   ! Some stuff for OpenMP parallelization
+   INTEGER :: num_blocks, ib, il, blk_len, istartlon, iendlon, nlon_sub, ishift
+!$ INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
+!$ INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
+
+   TYPE(reg_lonlat_grid) :: ta_grid 
+!< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
    INTEGER (KIND=i4), ALLOCATABLE :: h_block(:,:) !< a block of GLOBE altitude data
    INTEGER :: block_row_start
    INTEGER :: block_row
    INTEGER :: errorcode !< error status variable
    ! test with walk_to_nc at start
-   INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id 
-   TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-   LOGICAL :: l_child_dom     ! logical switch if child domain exists
-   INTEGER :: child_dom_id   ! id of child domain
+   INTEGER (KIND=i8) :: start_cell_id  !< start cell id 
+   TYPE(cartesian_coordinates)  :: target_cc_co     
+!< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
     !variables for GME search
    INTEGER :: nip1 ! grid mesh dimension 
    REAL (KIND=wp)  :: zx,zy,zz ! cartesian coordinates of point
@@ -267,6 +288,7 @@ MODULE mo_agg_globe
    LOGICAL :: ldebug=.FALSE.
    ! global data flag
    LOGICAL :: gldata=.TRUE. ! GLOBE data are global
+   LOGICAL :: lskip
    REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
    REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
    REAL(KIND=wp)   :: point_lon, point_lat
@@ -301,18 +323,16 @@ MODULE mo_agg_globe
    SELECT CASE(tg%igrid_type)
    CASE(igrid_icon)  ! ICON GRID
        ke = 1
-       n_dom = ICON_grid%n_dom ! number of Icon domains (grid refinement areas)
-       nearest_cell_id = 0_i8 !< result of icon grid search, set to 0 at start
-       nearest_vert_id = 0_i8 !< set to 0 at start
    CASE(igrid_cosmo)  ! COSMO GRID
        ke = 1
        bound_north_cosmo = MAXVAL(lat_geo) + 0.05_wp  ! add some "buffer"
        bound_north_cosmo = MIN(bound_north_cosmo,90.0_wp)
        bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
        bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
-       n_dom = 1 ! no grid refinements
-   CASE(igrid_gme)  ! GME GRID
-       n_dom = 1 ! no grid refinements
+       bound_east_cosmo  = MAXVAL(lon_geo) + 0.25  ! add some "buffer"
+       bound_east_cosmo  = MIN(bound_east_cosmo,180.)
+       bound_west_cosmo  = MINVAL(lon_geo) - 0.25  ! add some "buffer"
+       bound_west_cosmo  = MAX(bound_west_cosmo,-180.)
    END SELECT
 
    j_n = 1 ! index for northern row
@@ -371,10 +391,16 @@ MODULE mo_agg_globe
        print *,'lat_globe(1): ', lat_globe(1)
        print *,'lat_globe(nr_tot) ', lat_globe(nr_tot)
 
+   ALLOCATE(ie_vec(nc_tot),iev_vec(nc_tot))
+   ie_vec(:) = 0
+   iev_vec(:) = 0
+   start_cell_id = 1
+
    nt = 1
    dx0 =  topo_tiles_grid(nt)%dlon_reg * deg2rad * re ! longitudinal distance between to GLOBE grid elemtens at equator 
    print *, 'dx0: ',dx0
-   dy = topo_tiles_grid(nt)%dlat_reg * deg2rad * re ! latitudinal distance  between to GLOBE grid elemtens ! note the negative increment, as direction of data from north to south
+   dy = topo_tiles_grid(nt)%dlat_reg * deg2rad * re
+! latitudinal distance  between to GLOBE grid elemtens ! note the negative increment, as direction of data from north to south
    print *,'dy: ',dy
    d2y = 2. * dy
 
@@ -404,6 +430,43 @@ MODULE mo_agg_globe
       &                       h_block)
 
    block_row = 0 
+
+
+   ! Determine start and end longitude of search
+   istartlon = 1
+   iendlon = nc_tot
+   IF (tg%igrid_type == igrid_icon) THEN
+     DO i = 1, nc_tot
+       point_lon = lon_globe(i)
+       IF (point_lon < tg%minlon) istartlon = i + 1
+       IF (point_lon > tg%maxlon) THEN
+         iendlon = i - 1
+         EXIT
+       ENDIF
+     ENDDO
+   ELSE IF (tg%igrid_type == igrid_cosmo) THEN
+     DO i = 1, nc_tot
+       point_lon = lon_globe(i)
+       IF (point_lon < bound_west_cosmo) istartlon = i + 1
+       IF (point_lon > bound_east_cosmo) THEN
+         iendlon = i - 1
+         EXIT
+       ENDIF
+     ENDDO
+   ENDIF
+   nlon_sub = iendlon - istartlon + 1
+
+   num_blocks = 1
+!$ num_blocks = omp_get_max_threads()
+   IF (MOD(nlon_sub,num_blocks)== 0) THEN
+     blk_len = nlon_sub/num_blocks
+   ELSE
+     blk_len = nlon_sub/num_blocks + 1
+   ENDIF
+!$ ALLOCATE(start_cell_arr(num_blocks))
+!$ start_cell_arr(:) = 1
+   PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
+
 
    print *,'Start loop over GLOBE rows'
    !-----------------------------------------------------------------------------
@@ -444,11 +507,23 @@ MODULE mo_agg_globe
    ENDIF
    row_lat(j_s) = topo_grid%start_lat_reg + mlat * topo_grid%dlat_reg  !  ((mlat+1)-1)
 
+   lskip = .FALSE.
    IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid
      IF ((row_lat(j_s) > bound_north_cosmo).OR.(row_lat(j_s) < bound_south_cosmo) ) THEN ! raw data out of target grid
-       CYCLE globe_rows
+       lskip = .TRUE.
      ENDIF
-   ENDIF ! COSMO grid
+   ELSE IF (tg%igrid_type == igrid_icon) THEN
+     IF (row_lat(j_s) > tg%maxlat .OR. row_lat(j_s) < tg%minlat) lskip = .TRUE.
+   ENDIF ! grid type
+
+   IF (lskip) THEN
+     ! swap indices of the hh array for next data row before skipping the loop
+     j_new = j_n ! the new data will be written in the former "northern" array
+     j_n = j_c   ! the "center" row will become "northern" row
+     j_c = j_s   ! the "southern" row will become "center" row
+     j_s = j_new ! the new data will be written in the "southern" row
+     CYCLE globe_rows
+   ENDIF
 
    IF(mlat /= nr_tot) THEN !  read raw data south of "central" row except when you are at the most southern raw data line     !mes ><
      h_parallel(1:nc_tot) = h_block(1:nc_tot,block_row)
@@ -487,45 +562,80 @@ MODULE mo_agg_globe
    dhdydy(1:nc_tot) = dhdy(1:nc_tot) * dhdy(1:nc_tot) ! y-gradient square
    dhdxdy(1:nc_tot) = dhdx(1:nc_tot) * dhdy(1:nc_tot) ! dx*dy
 
-   !------------------------------------------------------------
-   DO i=1,nc_tot ! loop over one latitude circle of the raw data
-   !------------------------------------------------------------
-     point_lon = lon_globe(i) 
-     point_lat = row_lat(j_c)
+   IF (tg%igrid_type == igrid_icon) THEN
+     ie_vec(istartlon:iendlon) = 0
+     iev_vec(istartlon:iendlon) = 0
+   ENDIF
+
+   point_lat = row_lat(j_c)
+
+   IF (tg%igrid_type == igrid_icon) THEN
+!$OMP PARALLEL DO PRIVATE(ib,il,i,i1,i2,ishift,point_lon,thread_id,start_cell_id,target_geo_co,target_cc_co)
+     DO ib = 1, num_blocks
+
+!$   thread_id = omp_get_thread_num()+1
+!$   start_cell_id = start_cell_arr(thread_id)
+     ishift = istartlon-1+(ib-1)*blk_len
+
+     ! loop over one latitude circle of the raw data
+  columns1: DO il = 1,blk_len
+       i = ishift+il
+       IF (i > iendlon) CYCLE columns1
+
+       ! find the corresponding target grid indices
+       point_lon = lon_globe(i) 
+
+       ! Reset start cell when entering a new row or when the previous data point was outside
+       ! the model domain
+       IF (il == 1 .OR. start_cell_id == 0) THEN
+         i1 = NINT(point_lon*search_res)
+         i2 = NINT(point_lat*search_res)
+         start_cell_id = tg%search_index(i1,i2)
+         IF (start_cell_id == 0) EXIT ! in this case, the whole row is empty; may happen with merged (non-contiguous) domains
+       ENDIF
+
+       target_geo_co%lon = point_lon * deg2rad ! note that the ICON coordinates do not have the unit degree but radians
+       target_geo_co%lat = point_lat * deg2rad
+       target_cc_co = gc2cc(target_geo_co)
+       CALL walk_to_nc(icon_grid_region,   &
+                          target_cc_co,     &
+                          start_cell_id,    &
+                          icon_grid%nvertex_per_cell, &
+                          icon_grid%nedges_per_vertex, &
+                          ie_vec(i))
+
+       ! additional get the nearest vertex index for accumulating height values there
+       IF (ie_vec(i) /= 0_i8) THEN
+         CALL  find_nearest_vert(icon_grid_region, &
+                            target_cc_co,                  &
+                            ie_vec(i),        &
+                            icon_grid%nvertex_per_cell,    &
+                            iev_vec(i))
+       ENDIF  
+
+     ENDDO columns1
+!$   start_cell_arr(thread_id) = start_cell_id
+     ENDDO
+!$OMP END PARALLEL DO
+   ENDIF ! ICON only
+
+   DO i=istartlon,iendlon
 
      ! call here the attribution of raw data pixel to target grid for different grid types
      SELECT CASE(tg%igrid_type)
        CASE(igrid_icon)  ! ICON GRID
 
-       target_geo_co%lon = point_lon * deg2rad ! note that the ICON coordinates do not have the unit degree but radians
-       target_geo_co%lat = point_lat * deg2rad
-       nearest_cell_id = 0_i8 !< result of icon grid search, set to 0 at start
-       nearest_vert_id = 0_i8 !< set to 0 at start
-       target_cc_co = gc2cc(target_geo_co)
-       CALL walk_to_nc(icon_grid_region(icon_dom_nr),   &
-                          target_cc_co,     &
-                          start_cell_id,    &
-                          ICON_grid%nvertex_per_cell, &
-                          nearest_cell_id)
-       start_cell_id = nearest_cell_id ! save for next search
-
-       ! additional get the nearest vertex index for accumulating height values there
-
-       CALL  find_nearest_vert(icon_grid_region(icon_dom_nr), &
-                          target_cc_co,                  &
-                          nearest_cell_id,        &
-                          ICON_grid%nvertex_per_cell,    &
-                          nearest_vert_id)
-         
+       ie = ie_vec(i)
+       je = 1
        ke = 1
 
-       ! additional get the nearest vertex index for accumulating height values there
+       ! get the nearest vertex index for accumulating height values there
 
        ! aggregate the vertex parameter here
-       i_vert = nearest_vert_id
+       i_vert = iev_vec(i)
        j_vert = 1
        k_vert = 1
-       IF ((i_vert /=0).AND.(j_vert /=0).AND.(k_vert /=0)) THEN ! raw data pixel within target grid
+       IF ((i_vert /=0)) THEN ! raw data pixel within target grid
          vertex_param%npixel_vert(i_vert,j_vert,k_vert) =  &
          vertex_param%npixel_vert(i_vert,j_vert,k_vert) + 1
 
@@ -533,11 +643,9 @@ MODULE mo_agg_globe
          vertex_param%hh_vert(i_vert,j_vert,k_vert) +  h_parallel(i)
        ENDIF
 
-       ie =  nearest_cell_id
-       je = 1
-       ke = 1
-
        CASE(igrid_cosmo)  ! COSMO GRID
+
+       point_lon = lon_globe(i) 
 
        CALL find_rotated_lonlat_grid_element_index(point_lon, &
                                                point_lat,     &
@@ -546,6 +654,9 @@ MODULE mo_agg_globe
                                                je)
        ke = 1
        CASE(igrid_gme)  ! GME GRID
+
+         point_lon = lon_globe(i) 
+
          nip1 = gme_grid%ni + 1
          CALL pp_ll2gp(xn,point_lon,point_lat,&
                      & nip1,                          &
@@ -559,7 +670,8 @@ MODULE mo_agg_globe
          ke = kd
        END SELECT
 
-       IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
+       IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN 
+! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
            no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1
            !- summation of variables
 ! mes >
@@ -600,6 +712,10 @@ MODULE mo_agg_globe
        !-----------------------------------------------------------------------------
        ENDDO globe_rows
        !-----------------------------------------------------------------------------
+
+       DEALLOCATE(ie_vec,iev_vec)
+!$     DEALLOCATE(start_cell_arr)
+
 
        print *,'loop over globe_rows done'
 
@@ -667,7 +783,8 @@ MODULE mo_agg_globe
       DO je=1, tg%je
       DO ie=1, tg%ie
         IF (no_raw_data_pixel(ie,je,ke) /= 0) THEN ! avoid division by zero for small target grids
-          hh_target(ie,je,ke) = hh_target(ie,je,ke)/no_raw_data_pixel(ie,je,ke) ! average height, oceans point counted as 0 height
+          hh_target(ie,je,ke) = hh_target(ie,je,ke)/no_raw_data_pixel(ie,je,ke) 
+! average height, oceans point counted as 0 height
           fr_land_globe(ie,je,ke) =  REAL(ndata(ie,je,ke),wp) / REAL(no_raw_data_pixel(ie,je,ke),wp) ! fraction land
         ELSE
           hh_target(ie,je,ke) = REAL(default_globe)
@@ -703,7 +820,7 @@ MODULE mo_agg_globe
        ! Average height for vertices
         DO ke=1, 1
         DO je=1, 1
-        DO ie=1, icon_grid_region(icon_dom_nr)%nverts
+        DO ie=1, icon_grid_region%nverts
 
           IF (vertex_param%npixel_vert(ie,je,ke) /= 0) THEN ! avoid division by zero for small target grids
             vertex_param%hh_vert(ie,je,ke) =  &
@@ -898,10 +1015,10 @@ MODULE mo_agg_globe
          CASE(igrid_icon) ! ICON GRID
          je=1
          ke=1
-         DO nv=1, icon_grid_region(icon_dom_nr)%nverts
+         DO nv=1, icon_grid_region%nverts
            IF (vertex_param%npixel_vert(nv,je,ke) == 0) THEN ! interpolate from raw data in this case
-             point_lon_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lon
-             point_lat_geo =  rad2deg * icon_grid_region(icon_dom_nr)%verts%vertex(nv)%lat
+             point_lon_geo =  rad2deg * icon_grid_region%verts%vertex(nv)%lon
+             point_lat_geo =  rad2deg * icon_grid_region%verts%vertex(nv)%lat
 
              CALL bilinear_interpol_globe_to_target_point(topo_files,  & !mes ><
                &                                      topo_grid, &
@@ -936,7 +1053,8 @@ MODULE mo_agg_globe
        !! 
        !! the definition of the regular lon-lat grid requires 
        !! - the coordinates of the north-western point of the domain ("upper left") startlon_reg_lonlat and startlat_reg_lonlat
-       !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the grid definiton goes from the west to the east and from the north to the south)
+       !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the grid definiton goes 
+       !!   from the west to the east and from the north to the south)
        !! - the number of grid elements nlon_reg_lonlat and nlat_reg_lonlat for both directions
        SUBROUTINE bilinear_interpol_globe_to_target_point(topo_files, & !mes ><
                                                topo_grid,             &
@@ -965,10 +1083,16 @@ MODULE mo_agg_globe
        USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
           &                        calc_weight_bilinear_interpol, &
           &                        calc_value_bilinear_interpol
+
        CHARACTER(LEN=24), INTENT(IN)     :: topo_files(1:max_tiles)
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE dataset
+!< structure with defenition of the raw data grid for the whole GLOBE dataset
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+!< structure with defenition of the raw data grid for the 16 GLOBE tiles
        INTEGER (KIND=i4), INTENT(IN) :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+!< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+
+
        
        REAL (KIND=wp), INTENT(IN) :: lon_globe(1:nc_tot)   !< longitude coordinates of the GLOBE grid
        REAL (KIND=wp), INTENT(IN) :: lat_globe(1:nr_tot)   !< latititude coordinates of the GLOBE grid
@@ -979,7 +1103,8 @@ MODULE mo_agg_globe
 
        ! local variables
        INTEGER (KIND=i4), ALLOCATABLE :: h_block(:,:) !< a block of GLOBE altitude data
-       TYPE(reg_lonlat_grid) :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
+       TYPE(reg_lonlat_grid) :: ta_grid 
+!< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
        INTEGER :: nt      ! counter
        INTEGER  (KIND=i8) :: point_lon_index !< longitude index of point for regular lon-lat grid
        INTEGER  (KIND=i8) :: point_lat_index !< latitude index of point for regular lon-lat grid

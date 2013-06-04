@@ -1,23 +1,17 @@
-!+ Fortran module for netcdf output of NDVI data
+!+ Fortran module for netcdf output of Albedo data
 !
 ! History:
 ! Version      Date       Name
 ! ------------ ---------- ----
-! V1_0         2010/12/21 Hermann Asensio
-!  Initial release
-! V1_2         2011/03/25 Hermann Asensio
-!  small bug fix: remove some USE statements for unused global variables
-! V1_3         2011/04/19 Hermann Asensio
-!  change netcdf output:  time variable
-! V1_4         2011/04/21 Anne Roche
-!  clean up
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s) 
 !
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
-!> Fortran module for netcdf output of NDVI data
-!> \author Hermann Asensio
-MODULE mo_ndvi_output_nc
+!> Fortran module for netcdf output of Albedo data
+!> \author Hermann Asensio, Frank Brenner
+MODULE mo_albedo_output_nc
 
   
   !> kind parameters are defined in MODULE data_parameters
@@ -57,58 +51,57 @@ MODULE mo_ndvi_output_nc
 
   PRIVATE
 
-  PUBLIC :: write_netcdf_buffer_ndvi
-  PUBLIC :: write_netcdf_cosmo_grid_ndvi
-  PUBLIC :: write_netcdf_icon_grid_ndvi
+  PUBLIC :: write_netcdf_buffer_alb
+  PUBLIC :: write_netcdf_cosmo_grid_alb
+  PUBLIC :: write_netcdf_icon_grid_alb
 
-  PUBLIC :: read_netcdf_buffer_ndvi
+  PUBLIC :: read_netcdf_buffer_alb
 
   CONTAINS
 
-  SUBROUTINE write_netcdf_buffer_ndvi(netcdf_filename,  &
+  SUBROUTINE write_netcdf_buffer_alb(netcdf_filename,  &
    &                                     tg,         &
    &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     alb_field_mom, &
+   &                                     alnid_field_mom, &
+   &                                     aluvd_field_mom)
 
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
-
 
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
       &                         def_com_target_fields_meta  
 
-    USE mo_var_meta_data, ONLY: dim_ndvi_tg
-    USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-      &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
-      &                         def_ndvi_meta
-
+    USE mo_var_meta_data, ONLY: dim_alb_tg
+    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                         alnid_field_mom_meta, &
+      &                         aluvd_field_mom_meta, &
+      &                         def_alb_meta
 
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
 
     ! local variables
     ! local variables
     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i8) :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
    INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
     INTEGER :: ndims  
@@ -123,13 +116,13 @@ MODULE mo_ndvi_output_nc
 
     INTEGER :: n !< counter
 
-    PRINT *,'ENTER write_netcdf_buffer_ndvi'
+    PRINT *,'ENTER write_netcdf_buffer_alb'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_alb'
 
     !-------------------------------------------------------------
     ! define global attributes
-    CALL set_global_att_ndvi(global_attributes)
+    CALL set_global_att_alb(global_attributes)
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -138,10 +131,9 @@ MODULE mo_ndvi_output_nc
     ! define meta information for target field variables lon_geo, lat_geo 
     CALL def_com_target_fields_meta(dim_3d_tg)
     ! lon_geo_meta and lat_geo_meta
-    !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime,dim_3d_tg)
-    ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
-    
+    !define albedo meta information, related variables for netcdf output
+    CALL def_alb_meta(tg,ntime,dim_3d_tg)
+
     ALLOCATE(time(1:ntime),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
     DO n=1,ntime
@@ -162,6 +154,9 @@ MODULE mo_ndvi_output_nc
 
     !-----------------------------------------------------------------
 
+    PRINT *, ' ============= In Routine: write_netcdf_buffer_alb =============='
+    PRINT *, TRIM(netcdf_filename)
+
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
       &                       global_attributes=global_attributes, &
@@ -174,26 +169,23 @@ MODULE mo_ndvi_output_nc
     ! lat
     CALL netcdf_put_var(ncid,lat_geo,lat_geo_meta,undefined)
 
-    ! ndvi_max
-    CALL netcdf_put_var(ncid,ndvi_max,ndvi_max_meta,undefined)
+ 
+    ! alb_field_mom
+    CALL netcdf_put_var(ncid,alb_field_mom,alb_field_mom_meta,undefined)
+    CALL netcdf_put_var(ncid,alnid_field_mom,alnid_field_mom_meta,undefined)
+    CALL netcdf_put_var(ncid,aluvd_field_mom,aluvd_field_mom_meta,undefined)
 
-    ! ndvi_field_mom
-    CALL netcdf_put_var(ncid,ndvi_field_mom,ndvi_field_mom_meta,undefined)
-
-    ! ndvi_ratio_mom
-    CALL netcdf_put_var(ncid,ndvi_ratio_mom,ndvi_ratio_mom_meta,undefined)
 
     CALL close_netcdf_file(ncid)
 
-
-   END SUBROUTINE write_netcdf_buffer_ndvi
+   END SUBROUTINE write_netcdf_buffer_alb
    !-----------------------------------------------------------------
    !-----------------------------------------------------------------
    !-----------------------------------------------------------------
 
 
 
-   SUBROUTINE write_netcdf_cosmo_grid_ndvi(netcdf_filename,  &
+   SUBROUTINE write_netcdf_cosmo_grid_alb(netcdf_filename,  &
    &                                     cosmo_grid,         &
    &                                     tg,         &
    &                                     ntime, &
@@ -201,9 +193,9 @@ MODULE mo_ndvi_output_nc
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     alb_field_mom, &
+   &                                     alnid_field_mom, &
+   &                                     aluvd_field_mom)
 
     
     USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
@@ -226,33 +218,31 @@ MODULE mo_ndvi_output_nc
       &                         no_raw_data_pixel_meta, &
       &                         def_com_target_fields_meta  
 
-    USE mo_var_meta_data, ONLY: dim_ndvi_tg
-    USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-      &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
-      &                         def_ndvi_meta
-
-
+    USE mo_var_meta_data, ONLY: dim_alb_tg
+    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                         alnid_field_mom_meta, &
+      &                         aluvd_field_mom_meta, &
+      &                         def_alb_meta
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: COSMO_grid      !< structure which contains the definition of the COSMO grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-
+    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
 
     ! local variables
      REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i8) :: dataDate 
+ !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
    INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
-
+!
 
     INTEGER :: ndims  
     INTEGER :: ncid
@@ -272,13 +262,13 @@ MODULE mo_ndvi_output_nc
 
     INTEGER :: n !< counter
 
-    PRINT *,'ENTER write_netcdf_buffer_ndvi'
+    PRINT *,'ENTER write_netcdf_buffer_alb'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_alb'
 
     !-------------------------------------------------------------
     ! define global attributes
-    CALL set_global_att_ndvi(global_attributes)
+    CALL set_global_att_alb(global_attributes)
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -299,9 +289,8 @@ MODULE mo_ndvi_output_nc
     ! lon_geo_meta and lat_geo_meta
 
 
-    !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime,dim_2d_cosmo,coordinates,grid_mapping)
-    ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+    !define albedo meta information, related variables for netcdf output
+    CALL def_alb_meta(tg,ntime,dim_2d_cosmo,coordinates,grid_mapping)
 
     ALLOCATE(time(1:ntime),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
@@ -340,21 +329,24 @@ MODULE mo_ndvi_output_nc
     ! rlat
     CALL netcdf_put_var(ncid,lat_rot(1:cosmo_grid%nlat_rot),rlat_meta,undefined)
 
-    ! ndvi_max
-    CALL netcdf_put_var(ncid,ndvi_max(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
-      &                 ndvi_max_meta,undefined)  
-
-    ! ndvi_field_mom
+    ! alb_field_mom
     CALL netcdf_put_var(ncid,&
-                       & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
-                       & ndvi_field_mom_meta, &
+                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
+                       & alb_field_mom_meta, &
                        & undefined)
 
-    ! ndvi_ratio_mom
+    ! alnid_field_mom
     CALL netcdf_put_var(ncid,&
-                       & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
-                       & ndvi_ratio_mom_meta, &
+                       & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
+                       & alnid_field_mom_meta, &
                        & undefined)
+
+    ! aluvd_field_mom
+    CALL netcdf_put_var(ncid,&
+                       & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
+                       & aluvd_field_mom_meta, &
+                       & undefined)
+
 
     !-----------------------------------------------------------------
     CALL netcdf_def_grid_mapping(ncid, nc_grid_def_cosmo, varid)
@@ -362,13 +354,13 @@ MODULE mo_ndvi_output_nc
     CALL close_netcdf_file(ncid)
 
 
-   END SUBROUTINE write_netcdf_cosmo_grid_ndvi
+   END SUBROUTINE write_netcdf_cosmo_grid_alb
    !-----------------------------------------------------------------
    !-----------------------------------------------------------------
    !-----------------------------------------------------------------
 
 
-   SUBROUTINE write_netcdf_icon_grid_ndvi(netcdf_filename,  &
+   SUBROUTINE write_netcdf_icon_grid_alb(netcdf_filename,  &
    &                                     icon_grid,         &
    &                                     tg,         &
    &                                     ntime, &
@@ -376,10 +368,9 @@ MODULE mo_ndvi_output_nc
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
-
+   &                                     alb_field_mom, &
+   &                                     alnid_field_mom, &
+   &                                     aluvd_field_mom)
 
     USE mo_var_meta_data, ONLY:  dim_icon, &
      &                          def_dimension_info_icon
@@ -396,33 +387,31 @@ MODULE mo_ndvi_output_nc
       &                         no_raw_data_pixel_meta, &
       &                         def_com_target_fields_meta  
 
-    USE mo_var_meta_data, ONLY: dim_ndvi_tg
-    USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-      &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
-      &                         def_ndvi_meta
+    USE mo_var_meta_data, ONLY: dim_alb_tg
+    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                         alnid_field_mom_meta, &
+      &                         aluvd_field_mom_meta, &
+      &                         def_alb_meta
 
 
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(icosahedral_triangular_grid), INTENT(IN)  :: icon_grid      !< structure which contains the definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-
+    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
 
     ! local variables
      REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i8) :: dataDate 
+ !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
    INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
-
-
 
     INTEGER :: ndims 
     INTEGER :: ncid
@@ -443,13 +432,13 @@ MODULE mo_ndvi_output_nc
 
     INTEGER :: n !< counter
 
-    PRINT *,'ENTER write_netcdf_icon_grid_ndvi'
+    PRINT *,'ENTER write_netcdf_icon_grid_alb'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_alb'
 
     !-------------------------------------------------------------
     ! define global attributes
-    CALL set_global_att_ndvi(global_attributes)
+    CALL set_global_att_alb(global_attributes)
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -475,11 +464,8 @@ MODULE mo_ndvi_output_nc
     CALL def_com_target_fields_meta(dim_1d_icon)
     ! lon_geo_meta and lat_geo_meta
 
-
-
-    !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime,dim_1d_icon)
-    ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+    !define albedo meta information, related variables for netcdf output
+    CALL def_alb_meta(tg,ntime,dim_1d_icon)
 
     ALLOCATE(time(1:ntime),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
@@ -512,26 +498,27 @@ MODULE mo_ndvi_output_nc
     ! lat
     CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
 
-    ! ndvi_max
-    CALL netcdf_put_var(ncid,ndvi_max(1:icon_grid%ncell,1,1),ndvi_max_meta,undefined)
+    ! alb_field_mom
+    CALL netcdf_put_var(ncid,alb_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
+       &                 alb_field_mom_meta, undefined)
 
-    ! ndvi_field_mom
-    CALL netcdf_put_var(ncid,ndvi_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
-       &                 ndvi_field_mom_meta, undefined)
+    ! alnid_field_mom
+    CALL netcdf_put_var(ncid,alnid_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
+       &                 alnid_field_mom_meta, undefined)
 
-    ! ndvi_ratio_mom
-    CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime), &
-       &                 ndvi_ratio_mom_meta, undefined)
+    ! aluvd_field_mom
+    CALL netcdf_put_var(ncid,aluvd_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
+       &                 aluvd_field_mom_meta, undefined)
 
     CALL close_netcdf_file(ncid)
 
-   END SUBROUTINE write_netcdf_icon_grid_ndvi
+   END SUBROUTINE write_netcdf_icon_grid_alb
 
    !----------------------------------------------------------------------- 
    !-----------------------------------------------------------------
    !-----------------------------------------------------------------------
-  !> set global attributes for netcdf with NDVI data
-  SUBROUTINE set_global_att_ndvi(global_attributes)
+  !> set global attributes for netcdf with albedo data
+  SUBROUTINE set_global_att_alb(global_attributes)
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
 
     !local variables
@@ -547,12 +534,12 @@ MODULE mo_ndvi_output_nc
     ! define global attributes
     
     global_attributes(1)%attname = 'title'
-    global_attributes(1)%attributetext='NDVI data '
+    global_attributes(1)%attributetext='albedo data '
     global_attributes(2)%attname = 'institution'
     global_attributes(2)%attributetext='Deutscher Wetterdienst'
 
     global_attributes(3)%attname = 'source'
-    global_attributes(3)%attributetext='NASA/GSFC SeaWiFS'
+    global_attributes(3)%attributetext='NASA MODIS'
 
     CALL DATE_AND_TIME(ydate,ytime)
     READ(ydate,'(4A2)') cc,yy,mm,dd
@@ -562,25 +549,24 @@ MODULE mo_ndvi_output_nc
     ytime=TRIM(hh)//':'//TRIM(minute) 
 
     global_attributes(4)%attname = 'history'
-    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' ndvi_to_buffer'
+    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' alb_to_buffer'
 
     global_attributes(5)%attname = 'references'
-    global_attributes(5)%attributetext='http://oceancolor.gsfc.nasa.gov/PRODUCTS/'
+    global_attributes(5)%attributetext='http://www-modis.bu.edu/brdf/'
 
     global_attributes(6)%attname = 'comment'
     global_attributes(6)%attributetext=''
 
-  END SUBROUTINE set_global_att_ndvi
-  !-----------------------------------------------------------------------
+  END SUBROUTINE set_global_att_alb
 
-  SUBROUTINE read_netcdf_buffer_ndvi(netcdf_filename,  &
+  SUBROUTINE read_netcdf_buffer_alb(netcdf_filename,  &
    &                                     tg,         &
    &                                     ntime, &
    &                                     undefined, &
    &                                     undef_int,   &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     alb_field_mom, &
+   &                                     alnid_field_mom, &
+   &                                     aluvd_field_mom)
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
@@ -590,22 +576,24 @@ MODULE mo_ndvi_output_nc
       &                         no_raw_data_pixel_meta, &
       &                         def_com_target_fields_meta  
 
-    USE mo_var_meta_data, ONLY: dim_ndvi_tg
-    USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-      &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
-      &                         def_ndvi_meta
+    USE mo_var_meta_data, ONLY: dim_alb_tg
+    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                         alnid_field_mom_meta, &
+      &                         aluvd_field_mom_meta, &
+      &                         def_alb_meta
 
     USE mo_io_utilities, ONLY: netcdf_get_var
 
+
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
+    CHARACTER (len=100)  :: netcdf_filename2
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(OUT) :: ntime !< number of times of ndvi data (12 monthly mean values)
+    INTEGER (KIND=i4), INTENT(OUT) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-    REAL (KIND=wp), INTENT(OUT) :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(OUT) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(OUT) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(OUT) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(OUT) :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(OUT) :: aluvd_field_mom(:,:,:,:)
 
     ! local variables
     INTEGER :: ndims  
@@ -620,29 +608,30 @@ MODULE mo_ndvi_output_nc
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
+
     ! dim_3d_tg
     PRINT *,'def_com_target_fields_meta'
     ! define meta information for target field variables lon_geo, lat_geo 
     CALL def_com_target_fields_meta(dim_3d_tg)
     ! lon_geo_meta and lat_geo_meta
-    !define meta information for various NDVI data related variables for netcdf output
-    CALL def_ndvi_meta(tg,ntime,dim_3d_tg)
-    ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
-    PRINT *,'CALL read netcdf data NDVI'
+    !define albedo meta information, related variables for netcdf output
+    CALL def_alb_meta(tg,ntime,dim_3d_tg)
 
-    CALL netcdf_get_var(TRIM(netcdf_filename),ndvi_max_meta,ndvi_max)
-    PRINT *,'ndvi_max read'
+!    netcdf_filename2 = '/e/gtmp/fbrenner/extpar/alb_buffer.nc'
+!roa
+print *, "netcdf_filename:",trim(netcdf_filename)
+    PRINT *,'CALL read netcdf data ALB'
+    print *, TRIM(netcdf_filename)
+    CALL netcdf_get_var(TRIM(netcdf_filename),alb_field_mom_meta,alb_field_mom)
+    PRINT *,'alb_field_mom read'
+    CALL netcdf_get_var(TRIM(netcdf_filename),alnid_field_mom_meta,alnid_field_mom)
+    PRINT *,'alnid_field_mom read'
+    CALL netcdf_get_var(TRIM(netcdf_filename),aluvd_field_mom_meta,aluvd_field_mom)
+    PRINT *,'aluvd_field_mom read'
 
-    CALL netcdf_get_var(TRIM(netcdf_filename),ndvi_field_mom_meta,ndvi_field_mom)
-    PRINT *,'ndvi_field_mom read'
 
-    CALL netcdf_get_var(TRIM(netcdf_filename),ndvi_ratio_mom_meta,ndvi_ratio_mom)
-    PRINT *,'ndvi_ratio_mom read'
-
-
-
-   END SUBROUTINE read_netcdf_buffer_ndvi
+   END SUBROUTINE read_netcdf_buffer_alb
    !-----------------------------------------------------------------
 
 
@@ -650,5 +639,4 @@ MODULE mo_ndvi_output_nc
 
 
 
-END Module mo_ndvi_output_nc
-
+END Module mo_albedo_output_nc

@@ -6,8 +6,13 @@
 ! ------------ ---------- ----
 ! V1_3         2011/04/19 Hermann Asensio
 !  Initial release
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -137,7 +142,7 @@ MODULE mo_agg_globcover
     ! USE global data fields (coordinates)
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
-
+    USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
 
      CHARACTER (LEN=filename_max), INTENT(IN) :: globcover_file(1:max_tiles_lu)  !< filename globcover raw data
@@ -146,12 +151,15 @@ MODULE mo_agg_globcover
      TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(:)  ! grid structure of globcover tiles
      TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
      INTEGER, INTENT(IN) :: nclass_globcover !< globcover has 23 classes for the land use description
-     REAL (KIND=wp), INTENT(OUT)  :: globcover_class_fraction(:,:,:,:)  !< fraction for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
+     REAL (KIND=wp), INTENT(OUT)  :: globcover_class_fraction(:,:,:,:)  
+!< fraction for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
 
-    INTEGER (KIND=i8), INTENT(OUT) :: globcover_class_npixel(:,:,:,:) !< number of raw data pixels for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
+    INTEGER (KIND=i8), INTENT(OUT) :: globcover_class_npixel(:,:,:,:) 
+!< number of raw data pixels for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
 
 
-    INTEGER (KIND=i8), INTENT(OUT) :: globcover_tot_npixel(:,:,:)  !< total number of globcover raw data pixels on target grid (dimension (ie,je,ke))
+    INTEGER (KIND=i8), INTENT(OUT) :: globcover_tot_npixel(:,:,:)  
+!< total number of globcover raw data pixels on target grid (dimension (ie,je,ke))
 
 
     REAL (KIND=wp), INTENT(OUT)  :: fr_land_globcover(:,:,:) !< fraction land due to globcover raw data
@@ -180,12 +188,14 @@ MODULE mo_agg_globcover
      INTEGER :: i_col, j_row ! counter
      INTEGER (KIND=i8) :: i_lu, j_lu
      INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
-
-     INTEGER :: idom  ! counter
+     INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
+     INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
+     INTEGER (KIND=i8) :: i1, i2
 
      INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
      REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) !< area weight of all raw data pixels in target grid
-     REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_globcover) !< area for each land use class grid  in target grid element (for a area weight)
+     REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_globcover) 
+!< area for each land use class grid  in target grid element (for a area weight)
      REAL (KIND=wp), ALLOCATABLE:: lu_block(:,:)  ! a block of GLOBCOVER land use data
 
      REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
@@ -233,9 +243,17 @@ MODULE mo_agg_globcover
 
      REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
      REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
+     REAL (KIND=wp) :: bound_west_cosmo  !< western  boundary for COSMO target domain
+     REAL (KIND=wp) :: bound_east_cosmo  !< eastern  boundary for COSMO target domain
+
+     ! Some stuff for OpenMP parallelization
+     INTEGER :: num_blocks, ib, il, blk_len, istartlon, iendlon, nlon_sub, ishift
+!$   INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
+!$   INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
 
 
-     apix_e  = re * re * deg2rad* ABS(globcover_grid%dlon_reg) * deg2rad * ABS(globcover_grid%dlat_reg) ! area of globcover raw data pixel at equator
+     apix_e  = re * re * deg2rad* ABS(globcover_grid%dlon_reg) * deg2rad * ABS(globcover_grid%dlat_reg) 
+! area of globcover raw data pixel at equator
      PRINT *,'area pixel at equator: ',apix_e
 
      hp   = 30.0      ! height of Prandtl-layer
@@ -262,6 +280,10 @@ MODULE mo_agg_globcover
            bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
            bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
+           bound_east_cosmo = MAXVAL(lon_geo) + 0.25  ! add some "buffer"
+           bound_east_cosmo = MIN(bound_east_cosmo,180.)
+           bound_west_cosmo = MINVAL(lon_geo) - 0.25  ! add some "buffer"
+           bound_west_cosmo = MAX(bound_west_cosmo,-180.)
        CASE(igrid_gme)  ! GME GRID
 
      END SELECT
@@ -294,6 +316,11 @@ MODULE mo_agg_globcover
      varname = 'GLOBCOVER' ! I know that the globcover data are stored in a variable called 'GLOBCOVER'
 
      CALL check_netcdf(nf90_inq_varid(ncid_globcover(1), TRIM(varname), varid_globcover))
+     ALLOCATE(ie_vec(nlon),je_vec(nlon),ke_vec(nlon))
+     ie_vec(:) = 0
+     je_vec(:) = 0
+     ke_vec(:) = 0
+     start_cell_id = 1
 
 ! >mes
      mlat = 1
@@ -316,6 +343,41 @@ MODULE mo_agg_globcover
                                    lu_block)
 
      block_row = 0
+
+     ! Determine start and end longitude of search
+     istartlon = 1
+     iendlon = globcover_grid%nlon_reg
+     IF (tg%igrid_type == igrid_icon) THEN
+       DO i_col = 1, globcover_grid%nlon_reg
+         point_lon = lon_globcover(i_col)
+         IF (point_lon < tg%minlon) istartlon = i_col + 1
+         IF (point_lon > tg%maxlon) THEN
+           iendlon = i_col - 1
+           EXIT
+         ENDIF
+       ENDDO
+     ELSE IF (tg%igrid_type == igrid_cosmo) THEN
+       DO i_col = 1, globcover_grid%nlon_reg
+         point_lon = lon_globcover(i_col)
+         IF (point_lon < bound_west_cosmo) istartlon = i_col + 1
+         IF (point_lon > bound_east_cosmo) THEN
+           iendlon = i_col - 1
+           EXIT
+         ENDIF
+       ENDDO
+     ENDIF
+     nlon_sub = iendlon - istartlon + 1
+
+     num_blocks = 1
+!$   num_blocks = omp_get_max_threads()
+     IF (MOD(nlon_sub,num_blocks)== 0) THEN
+       blk_len = nlon_sub/num_blocks
+     ELSE
+       blk_len = nlon_sub/num_blocks + 1
+     ENDIF
+!$   ALLOCATE(start_cell_arr(num_blocks))
+!$   start_cell_arr(:) = 1
+     PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
      print*, 'Start loop over GLOBCOVER rows'
 
@@ -346,31 +408,71 @@ MODULE mo_agg_globcover
            IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
              CYCLE globcover_rows
            ENDIF
-         ENDIF ! COSMO grid
+         ELSE IF (tg%igrid_type == igrid_icon) THEN
+           IF (point_lat > tg%maxlat .OR. point_lat < tg%minlat) THEN
+             CYCLE globcover_rows
+           ENDIF
+         ENDIF ! grid type
 
          globcover_data_row(1:nlon) = lu_block(1:nlon,block_row)
          apix = apix_e * COS(point_lat * deg2rad) ! area of raw data pixel (in [m**2])
 
-  columns: DO i_col=1, nlon
-  ! find the corresponding target grid indices
+         ie_vec(istartlon:iendlon) = 0
+         IF (tg%igrid_type /= igrid_icon) THEN
+           je_vec(:) = 0
+           ke_vec(:) = 0
+         ENDIF
+
+!$OMP PARALLEL DO PRIVATE(ib,il,i_col,i1,i2,ishift,point_lon,thread_id,start_cell_id)
+       DO ib = 1, num_blocks
+
+!$     thread_id = omp_get_thread_num()+1
+!$     start_cell_id = start_cell_arr(thread_id)
+       ishift = istartlon-1+(ib-1)*blk_len
+
+  columns1: DO il = 1,blk_len
+       i_col = ishift+il
+       IF (i_col > iendlon) CYCLE columns1
+
+       ! find the corresponding target grid indices
        point_lon = lon_globcover(i_col)
 
-       CALL  find_nearest_target_grid_element(point_lon, &
-          &                                   point_lat, &
-          &                                   tg,        &
-          &                                   ie,        &
-          &                                   je,        &
-          &                                   ke)
+       ! Reset start cell when entering a new row or when the previous data point was outside
+       ! the model domain
+       IF (tg%igrid_type == igrid_icon .AND. (il == 1 .OR. start_cell_id == 0)) THEN
+         i1 = NINT(point_lon*search_res)
+         i2 = NINT(point_lat*search_res)
+         start_cell_id = tg%search_index(i1,i2)
+         IF (start_cell_id == 0) EXIT ! in this case, the whole row is empty; may happen with merged (non-contiguous) domains
+       ENDIF
+
+       CALL  find_nearest_target_grid_element( point_lon,     &
+                                        &      point_lat,     &
+                                        &      tg,            &
+                                        &      start_cell_id, &
+                                        &      ie_vec(i_col), &
+                                        &      je_vec(i_col), &
+                                        &      ke_vec(i_col)  )
+
+       ENDDO columns1
+!$     start_cell_arr(thread_id) = start_cell_id
+       ENDDO
+!$OMP END PARALLEL DO
+
+  columns2: DO i_col=istartlon,iendlon
+  ! find the corresponding target grid indices
+
+       ie = ie_vec(i_col)
+       je = je_vec(i_col)
+       ke = ke_vec(i_col)
 
        IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
          ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
          !- summation of variables
-         globcover_tot_npixel(ie,je,ke) = globcover_tot_npixel(ie,je,ke) + 1
-         a_weight(ie,je,ke) = a_weight(ie,je,ke) + apix  ! sum up area for weight
-         lu = globcover_data_row(i_col)                        ! land use class
 
-              CALL globcover_look_up(lu, &
-            &      nclass_globcover, &
+         lu = globcover_data_row(i_col)                        ! land use class
+         CALL globcover_look_up(lu,            &
+            &      nclass_globcover,           &
             &      lnz0_lt_globcover,          &
             &      plc_mn_lt_globcover,        &
             &      plc_mx_lt_globcover,        &
@@ -395,10 +497,8 @@ MODULE mo_agg_globcover
             &      k_error)
 
 
-!globcover_look_up(lu,pland,pice,plnz0,proot, pmx,  &
-!            &                  plaimx,purb,pfor_d,pfor_e,  &
-!            &                  pemissivity, prs_min,       &
-!            &                  k_error)
+         globcover_tot_npixel(ie,je,ke) = globcover_tot_npixel(ie,je,ke) + 1
+         a_weight(ie,je,ke) = a_weight(ie,je,ke) + apix  ! sum up area for weight
 
           IF (k_error == 0) THEN ! valid land use class
 
@@ -409,37 +509,37 @@ MODULE mo_agg_globcover
             emissivity_globcover(ie,je,ke) =  emissivity_globcover(ie,je,ke) + apix * pemissivity
             IF (pland >  0.0) THEN ! only for land pixel
 
-            ! weighted with whole area
-            fr_land_globcover(ie,je,ke) = fr_land_globcover(ie,je,ke) + apix * pland
-            ice_globcover(ie,je,ke) = ice_globcover(ie,je,ke) + apix * pice
-            urban_globcover(ie,je,ke) = urban_globcover(ie,je,ke) + apix * purb
-            ! z0 is averaged logarithmic
-            IF ( lnhp /= plnz0) THEN ! z0 is averaged logarithmic
-              pwz0 = 1./(lnhp - plnz0)
-            ELSE
-              pwz0 = 0.
-            ENDIF
-            z0_globcover(ie,je,ke)      = z0_globcover(ie,je,ke) + apix * pwz0
-            plcov_mn_globcover(ie,je,ke) = plcov_mn_globcover(ie,je,ke) + apix * pmn
-            plcov_mx_globcover(ie,je,ke) = plcov_mx_globcover(ie,je,ke) + apix * pmx
+              ! weighted with whole area
+              fr_land_globcover(ie,je,ke) = fr_land_globcover(ie,je,ke) + apix * pland
+              ice_globcover(ie,je,ke) = ice_globcover(ie,je,ke) + apix * pice
+              urban_globcover(ie,je,ke) = urban_globcover(ie,je,ke) + apix * purb
+              ! z0 is averaged logarithmic
+              IF ( lnhp /= plnz0) THEN ! z0 is averaged logarithmic
+                pwz0 = 1./(lnhp - plnz0)
+              ELSE
+                pwz0 = 0.
+              ENDIF
+              z0_globcover(ie,je,ke)      = z0_globcover(ie,je,ke) + apix * pwz0
+              plcov_mn_globcover(ie,je,ke) = plcov_mn_globcover(ie,je,ke) + apix * pmn
+              plcov_mx_globcover(ie,je,ke) = plcov_mx_globcover(ie,je,ke) + apix * pmx
 
-            ! the following fields are weighted with the plant cover
-            root_globcover(ie,je,ke) = root_globcover(ie,je,ke) + apix * pmx * proot
-            lai_mn_globcover(ie,je,ke) = lai_mn_globcover(ie,je,ke) + apix * pmx * plaimn
-            lai_mx_globcover(ie,je,ke) = lai_mx_globcover(ie,je,ke) + apix * pmx * plaimx
-            rs_min_globcover(ie,je,ke) = rs_min_globcover(ie,je,ke) + apix * pmx * prs_min
-            for_d_globcover(ie,je,ke) = for_d_globcover(ie,je,ke) + apix * pmx * pfor_d
-            for_e_globcover(ie,je,ke) = for_e_globcover(ie,je,ke) + apix * pmx * pfor_e
+              ! the following fields are weighted with the plant cover
+              root_globcover(ie,je,ke) = root_globcover(ie,je,ke) + apix * pmx * proot
+              lai_mn_globcover(ie,je,ke) = lai_mn_globcover(ie,je,ke) + apix * pmx * plaimn
+              lai_mx_globcover(ie,je,ke) = lai_mx_globcover(ie,je,ke) + apix * pmx * plaimx
+              rs_min_globcover(ie,je,ke) = rs_min_globcover(ie,je,ke) + apix * pmx * prs_min
+              for_d_globcover(ie,je,ke) = for_d_globcover(ie,je,ke) + apix * pmx * pfor_d
+              for_e_globcover(ie,je,ke) = for_e_globcover(ie,je,ke) + apix * pmx * pfor_e
+            END IF
 
-          END IF
-
+          ENDIF
         ENDIF
-      ENDIF
 
-      ! end loops
-    ENDDO columns
+      ENDDO columns2
     ENDDO globcover_rows
 
+     DEALLOCATE(ie_vec,je_vec,ke_vec)
+!$   DEALLOCATE(start_cell_arr)
 
      SELECT CASE(tg%igrid_type)
      CASE(igrid_gme)  ! in GME grid the diamond edges need to be synrchonized

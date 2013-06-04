@@ -5,8 +5,13 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -181,7 +186,7 @@ MODULE mo_globe_output_nc
    !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg,nhori=nhori)
   ! dim_3d_tg, dim_4d_tg
-  PRINT *,'HA debug, tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
   PRINT *,'dim_3d_tg: ', dim_3d_tg
   PRINT *,'dim_4d_tg: ', dim_4d_tg
   PRINT *,'undefined: ', undefined
@@ -737,7 +742,7 @@ PRINT *,'def_dimension_info_buffer'
    CALL netcdf_put_var(ncid,z0_topo(1:icon_grid%ncell,1,1),z0_topo_meta,undefined)
 
    ! for vertex_param%hh_vert
-   CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:icon_grid%ncell,1,1),hh_vert_meta,undefined)
+   CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:icon_grid%nvertex,1,1),hh_vert_meta,undefined)
 
    !-----------------------------------------------------------------
 

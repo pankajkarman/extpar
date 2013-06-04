@@ -8,7 +8,7 @@
 ! History:
 ! Version      Date       Name
 ! ------------ ---------- ----
-! @VERSION@    @DATE@     Anne Roches
+! V1_4         2011/04/21 Anne Roches
 !  Initial release
 !
 ! Code Description:

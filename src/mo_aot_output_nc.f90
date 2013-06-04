@@ -7,7 +7,7 @@
 !  Initial release
 ! V1_3         2011/04/19 Hermann Asensio
 !  change netcdf output:  time variable
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  clean up
 !
 ! Code Description:

@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -44,11 +49,8 @@ PROGRAM extpar_ndvi_to_buffer
   USE mo_grid_structures, ONLY: igrid_gme
 
 
-  USE  mo_icon_grid_data, ONLY: ICON_grid, & !< structure which contains the definition of the ICON grid
-    &                           icon_grid_region, &
-    &                           icon_grid_level
+  USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
  
-  USE  mo_icon_grid_routines, ONLY: allocate_icon_grid
   USE  mo_cosmo_grid, ONLY: COSMO_grid, &
     &                       lon_rot, &
     &                       lat_rot, &
@@ -67,24 +69,12 @@ PROGRAM extpar_ndvi_to_buffer
     &                            construct_icon_domain,    &
                                 destruct_icon_domain
   
-  USE mo_icon_domain, ONLY: max_dom
-
   USE mo_io_units,          ONLY: filename_max
 
   USE mo_exception,         ONLY: message_text, message, finish
 
   USE mo_utilities_extpar, ONLY: abort_extpar
 
-  USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-    &                              find_nc_dom1,            &
-    &                              find_nc
-
-
-  USE mo_icon_grid_routines,ONLY: inq_grid_dims,            &
-    &                              inq_domain_dims,          &
-    &                              read_grid_info_part,      &
-    &                              read_domain_info_part,    &
-    &                              read_gridref_nl
   
   USE mo_additional_geometry,   ONLY: cc2gc,                  &
     &                            gc2cc,                  &
@@ -185,7 +175,7 @@ PROGRAM extpar_ndvi_to_buffer
   namelist_grid_def = 'INPUT_grid_org'
   CALL init_target_grid(namelist_grid_def)
 
-  PRINT *,' target grid tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
   !HA debug:
     print *,' MAXVAL(lat_geo): ', MAXVAL(lat_geo)
     print *,' MINVAL(lat_geo): ', MINVAL(lat_geo)
@@ -260,7 +250,8 @@ PROGRAM extpar_ndvi_to_buffer
   ndvi_raw_data_grid%nlat_reg= nlat_ndvi
 
   ndvi_raw_data_grid%end_lon_reg= lon_ndvi(nlon_ndvi) ! startlon_ndvi + (nlon_ndvi - 1) * dlon_ndvi
-  ndvi_raw_data_grid%end_lat_reg= lat_ndvi(nlat_ndvi) ! startlat_ndvi - (nlat_ndvi - 1) * dlat_ndvi ! not negative increment, but NDVI latitude goes from north to south
+  ndvi_raw_data_grid%end_lat_reg= lat_ndvi(nlat_ndvi) ! startlat_ndvi - (nlat_ndvi - 1) * dlat_ndvi 
+ ! not negative increment, but NDVI latitude goes from north to south
   print *,'ndvi_raw_data_grid: ',ndvi_raw_data_grid
 
   CALL close_netcdf_NDVI_data(ncid_ndvi)

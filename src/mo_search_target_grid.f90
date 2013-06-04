@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_2         2011/03/25 Hermann Asensio
 !  update to support ICON refinement grids
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -33,6 +38,7 @@ MODULE mo_search_target_grid
   SUBROUTINE find_nearest_target_grid_element(  point_lon_geo, &
     &                                           point_lat_geo, &
     &                                           tg,            &
+    &                                           start_cell_id, &
     &                                           tg_el_ie,      &
     &                                           tg_el_je,      &
     &                                           tg_el_ke)
@@ -61,18 +67,11 @@ MODULE mo_search_target_grid
 
   ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
    USE mo_icon_grid_data, ONLY:  icon_grid_region
-  ! USE mo_icon_grid_data, ONLY:  icon_grid_level
-  ! USE mo_icon_grid_data, ONLY: icon_domain_grid
-   USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
+   USE mo_icon_grid_data, ONLY: nvertex_per_cell
    USE mo_icon_grid_data, ONLY: icon_dom_def
-   USE mo_icon_grid_data, ONLY: nearest_icon_cells
-
 
   ! USE modules to search in ICON grid
   USE mo_search_icongrid, ONLY: find_nc
-  USE mo_search_icongrid, ONLY: walk_to_nc
-  USE mo_search_icongrid, ONLY: find_nchild_nlev
-  USE mo_search_icongrid, ONLY: find_nearest_vert
 
   USE mo_icon_domain,     ONLY: icon_domain
 
@@ -88,15 +87,15 @@ MODULE mo_search_target_grid
   REAL (KIND=wp), INTENT(in) :: point_lat_geo       !< latitude coordinate in geographical system of input point
   TYPE(target_grid_def), INTENT(IN) :: tg           !< structure with target grid description
 
+  INTEGER (KIND=i8), INTENT(INOUT) :: start_cell_id !< ID of starting cell
   INTEGER (KIND=i8), INTENT(OUT) :: tg_el_ie        !< Index tg_el_ie of target grid element nearest to the input point
   INTEGER (KIND=i8), INTENT(OUT) :: tg_el_je        !< Index tg_el_je of target grid element nearest to the input point
   INTEGER (KIND=i8), INTENT(OUT) :: tg_el_ke        !< Index tg_el_ke of target grid element nearest to the input point
 
   ! local variables
    TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-   TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-   INTEGER (KIND=i8) :: nearest_cell_id
-   INTEGER (KIND=i8), SAVE :: start_cell_id = 1 !< start cell id 
+   TYPE(cartesian_coordinates)  :: target_cc_co     
+!< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
 
    ! variables for GME search
    INTEGER :: nip1 ! grid mesh dimension 
@@ -119,14 +118,13 @@ MODULE mo_search_target_grid
          target_geo_co%lat = point_lat_geo * deg2rad
 
          !target_cc_co = gc2cc(target_geo_co) ! transform the geographical coordinates of the point to cartesian coordinates
-         CALL find_nc(target_geo_co,               &
-           &          n_dom,          &
+         CALL find_nc(target_geo_co,    &
            &          nvertex_per_cell, &
-           &          icon_dom_def,                &
-           &          icon_grid_region,            &
-           &          nearest_icon_cells)
+           &          icon_dom_def,     &
+           &          icon_grid_region, &
+           &          start_cell_id,    &
+           &          tg_el_ie)
 
-         tg_el_ie = nearest_icon_cells(icon_dom_nr) !< result of icon grid search
          tg_el_je = 1_i8
          tg_el_ke = 1_i8
 

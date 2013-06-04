@@ -9,6 +9,11 @@
 !  small bug fixes accroding to Fortran compiler warnings
 ! V1_2         2011/03/25 Hermann Asensio
 !  update to support ICON refinement grids
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -53,23 +58,6 @@ USE  mo_cosmo_grid, ONLY: calculate_cosmo_target_coordinates
 
 
 USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-USE  mo_icon_grid_data, ONLY: icon_grid_region
-USE  mo_icon_grid_data, ONLY: icon_grid_level
-USE  mo_icon_grid_data, ONLY: nvertex_dom  
-USE  mo_icon_grid_data, ONLY: ncells_dom
-
-
-!  USE mo_icon_grid_routines, ONLY: allocate_icon_grid
-USE mo_icon_grid_routines, ONLY: get_icon_grid_info
-USE mo_icon_grid_routines, ONLY: inq_grid_dims,            &
-                                inq_domain_dims,          &
-                                read_grid_info_part,      &
-                                read_domain_info_part,    &
-                                read_gridref_nl
-
-USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-                                find_nc_dom1,            &
-                                find_nc
 
 
 USE mo_base_geometry,    ONLY:  geographical_coordinates, &
@@ -90,10 +78,6 @@ USE mo_icon_domain,          ONLY: icon_domain, &
                               grid_vertices,            &
                               construct_icon_domain,    &
                               destruct_icon_domain
-
-USE mo_icon_domain, ONLY: max_dom
-
-
 
 USE mo_io_units,          ONLY: filename_max
 

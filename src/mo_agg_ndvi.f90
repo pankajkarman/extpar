@@ -5,6 +5,11 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -71,6 +76,8 @@ PUBLIC :: agg_ndvi_data_to_target_grid
                                       lat_geo, &
                                       no_raw_data_pixel
         
+    USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
+
     USE mo_gme_grid, ONLY: gme_grid
     USE mo_gme_grid, ONLY: sync_diamond_edge
     USE mo_gme_grid, ONLY: gme_real_field, gme_int_field
@@ -80,9 +87,6 @@ PUBLIC :: agg_ndvi_data_to_target_grid
        ! USE structure which contains the definition of the COSMO grid
        USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO 
 
-      ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-      USE mo_icon_grid_data, ONLY:  icon_grid_region
-      USE mo_icon_grid_data, ONLY:  icon_grid_level
 
       ! USE structure which contains the definition of the ICON grid
       USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
@@ -115,7 +119,10 @@ PUBLIC :: agg_ndvi_data_to_target_grid
     INTEGER (KIND=i8) :: ie   !< index value for longitude
     INTEGER (KIND=i8)  :: je   !< index value for latitude
     INTEGER (KIND=i8)  :: ke   !< counter
+    INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
     INTEGER (KIND=i8) :: i,j,k !< counter
+    INTEGER (KIND=i8) :: i1, i2
+
     INTEGER :: row_index !< counter for NDVI data row
     INTEGER :: column_index !< counter for NDVI data column
     REAL (KIND=wp) :: northern_bound !< northern boundary for NDVI data to read for COSMO grid domain
@@ -184,30 +191,24 @@ PUBLIC :: agg_ndvi_data_to_target_grid
     print *,' ndvi_raw_data_grid%nlat_reg: ', ndvi_raw_data_grid%nlat_reg
     
     ! determine northern and southern boundary for NDVI data to read for COSMO grid domain
-    northern_bound =  MAXVAL(lat_geo) + 1.* ndvi_raw_data_grid%dlat_reg ! One row of NDVI data north of northern boundary of COSMO grid domain
+    northern_bound =  MAXVAL(lat_geo) + 1.* ndvi_raw_data_grid%dlat_reg 
+! One row of NDVI data north of northern boundary of COSMO grid domain
     northern_bound = MIN(90._wp, northern_bound)                                 ! Check for the poles
-   
-   print *, 'northern_bound: ', northern_bound
-   
+      
     northern_bound_index = NINT((northern_bound - ndvi_raw_data_grid%start_lat_reg)/&
                                  ndvi_raw_data_grid%dlat_reg) +1  ! calculate index for regular lon-lat NDVI grid
-  
-  print *, 'northern_bound_index: ', northern_bound_index
-  
+    
   if (northern_bound_index < 1) then 
         northern_bound_index = 1 !< check for bounds
     else if (northern_bound_index > ndvi_raw_data_grid%nlat_reg) then
         northern_bound_index=ndvi_raw_data_grid%nlat_reg
     endif
-    southern_bound = MINVAL(lat_geo) - 1.* ndvi_raw_data_grid%dlat_reg ! One row of NDVI data south of southern boundary of COSMO grid domain
+    southern_bound = MINVAL(lat_geo) - 1.* ndvi_raw_data_grid%dlat_reg 
+! One row of NDVI data south of southern boundary of COSMO grid domain
     southern_bound = MAX(-90._wp, southern_bound)                               ! Check for the poles
-
-    print *, 'southern_bound: ', southern_bound
-
 
     southern_bound_index = NINT((southern_bound - ndvi_raw_data_grid%start_lat_reg)/&
                                  ndvi_raw_data_grid%dlat_reg) +1  ! calculate index for regular lon-lat NDVI grid
-    print *, 'southern_bound_index: ', southern_bound_index
     if (southern_bound_index < 1) then 
         southern_bound_index = 1 !< check for bounds
     else if (southern_bound_index > ndvi_raw_data_grid%nlat_reg) then
@@ -222,12 +223,13 @@ PUBLIC :: agg_ndvi_data_to_target_grid
 
     print *, 'northern_bound_index: ', northern_bound_index
     print *, 'southern_bound_index: ', southern_bound_index
-    print *,'lon_ndvi(northern_bound_index): ', lat_ndvi(northern_bound_index)
-    print *,'lon_ndvi(southern_bound_index): ', lat_ndvi(southern_bound_index)
+    print *,'lat_ndvi(northern_bound_index): ', lat_ndvi(northern_bound_index)
+    print *,'lat_ndvi(southern_bound_index): ', lat_ndvi(southern_bound_index)
 
 
     nlon_reg = ndvi_raw_data_grid%nlon_reg
     nlat_reg = ndvi_raw_data_grid%nlat_reg
+    start_cell_id = 1
 
    ! open netcdf file with NDVI data
     CALL open_netcdf_NDVI_data(path_ndvi_file, &
@@ -257,9 +259,20 @@ PUBLIC :: agg_ndvi_data_to_target_grid
                        IF (time_index == 1) THEN
                           point_lon = lon_ndvi(column_index)
                           point_lat = lat_ndvi(row_index)
+
+                       ! Reset start cell when entering a new row or when the previous data point was outside
+                       ! the model domain
+                       IF (tg%igrid_type == igrid_icon .AND. (column_index == 1 .OR. start_cell_id == 0)) THEN
+                         i1 = NINT(point_lon*search_res)
+                         i2 = NINT(point_lat*search_res)
+                         start_cell_id = tg%search_index(i1,i2)
+                         IF (start_cell_id == 0) EXIT column ! in this case, the whole row is empty
+                       ENDIF
+
                           CALL find_nearest_target_grid_element( point_lon, &
                                               &      point_lat, &
                                               &      tg,        &
+                                              &      start_cell_id, &
                                               &      ie,      &
                                               &      je,      &
                                               &      ke)
@@ -275,7 +288,8 @@ PUBLIC :: agg_ndvi_data_to_target_grid
 
                     IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
 
-                        no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1                                 ! count raw data pixel within COSMO grid element
+                        no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1  
+                               ! count raw data pixel within COSMO grid element
                         ndvi_sum(ie,je,ke)  = ndvi_sum(ie,je,ke) + ndvi_field_row(column_index) ! sum data values
                     ENDIF
 
@@ -310,7 +324,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
     !    ndvi_field = ndvi_sum / no_raw_data_pixel   ! calculate arithmetic mean
     !END WHERE
 
-    print *,'tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
 
     DO k=1, tg%ke
     DO j=1, tg%je
@@ -320,7 +334,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
     !print *,'no_raw_data_pixel(i,j,k): ', no_raw_data_pixel(i,j,k)
 
      IF (no_raw_data_pixel(i,j,k) /= 0) THEN 
-       !-----------------------------------------------------------------------------------------------------------------------------------------
+       !---------------------------------------------------------------------------------------------------------------------
       !   PRINT *,'no_raw_data_pixel(i,j,k) /= 0'
       !   print *,'no_raw_data_pixel(i,j,k): ', no_raw_data_pixel(i,j,k)
       !   print *,'ndvi_sum(i,j,k): ', ndvi_sum(i,j,k)
@@ -331,7 +345,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
           ndvi_field(i,j,k) = ndvi_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
       !    PRINT *,' ndvi_field(i,j,k) = ndvi_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k))'
      ELSE ! bilinear interpolation
-       !-----------------------------------------------------------------------------------------------------------------------------------------
+       !--------------------------------------------------------------------------------------------------------------------
 
        !  print *,'start bilinear interpolation'
          
@@ -435,7 +449,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
          ndvi_field(i,j,k) = default_value
        ENDIF
 
-       !-----------------------------------------------------------------------------------------------------------------------------------------
+       !---------------------------------------------------------------------------------------------------------------------
        ENDIF
 
      ENDDO

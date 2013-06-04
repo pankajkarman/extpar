@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !  small bug fixes accroding to Fortran compiler warnings
+! V1_7         2013/01/25 Guenther Zaengl
+!   Parallel threads for ICON and COSMO using Open-MP,
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -50,12 +55,8 @@ PROGRAM extpar_cru_to_buffer
 
   USE mo_target_grid_routines, ONLY: init_target_grid
 
-  USE mo_icon_grid_data, ONLY: ICON_grid, & !< structure which contains the definition of the ICON grid
-    &                           icon_grid_region, &
-    &                           icon_grid_level
+  USE mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
  
-  USE  mo_icon_grid_routines, ONLY: allocate_icon_grid
-
   USE  mo_cosmo_grid, ONLY: COSMO_grid, &
     &                       lon_rot, &
     &                       lat_rot, &
@@ -74,25 +75,13 @@ PROGRAM extpar_cru_to_buffer
     &                             construct_icon_domain,    &
     &                             destruct_icon_domain
 
-  USE mo_icon_domain, ONLY: max_dom
-
   USE mo_io_units,          ONLY: filename_max
 
   USE mo_exception,         ONLY: message_text, message, finish
 
   USE mo_utilities_extpar, ONLY: abort_extpar
 
-  USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-                                  find_nc_dom1,            &
-                                  find_nc
 
-
-  USE mo_icon_grid_routines,ONLY: inq_grid_dims,            &
-    &                              inq_domain_dims,          &
-    &                              read_grid_info_part,      &
-    &                              read_domain_info_part,    &
-    &                              read_gridref_nl
-  
   USE mo_additional_geometry,   ONLY: cc2gc,                  &
     &                            gc2cc,                  &
     &                            arc_length,             &
@@ -150,13 +139,7 @@ PROGRAM extpar_cru_to_buffer
 
 
 
-  INTEGER :: i, ilev, idom, ip, iplev, ic, in, iclev, istartlev
-
-  ! Namelist variables
-  INTEGER :: grid_root                    !< number of partitions of the icosahedron
-  INTEGER :: start_lev                    !< level of (first) global model domain
-  INTEGER :: n_dom                        !< number of model domains
-  INTEGER :: parent_id(max_dom-1)         !< id of parent model domain
+  INTEGER :: i, ip, ic, in
 
 
   INTEGER                      :: i_nc       !< number of cells
@@ -165,31 +148,22 @@ PROGRAM extpar_cru_to_buffer
   INTEGER                      :: nc_p_e     !< number of cells per edge
   INTEGER                      :: nv_p_c     !< number of vertices per cell
   INTEGER                      :: ne_p_v     !< number of edges per vertex
-  INTEGER                      :: nchilds    !< number of child cells per cell
 
-  INTEGER                      :: n_childdom !< actual number of child domains
-
-
-
-  INTEGER :: first_dom
 
 
   TYPE(icon_domain) , ALLOCATABLE, TARGET :: icon_grid_all(:)
 
-  INTEGER, ALLOCATABLE :: level_region(:)   ! level of region
-
   TYPE(geographical_coordinates) :: tpoint
 
-  INTEGER :: start_id 
   INTEGER :: nearest_cell_id
 
   INTEGER :: nj
   INTEGER :: nb_cell_id
   TYPE(cartesian_coordinates)  :: neighbour_cc     !> coordinates of a neighbour cell centre in cartesian system
-  REAL(KIND=wp)                :: sp               !> cos arc length of  of geodesic arc with endpoints x0,x1 (normalized scalar product of the two points)
+  REAL(KIND=wp)                :: sp               !> cos arc length of  of geodesic arc with endpoints x0,x1
   REAL(KIND=wp)                :: sp_max
-  TYPE(geographical_coordinates) :: target_geo_co    !> target coordinates in geographical system of point for which the nearest ICON grid cell is to be determined
-  TYPE(cartesian_coordinates)  :: target_cc_co     !>  target coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
+  TYPE(geographical_coordinates) :: target_geo_co    !> target coordinates in geographical system of point 
+  TYPE(cartesian_coordinates)  :: target_cc_co     !>  target coordinates in cartesian system of point 
 
   INTEGER, ALLOCATABLE :: nearest_cell_ids(:)    !< array with ids of nearest cell for the domains
 
@@ -245,7 +219,7 @@ PROGRAM extpar_cru_to_buffer
   namelist_grid_def = 'INPUT_grid_org'
   CALL  init_target_grid(namelist_grid_def)
 
-  PRINT *,' target grid tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
 
   igrid_type = tg%igrid_type
 
@@ -289,7 +263,7 @@ PROGRAM extpar_cru_to_buffer
                                      
     PRINT *, 'cru_grid: ', cru_grid
 
-    PRINT *,' target grid tg: ',tg
+    PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
 
 
     ! allocate target grid fields for aerosol optical thickness

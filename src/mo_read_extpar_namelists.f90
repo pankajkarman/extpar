@@ -10,6 +10,8 @@
 ! V1_3         2011/04/19 Hermann Asensio
 ! introduce Globcover 2009 land use data set for external parameters
 ! add support for GRIB1 and GRIB2
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s)         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -41,7 +43,8 @@ SUBROUTINE read_namelists_extpar_grid_def(namelist_grid_def, &
  
   INTEGER (KIND=i4), INTENT(OUT)            :: igrid_type       !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
   CHARACTER (len=filename_max), INTENT(OUT) :: domain_def_namelist !< namelist file with domain definition
-  CHARACTER (len=filename_max),OPTIONAL, INTENT(OUT) :: domain_refinement_opt   !< namelist file with domain refinement defintion (e.g. for the ICON grid)
+  CHARACTER (len=filename_max),OPTIONAL, INTENT(OUT) :: domain_refinement_opt   
+!< namelist file with domain refinement defintion (e.g. for the ICON grid)
   
   ! local variables
   CHARACTER (len=filename_max) :: domain_refinement
@@ -79,7 +82,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
                                          flake_buffer_file, &
                                          ndvi_buffer_file, &
                                          t_clim_buffer_file, &
-                                         aot_buffer_file)
+                                         aot_buffer_file, &
+                                         alb_buffer_file)
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
 
@@ -101,7 +105,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
    CHARACTER (len=filename_max) :: ndvi_buffer_file  !< name for ndvi buffer file
    CHARACTER (len=filename_max) :: t_clim_buffer_file  !< name for t_clim buffer file
    CHARACTER (len=filename_max) :: aot_buffer_file  !< name for aot buffer file
-
+   CHARACTER (len=filename_max) :: alb_buffer_file  !< name for albedo buffer file
 
 
 
@@ -116,7 +120,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
                                          flake_buffer_file, &
                                          ndvi_buffer_file, &
                                          t_clim_buffer_file, &
-                                         aot_buffer_file
+                                         aot_buffer_file, &
+                                         alb_buffer_file
                                          
 
    INTEGER           :: nuin !< unit number

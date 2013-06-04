@@ -8,6 +8,11 @@
 ! V1_2         2011/03/25 Hermann Asensio
 !  change definition of data type icon_grid_def
 !  update doxygen documentation
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -48,9 +53,12 @@ TYPE :: target_grid_def
   INTEGER (KIND=i8) :: ie !< number of grid elements in first dimension of target grid
   INTEGER (KIND=i8) :: je !< number of grid elements in second dimension of target grid
   INTEGER (KIND=i8) :: ke !< number of grid elements in third dimension of target grid
+  REAL    (KIND=wp) :: minlon, maxlon, minlat, maxlat !< minimum and maximum longitudes and latitudes
+  INTEGER (KIND=i8), ALLOCATABLE :: search_index(:,:) !< list for ICON search start index
 END TYPE target_grid_def
 
-TYPE(target_grid_def), ALLOCATABLE :: ndom_tg(:) !< structure with target grid description for ndom domains (e.g. Icon grid refinement areas)
+TYPE(target_grid_def), ALLOCATABLE :: ndom_tg(:) 
+!< structure with target grid description for ndom domains (e.g. Icon grid refinement areas)
 
 INTEGER (KIND=i4), PARAMETER :: igrid_icon = 1 !< parameter to identify ICON grid
 INTEGER (KIND=i4), PARAMETER :: igrid_cosmo = 2 !< parameter to identify COSMO grid
@@ -58,15 +66,10 @@ INTEGER (KIND=i4), PARAMETER :: igrid_gme = 3 !< parameter to identify GME grid
 
 !> Definition of data type with ICON grid definition 
 TYPE :: icosahedral_triangular_grid
-  INTEGER (KIND=i4) :: n_dom             !< number of icon model domains
-  INTEGER (KIND=i4) :: start_lev         !< level of (first) global model domain
-  INTEGER (KIND=i4) :: grid_root         !< number of partitions of the icosahedron
-  INTEGER (KIND=i4) :: icon_dom_nr       !< icon domain number for grid
   INTEGER (KIND=i4) :: nvertex_per_cell  !< number of vertices per cell
   INTEGER (KIND=i4) :: nchilds_per_cell  !< number of child cells per cell
   INTEGER (KIND=i4) :: ncells_per_edge   !< number of cells per edge
   INTEGER (KIND=i4) :: nedges_per_vertex !< number of edges per vertex
-  INTEGER (KIND=i4) :: nchdom            !< maximum number of child domains
   INTEGER (KIND=i4) :: ncell             !< number of cells
   INTEGER (KIND=i4) :: nvertex           !< number of vertices
   INTEGER (KIND=i4) :: nedge             !< number of edges
@@ -75,19 +78,14 @@ END TYPE icosahedral_triangular_grid
 
 !> Definition of data type with ICON grid definition for multiple model domains
 TYPE :: icon_grid_def
-  INTEGER (KIND=i4) :: n_dom             !< number of icon model domains
-  INTEGER (KIND=i4) :: start_lev         !< level of (first) global model domain
-  INTEGER (KIND=i4) :: grid_root         !< number of partitions of the icosahedron
   INTEGER (KIND=i4) :: nvertex_per_cell  !< number of vertices per cell
   INTEGER (KIND=i4) :: nchilds_per_cell  !< number of child cells per cell
   INTEGER (KIND=i4) :: ncells_per_edge   !< number of cells per edge
   INTEGER (KIND=i4) :: nedges_per_vertex !< number of edges per vertex
-  INTEGER (KIND=i4), ALLOCATABLE  :: nchdom(:)            !< maximum number of child domains
-  INTEGER (KIND=i4), ALLOCATABLE  :: ncell(:)             !< number of cells
-  INTEGER (KIND=i4), ALLOCATABLE  :: nvertex(:)           !< number of vertices
-  INTEGER (KIND=i4), ALLOCATABLE  :: nedge(:)             !< number of edges
-  INTEGER (KIND=i4), ALLOCATABLE  :: parent_ids(:)        !< id of parent grid level
-  CHARACTER (LEN=filename_max), ALLOCATABLE :: grid_files(:) !< filenames of Icon grid coordinates, dimension(n_dom)
+  INTEGER (KIND=i4) :: ncell             !< number of cells
+  INTEGER (KIND=i4) :: nvertex           !< number of vertices
+  INTEGER (KIND=i4) :: nedge             !< number of edges
+  CHARACTER (LEN=filename_max) :: grid_file !< filename of Icon grid coordinates
 END TYPE icon_grid_def
 
 !> Definition of data type with GME grid definition 
@@ -120,12 +118,15 @@ TYPE :: reg_lonlat_grid
        REAL (KIND=wp) :: start_lon_reg !< start longitude for regular lon-lat grid (usually western boundary)
        REAL (KIND=wp) :: end_lon_reg   !< end longitude for regular lon-lat grid (usually eastern boundary)
 
-       REAL (KIND=wp) :: start_lat_reg !< start latitude for regular lon-lat grid (usually southern boundary, but northern boundary possible of dlat_reg has a negative increment (grid order from north to south)
-       REAL (KIND=wp) :: end_lat_reg !< end latitude for regular lon-lat grid  (usually northern boundary, but southern boundary possible of dlat_reg has a negative increment (grid order from north to south)
+       REAL (KIND=wp) :: start_lat_reg !< start latitude for regular lon-lat grid 
+!(usually southern boundary, but northern boundary possible of dlat_reg has a negative increment (grid order from north to south)
+       REAL (KIND=wp) :: end_lat_reg !< end latitude for regular lon-lat grid  
+!(usually northern boundary, but southern boundary possible of dlat_reg has a negative increment (grid order from north to south)
 
 
        REAL (KIND=wp) :: dlon_reg !< grid point distance in zonal direction (in degrees) for regular lon-lat grid
-       REAL (KIND=wp) :: dlat_reg !< grid point distance in meridional direction (in degrees) for regular lon-lat grid (negative increment for grid order from north to south)
+       REAL (KIND=wp) :: dlat_reg !< grid point distance in meridional direction (in degrees) 
+!for regular lon-lat grid (negative increment for grid order from north to south)
        INTEGER (KIND=i8) :: nlon_reg !< number of grid elements in zonal direction for regular lon-lat grid
        INTEGER (KIND=i8) :: nlat_reg !< number of grid elements in meridional direction for regular lon-lat grid
 END TYPE reg_lonlat_grid

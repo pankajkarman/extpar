@@ -5,7 +5,7 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
-! @VERSION@    @DATE@     Anne Roches
+! V1_4         2011/04/21 Anne Roches
 ! two new SR extend_field2D, horizontal_filtering
 !
 ! Code Description:

@@ -13,8 +13,15 @@
 ! V1_3         2011/04/19 Hermann Asensio
 !  Bug fix in netcdf output for COSMO grids
 ! introduce Globcover 2009 land use data set for external parameters
-! @VERSION@    @DATE@     Anne Roche
+! V1_4         2011/04/21 Anne Roche
 !  implementation of orography smoothing
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s)         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -60,6 +67,7 @@ MODULE mo_extpar_output_nc
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
 
+  USE mo_albedo_data, ONLY: ntime_alb
   USE mo_ndvi_data, ONLY: ntime_ndvi
   USE mo_aot_data, ONLY: ntype_aot, ntime_aot
 
@@ -116,10 +124,14 @@ MODULE mo_extpar_output_nc
     &                                     slope_globe,   &
     &                                     aot_tg, &
     &                                     crutemp, &
+    &                                     alb_field_mom, &
+    &                                     alnid_field_mom, &
+    &                                     aluvd_field_mom, &
     &                                     slope_asp_globe,     &
     &                                     slope_ang_globe,     &
     &                                     horizon_globe,       &
     &                                     skyview_globe)
+
   
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
@@ -159,6 +171,12 @@ MODULE mo_extpar_output_nc
 
   USE mo_var_meta_data, ONLY: def_soil_meta
   USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+
+  USE mo_var_meta_data, ONLY: dim_alb_tg
+  USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                       alnid_field_mom_meta, &
+      &                       aluvd_field_mom_meta, &
+      &                       def_alb_meta
   
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
   USE mo_var_meta_data, ONLY: ndvi_max_meta, &
@@ -211,7 +229,8 @@ MODULE mo_extpar_output_nc
   INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< number of classes for the land use description
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
+!< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length 
@@ -231,6 +250,9 @@ MODULE mo_extpar_output_nc
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
   INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
   REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
+  REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data
+  REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
   REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
@@ -316,6 +338,9 @@ MODULE mo_extpar_output_nc
     PRINT *,'def_soil_meta'
     CALL def_soil_meta(dim_2d_cosmo,coordinates,grid_mapping)
     !  fr_land_soil_meta, soiltype_fao_meta
+
+    PRINT *,'def_alb_meta'
+    CALL def_alb_meta(tg,ntime_alb,dim_2d_cosmo,coordinates,grid_mapping)
 
     !define meta information for various NDVI data related variables for netcdf output
     PRINT *,'def_ndvi_meta'
@@ -556,6 +581,28 @@ MODULE mo_extpar_output_nc
                        & undefined)
 
     !-----------------------------------------------------------------
+    ! alb_field_mom
+
+    CALL netcdf_put_var(ncid,&
+                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alb_field_mom_meta, &
+                       & undefined)
+
+    !-----------------------------------------------------------------
+    ! alnid_field_mom
+    CALL netcdf_put_var(ncid,&
+                       & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alnid_field_mom_meta, &
+                       & undefined)
+
+    !-----------------------------------------------------------------
+    ! aluvd_field_mom
+    CALL netcdf_put_var(ncid,&
+                       & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & aluvd_field_mom_meta, &
+                       & undefined)
+
+    !-----------------------------------------------------------------
     ! ndvi_field_mom
     CALL netcdf_put_var(ncid,&
                        & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ndvi), &
@@ -635,7 +682,10 @@ MODULE mo_extpar_output_nc
     &                                     slope_globe,   &
     &                                     vertex_param,  &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp, &
+    &                                     alb_field_mom, &
+    &                                     alnid_field_mom, &
+    &                                     aluvd_field_mom)
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -671,6 +721,12 @@ MODULE mo_extpar_output_nc
  
   USE mo_var_meta_data, ONLY: def_soil_meta
   USE mo_var_meta_data, ONLY: soiltype_fao_meta
+
+  USE mo_var_meta_data, ONLY: dim_alb_tg
+  USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+    &                         alnid_field_mom_meta, &
+    &                         aluvd_field_mom_meta, &
+    &                         def_alb_meta
 
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
   USE mo_var_meta_data, ONLY: ndvi_max_meta, &
@@ -720,7 +776,8 @@ MODULE mo_extpar_output_nc
   CHARACTER (LEN=filename_max),INTENT(IN) :: lu_dataset !< name of landuse data set
   INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< number of classes for the land use description
 
-  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
+!< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
@@ -737,6 +794,9 @@ MODULE mo_extpar_output_nc
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
   INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+  REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:)!< field for monthly mean albedo data
+  REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
   REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
@@ -801,14 +861,14 @@ MODULE mo_extpar_output_nc
     ! set Icon coordinates for output
     CALL allocate_icon_coor(icon_grid%ncell, icon_grid%nvertex_per_cell)
 
-    clon(:) = icon_grid_region(icon_grid%icon_dom_nr)%cells%center(:)%lon
-    clat(:) = icon_grid_region(icon_grid%icon_dom_nr)%cells%center(:)%lat
+    clon(:) = icon_grid_region%cells%center(:)%lon
+    clat(:) = icon_grid_region%cells%center(:)%lat
 
     DO nc=1,icon_grid%ncell
       DO nv=1,icon_grid%nvertex_per_cell
-      vert_id =  icon_grid_region(icon_grid%icon_dom_nr)%cells%vertex_index(nc,nv)
-      clon_vertices(nv,nc) =  icon_grid_region(icon_grid%icon_dom_nr)%verts%vertex(vert_id)%lon
-      clat_vertices(nv,nc) =  icon_grid_region(icon_grid%icon_dom_nr)%verts%vertex(vert_id)%lat
+      vert_id =  icon_grid_region%cells%vertex_index(nc,nv)
+      clon_vertices(nv,nc) =  icon_grid_region%verts%vertex(vert_id)%lon
+      clat_vertices(nv,nc) =  icon_grid_region%verts%vertex(vert_id)%lat
       ENDDO
     ENDDO  
 
@@ -849,6 +909,8 @@ MODULE mo_extpar_output_nc
     
     CALL def_soil_meta(dim_1d_icon)
     !  fr_land_soil_meta, soiltype_fao_meta
+
+    CALL def_alb_meta(tg,ntime_alb,dim_1d_icon)
     
     !define meta information for various NDVI data related variables for netcdf output
     CALL def_ndvi_meta(tg,ntime_ndvi,dim_1d_icon)
@@ -1004,6 +1066,18 @@ MODULE mo_extpar_output_nc
      n=5 ! aot_ss
      CALL netcdf_put_var(ncid,aot_tg(1:icon_grid%ncell,1,1,5,1:ntime_aot), &
        &                 aer_ss_meta, undefined)
+
+     n=6 ! alb_field_mom
+     CALL netcdf_put_var(ncid,alb_field_mom(1:icon_grid%ncell,1,1,1:ntime_alb), &
+       &                 alb_field_mom_meta, undefined)
+
+     n=7 ! alnid_field_mom
+     CALL netcdf_put_var(ncid,alnid_field_mom(1:icon_grid%ncell,1,1,1:ntime_alb), &
+       &                 alnid_field_mom_meta, undefined)
+
+     n=8 ! aluvd_field_mom
+     CALL netcdf_put_var(ncid,aluvd_field_mom(1:icon_grid%ncell,1,1,1:ntime_alb), &
+       &                 aluvd_field_mom_meta, undefined)
      
      ! write out ICON grid cell coordinates (in radians) to netcdf file
      CALL  netcdf_put_var(ncid,clon,clon_meta,undefined)

@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_2         2011/03/25 Hermann Asensio
 !  Update documentation
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -56,26 +61,20 @@ MODULE mo_icon_domain
     INTEGER, ALLOCATABLE  :: neighbor_index(:,:) ! neigbor idx, 1 to noOfNeigbors
     INTEGER, ALLOCATABLE  :: cell_index(:,:)     ! cell idx, 1 to noOfNeigbors
     INTEGER, ALLOCATABLE  :: edge_index(:,:)     ! edge idx, 1 to noOfNeigbors
-    INTEGER, ALLOCATABLE  :: edge_orientation(:,:)! +1: from this to neigbor vertex is the same orientation as the edge unit tangent vector
-                                             ! -1: opposite orientation
+    INTEGER, ALLOCATABLE  :: edge_orientation(:,:)
+! +1: from this to neigbor vertex is the same orientation as the edge unit tangent vector
+! -1: opposite orientation
                                               
     REAL(wp), ALLOCATABLE :: dual_area(:)        ! area of dual cell
     TYPE(geographical_coordinates), ALLOCATABLE :: vertex(:)  ! geographical coordinates of the vertices
     TYPE(cartesian_coordinates), ALLOCATABLE :: cc_vertex(:)  ! cartesian coordinats of the vertices
-    INTEGER, ALLOCATABLE  :: refin_ctrl(:)       !
-    INTEGER, ALLOCATABLE  :: child_id(:)            !
   END TYPE grid_vertices
 !--------------------------------------------------------------
 
 !--------------------------------------------------------------
   !> data structure for Icon grid cells
   TYPE grid_cells
-    INTEGER, ALLOCATABLE ::  idx(:)           ! the index of the edge
-    INTEGER, ALLOCATABLE  :: parent_index(:)  !
-    INTEGER, ALLOCATABLE  :: child_index(:,:) !
-    INTEGER, ALLOCATABLE  :: child_id(:)      !
-    INTEGER, ALLOCATABLE  :: curr_id(:)       ! ID of current domain (needed in
-                                          ! mo_gridrefinement only)
+    INTEGER, ALLOCATABLE ::  idx(:)           ! the index of the cell
 
     INTEGER, ALLOCATABLE  :: noOfVertices(:)       ! no of cell vertices = no of edges = no of neibgoring cells
     INTEGER, ALLOCATABLE  :: neighbor_index(:,:)   ! neibgoring cells indeces, from 1 to noOfVertices 
@@ -85,14 +84,13 @@ MODULE mo_icon_domain
     INTEGER, ALLOCATABLE  :: edge_orientation(:,:) ! defined according to Gauss formula 
                                                ! +1 : the normal to the edge is outwards, -1 : inwards
                                                ! for LEFT-HAND coord system the same is true for tangent vectors and Stokes form
-                                               ! for RIGHT-HAND coord system it is reveresed for Stokes form: -edge_normal_direction()
-                                               ! see TYPE grid,gridOrientation: 
-                                               ! the tangent orientation for STOKES is GIVEN BY: edge_normal_direction()*gridOrientation 
+    ! for RIGHT-HAND coord system it is reveresed for Stokes form: -edge_normal_direction()
+    ! see TYPE grid,gridOrientation: 
+    ! the tangent orientation for STOKES is GIVEN BY: edge_normal_direction()*gridOrientation 
 
     TYPE(geographical_coordinates), ALLOCATABLE  :: center(:) ! geographical coordinates of the geometric center
     TYPE(cartesian_coordinates), ALLOCATABLE  :: cc_center(:) ! cartesian coordinates of the geometric center
     REAL(wp), ALLOCATABLE :: area(:)             ! cell area
-    INTEGER, ALLOCATABLE  :: refin_ctrl(:)       !
   END TYPE grid_cells
 !--------------------------------------------------------------
 ! from mo_grid.f90
@@ -102,21 +100,6 @@ MODULE mo_icon_domain
   !!
   !! this type is a subset of the "patch" type of the grid generator (no edges etc.)
   TYPE icon_domain
-
-
-    INTEGER :: id                             !< domain ID of current domain
-
-    INTEGER :: parent_id                      !< domain ID of parent domain
-
-    INTEGER, ALLOCATABLE :: child_id(:)           !< list of child domain ID's (dimension max_childdom)
-
-    INTEGER :: max_childdom                   !< maximum number of child domains
-
-    INTEGER :: n_childdom                     !< actual number of child domains
-
-    INTEGER :: grid_root                    !< number of partitions of the icosahedron
-
-    INTEGER :: level                        !< level in grid hierarchy on which icon_domain lives
 
     INTEGER :: ncells                       !< number of icon_domain items (total no. of cells) 
 
@@ -139,27 +122,21 @@ MODULE mo_icon_domain
  !! Added maxCellVertices, maxVertexConnect, Leonidas, May 2009
  !! Adopted by Hermann Asensio, DWD, August 2009
  SUBROUTINE construct_icon_domain(p,            &
-                            max_childdom,       &
-                            n_childdom,         &
                             ncell,              &
                             nvertex,            &
                             nedge,              &
                             ncells_per_edge,    &
                             nvertex_per_cell,   &
-                            nedges_per_vertex,  &
-                            nchilds_per_cell    &
-                            )
+                            nedges_per_vertex   )
+
    TYPE(icon_domain), INTENT(INOUT) :: p                                   !< icon_domain objects
 
-   INTEGER, INTENT(IN)                      :: max_childdom            !< maximum number of child domains
-   INTEGER, INTENT(IN)                      :: n_childdom              !< actual number of child domains
    INTEGER, INTENT(IN)                      :: ncell                   !< number of cells
    INTEGER, INTENT(IN)                      :: nvertex                 !< number of edges
    INTEGER, INTENT(IN)                      :: nedge                   !< number of vertices
    INTEGER, INTENT(IN)                      :: ncells_per_edge         !< number of cells per edge
    INTEGER, INTENT(IN)                      :: nvertex_per_cell        !< number of vertices per cell
    INTEGER, INTENT(IN)                      :: nedges_per_vertex       !< number of edges per vertex
-   INTEGER, INTENT(IN)                      :: nchilds_per_cell        !< number of child cells per cell
 
    ! local variables
    INTEGER :: istat, ist 
@@ -169,14 +146,6 @@ MODULE mo_icon_domain
    var_default = 0
 
 
-
-    p%id              = var_default
-    p%parent_id       = var_default
-    p%grid_root       = var_default
-    p%level           = var_default
-
-    p%max_childdom    = max_childdom
-    p%n_childdom      = n_childdom
     p%ncells          = ncell
     p%nverts          = nvertex
 
@@ -185,32 +154,10 @@ MODULE mo_icon_domain
       ist=0   
 
 
-      ALLOCATE(p%child_id(max_childdom),STAT=istat)
-          ist=ist+istat
-      p%child_id(:) = var_default
-
-
-
 !--------------------------------------------------------------
       ALLOCATE(p%cells%idx(ncell),STAT=istat)
           ist=ist+istat
       p%cells%idx(:)=0
-
-      ALLOCATE(p%cells%parent_index(ncell),STAT=istat)
-          ist=ist+istat
-      p%cells%parent_index(:)=0
-
-      ALLOCATE(p%cells%child_index(ncell,nchilds_per_cell),STAT=istat)
-          ist=ist+istat
-      p%cells%child_index(:,:)=0
-
-      ALLOCATE(p%cells%child_id(ncell),STAT=istat)
-          ist=ist+istat
-      p%cells%child_id(:)=0
-
-      ALLOCATE(p%cells%curr_id(ncell),STAT=istat)
-          ist=ist+istat
-      p%cells%curr_id(:)=0
 
       ALLOCATE(p%cells%neighbor_index(ncell,nvertex_per_cell) ,STAT=istat)  
           ist=ist+istat 
@@ -244,11 +191,6 @@ MODULE mo_icon_domain
           ist=ist+istat   
       p%cells%area(:)=0
  
-      ALLOCATE(p%cells%refin_ctrl(ncell),STAT=istat)
-          ist=ist+istat
-      p%cells%refin_ctrl(:)=0
-
-
       ALLOCATE(p%cells%noOfVertices(ncell),STAT=istat)
           ist=ist+istat
       p%cells%noOfVertices(:)=0
@@ -295,15 +237,6 @@ MODULE mo_icon_domain
       p%verts%cc_vertex(:)%x(2)=0
       p%verts%cc_vertex(:)%x(3)=0
 
-
-      ALLOCATE(p%verts%refin_ctrl(nvertex),STAT=istat)
-          ist=ist+istat
-      p%verts%refin_ctrl(:)=0
-
-      ALLOCATE(p%verts%child_id(nvertex),STAT=istat)
-          ist=ist+istat
-      p%verts%child_id(:)=0
-
     IF (ist>0) THEN   
       WRITE (message_text, '(a,i8,a)') &
            'Generate grid with ', ncell, ' triangles.'
@@ -325,14 +258,6 @@ MODULE mo_icon_domain
           ist=0   
       DEALLOCATE(p%cells%idx,STAT=istat)
           ist=ist+istat
-      DEALLOCATE(p%cells%parent_index,STAT=istat)
-          ist=ist+istat
-      DEALLOCATE(p%cells%child_index,STAT=istat)
-          ist=ist+istat
-      DEALLOCATE(p%cells%child_id,STAT=istat)
-          ist=ist+istat
-      DEALLOCATE(p%cells%curr_id,STAT=istat)
-          ist=ist+istat
       DEALLOCATE(p%cells%noOfVertices,STAT=istat)
           ist=ist+istat
       DEALLOCATE(p%cells%neighbor_index ,STAT=istat)  
@@ -349,8 +274,6 @@ MODULE mo_icon_domain
           ist=ist+istat
       DEALLOCATE(p%cells%area,STAT=istat)
           ist=ist+istat    
-      DEALLOCATE(p%cells%refin_ctrl,STAT=istat)
-          ist=ist+istat
 
       DEALLOCATE(p%verts%idx,STAT=istat)
           ist=ist+istat
@@ -371,10 +294,6 @@ MODULE mo_icon_domain
           ist=ist+istat
       DEALLOCATE(p%verts%cc_vertex,STAT=istat)
           ist=ist+istat
-      DEALLOCATE(p%verts%refin_ctrl,STAT=istat)
-          ist=ist+istat
-      DEALLOCATE(p%verts%child_id,STAT=istat)
-          ist=ist+istat
     
     IF (ist>0) THEN   
       WRITE (message_text, '(a)') 'Deallocate grid.'
@@ -382,13 +301,6 @@ MODULE mo_icon_domain
     ENDIF
 
   END SUBROUTINE destruct_icon_domain
-
-
-
-
-
-
-
 
 
 

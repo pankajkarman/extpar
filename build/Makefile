@@ -42,10 +42,10 @@ EQUALS = =
 CMAKE_EDIT_COMMAND = /users/rochesa/install/cmake/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /users/rochesa/work/extpar/tmp/src
+CMAKE_SOURCE_DIR = /scratch/rochesa/martina/trunk/src
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /users/rochesa/work/extpar/tmp/build
+CMAKE_BINARY_DIR = /scratch/rochesa/martina/trunk/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -72,9 +72,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/rochesa/work/extpar/tmp/build/CMakeFiles /users/rochesa/work/extpar/tmp/build/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/rochesa/martina/trunk/build/CMakeFiles /scratch/rochesa/martina/trunk/build/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /users/rochesa/work/extpar/tmp/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/rochesa/martina/trunk/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -100,6 +100,19 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+#=============================================================================
+# Target rules for targets named extpar_alb_to_buffer
+
+# Build rule for target.
+extpar_alb_to_buffer: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 extpar_alb_to_buffer
+.PHONY : extpar_alb_to_buffer
+
+# fast build rule for target.
+extpar_alb_to_buffer/fast:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/build
+.PHONY : extpar_alb_to_buffer/fast
 
 #=============================================================================
 # Target rules for targets named extpar_aot_to_buffer
@@ -205,6 +218,14 @@ extpar_soil_to_buffer/fast:
 	$(MAKE) -f CMakeFiles/extpar_soil_to_buffer.dir/build.make CMakeFiles/extpar_soil_to_buffer.dir/build
 .PHONY : extpar_soil_to_buffer/fast
 
+extpar_alb_to_buffer.o: extpar_alb_to_buffer.f90.o
+.PHONY : extpar_alb_to_buffer.o
+
+# target to build an object file
+extpar_alb_to_buffer.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/extpar_alb_to_buffer.f90.o
+.PHONY : extpar_alb_to_buffer.f90.o
+
 extpar_aot_to_buffer.o: extpar_aot_to_buffer.f90.o
 .PHONY : extpar_aot_to_buffer.o
 
@@ -274,6 +295,7 @@ info_extpar.o: info_extpar.f90.o
 
 # target to build an object file
 info_extpar.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/info_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/info_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/info_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/info_extpar.f90.o
@@ -289,6 +311,7 @@ mo_additional_geometry.o: mo_additional_geometry.f90.o
 
 # target to build an object file
 mo_additional_geometry.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_additional_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_additional_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_additional_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_additional_geometry.f90.o
@@ -298,6 +321,14 @@ mo_additional_geometry.f90.o:
 	$(MAKE) -f CMakeFiles/extpar_ndvi_to_buffer.dir/build.make CMakeFiles/extpar_ndvi_to_buffer.dir/mo_additional_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_soil_to_buffer.dir/build.make CMakeFiles/extpar_soil_to_buffer.dir/mo_additional_geometry.f90.o
 .PHONY : mo_additional_geometry.f90.o
+
+mo_agg_albedo.o: mo_agg_albedo.f90.o
+.PHONY : mo_agg_albedo.o
+
+# target to build an object file
+mo_agg_albedo.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_agg_albedo.f90.o
+.PHONY : mo_agg_albedo.f90.o
 
 mo_agg_aot.o: mo_agg_aot.f90.o
 .PHONY : mo_agg_aot.o
@@ -371,6 +402,42 @@ mo_agg_soil.f90.o:
 	$(MAKE) -f CMakeFiles/extpar_soil_to_buffer.dir/build.make CMakeFiles/extpar_soil_to_buffer.dir/mo_agg_soil.f90.o
 .PHONY : mo_agg_soil.f90.o
 
+mo_albedo_data.o: mo_albedo_data.f90.o
+.PHONY : mo_albedo_data.o
+
+# target to build an object file
+mo_albedo_data.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_albedo_data.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_albedo_data.f90.o
+.PHONY : mo_albedo_data.f90.o
+
+mo_albedo_output_nc.o: mo_albedo_output_nc.f90.o
+.PHONY : mo_albedo_output_nc.o
+
+# target to build an object file
+mo_albedo_output_nc.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_albedo_output_nc.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_albedo_output_nc.f90.o
+.PHONY : mo_albedo_output_nc.f90.o
+
+mo_albedo_routines.o: mo_albedo_routines.f90.o
+.PHONY : mo_albedo_routines.o
+
+# target to build an object file
+mo_albedo_routines.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_albedo_routines.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_albedo_routines.f90.o
+.PHONY : mo_albedo_routines.f90.o
+
+mo_albedo_tg_fields.o: mo_albedo_tg_fields.f90.o
+.PHONY : mo_albedo_tg_fields.o
+
+# target to build an object file
+mo_albedo_tg_fields.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_albedo_tg_fields.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_albedo_tg_fields.f90.o
+.PHONY : mo_albedo_tg_fields.f90.o
+
 mo_aot_data.o: mo_aot_data.f90.o
 .PHONY : mo_aot_data.o
 
@@ -403,6 +470,7 @@ mo_base_geometry.o: mo_base_geometry.f90.o
 
 # target to build an object file
 mo_base_geometry.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_base_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_base_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_base_geometry.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_base_geometry.f90.o
@@ -418,7 +486,9 @@ mo_bilinterpol.o: mo_bilinterpol.f90.o
 
 # target to build an object file
 mo_bilinterpol.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_bilinterpol.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_bilinterpol.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_bilinterpol.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_bilinterpol.f90.o
 	$(MAKE) -f CMakeFiles/extpar_globe_to_buffer.dir/build.make CMakeFiles/extpar_globe_to_buffer.dir/mo_bilinterpol.f90.o
 	$(MAKE) -f CMakeFiles/extpar_ndvi_to_buffer.dir/build.make CMakeFiles/extpar_ndvi_to_buffer.dir/mo_bilinterpol.f90.o
@@ -429,6 +499,7 @@ mo_cosmo_grid.o: mo_cosmo_grid.f90.o
 
 # target to build an object file
 mo_cosmo_grid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_cosmo_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_cosmo_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_cosmo_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_cosmo_grid.f90.o
@@ -471,6 +542,7 @@ mo_exception.o: mo_exception.f90.o
 
 # target to build an object file
 mo_exception.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_exception.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_exception.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_exception.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_exception.f90.o
@@ -590,6 +662,7 @@ mo_globcover_data.o: mo_globcover_data.f90.o
 
 # target to build an object file
 mo_globcover_data.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_globcover_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_globcover_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_globcover_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_globcover_data.f90.o
@@ -649,6 +722,7 @@ mo_gme_grid.o: mo_gme_grid.f90.o
 
 # target to build an object file
 mo_gme_grid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_gme_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_gme_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_gme_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_gme_grid.f90.o
@@ -664,6 +738,7 @@ mo_grid_structures.o: mo_grid_structures.f90.o
 
 # target to build an object file
 mo_grid_structures.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_grid_structures.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_grid_structures.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_grid_structures.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_grid_structures.f90.o
@@ -679,6 +754,7 @@ mo_icon_domain.o: mo_icon_domain.f90.o
 
 # target to build an object file
 mo_icon_domain.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_icon_domain.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_icon_domain.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_icon_domain.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_icon_domain.f90.o
@@ -694,6 +770,7 @@ mo_icon_grid_data.o: mo_icon_grid_data.f90.o
 
 # target to build an object file
 mo_icon_grid_data.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_icon_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_icon_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_icon_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_icon_grid_data.f90.o
@@ -709,6 +786,7 @@ mo_icon_grid_routines.o: mo_icon_grid_routines.f90.o
 
 # target to build an object file
 mo_icon_grid_routines.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_icon_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_icon_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_icon_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_icon_grid_routines.f90.o
@@ -732,6 +810,7 @@ mo_io_units.o: mo_io_units.f90.o
 
 # target to build an object file
 mo_io_units.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_io_units.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_io_units.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_io_units.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_io_units.f90.o
@@ -747,6 +826,7 @@ mo_io_utilities.o: mo_io_utilities.f90.o
 
 # target to build an object file
 mo_io_utilities.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_io_utilities.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_io_utilities.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_io_utilities.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_io_utilities.f90.o
@@ -762,6 +842,7 @@ mo_kind.o: mo_kind.f90.o
 
 # target to build an object file
 mo_kind.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_kind.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_kind.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_kind.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_kind.f90.o
@@ -795,6 +876,7 @@ mo_landuse_tg_fields.o: mo_landuse_tg_fields.f90.o
 
 # target to build an object file
 mo_landuse_tg_fields.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_landuse_tg_fields.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_landuse_tg_fields.f90.o
 	$(MAKE) -f CMakeFiles/extpar_landuse_to_buffer.dir/build.make CMakeFiles/extpar_landuse_to_buffer.dir/mo_landuse_tg_fields.f90.o
 .PHONY : mo_landuse_tg_fields.f90.o
@@ -813,6 +895,7 @@ mo_math_constants.o: mo_math_constants.f90.o
 
 # target to build an object file
 mo_math_constants.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_math_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_math_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_math_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_math_constants.f90.o
@@ -872,6 +955,7 @@ mo_physical_constants.o: mo_physical_constants.f90.o
 
 # target to build an object file
 mo_physical_constants.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_physical_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_physical_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_physical_constants.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_physical_constants.f90.o
@@ -887,6 +971,7 @@ mo_read_extpar_namelists.o: mo_read_extpar_namelists.f90.o
 
 # target to build an object file
 mo_read_extpar_namelists.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_read_extpar_namelists.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_read_extpar_namelists.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_read_extpar_namelists.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_read_extpar_namelists.f90.o
@@ -902,6 +987,7 @@ mo_search_gmegrid.o: mo_search_gmegrid.f90.o
 
 # target to build an object file
 mo_search_gmegrid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_search_gmegrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_search_gmegrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_search_gmegrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_search_gmegrid.f90.o
@@ -917,6 +1003,7 @@ mo_search_icongrid.o: mo_search_icongrid.f90.o
 
 # target to build an object file
 mo_search_icongrid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_search_icongrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_search_icongrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_search_icongrid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_search_icongrid.f90.o
@@ -932,6 +1019,7 @@ mo_search_ll_grid.o: mo_search_ll_grid.f90.o
 
 # target to build an object file
 mo_search_ll_grid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_search_ll_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_search_ll_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_search_ll_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_search_ll_grid.f90.o
@@ -947,6 +1035,8 @@ mo_search_target_grid.o: mo_search_target_grid.f90.o
 
 # target to build an object file
 mo_search_target_grid.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_search_target_grid.f90.o
+	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_search_target_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_flake_to_buffer.dir/build.make CMakeFiles/extpar_flake_to_buffer.dir/mo_search_target_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_globe_to_buffer.dir/build.make CMakeFiles/extpar_globe_to_buffer.dir/mo_search_target_grid.f90.o
 	$(MAKE) -f CMakeFiles/extpar_landuse_to_buffer.dir/build.make CMakeFiles/extpar_landuse_to_buffer.dir/mo_search_target_grid.f90.o
@@ -986,6 +1076,7 @@ mo_soil_tg_fields.o: mo_soil_tg_fields.f90.o
 
 # target to build an object file
 mo_soil_tg_fields.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_soil_tg_fields.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_soil_tg_fields.f90.o
 	$(MAKE) -f CMakeFiles/extpar_soil_to_buffer.dir/build.make CMakeFiles/extpar_soil_to_buffer.dir/mo_soil_tg_fields.f90.o
 .PHONY : mo_soil_tg_fields.f90.o
@@ -995,6 +1086,7 @@ mo_target_grid_data.o: mo_target_grid_data.f90.o
 
 # target to build an object file
 mo_target_grid_data.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_target_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_target_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_target_grid_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_target_grid_data.f90.o
@@ -1010,6 +1102,7 @@ mo_target_grid_routines.o: mo_target_grid_routines.f90.o
 
 # target to build an object file
 mo_target_grid_routines.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_target_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_target_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_target_grid_routines.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_target_grid_routines.f90.o
@@ -1034,6 +1127,7 @@ mo_utilities_extpar.o: mo_utilities_extpar.f90.o
 
 # target to build an object file
 mo_utilities_extpar.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_utilities_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_utilities_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_utilities_extpar.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_utilities_extpar.f90.o
@@ -1049,6 +1143,7 @@ mo_var_meta_data.o: mo_var_meta_data.f90.o
 
 # target to build an object file
 mo_var_meta_data.f90.o:
+	$(MAKE) -f CMakeFiles/extpar_alb_to_buffer.dir/build.make CMakeFiles/extpar_alb_to_buffer.dir/mo_var_meta_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_aot_to_buffer.dir/build.make CMakeFiles/extpar_aot_to_buffer.dir/mo_var_meta_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_consistency_check.dir/build.make CMakeFiles/extpar_consistency_check.dir/mo_var_meta_data.f90.o
 	$(MAKE) -f CMakeFiles/extpar_cru_to_buffer.dir/build.make CMakeFiles/extpar_cru_to_buffer.dir/mo_var_meta_data.f90.o
@@ -1066,6 +1161,7 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
+	@echo "... extpar_alb_to_buffer"
 	@echo "... extpar_aot_to_buffer"
 	@echo "... extpar_consistency_check"
 	@echo "... extpar_cru_to_buffer"
@@ -1075,6 +1171,7 @@ help:
 	@echo "... extpar_ndvi_to_buffer"
 	@echo "... extpar_soil_to_buffer"
 	@echo "... rebuild_cache"
+	@echo "... extpar_alb_to_buffer.o"
 	@echo "... extpar_aot_to_buffer.o"
 	@echo "... extpar_consistency_check.o"
 	@echo "... extpar_cru_to_buffer.o"
@@ -1085,6 +1182,7 @@ help:
 	@echo "... extpar_soil_to_buffer.o"
 	@echo "... info_extpar.o"
 	@echo "... mo_additional_geometry.o"
+	@echo "... mo_agg_albedo.o"
 	@echo "... mo_agg_aot.o"
 	@echo "... mo_agg_cru.o"
 	@echo "... mo_agg_flake.o"
@@ -1094,6 +1192,10 @@ help:
 	@echo "... mo_agg_globe.o"
 	@echo "... mo_agg_ndvi.o"
 	@echo "... mo_agg_soil.o"
+	@echo "... mo_albedo_data.o"
+	@echo "... mo_albedo_output_nc.o"
+	@echo "... mo_albedo_routines.o"
+	@echo "... mo_albedo_tg_fields.o"
 	@echo "... mo_aot_data.o"
 	@echo "... mo_aot_output_nc.o"
 	@echo "... mo_aot_target_fields.o"

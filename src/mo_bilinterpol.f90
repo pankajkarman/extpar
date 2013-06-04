@@ -5,12 +5,15 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_8         2013-03-12 Frank Brenner
+!  fixed bug in get_4_surrounding_raw_data_indices regarding negative longitudes
 !
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
 !> Fortran module for bilinear interpolation routines
-!> to calculate a bilinear interpolation from a regular raw data grid (geographical projection, rectangular grid) to a given point with geographical coordinates
+!> to calculate a bilinear interpolation from a regular raw data grid (geographical projection, 
+!> rectangular grid) to a given point with geographical coordinates
 !> \author Hermann Asensio
 MODULE mo_bilinterpol
 
@@ -38,7 +41,8 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        !!
        !! the definition of the regular lon-lat grid requires 
        !! - the coordinates of the north-western point of the domain ("upper left") startlon_reg_lonlat and startlat_reg_lonlat
-       !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the grid definiton goes from the west to the east and from the north to the south)
+       !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the 
+       !! grid definiton goes from the west to the east and from the north to the south)
        !! - the number of grid elements nlon_reg_lonlat and nlat_reg_lonlat for both directions
        SUBROUTINE get_4_surrounding_raw_data_indices(   reg_data_grid, &
                                                         reg_lon,           &
@@ -55,8 +59,8 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        USE mo_search_ll_grid, ONLY : find_reg_lonlat_grid_element_index
 
        TYPE(reg_lonlat_grid), INTENT(in)  :: reg_data_grid               !< structure with the definition of the raw data grid
-        REAL (KIND=wp), INTENT(in)         :: reg_lon(1:reg_data_grid%nlon_reg)      !< longitude of raw data in geographical system
-       REAL (KIND=wp), INTENT(in)          :: reg_lat(1:reg_data_grid%nlat_reg)      !< latitude of raw date in geographical system
+        REAL (KIND=wp), INTENT(in)         :: reg_lon(1:reg_data_grid%nlon_reg)  !< longitude of raw data in geographical system
+       REAL (KIND=wp), INTENT(in)          :: reg_lat(1:reg_data_grid%nlat_reg)  !< latitude of raw date in geographical system
        LOGICAL, INTENT(IN) :: gldata !< logical switch to indicate whether the raw data has global coverage or not
 
        REAL (KIND=wp), INTENT(in) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
@@ -226,7 +230,7 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
 
        END SUBROUTINE get_4_surrounding_raw_data_indices
 
-             !> ELEMENTAL SUBROUTINE to calculate weights bwlon and bwlat for bilinear interploation with a regular lonlat grid as input
+    !> ELEMENTAL SUBROUTINE to calculate weights bwlon and bwlat for bilinear interploation with a regular lonlat grid as input
        ELEMENTAL SUBROUTINE calc_weight_bilinear_interpol(pixel_lon, pixel_lat,&
                                                         & west_lon, east_lon, north_lat, south_lat, &
                                                         & bwlon, bwlat)
@@ -239,6 +243,13 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        REAL (KIND=wp), INTENT(in) :: south_lat !< latitude of southern pixel
        REAL (KIND=wp), INTENT(out):: bwlon     !< weight bwlon
        REAL (KIND=wp), INTENT(out):: bwlat     !< weight bwlat
+
+       REAL (KIND=wp) :: pixel_lon2
+
+! recalculate, if longitude is negative
+       IF (pixel_lon.lt.0) THEN
+          pixel_lon2 = 360. + pixel_lon
+       ENDIF
 
        bwlon = (pixel_lon - west_lon)/(east_lon - west_lon)
        bwlat = (pixel_lat - south_lat)/(north_lat - south_lat)
@@ -265,19 +276,6 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
 
 
        END FUNCTION calc_value_bilinear_interpol
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 END MODULE mo_bilinterpol

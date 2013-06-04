@@ -12,8 +12,13 @@
 !  add netcdf-attribute missing_value
 ! V1_3         2011/04/19 Hermann Asensio
 !  set time dimension for netcdf output as "unlimited" 
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -132,7 +137,8 @@ MODULE mo_io_utilities
   !> structure to store netcdf grid mapping information according to cf conventions
   TYPE netcdf_grid_mapping
      CHARACTER (len=80) :: grid_mapping_varname !< name for variable in netcdf file with grid_mapping data
-     TYPE(netcdf_char_attributes) :: grid_mapping_name  !< netcdf attribute with grid mapping name according to cf, see e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
+     TYPE(netcdf_char_attributes) :: grid_mapping_name  !< netcdf attribute with grid mapping name according to cf, 
+! see e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
      INTEGER :: n_r_att !< number of real attributes
      TYPE(netcdf_real_attributes), ALLOCATABLE :: map_param(:) !< store mapping parameters for the netcdf output 
   END TYPE netcdf_grid_mapping
@@ -1821,6 +1827,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_real_3d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_real_3d',n,length,var_real_3d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -1879,6 +1886,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_real_4d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_real_4d',n,length,var_real_4d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -1938,6 +1946,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_real_5d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_real_5d',n,length,var_real_5d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -1996,6 +2005,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_int_3d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_int_3di8',n,length,var_int_3d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -2054,6 +2064,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_int_3d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_int_3d',n,length,var_int_3d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -2116,6 +2127,7 @@ MODULE mo_io_utilities
      CALL check_netcdf(nf90_inq_dimid(ncid,TRIM(dimname), dimid))
      CALL check_netcdf(nf90_inquire_dimension(ncid,dimid,len=length))
      IF (length /= var_int_4d_meta%diminfo(n)%dimsize) THEN
+write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
        CALL abort_extpar('Dimension size of input file in variable does not match')
      ENDIF
   ENDDO
@@ -2132,7 +2144,8 @@ MODULE mo_io_utilities
   !! the convention at DWD is to set the date for the invariant fields to
   !! year 1, january 1, 00:00 hour
   SUBROUTINE get_date_const_field(dataDate,dataTime)
-  INTEGER (KIND=i8), INTENT(OUT)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+  INTEGER (KIND=i8), INTENT(OUT)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i8), INTENT(OUT)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
     !local variables
@@ -2163,7 +2176,8 @@ MODULE mo_io_utilities
   !! the grib message should have been previously defined, pass the grib_id to this subroutine
   SUBROUTINE set_date_mm_extpar_field(mm,dataDate,dataTime)
     INTEGER, INTENT(IN)   :: mm     !< month
-    INTEGER (KIND=i8), INTENT(OUT)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i8), INTENT(OUT)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i8), INTENT(OUT)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
     !local variables
 

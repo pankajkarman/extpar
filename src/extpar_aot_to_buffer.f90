@@ -9,6 +9,11 @@
 !  small bug fixes accroding to Fortran compiler warnings
 ! V1_3         2011/04/19 Hermann Asensio
 !  clean up of code
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -32,7 +37,8 @@
 !!
 !! Tegen, I., P. Hollrigl, M. Chin, I. Fung, D. Jacob, and J. Penner 1997.
 !!  <a href="http://pubs.giss.nasa.gov/abstracts/1997/Tegen_etal.html">
-!!  Contribution of different aerosol species to the global aerosol extinction optical thickness: Estimates from model results</a>.
+!!  Contribution of different aerosol species to the global aerosol extinction optical thickness: 
+!!  Estimates from model results</a>.
 !! J. Geophys. Res., <b>102</b>, 23895-23915.
 !!
 PROGRAM extpar_aot_to_buffer
@@ -60,11 +66,8 @@ PROGRAM extpar_aot_to_buffer
   USE mo_target_grid_routines, ONLY: init_target_grid
  
  
-  USE  mo_icon_grid_data, ONLY: ICON_grid, & !< structure which contains the definition of the ICON grid
-     &                           icon_grid_region, &
-     &                           icon_grid_level
+  USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
    
-  USE  mo_icon_grid_routines, ONLY: allocate_icon_grid
   USE  mo_cosmo_grid, ONLY: cosmo_grid, &
      &                       lon_rot, &
      &                       lat_rot, &
@@ -94,17 +97,6 @@ PROGRAM extpar_aot_to_buffer
   USE mo_exception,         ONLY: message_text, message, finish
 
   USE mo_utilities_extpar, ONLY: abort_extpar
-  USE mo_icon_grid_routines, ONLY: get_icon_grid_info
-  USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-    &                              find_nc_dom1,            &
-    &                              find_nc
-
-
-  USE mo_icon_grid_routines,ONLY: inq_grid_dims,            &
-    &                              inq_domain_dims,          &
-    &                              read_grid_info_part,      &
-    &                              read_domain_info_part,    &
-    &                              read_gridref_nl
   
   USE mo_additional_geometry,   ONLY: cc2gc,                  &
     &                            gc2cc,                  &
@@ -188,7 +180,7 @@ PROGRAM extpar_aot_to_buffer
   namelist_grid_def = 'INPUT_grid_org'
   CALL  init_target_grid(namelist_grid_def)
 
-  PRINT *,' target grid tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
   !------------------------------------------------------------------------------------
 
   ! get information about aerosol data

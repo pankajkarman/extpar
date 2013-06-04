@@ -14,8 +14,11 @@ FIND_PATH(GRIB_API_INCLUDE grib_api.h
 /oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/include
    #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/include
 #roa CSCS<
+  #/usr/local/pkg/grib_api/prerelease-1.9.18/include          # on DWD hpc
   #/usr/local/pkg/grib_api/include          # on DWD hpc
   #/opt/grib_api/include                    # on DWD workstation
+  #/usr/local/pkg/grib_api/prerelease-1.9.18/include          # on DWD hpc
+
   NO_DEFAULT_PATH
 )
 
@@ -35,7 +38,7 @@ FIND_LIBRARY(GRIB_API_LIBRARY_C
 /oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
    #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
 #roa CSCS<
-  #/usr/local/pkg/grib_api/lib
+  #/usr/local/pkg/grib_api/prerelease-1.9.18/lib
   #/opt/grib_api/lib                    # on DWD workstation
   ${GRIB_API_PREFIX}
   ${GRIB_API_PREFIX}/lib64
@@ -63,7 +66,7 @@ FIND_LIBRARY(GRIB_API_LIBRARY_F90
 /oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
     #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
 #roa CSCS<
-  #/usr/local/pkg/grib_api/lib          # on DWD hpc
+  #/usr/local/pkg/grib_api/prerelease-1.9.18/lib          # on DWD hpc
   #/opt/grib_api/lib                    # on DWD workstation
   /usr/local/lib64
   /usr/lib64
@@ -88,8 +91,9 @@ FIND_LIBRARY(GRIB_API_LIBRARY_F77
 /oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib
    #/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/lib
 #roa CSCS<
-#  /usr/local/pkg/grib_api/lib          # on DWD hpc
- # /opt/grib_api/lib                    # on DWD workstation
+  #/usr/local/pkg/grib_api/prerelease-1.9.18/lib          # on DWD hpc
+  #/opt/grib_api/lib                    # on DWD workstation
+
   /usr/local/lib64
   /usr/lib64
   /usr/local/lib

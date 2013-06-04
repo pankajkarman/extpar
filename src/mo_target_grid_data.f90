@@ -5,6 +5,11 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -34,6 +39,7 @@ MODULE mo_target_grid_data
   PUBLIC :: no_raw_data_pixel
   PUBLIC :: tg
   PUBLIC :: allocate_com_target_fields
+  PUBLIC :: search_res
 
 
   REAL (KIND=wp), ALLOCATABLE  :: lon_geo(:,:,:)          !< longitude coordinates of the target grid in the geographical system 
@@ -43,6 +49,7 @@ MODULE mo_target_grid_data
 
   TYPE(target_grid_def) :: tg !< structure with target grid description
 
+  INTEGER, PARAMETER :: search_res = 4 ! resolution of ICON search index list is 1/search_res in units of degrees
 
 CONTAINS
 

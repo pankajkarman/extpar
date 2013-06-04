@@ -22,6 +22,7 @@ MESSAGE(STATUS "Compiler is ${CMAKE_Fortran_COMPILER}" )
 # Default build is in debug mode
 IF (NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE "Debug")
+#  SET(CMAKE_BUILD_TYPE "Release")
 ENDIF (NOT CMAKE_BUILD_TYPE)
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "NEC-SX9")
@@ -41,8 +42,8 @@ ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 #roa CSCS<
     ${CMAKE_FIND_ROOT_PATH})
   IF (CMAKE_Fortran_COMPILER MATCHES "f95")
-      SET(CMAKE_Fortran_FLAGS_DEBUG "-xpp=cpp -fpp -C -g -ftrap=common -fnonstd")
-      SET(CMAKE_Fortran_FLAGS_RELEASE "-xpp=cpp -fpp -fast ")
+      SET(CMAKE_Fortran_FLAGS_DEBUG "-xpp=cpp -fpp -C -g -xopenmp -ftrap=common -fnonstd")
+      SET(CMAKE_Fortran_FLAGS_RELEASE "-xpp=cpp -fpp -fast -O3 -xopenmp -ftrap=common -fnonstd")
    #   SET(CMAKE_Fortran_FLAGS_RELEASE "-xpp=cpp -fpp -xO2 -xipo=0 -xlibmopt")
 
   ENDIF (CMAKE_Fortran_COMPILER MATCHES "f95")
@@ -81,7 +82,7 @@ IF (NOT GRIB_API_F90_FOUND)
   MESSAGE(SEND_ERROR "GRIB_API include and library are NOT found. Building this program is NOT possible.")
 ENDIF (NOT GRIB_API_F90_FOUND)
 
-
+MESSAGE(STATUS "GRIB_API is ${GRIB_API_INCLUDE}")
 
 # Set include dir i.e., -I/dir/where/prog/sources/are
 # The variable PROJECTNAME_SOURCE_DIR is auto-created and
@@ -140,12 +141,55 @@ TARGET_LINK_LIBRARIES(extpar_aot_to_buffer
 )
 
 
+# Set final binary name and list all source files needed to
+# compile it
+ADD_EXECUTABLE(extpar_alb_to_buffer            # binary name
+               extpar_alb_to_buffer.f90       # source file
+	       info_extpar.f90
+	       mo_additional_geometry.f90  
+	       mo_agg_albedo.f90
+	       mo_albedo_data.f90
+	       mo_var_meta_data.f90	
+	       mo_albedo_output_nc.f90  
+	       mo_albedo_routines.f90  
+	       mo_albedo_tg_fields.f90 
+	       mo_base_geometry.f90 
+               mo_bilinterpol.f90 
+	       mo_cosmo_grid.f90
+	       mo_exception.f90  
+         mo_globcover_data.f90
+	       mo_grid_structures.f90
+	       mo_gme_grid.f90
+	       mo_icon_domain.f90  
+	       mo_icon_grid_data.f90
+               mo_icon_grid_routines.f90
+	       mo_io_units.f90  
+	       mo_kind.f90
+	       mo_math_constants.f90  
+               mo_physical_constants.f90
+               mo_read_extpar_namelists.f90
+               mo_search_gmegrid.f90
+               mo_search_icongrid.f90
+               mo_search_ll_grid.f90
+	       mo_search_target_grid.f90
+	       mo_target_grid_data.f90
+	       mo_target_grid_routines.f90  
+	       mo_utilities_extpar.f90 
+	       mo_io_utilities.f90
+	       mo_landuse_tg_fields.f90
+	       mo_soil_tg_fields.f90
+               mo_var_meta_data.f90
+               )
+
+TARGET_LINK_LIBRARIES(extpar_alb_to_buffer 
+                      ${NETCDF_LIBRARY}
+)
 
 # Set final binary name and list all source files needed to
 # compile it
 ADD_EXECUTABLE(extpar_cru_to_buffer            # binary name
                extpar_cru_to_buffer.f90       # source file
-               info_extpar.f90
+	       info_extpar.f90
                mo_additional_geometry.f90
                mo_agg_cru.f90
                mo_base_geometry.f90
@@ -414,10 +458,18 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                extpar_consistency_check.f90       # source file
                info_extpar.f90
                mo_additional_geometry.f90
+	       mo_albedo_data.f90
+	       mo_albedo_output_nc.f90  
+	       mo_albedo_routines.f90
+	       mo_bilinterpol.f90
+	       mo_albedo_tg_fields.f90  
                mo_aot_data.f90
                mo_aot_target_fields.f90
                mo_aot_output_nc.f90
                mo_base_geometry.f90
+               mo_albedo_data.f90
+               mo_albedo_tg_fields.f90
+               mo_albedo_output_nc.f90
                mo_cru_data.f90
                mo_cru_target_fields.f90
                mo_cru_output_nc.f90
@@ -470,6 +522,7 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
+	       mo_search_target_grid.f90
                )
                
 

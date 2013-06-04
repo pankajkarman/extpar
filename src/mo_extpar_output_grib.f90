@@ -9,6 +9,8 @@
 ! small bug fixes accroding to Fortran compiler warnings 
 ! V1_3         2011/04/19 Hermann Asensio
 ! add support for GRIB1 and GRIB2
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s)          
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -52,6 +54,7 @@ MODULE mo_extpar_output_grib
   USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
   USE mo_ndvi_data, ONLY: ntime_ndvi
   USE mo_aot_data, ONLY: ntype_aot, ntime_aot
+  USE mo_albedo_data, ONLY: ntime_alb
 
   USE grib_api 
   USE mo_io_grib_api
@@ -106,10 +109,12 @@ MODULE mo_extpar_output_grib
     &                                     slope_globe,   &
     &                                     aot_tg, &
     &                                     crutemp,             &
+    &                                     alb_field_mom,       &
     &                                     slope_asp_globe,     &
     &                                     slope_ang_globe,     &
     &                                     horizon_globe,       &
     &                                     skyview_globe )
+
  
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -151,6 +156,11 @@ MODULE mo_extpar_output_grib
 
   USE mo_var_meta_data, ONLY: def_soil_meta
   USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+
+  USE mo_var_meta_data, ONLY: dim_alb_tg
+  USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                       def_alb_meta, &
+      &                       alb_interpol_meta
   
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
   USE mo_var_meta_data, ONLY: ndvi_max_meta, &
@@ -211,6 +221,8 @@ MODULE mo_extpar_output_grib
 
   INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
+  REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data 
+
   REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
@@ -264,8 +276,10 @@ MODULE mo_extpar_output_grib
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
 
- CALL def_soil_meta(dim_3d_tg)
+  CALL def_soil_meta(dim_3d_tg)
   !  fr_land_soil_meta, soiltype_fao_meta
+
+  CALL def_alb_meta(tg,ntime_alb,dim_3d_tg)
 
   !define meta information for various NDVI data related variables for netcdf output
   CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
@@ -406,11 +420,11 @@ MODULE mo_extpar_output_grib
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,lat_geo,lat_geo_meta%shortName,dataDate,dataTime)
 
-
  ! urban_lu
  ! ndvi_max
  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
  & cosmo_grid,ndvi_max,ndvi_max_meta%shortName,dataDate,dataTime)
+
  ! ndvi_field_mom
  DO mm=1,12
     ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
@@ -420,6 +434,7 @@ MODULE mo_extpar_output_grib
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
     & cosmo_grid,extpar_cosmo_buffer,ndvi_field_mom_meta%shortName,dataDate,dataTime)
  ENDDO
+
  ! ndvi_ratio_mom
  DO mm=1,12
     ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
@@ -429,6 +444,14 @@ MODULE mo_extpar_output_grib
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
     & cosmo_grid,extpar_cosmo_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
  ENDDO
+
+ DO mm=1,12
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+  & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm)
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,extpar_cosmo_buffer,alb_field_mom_meta%shortName,dataDate,dataTime)
+ ENDDO 
 
  ! aot_tg
 
@@ -485,7 +508,8 @@ MODULE mo_extpar_output_grib
     &                                     aniso_globe,         &
     &                                     slope_globe,   &
     &                                     aot_tg, &
-    &                                     crutemp)
+    &                                     crutemp, &
+    &                                     alb_field_mom)
  
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -517,6 +541,10 @@ MODULE mo_extpar_output_grib
 
   USE mo_var_meta_data, ONLY: def_soil_meta
   USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+
+  USE mo_var_meta_data, ONLY: dim_alb_tg
+  USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
+      &                       def_alb_meta
   
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
   USE mo_var_meta_data, ONLY: ndvi_max_meta, &
@@ -574,6 +602,8 @@ MODULE mo_extpar_output_grib
 
   INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
+  REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly albedo data
+
   REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
@@ -624,8 +654,11 @@ MODULE mo_extpar_output_grib
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
 
- CALL def_soil_meta(dim_3d_tg)
+  CALL def_soil_meta(dim_3d_tg)
   !  fr_land_soil_meta, soiltype_fao_meta
+
+  ! define meta information for various albedo variables for nc output
+  CALL def_alb_meta(tg,ntime_alb,dim_3d_tg)
 
   !define meta information for various NDVI data related variables for netcdf output
   CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
@@ -756,6 +789,15 @@ MODULE mo_extpar_output_grib
   & ndvi_ratio_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm) 
     CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
     & gme_grid,real_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
+ ENDDO
+
+ ! alb_field_mom
+ DO mm=1,12
+    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+    real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
+  & alb_field_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm)
+    CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
+    & gme_grid,real_buffer,alb_field_mom_meta%shortName,dataDate,dataTime)
  ENDDO
 
  ! aot_tg

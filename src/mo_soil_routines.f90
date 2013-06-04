@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_10        2013-03-26 Juergen Helmert
+!  Adaption in DSMW grid increment computation         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -160,7 +162,8 @@ END SUBROUTINE read_namelists_extpar_soil
         call check_netcdf( nf90_open(TRIM(path_soil_file),NF90_NOWRITE, ncid))
 
 
-       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension 
+       ! (probably time)
        !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        call check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
@@ -194,12 +197,13 @@ END SUBROUTINE read_namelists_extpar_soil
         USE mo_soil_data, ONLY: lat_soil       !< latitude coordinates of the regular grid in the geographical (lonlat)
 
         USE mo_soil_data, ONLY: dsmw_grid !< structure with the definition of the soil raw data grid
-        USE mo_soil_data, ONLY: soil_texslo        !< legend for DSMW with texture and slope information
-        USE mo_soil_data, ONLY: dsmw_soil_unit     !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
+        USE mo_soil_data, ONLY: soil_texslo    !< legend for DSMW with texture and slope information
+        USE mo_soil_data, ONLY: dsmw_soil_unit !< FAO Digital Soil Map of the World, the values represent the soil unit number 
+        ! (see for legend in variable soil_texslo)
 
 
-        !USE SOIL_data, ONLY: reg_lonlat_grid        !< Definition of Data Type to describe a regular lonlat grid
-        !USE SOIL_data, ONLY: dsmw_legend            !< Definition of Data Type to describe the legend for the FAO Digital Soil Map of the World
+        !USE SOIL_data, ONLY: reg_lonlat_grid !< Definition of Data Type to describe a regular lonlat grid
+        !USE SOIL_data, ONLY: dsmw_legend     !< Definition of Data Type to describe the legend for the FAO DSMW
 
 
 
@@ -241,7 +245,8 @@ END SUBROUTINE read_namelists_extpar_soil
        ! open netcdf file 
         call check_netcdf( nf90_open(TRIM(path_soil_file),NF90_NOWRITE, ncid))
 
-       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension 
+       ! (probably time)
        ! nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        call check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
@@ -353,11 +358,11 @@ END SUBROUTINE read_namelists_extpar_soil
        dsmw_grid%end_lat_reg   = lat_soil(nlat_soil)
        
        IF (dsmw_grid%nlon_reg /= 0) THEN
-       dsmw_grid%dlon_reg = (dsmw_grid%end_lon_reg - dsmw_grid%start_lon_reg)/dsmw_grid%nlon_reg
+       dsmw_grid%dlon_reg = (dsmw_grid%end_lon_reg - dsmw_grid%start_lon_reg)/(dsmw_grid%nlon_reg-1._wp)
        ENDIF 
 
        IF (dsmw_grid%nlat_reg /= 0) THEN
-       dsmw_grid%dlat_reg = (dsmw_grid%end_lat_reg - dsmw_grid%start_lat_reg)/dsmw_grid%nlat_reg
+       dsmw_grid%dlat_reg = (dsmw_grid%end_lat_reg - dsmw_grid%start_lat_reg)/(dsmw_grid%nlat_reg-1._wp)
        ENDIF ! in case of latitude orientation from north to south dlat is negative!
 
        !HA debug

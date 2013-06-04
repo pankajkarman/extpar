@@ -20,6 +20,13 @@
 ! V1_5         2011/08/11 Hermann Asensio
 !  bug fix in the concistency check for FR_LAKE
 !  remove erroneous simple height correction of T_CL field
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON 
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s)         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -68,23 +75,8 @@ USE mo_gme_grid, ONLY: spoke
 
 USE  mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
 USE  mo_icon_grid_data, ONLY: icon_grid_region
-USE  mo_icon_grid_data, ONLY: icon_grid_level
-USE  mo_icon_grid_data, ONLY: nvertex_dom  
-USE  mo_icon_grid_data, ONLY: ncells_dom
 
-USE mo_icon_grid_data, ONLY: icon_dom_nr, n_dom, nvertex_per_cell
-
-!  USE mo_icon_grid_routines, ONLY: allocate_icon_grid
-USE mo_icon_grid_routines, ONLY: get_icon_grid_info
-USE mo_icon_grid_routines, ONLY: inq_grid_dims,            &
-                                inq_domain_dims,          &
-                                read_grid_info_part,      &
-                                read_domain_info_part,    &
-                                read_gridref_nl
-
-USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-                                find_nc_dom1,            &
-                                find_nc
+USE mo_icon_grid_data, ONLY:  nvertex_per_cell
 
 
 USE mo_base_geometry,    ONLY:  geographical_coordinates, &
@@ -105,9 +97,6 @@ USE mo_icon_domain,          ONLY: icon_domain, &
                               grid_vertices,            &
                               construct_icon_domain,    &
                               destruct_icon_domain
-
-USE mo_icon_domain, ONLY: max_dom
-
 
 
 USE mo_io_units,          ONLY: filename_max
@@ -235,6 +224,39 @@ USE mo_lu_tg_fields, ONLY: fr_land_lu, &
 
 
 USE mo_lu_tg_fields, ONLY: allocate_lu_target_fields, allocate_add_lu_fields
+
+USE mo_albedo_tg_fields, ONLY: alb_field, &
+   &                        alnid_field, &
+   &                        aluvd_field, &
+   &                        alb_field_mom, &
+   &                        alnid_field_mom, &
+   &                        aluvd_field_mom, &
+   &                        allocate_alb_target_fields, &
+   &                        alb_interpol
+
+USE mo_albedo_data, ONLY: ntime_alb
+USE mo_albedo_data, ONLY: undef_alb, minimal_alb
+USE mo_albedo_data, ONLY: wso_min,wso_max,csalb,csalbw,zalso
+USE mo_albedo_data, ONLY: allocate_alb_interp_fields, &
+    &                     alb_interp_data
+USE mo_albedo_data, ONLY: alb_raw_data_grid, &
+                          alb_field_row_mom, &
+                          alb_field_row, &
+                          lon_alb, &
+                          lat_alb, &
+                          ntime_alb
+
+USE mo_albedo_output_nc, ONLY: read_netcdf_buffer_alb
+
+USE mo_albedo_routines, ONLY: get_pixel_ALB_data, &
+                              open_netcdf_ALB_data, &
+                              read_namelists_extpar_alb, &
+                              const_check_interpol_alb
+
+USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
+  &                       calc_weight_bilinear_interpol, &
+  &                       calc_value_bilinear_interpol
+
 
 USE mo_ndvi_tg_fields, ONLY: ndvi_field, &
     &                                ndvi_max, &
@@ -364,6 +386,15 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
 
   CHARACTER(len=filename_max) :: input_glc2000_namelist_file
   !-----------------------------------------------------------------------------------------------------------------------
+  ! albedo
+  CHARACTER (len=filename_max) :: raw_data_alb_path   !< path to albedo raw input data
+  CHARACTER (len=filename_max) :: raw_data_alb_filename    !< raw data filename
+  CHARACTER (len=filename_max) :: raw_data_alnid_filename  !< raw data filename, NI
+  CHARACTER (len=filename_max) :: raw_data_aluvd_filename  !< raw data filename, UV
+
+  CHARACTER (len=filename_max) :: alb_buffer_file    !< name for albedo buffer file
+  CHARACTER (len=filename_max) :: alb_output_file    !< name for albedo output file
+
   ! NDVI
   CHARACTER (len=filename_max) :: raw_data_ndvi_path        !< path to raw data
   CHARACTER (len=filename_max) :: raw_data_ndvi_filename !< filename NDVI raw data
@@ -470,6 +501,36 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
 
   INTEGER :: db_ice_counter
 
+  INTEGER :: count1, count2, count3
+  REAL (KIND=wp) :: step
+
+  REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
+  REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation
+  REAL (KIND=wp)   :: alb_sw       !< value of the NDVI raw data pixel south west
+  REAL (KIND=wp)   :: alb_se       !< value of the NDVI raw data pixel south east
+  REAL (KIND=wp)   :: alb_ne       !< value of the NDVI raw data pixel north east
+  REAL (KIND=wp)   :: alb_nw       !< value of the NDVI raw data pixel north west
+  REAL (KIND=wp)   :: lon_alt
+
+  INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
+  INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
+  INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
+  INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data
+  LOGICAL :: gldata=.TRUE. ! Albedo data are global
+  REAL (KIND=wp) :: point_lon       !< longitude coordinate in geographical system of input point 
+  REAL (KIND=wp) :: point_lat       !< latitude coordinate in geographical system of input point
+  REAL (KIND=wp) :: lon_geo_w,lon_geo_e,lat_geo_n,lat_geo_s
+  INTEGER (KIND=i4) :: i_miss,errorcode,ncid_alb,time_index
+  INTEGER (KIND=i4) :: point_reg_lon_index          !< longitude index of point for regular lon-lat grid
+  INTEGER (KIND=i4) :: point_reg_lat_index          !< latitude index of point for regular lon-lat grid
+  INTEGER (KIND=i4) :: nlon_reg !< number of columns
+  INTEGER (KIND=i4) :: nlat_reg !< number of rows
+  CHARACTER (len=filename_max) :: path_alb_file 
+  CHARACTER (len=filename_max) :: path_alnid_file
+  CHARACTER (len=filename_max) :: path_aluvd_file
+  CHARACTER (len=filename_max) :: alb_source
+  CHARACTER (len=filename_max) :: alnid_source
+  CHARACTER (len=filename_max) :: aluvd_source
 
   ! Print the default information to stdout:
   CALL info_define ('extpar_consistency_check')      ! Pre-define the program name as binary name
@@ -489,7 +550,7 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
 
   namelist_grid_def = 'INPUT_grid_org'
   CALL  init_target_grid(namelist_grid_def)
-  PRINT *,' target grid tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
   igrid_type = tg%igrid_type
 
   
@@ -551,7 +612,8 @@ END SELECT
                                      flake_buffer_file, &
                                      ndvi_buffer_file, &
                                      t_clim_buffer_file, &
-                                     aot_buffer_file)
+                                     aot_buffer_file, &
+                                     alb_buffer_file)
 
   ! test for glcc data
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
@@ -582,6 +644,9 @@ END SELECT
 
   CALL allocate_flake_target_fields(tg)
   PRINT *,'flake parameter fields allocated'
+
+  CALL allocate_alb_target_fields(tg,ntime_alb)
+  PRINT *,'albedo fields allocated'
 
   !--------------------------------------------------------------------------------------------------------
   ! Start Input
@@ -645,6 +710,18 @@ END SELECT
    &                                     undef_int,   &
    &                                     fr_land_soil,       &
    &                                     soiltype_fao)
+
+  PRINT *,'Read in albedo data'
+  PRINT *,'read ', TRIM(alb_buffer_file)
+
+  CALL read_netcdf_buffer_alb(alb_buffer_file,  &
+   &                           tg, &
+   &                           ntime_alb, &
+   &                           undefined, &
+   &                           undef_int,   &
+   &                           alb_field_mom, &
+   &                           alnid_field_mom, &
+   &                           aluvd_field_mom)
 
   PRINT *,'Read in NDVI data'
   PRINT *,'read ', TRIM(ndvi_buffer_file)
@@ -818,9 +895,9 @@ END SELECT
       ! (soiltyp(:,:) > 8 .OR. soiltyp(:,:) < 1))
         WHERE ((soiltype_fao == undef_soiltype).OR.(soiltype_fao > 8) ) ! land grid elements must have a valid soiltype
          !  WHERE ( (lat_geo < -60.).OR.(lat_geo > 65.) ) ! Arctic and Antarctica
-         !     soiltype_fao = soiltype_ice  ! set soil type to ice for Arctic or Antarctic undefinded points
+         !     soiltype_fao = soiltype_ice  ! set soil type to ice for Arctic or Antarctic undefined points
            WHERE ( (lat_geo < -60.) ) ! Antarctica
-             soiltype_fao = soiltype_ice  ! set soil type to ice for Antarctic undefinded points
+             soiltype_fao = soiltype_ice  ! set soil type to ice for Antarctic undefined points
 
            ELSEWHERE  ! rest of the World 
               soiltype_fao = default_soiltype ! set default soiltype to loam
@@ -946,7 +1023,7 @@ END SELECT
              ne_ie(:) = 0
              nnb=icon_grid%nvertex_per_cell ! number of neighbours in ICON grid
              DO nv=1, nnb
-               n_index = icon_grid_region(icon_dom_nr)%cells%neighbor_index(i,nv) ! get cell id of neighbour cells
+               n_index = icon_grid_region%cells%neighbor_index(i,nv) ! get cell id of neighbour cells
                IF (n_index > 0) THEN
                  ne_ie(nv) = n_index
                ENDIF
@@ -1026,6 +1103,60 @@ END SELECT
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart
       PRINT *,'flake data consitency check, WHERE, done in: ', timediff
+
+!------------------------------------------------------------------------------------------
+!------------- Albedo data consistency ------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+      ! set default Albedo values for land grid elements with so far undefined or unexpected values
+     PRINT *,'Albedo data consistency check'
+
+     CALL CPU_TIME(timestart)
+
+     namelist_file = 'INPUT_ALB'
+
+     CALL read_namelists_extpar_alb(namelist_file,             &
+    &                                  raw_data_alb_path,      &
+    &                                  raw_data_alb_filename,  &
+    &                                  raw_data_alnid_filename,&
+    &                                  raw_data_aluvd_filename,&
+    &                                  alb_buffer_file,        &
+    &                                  alb_output_file,        &
+    &                                  alb_source,             &
+    &                                  alnid_source,           &
+    &                                  aluvd_source)
+
+     nlon_reg = alb_raw_data_grid%nlon_reg
+     nlat_reg = alb_raw_data_grid%nlat_reg
+
+     path_alb_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alb_filename)
+     CALL open_netcdf_ALB_data(path_alb_file, &
+                               ncid_alb)
+
+     CALL allocate_alb_interp_fields(mpy)
+     
+     CALL alb_interp_data()
+
+     DO i=1,9
+      step = 0.1667*(wso_max(i) - wso_min(i))
+      zalso(i,7) = csalb(i) - wso_min(i)*csalbw(i)
+      zalso(i,1) = csalb(i) - wso_max(i)*csalbw(i)
+      DO t=1,5
+         zalso(i,7-t) = csalb(i) - csalbw(i)*step*t
+         zalso(i,7+t) = csalb(i) - csalbw(i)*step*t
+      ENDDO
+    ENDDO
+
+    CALL const_check_interpol_alb(alb_field_mom)
+
+    CALL const_check_interpol_alb(alnid_field_mom)
+
+    CALL const_check_interpol_alb(aluvd_field_mom)
+
+
+    CALL CPU_TIME(timeend)
+    timediff = timeend - timestart
+    PRINT *,'albedo data consistency check, WHERE, done in: ', timediff
 
 !------------------------------------------------------------------------------------------
 !------------- NDVI data consistency ------------------------------------------------------
@@ -1117,7 +1248,10 @@ SELECT CASE(igrid_type)
     &                                     slope_globe,   &
     &                                     vertex_param,  &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp, &
+    &                                     alb_field_mom,  &
+    &                                     alnid_field_mom, &
+    &                                     aluvd_field_mom)
 
 
 
@@ -1125,6 +1259,7 @@ SELECT CASE(igrid_type)
 
 
       PRINT *,'write out ', TRIM(netcdf_output_filename)
+
       IF(lradtopo) THEN
         CALL  write_netcdf_cosmo_grid_extpar(TRIM(netcdf_output_filename),  &
      &                                     cosmo_grid,       &
@@ -1167,6 +1302,9 @@ SELECT CASE(igrid_type)
      &                                     slope_globe,   &
      &                                     aot_tg, &
      &                                     crutemp, &
+     &                                     alb_field_mom,  &
+     &                                     alnid_field_mom, &
+     &                                     aluvd_field_mom, &
      &                                     slope_asp_globe=slope_asp_globe,     &
      &                                     slope_ang_globe=slope_ang_globe,     &
      &                                     horizon_globe=horizon_globe,       &
@@ -1212,11 +1350,14 @@ SELECT CASE(igrid_type)
      &                                     aniso_globe,         &
      &                                     slope_globe,   &
      &                                     aot_tg, &
-     &                                     crutemp )
-      ENDIF
+     &                                     crutemp, &
+     &                                     alb_field_mom,  &
+     &                                     alnid_field_mom, &
+     &                                     aluvd_field_mom )
+     ENDIF
 
      PRINT *,'write out ', TRIM(grib_output_filename)
-     
+
      IF (lradtopo) THEN
        CALL  write_cosmo_grid_extpar_grib(TRIM(grib_output_filename),  &
       &                                   TRIM(grib_sample), &
@@ -1253,6 +1394,7 @@ SELECT CASE(igrid_type)
       &                                     slope_globe,   &
       &                                     aot_tg, &
       &                                     crutemp, &
+      &                                     alb_field_mom, &
       &                                     slope_asp_globe=slope_asp_globe,     &
       &                                     slope_ang_globe=slope_ang_globe,     &
       &                                     horizon_globe=horizon_globe,       &
@@ -1292,8 +1434,11 @@ SELECT CASE(igrid_type)
       &                                     aniso_globe,         &
       &                                     slope_globe,   &
       &                                     aot_tg, &
-      &                                     crutemp )
+      &                                     crutemp, &
+      &                                     alb_field_mom)
+ 
      ENDIF
+
   
      CASE(igrid_gme) ! GME grid  
      PRINT *,'write out ', TRIM(grib_output_filename)
@@ -1329,7 +1474,8 @@ SELECT CASE(igrid_type)
     &                                     aniso_globe,         &
     &                                     slope_globe,   &
     &                                     aot_tg, &
-    &                                     crutemp )
+    &                                     crutemp, &
+    &                                     alb_field_mom)
 
 END SELECT
 

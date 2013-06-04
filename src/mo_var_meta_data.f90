@@ -12,8 +12,10 @@
 !  Adapt variable names to COSMO-CLM conventions and "standard name" to cf convention 
 ! V1_3         2011/04/19 Hermann Asensio
 !  introduce Globcover 2009 land use data set for external parameters
-! @VERSION@    @DATE@     Anne Roches
+! V1_4         2011/04/21 Anne Roches
 !  implementation of orography smoothing
+! V1_8         2013-03-12 Frank Brenner
+!  introduced MODIS albedo dataset(s) as new external parameter(s)         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -128,6 +130,12 @@ MODULE mo_var_meta_data
 
   PUBLIC :: dim_ndvi_tg, def_ndvi_meta
   PUBLIC :: ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+  PUBLIC :: dim_alb_tg, def_alb_meta
+  PUBLIC :: alb_field_mom_meta
+  PUBLIC :: alnid_field_mom_meta
+  PUBLIC :: aluvd_field_mom_meta
+  PUBLIC :: alb_interpol_meta
   
   TYPE(dim_meta_info), TARGET :: dim_3d_tg(1:3)
   TYPE(dim_meta_info), TARGET :: dim_4d_tg(1:4)
@@ -147,6 +155,7 @@ MODULE mo_var_meta_data
 
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_lu_tg(:)
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_ndvi_tg(:)
+  TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_alb_tg(:)
 
   TYPE(var_meta_info) :: aot_tg_meta !< additional information for variable aot_tg with all aerosol fields
   TYPE(var_meta_info) :: aer_bc_meta !< additional information for variable with aerosol optical thickness of black carbon
@@ -158,6 +167,11 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: ndvi_max_meta !< additional information for variable 
   TYPE(var_meta_info) :: ndvi_field_mom_meta !< additional information for variable 
   TYPE(var_meta_info) :: ndvi_ratio_mom_meta !< additional information for variable 
+
+  TYPE(var_meta_info) :: alb_field_mom_meta !< additional information for variable 
+  TYPE(var_meta_info) :: alnid_field_mom_meta !< additional information for variable 
+  TYPE(var_meta_info) :: aluvd_field_mom_meta !< additional information for variable 
+  TYPE(var_meta_info) :: alb_interpol_meta !< additional information for variable
 
   TYPE(var_meta_info) :: crutemp_meta !< additional information for variable crutemp
 
@@ -520,6 +534,99 @@ MODULE mo_var_meta_data
 
     
   END SUBROUTINE def_soil_meta
+
+  SUBROUTINE def_alb_meta(tg,ntime,diminfo,coordinates,grid_mapping)
+
+    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
+    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
+    CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+
+    ! local variables
+    INTEGER  :: n_dim      !< number of dimensions
+    CHARACTER (len=80) :: gridmp
+    CHARACTER (len=80) :: coord
+
+    gridmp = c_undef
+    coord = c_undef
+    
+    IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
+    IF (PRESENT(coordinates)) coord = TRIM(coordinates)
+    n_dim = SIZE(diminfo)
+
+    IF (ALLOCATED(dim_alb_tg)) DEALLOCATE(dim_alb_tg)
+    ALLOCATE(dim_alb_tg(1:n_dim+1))
+    SELECT CASE(n_dim)
+
+
+    CASE (1)
+      dim_alb_tg(1)%dimname = diminfo(1)%dimname 
+      dim_alb_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_alb_tg(2)%dimname = 'time'
+      dim_alb_tg(2)%dimsize = ntime
+    CASE (2)
+      dim_alb_tg(1)%dimname = diminfo(1)%dimname
+      dim_alb_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_alb_tg(2)%dimname = diminfo(2)%dimname
+      dim_alb_tg(2)%dimsize = diminfo(2)%dimsize
+      dim_alb_tg(3)%dimname = 'time'
+      dim_alb_tg(3)%dimsize = ntime
+    CASE (3)
+      dim_alb_tg(1)%dimname = diminfo(1)%dimname
+      dim_alb_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_alb_tg(2)%dimname = diminfo(2)%dimname
+      dim_alb_tg(2)%dimsize = diminfo(2)%dimsize
+      dim_alb_tg(3)%dimname = diminfo(3)%dimname
+      dim_alb_tg(3)%dimsize = diminfo(3)%dimsize
+      dim_alb_tg(4)%dimname = 'time'
+      dim_alb_tg(4)%dimsize = ntime
+    END SELECT
+
+    alb_field_mom_meta%varname = 'ALB'
+    alb_field_mom_meta%n_dim = n_dim + 1
+    alb_field_mom_meta%diminfo => dim_alb_tg
+    alb_field_mom_meta%vartype = vartype_real !REAL variable
+    alb_field_mom_meta%standard_name = 'Albedo'
+    alb_field_mom_meta%long_name = 'Albedo'
+    alb_field_mom_meta%shortName = 'ALB_DIF12'
+    alb_field_mom_meta%units = '%'
+    alb_field_mom_meta%grid_mapping = gridmp
+    alb_field_mom_meta%coordinates = coord
+
+    alnid_field_mom_meta%varname = 'ALNID'
+    alnid_field_mom_meta%n_dim = n_dim + 1
+    alnid_field_mom_meta%diminfo => dim_alb_tg
+    alnid_field_mom_meta%vartype = vartype_real !REAL variable
+    alnid_field_mom_meta%standard_name = 'NI_Albedo'
+    alnid_field_mom_meta%long_name = 'NI_Albedo'
+    alnid_field_mom_meta%shortName = 'ALB_DIF12'
+    alnid_field_mom_meta%units = '%'
+    alnid_field_mom_meta%grid_mapping = gridmp
+    alnid_field_mom_meta%coordinates = coord
+
+    aluvd_field_mom_meta%varname = 'ALUVD'
+    aluvd_field_mom_meta%n_dim = n_dim + 1
+    aluvd_field_mom_meta%diminfo => dim_alb_tg
+    aluvd_field_mom_meta%vartype = vartype_real !REAL variable
+    aluvd_field_mom_meta%standard_name = 'UV_Albedo'
+    aluvd_field_mom_meta%long_name = 'UV_Albedo'
+    aluvd_field_mom_meta%shortName = 'ALB_DIF12'
+    aluvd_field_mom_meta%units = '%'
+    aluvd_field_mom_meta%grid_mapping = gridmp
+    aluvd_field_mom_meta%coordinates = coord
+
+    alb_interpol_meta%varname = 'ALB_I'
+    alb_interpol_meta%n_dim = n_dim + 1
+    alb_interpol_meta%diminfo => dim_alb_tg
+    alb_interpol_meta%vartype = vartype_real !REAL variable
+    alb_interpol_meta%standard_name = 'Interpolated Albedo'
+    alb_interpol_meta%long_name = 'Interpolated Albedo'
+    alb_interpol_meta%shortName = 'ALB_RAD'
+    alb_interpol_meta%units = c_undef
+    alb_interpol_meta%grid_mapping = gridmp
+    alb_interpol_meta%coordinates = coord
+  END SUBROUTINE def_alb_meta
 
   !> define meta information for NDVI data for netcdf output
   SUBROUTINE def_ndvi_meta(tg,ntime,diminfo,coordinates,grid_mapping)
@@ -1905,7 +2012,8 @@ MODULE mo_var_meta_data
     ENDIF
     nc_grid_def_cosmo%grid_mapping_varname =  TRIM(grid_mapping)
     nc_grid_def_cosmo%grid_mapping_name%attname='grid_mapping_name'
-    nc_grid_def_cosmo%grid_mapping_name%attributetext = 'rotated_latitude_longitude' ! netcdf attribute with grid mapping name according to cf, see e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
+    nc_grid_def_cosmo%grid_mapping_name%attributetext = 'rotated_latitude_longitude' 
+! netcdf attribute with grid mapping name according to cf, e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
     nc_grid_def_cosmo%n_r_att = 3 ! number of projection parameters
     nc_grid_def_cosmo%map_param(1)%attname     = 'grid_north_pole_longitude'
     nc_grid_def_cosmo%map_param(1)%att_value_r = REAL(cosmo_grid%pollon) ! this is for type conversion
@@ -1927,7 +2035,8 @@ MODULE mo_var_meta_data
     IF (errorcode /= 0 ) CALL abort_extpar('Cant nc_grid_def_icon%map_param')
     nc_grid_def_icon%grid_mapping_varname = TRIM(grid_mapping)
     nc_grid_def_icon%grid_mapping_name%attname='grid_mapping_name'
-    nc_grid_def_icon%grid_mapping_name%attributetext = 'latitude_longitude'  ! netcdf attribute with grid mapping name according to cf, see e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
+    nc_grid_def_icon%grid_mapping_name%attributetext = 'latitude_longitude'  
+! netcdf attribute with grid mapping name according to cf, e.g. http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/apf.html
     nc_grid_def_icon%n_r_att = 2 ! number of projection parameters
     nc_grid_def_icon%map_param(1)%attname     = 'semi_major_axis'
     nc_grid_def_icon%map_param(1)%att_value_r = REAL(re)  ! type conversion to standard real

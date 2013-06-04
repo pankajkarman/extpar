@@ -15,6 +15,7 @@ data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path s
 # path to binaries
 progdir=../build                                             # adjust the path setting!
 
+binary_alb=extpar_alb_to_buffer
 binary_lu=extpar_landuse_to_buffer
 binary_globe=extpar_globe_to_buffer
 binary_aot=extpar_aot_to_buffer
@@ -38,6 +39,12 @@ grib_output_filename='external_parameter_mch_cosmo2.g1'
 stf_output_filename='external_parameter_mch_cosmo2.stf'
 netcdf_output_filename='external_parameter_mch_cosmo2.nc'
 grib_sample='DWD_rotated_ll_7km_G_grib1'
+
+raw_data_alb='month_alb.nc'
+raw_data_alnid='month_alnid.nc'
+raw_data_aluvd='month_aluvd.nc'
+buffer_alb='month_alb_buffer.nc'
+output_alb='month_alb_extpar_cosmo.nc'
 
 raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
@@ -113,6 +120,29 @@ cat > INPUT_COSMO_GRID << EOF_grid
 EOF_grid
 #---
 # create input namelists 
+#---
+cat > INPUT_ALB << EOF_alb
+&alb_raw_data
+  raw_data_alb_path='',
+  raw_data_alb_filename='${raw_data_alb}'
+/
+&alnid_raw_data
+  raw_data_alnid_filename='${raw_data_alnid}'
+/
+&aluvd_raw_data
+  raw_data_aluvd_filename='${raw_data_aluvd}'
+/
+&alb_io_extpar
+  alb_buffer_file='${buffer_alb}',
+  alb_output_file='${output_alb}'
+/
+&alb_source_file
+  alb_source='al',
+  alnid_source='alnid',
+  aluvd_source='aluvd'
+/
+EOF_alb
+#---
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
   raw_data_aot_path='',
@@ -240,10 +270,16 @@ cat > INPUT_CHECK << EOF_check
   ndvi_buffer_file="${buffer_ndvi}",
   t_clim_buffer_file="${buffer_tclim}",
   aot_buffer_file="${buffer_aot}"
+  alb_buffer_file="${buffer_alb}"
 /  
 EOF_check
 
 # link raw data files to local workdir
+
+ln -s ${data_dir}/${raw_data_alb}
+ln -s ${data_dir}/${raw_data_alnid}
+ln -s ${data_dir}/${raw_data_aluvd}
+
 ln -s ${data_dir}/${raw_data_aot}
 
 ln -s ${data_dir}/${raw_data_tclim}
@@ -278,6 +314,7 @@ ln -s ${data_dir}/${raw_data_flake}
 
 # run the programs
 # the next seven programs can run independent of each other
+time ${progdir}/${binary_alb}
 time ${progdir}/${binary_aot}
 time ${progdir}/${binary_tclim}
 time ${progdir}/${binary_lu}

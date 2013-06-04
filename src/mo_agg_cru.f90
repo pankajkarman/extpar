@@ -5,6 +5,11 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -46,9 +51,6 @@ CONTAINS
     USE mo_GRID_structures, ONLY: reg_lonlat_grid, &
       &                            rotated_lonlat_grid
 
-    ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-    USE mo_icon_grid_data, ONLY:  icon_grid_region
-    USE mo_icon_grid_data, ONLY:  icon_grid_level
 
     ! USE structure which contains the definition of the ICON grid
     USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
@@ -102,16 +104,13 @@ CONTAINS
      INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
 
      INTEGER :: idom  ! counter
-     INTEGER :: n_dom ! number of Icon domains
 
      INTEGER :: nlon
 
      REAL(KIND=wp)   :: point_lon, point_lat
      TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-     TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
-     INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id
-     LOGICAL :: l_child_dom     ! logical switch if child domain exists
-     INTEGER :: child_dom_id   ! id of child domain
+     TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point 
+                                                      !< for which the nearest ICON grid cell is to be determined
 
      INTEGER        :: k_error     ! error return code
 

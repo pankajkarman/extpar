@@ -36,7 +36,7 @@ USE mo_kind,      ONLY:  wp
 IMPLICIT NONE
 
 ! !VERSION CONTROL:
-CHARACTER(len=*), PARAMETER, PRIVATE :: version = '$Id: mo_math_constants.f90,v 1.3 2011/04/19 08:11:30 for0adm Exp $'
+CHARACTER(len=*), PARAMETER, PRIVATE :: version = '$Id: mo_math_constants.f90,v 1.7 2013-01-25 07:40:39 for0adm Exp $'
 
 PUBLIC
 

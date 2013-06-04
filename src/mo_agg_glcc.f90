@@ -9,8 +9,13 @@
 !  small bug fixes accroding to Fortran compiler warnings
 ! V1_2         2011/03/25 Hermann Asensio
 !  update to support ICON refinement grids
-! @VERSION@    @DATE@     Hermann Asensio
+! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -129,8 +134,11 @@ MODULE mo_agg_glcc
     USE mo_physical_constants, ONLY: re
 
     ! USE global data fields (coordinates)
-    USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
-      &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
+    USE mo_target_grid_data, ONLY: lon_geo, & 
+!< longitude coordinates of the COSMO grid in the geographical system 
+      &                            lat_geo 
+!< latitude coordinates of the COSMO grid in the geographical system
+    USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
 
      CHARACTER (LEN=filename_max), INTENT(IN) :: glcc_file(:)  !< filename glcc raw data
@@ -139,12 +147,15 @@ MODULE mo_agg_glcc
 
      TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
      INTEGER, INTENT(IN) :: nclass_glcc !< GLCC has 2v classes for the land use description
-     REAL (KIND=wp), INTENT(OUT)  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+     REAL (KIND=wp), INTENT(OUT)  :: glcc_class_fraction(:,:,:,:)  
+!< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
 
-    INTEGER (KIND=i8), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+    INTEGER (KIND=i8), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) 
+!< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
 
 
-    INTEGER (KIND=i8), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+    INTEGER (KIND=i8), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  
+!< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
 
 
     REAL (KIND=wp), INTENT(OUT)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
@@ -173,12 +184,16 @@ MODULE mo_agg_glcc
      INTEGER (KIND=i8) :: i_lu, j_lu
 
      INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
+     INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
+     INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
+     INTEGER (KIND=i8) :: i1, i2
 
      INTEGER :: idom  ! counter
 
      INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
      REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) !< area weight of all raw data pixels in target grid
-     REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_glcc) !< area for each land use class grid  in target grid element (for a area weight)
+     REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_glcc) 
+!< area for each land use class grid  in target grid element (for a area weight)
      
      REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
      REAL (KIND=wp)    :: apix      !< area of a raw data pixel
@@ -220,9 +235,16 @@ MODULE mo_agg_glcc
 
      REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
      REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
+     REAL (KIND=wp) :: bound_west_cosmo  !< western  boundary for COSMO target domain
+     REAL (KIND=wp) :: bound_east_cosmo  !< eastern  boundary for COSMO target domain
 
+     ! Some stuff for OpenMP parallelization
+     INTEGER :: num_blocks, ib, il, blk_len, istartlon, iendlon, nlon_sub, ishift
+!$   INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
+!$   INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
 
-     apix_e  = re * re * deg2rad* ABS(glcc_grid%dlon_reg) * deg2rad * ABS(glcc_grid%dlat_reg) ! area of GLCC raw data pixel at equator
+     apix_e  = re * re * deg2rad* ABS(glcc_grid%dlon_reg) * deg2rad * ABS(glcc_grid%dlat_reg) 
+! area of GLCC raw data pixel at equator
      PRINT *,'area pixel at equator: ',apix_e
 
      hp   = 30.0      ! height of Prandtl-layer
@@ -249,6 +271,10 @@ MODULE mo_agg_glcc
            bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
            bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
+           bound_east_cosmo = MAXVAL(lon_geo) + 0.25  ! add some "buffer"
+           bound_east_cosmo = MIN(bound_east_cosmo,180.)
+           bound_west_cosmo = MINVAL(lon_geo) - 0.25  ! add some "buffer"
+           bound_west_cosmo = MAX(bound_west_cosmo,-180.)
        CASE(igrid_gme)  ! GME GRID
 
      END SELECT
@@ -276,34 +302,113 @@ MODULE mo_agg_glcc
 
      CALL check_netcdf( nf90_inq_varid(ncid_glcc, TRIM(varname), varid_glcc))
      nlon = glcc_grid%nlon_reg
+     ALLOCATE(ie_vec(nlon),je_vec(nlon),ke_vec(nlon))
+     ie_vec(:) = 0
+     je_vec(:) = 0
+     ke_vec(:) = 0
+     start_cell_id = 1
+
+     ! Determine start and end longitude of search
+     istartlon = 1
+     iendlon = glcc_grid%nlon_reg
+     IF (tg%igrid_type == igrid_icon) THEN
+       DO i_col = 1, glcc_grid%nlon_reg
+         point_lon = lon_glcc(i_col)
+         IF (point_lon < tg%minlon) istartlon = i_col + 1
+         IF (point_lon > tg%maxlon) THEN
+           iendlon = i_col - 1
+           EXIT
+         ENDIF
+       ENDDO
+     ELSE IF (tg%igrid_type == igrid_cosmo) THEN
+       DO i_col = 1, glcc_grid%nlon_reg
+         point_lon = lon_glcc(i_col)
+         IF (point_lon < bound_west_cosmo) istartlon = i_col + 1
+         IF (point_lon > bound_east_cosmo) THEN
+           iendlon = i_col - 1
+           EXIT
+         ENDIF
+       ENDDO
+     ENDIF
+     nlon_sub = iendlon - istartlon + 1
+
+     num_blocks = 1
+!$   num_blocks = omp_get_max_threads()
+     IF (MOD(nlon_sub,num_blocks)== 0) THEN
+       blk_len = nlon_sub/num_blocks
+     ELSE
+       blk_len = nlon_sub/num_blocks + 1
+     ENDIF
+!$   ALLOCATE(start_cell_arr(num_blocks))
+!$   start_cell_arr(:) = 1
+     PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
      PRINT *,'Start loop over glcc dataset '
      ! loop over rows of GLCC dataset
      rows: DO j_row=1,glcc_grid%nlat_reg
-     !rows: DO j_row=1,100
        point_lat = lat_glcc(j_row)
         
        IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
          IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
            CYCLE rows
          ENDIF
-       ENDIF ! COSMO grid
+       ELSE IF (tg%igrid_type == igrid_icon) THEN 
+         IF (point_lat > tg%maxlat .OR. point_lat < tg%minlat) THEN
+           CYCLE rows
+         ENDIF
+       ENDIF ! grid type
         
        ! read in pixels
        CALL check_netcdf(nf90_get_var(ncid_glcc, varid_glcc,  glcc_data_row,  &
          &               start=(/1,j_row/),count=(/nlon,1/)))
        apix = apix_e * COS(point_lat * deg2rad) ! area of raw data pixel (in [m**2])
+       ie_vec(istartlon:iendlon) = 0
+       IF (tg%igrid_type /= igrid_icon) THEN
+         je_vec(:) = 0
+         ke_vec(:) = 0
+       ENDIF
 
-       columns: DO i_col=1, glcc_grid%nlon_reg
+!$OMP PARALLEL DO PRIVATE(ib,il,i_col,i1,i2,ishift,point_lon,thread_id,start_cell_id)
+       DO ib = 1, num_blocks
+
+!$     thread_id = omp_get_thread_num()+1
+!$     start_cell_id = start_cell_arr(thread_id)
+       ishift = istartlon-1+(ib-1)*blk_len
+
+  columns1: DO il = 1,blk_len
+       i_col = ishift+il
+       IF (i_col > iendlon) CYCLE columns1
+
        ! find the corresponding target grid indices
-       point_lon = lon_glcc(i_col) 
+       point_lon = lon_glcc(i_col)
 
-       CALL  find_nearest_target_grid_element( point_lon, &
-                                              &      point_lat, &
-                                              &      tg,        &
-                                              &      ie,      &
-                                              &      je,      &
-                                              &      ke)
+       ! Reset start cell when entering a new row or when the previous data point was outside
+       ! the model domain
+       IF (tg%igrid_type == igrid_icon .AND. (il == 1 .OR. start_cell_id == 0)) THEN
+         i1 = NINT(point_lon*search_res)
+         i2 = NINT(point_lat*search_res)
+         start_cell_id = tg%search_index(i1,i2)
+         IF (start_cell_id == 0) EXIT ! in this case, the whole row is empty; may happen with merged (non-contiguous) domains
+       ENDIF
+
+       CALL  find_nearest_target_grid_element( point_lon,     &
+                                        &      point_lat,     &
+                                        &      tg,            &
+                                        &      start_cell_id, &
+                                        &      ie_vec(i_col), &
+                                        &      je_vec(i_col), &
+                                        &      ke_vec(i_col)  )
+
+       ENDDO columns1
+!$     start_cell_arr(thread_id) = start_cell_id
+       ENDDO
+!$OMP END PARALLEL DO
+
+  columns2: DO i_col=istartlon,iendlon
+
+       ie = ie_vec(i_col)
+       je = je_vec(i_col)
+       ke = ke_vec(i_col)
 
        IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN 
          ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
@@ -374,9 +479,12 @@ MODULE mo_agg_glcc
       ENDIF
 
       ! end loops
-    ENDDO columns
+    ENDDO columns2
     ENDDO rows
      
+     DEALLOCATE(ie_vec,je_vec,ke_vec)
+!$   DEALLOCATE(start_cell_arr)
+
      SELECT CASE(tg%igrid_type)
      CASE(igrid_gme)  ! in GME grid the diamond edges need to be synrchonized
 

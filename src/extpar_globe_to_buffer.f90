@@ -9,8 +9,14 @@
 !   small bug fixes accroding to Fortran compiler warnings        
 ! V1_2         2011/03/25 Hermann Asensio
 !  update to support ICON refinement grids
-! @VERSION@    @DATE@     Anne Roches
-!  implementation of orography smoothing
+! V1_4         2011/04/21 Anne Roches     
+!  implementation of orography smoothing  
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
+!
 ! @VERSION@    @DATE@     Martina Messmer
 !  adaptation in order to allow user to chose between GLOBE and ASTER topography
 ! Code Description:
@@ -59,23 +65,10 @@ PROGRAM extpar_globe_to_buffer
     &                       get_cosmo_grid_info, &
     &                       calculate_cosmo_domain_coordinates
 
-  USE mo_icon_grid_data, ONLY: ICON_grid, & !< structure which contains the definition of the ICON grid
-    &                          nvertex_dom,  &
-    &                          ncells_dom
+  USE mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
     
-  USE mo_icon_grid_data, ONLY: icon_grid_region, icon_dom_nr
+  USE mo_icon_grid_data, ONLY: icon_grid_region
 
-  USE mo_icon_grid_routines, ONLY: allocate_icon_grid
-
-  USE mo_icon_grid_routines, ONLY: inq_grid_dims,            &
-    &                              inq_domain_dims,          &
-    &                              read_grid_info_part,      &
-    &                              read_domain_info_part,    &
-    &                              read_gridref_nl
-
-  USE mo_search_icongrid,   ONLY: walk_to_nc,              &
-    &                             find_nc_dom1,            &
-    &                             find_nc
 
   USE mo_base_geometry,    ONLY:  geographical_coordinates, &
     &                             cartesian_coordinates
@@ -94,8 +87,6 @@ PROGRAM extpar_globe_to_buffer
     &                           construct_icon_domain,    &
     &                           destruct_icon_domain
 
-  USE mo_icon_domain, ONLY: max_dom
- 
   USE mo_io_units,          ONLY: filename_max
 
   USE mo_exception,         ONLY: message_text, message, finish
@@ -237,8 +228,6 @@ USE mo_topo_data,        ONLY:  topo_aster,        &
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
 
   ! variables for the ICON grid
-  INTEGER :: n_dom                        !< number of model domains
-  INTEGER :: first_dom                    !< index of first (global) model domain 
   INTEGER :: nvertex  !< total number of vertices
   INTEGER :: nv ! counter
 
@@ -277,7 +266,7 @@ USE mo_topo_data,        ONLY:  topo_aster,        &
 
   CALL init_target_grid(namelist_grid_def,lrad=lradtopo)
 
-  PRINT *,' target grid tg: ',tg
+  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
 
 
   igrid_type = tg%igrid_type
@@ -390,7 +379,7 @@ USE mo_topo_data,        ONLY:  topo_aster,        &
   SELECT CASE(igrid_type)
     CASE(igrid_icon) ! ICON GRID
     ! allocate addtional target fields
-    nvertex = icon_grid_region(icon_dom_nr)%nverts
+    nvertex = icon_grid_region%nverts
     CALL  allocate_additional_hh_param(nvertex)
   END SELECT
 

@@ -54,10 +54,10 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 !
 ! Following declarations have to be defined just after checkout from the version control system:
 CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_3'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2011-04-19 08:11:30'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = ''
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2011-04-20 11:44:13'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_10'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2013-03-26 12:39:41'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '25'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2013-04-08 11:05:20'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = ''
 ! Following declarations have to be defined just before compiling:
 CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = &
@@ -80,6 +80,7 @@ CHARACTER (LEN=*), PARAMETER :: INFO_CompileTime     = &
  '2012-10-26 12:36:55'
 CHARACTER (LEN=*), PARAMETER :: INFO_CompileMachine  = &
  'Lema'
+
 !
 ! Global Variables:
 !

@@ -9,9 +9,12 @@
 !  Update documentation
 ! V1_3         2011/04/19 Hermann Asensio
 ! add support for GRIB1 and GRIB2
-! @VERSION@    @DATE@     Hermann Asensio, Anne Roche
+! V1_4         2011/04/21 Hermann Asensio, Anne Roche
 !  set correct stepType(GRIB1 and GRIB2) and timeRangeIndicator (GRIB1) (ha)
 !  clean up of code (roa)
+! V1_8         2013-03-12 Frank Brenner
+!  small bug fix regarding grib_set "stepType" to "avg" with new GRIB API 
+!  versions (above 1.9.9)         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -233,7 +236,8 @@ MODULE mo_io_grib_api
 
     INTEGER, INTENT(IN)   :: gribid !< id of grib message (GRIB_API)
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName 
-    INTEGER (KIND=i8), INTENT(IN)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
 
@@ -273,9 +277,12 @@ MODULE mo_io_grib_api
       CALL  grib_set(gribid,"timeRangeIndicator",0) ! GRIB1 setting
     ENDIF
     IF ((dataDate >= 11110111).AND.(dataDate <= 11111211)) THEN
-      CALL grib_set(gribid,"stepType","avg")
+!      CALL grib_set(gribid,"stepType","avg")
       IF (editionNumber == 1) THEN
         CALL  grib_set(gribid,"timeRangeIndicator",3) ! GRIB1 setting
+      ELSE
+!        print *,'FB, debug, mo_io_grib_api grib_set stepType=avg'
+        CALL grib_set(gribid,"stepType","avg")
       ENDIF
     ENDIF
 
@@ -283,7 +290,7 @@ MODULE mo_io_grib_api
     CALL grib_set(gribid,'dataTime ',dataTime)
 
 
-    !PRINT *,'HA debug: shortName: ',TRIM(shortName)
+!    PRINT *,'HA debug: shortName: ',TRIM(shortName)
     CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) 
     ! this is an "edition independent" setting of the parameter values 
     ! in the product defintion section, the GRIB1 or GRIB2 entries are 
@@ -315,6 +322,7 @@ MODULE mo_io_grib_api
         CALL grib_set(gribid,"parameterNumber",2)   ! parameterNumber 'water fraction'
       ENDIF
     ENDIF
+
     IF ((centre == dwd_id_grib ).AND.(editionNumber == 1)) THEN
       ! put data and time of output generation to DWD local section to the grib
       CALL DATE_AND_TIME(ydate,ytime)
@@ -343,9 +351,11 @@ MODULE mo_io_grib_api
     CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
-    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id
+    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1)
+!< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
-    INTEGER (KIND=8), INTENT(IN)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate 
+ !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
 
@@ -375,11 +385,9 @@ MODULE mo_io_grib_api
 
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
 
-
     CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
     CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
     CALL grib_release(gribid_dest) ! free memory of grib message
-
 
   END  SUBROUTINE write_extpar_cosmo_real_field_grib
 
@@ -394,9 +402,11 @@ MODULE mo_io_grib_api
     CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
-    INTEGER(KIND=i4), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) !< field to write out to GRIB file with outfile_id
+    INTEGER(KIND=i4), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) 
+!< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
-    INTEGER (KIND=8), INTENT(IN)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
 
@@ -447,9 +457,11 @@ MODULE mo_io_grib_api
     CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
-    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) !< field to write out to GRIB file with outfile_id
+    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
+!< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
-    INTEGER (KIND=8), INTENT(IN)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
 
@@ -503,9 +515,11 @@ MODULE mo_io_grib_api
     CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
-    INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) !< field to write out to GRIB file with outfile_id
+    INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
+!< field to write out to GRIB file with outfile_id
     CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
-    INTEGER (KIND=8), INTENT(IN)  :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
     ! local variables

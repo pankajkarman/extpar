@@ -7,6 +7,11 @@
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
 !   small bug fixes accroding to Fortran compiler warnings
+! V1_7         2013/01/25 Guenther Zaengl 
+!   Parallel threads for ICON and COSMO using Open-MP, 
+!   Several bug fixes and optimizations for ICON search algorithm, 
+!   particularly for the special case of non-contiguous domains; 
+!   simplified namelist control for ICON  
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -68,6 +73,7 @@ MODULE mo_agg_soil
        USE mo_target_grid_data, ONLY: no_raw_data_pixel
        USE mo_target_grid_data, ONLY: lon_geo
        USE mo_target_grid_data, ONLY: lat_geo
+       USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
        USE mo_icon_domain,     ONLY: icon_domain
        USE mo_grid_structures, ONLY: rotated_lonlat_grid
@@ -89,25 +95,24 @@ MODULE mo_agg_soil
        ! USE structure which contains the definition of the ICON grid
        USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
 
-       ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-       USE mo_icon_grid_data, ONLY:  icon_grid_region
-       USE mo_icon_grid_data, ONLY:  icon_grid_level
-
-
-       
 
        TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
 
        REAL (KIND=wp), INTENT(IN) :: undefined  !< undefined value for soil type
 
        TYPE(dsmw_legend), INTENT(IN) :: soil_texslo(:)  !< legend for DSMW with texture and slope information, (1:n_unit)
-       INTEGER (KIND=i4), INTENT(IN) :: dsmw_soil_unit(:,:) !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
+       INTEGER (KIND=i4), INTENT(IN) :: dsmw_soil_unit(:,:) 
+!< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
        INTEGER, INTENT(IN) :: n_unit   !< number of soil units
-       TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid !< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
+       TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid 
+!< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
        
-       REAL (KIND=wp), INTENT(IN)  :: lon_soil(:)          !< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
-       REAL (KIND=wp), INTENT(IN)  :: lat_soil(:)          !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
-       REAL(KIND=wp), INTENT(OUT)  :: fr_land_soil(:,:,:) !< fraction land due to FAO Digital Soil map of the World
+       REAL (KIND=wp), INTENT(IN)  :: lon_soil(:)          
+!< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
+       REAL (KIND=wp), INTENT(IN)  :: lat_soil(:)          
+!< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
+       REAL(KIND=wp), INTENT(OUT)  :: fr_land_soil(:,:,:) 
+!< fraction land due to FAO Digital Soil map of the World
 
        INTEGER(KIND=i4), INTENT(OUT) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
@@ -144,6 +149,7 @@ MODULE mo_agg_soil
        INTEGER (KIND=i8) :: ie  ! counter for grid element index
        INTEGER (KIND=i8) :: je  ! counter for grid element index
        INTEGER (KIND=i8) :: ke ! counter for grid element index
+       INTEGER (KIND=i8) :: i1, i2
 
        REAL (KIND=wp) :: lon_pixel ! longitude coordinate of raw data pixel
        REAL (KIND=wp) :: lat_pixel ! latitude coordinate of raw data pixel
@@ -180,11 +186,7 @@ MODULE mo_agg_soil
 
        REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
        REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
-       INTEGER (KIND=i8) :: start_cell_id = 1 !< start cell id
-       LOGICAL :: l_child_dom     ! logical switch if child domain exists
-       INTEGER :: child_dom_id   ! id of child domain
-       INTEGER :: idom  ! counter
-       INTEGER :: n_dom ! number of Icon domains
+       INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
 
        !undefined_integer= NINT(undefined)
 
@@ -218,6 +220,8 @@ MODULE mo_agg_soil
        I_undef_s = undefined_integer
        I_undef_t = undefined_integer 
 
+       start_cell_id = 1
+
 
        SELECT CASE(tg%igrid_type)
          CASE(igrid_icon)  ! ICON GRID
@@ -240,12 +244,20 @@ MODULE mo_agg_soil
           ! find target data grid element index which is nearest to the raw data grid
           lon_pixel = lon_soil(ir)
           lat_pixel = lat_soil(jr)
-          ! HA debug: 
-          !PRINT *,'CALL  find_nearest_target_grid_element'
-          !PRINT *,'ir, jr', ir, jr
+
+          ! Reset start cell when entering a new row or when the previous data point was outside
+          ! the model domain
+          IF (tg%igrid_type == igrid_icon .AND. (ir == 1 .OR. start_cell_id == 0)) THEN
+            i1 = NINT(lon_pixel*search_res)
+            i2 = NINT(lat_pixel*search_res)
+            start_cell_id = tg%search_index(i1,i2)
+           IF (start_cell_id == 0) EXIT raw_loop ! in this case, the whole row is empty
+          ENDIF
+
           CALL  find_nearest_target_grid_element(lon_pixel, &
                                               & lat_pixel, &
                                               & tg,            &
+                                              & start_cell_id, &
                                               & ie,      &
                                               & je,      &
                                               & ke)
@@ -560,7 +572,8 @@ MODULE mo_agg_soil
            IF (itex == -900500)   isoil = 3 ! shifting sands or dunes, set soiltype to sand (soil type 3)
            IF (itex == -900000)   isoil = 9 ! undefined (inland lake)
            IF (itex == -900900)   isoil =   default_soiltype ! undefined (nodata), set soiltype to loam (soil type )
-           IF (itex == -901200)   isoil =   default_soiltype ! undefined (dominant part undefined), set soiltype to loam (soil type 5)
+           IF (itex == -901200)   isoil =   default_soiltype 
+! undefined (dominant part undefined), set soiltype to loam (soil type 5)
 
            
            IF (itex >= 0)    isoil = 7 ! fine textured, clay (soil type 7)
@@ -609,9 +622,6 @@ MODULE mo_agg_soil
        ! USE structure which contains the definition of the ICON grid
        USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
 
-       ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
-       USE mo_icon_grid_data, ONLY:  icon_grid_region
-       USE mo_icon_grid_data, ONLY:  icon_grid_level
 
        USE mo_target_grid_data, ONLY: no_raw_data_pixel
        USE mo_target_grid_data, ONLY: lon_geo
@@ -626,13 +636,18 @@ MODULE mo_agg_soil
        REAL (KIND=wp), INTENT(IN) :: undefined  !< undefined value for soil type
 
        TYPE(dsmw_legend), INTENT(IN) :: soil_texslo(:)  !< legend for DSMW with texture and slope information, (1:n_unit)
-       INTEGER (KIND=i4), INTENT(IN) :: dsmw_soil_unit(:,:) !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
+       INTEGER (KIND=i4), INTENT(IN) :: dsmw_soil_unit(:,:) 
+!< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
        INTEGER, INTENT(IN) :: n_unit   !< number of soil units
-       TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid !< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
+       TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid 
+!< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
        
-       REAL (KIND=wp), INTENT(IN)  :: lon_soil(:)          !< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
-       REAL (KIND=wp), INTENT(IN)  :: lat_soil(:)          !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
-       REAL(KIND=wp), INTENT(OUT)  :: fr_land_soil(:,:,:) !< fraction land due to FAO Digital Soil map of the World
+       REAL (KIND=wp), INTENT(IN)  :: lon_soil(:)          
+!< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
+       REAL (KIND=wp), INTENT(IN)  :: lat_soil(:)          
+!< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
+       REAL(KIND=wp), INTENT(OUT)  :: fr_land_soil(:,:,:) 
+!< fraction land due to FAO Digital Soil map of the World
 
        INTEGER(KIND=i4), INTENT(INOUT) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
@@ -705,12 +720,15 @@ MODULE mo_agg_soil
        !PRINT *,'start loop '
         ! loop through target grid,
         ! find nearest neighbour in raw data grid for no_raw_data_pixel == 0
-        ! for latitudes < -60 degrees North put all non-ocean grid elements to ice (no data for antarctica) -> not here? this is for consistency check when land use information are available for glcc data (glc2000 do not include antarctica)
-        ! convert from texture information to soiltyp (1 ice, 2 rock, 3 sand, 4 sandy loam, 5 loam, 6 loamy clay, 7 clay, 8 histosol(peat),9 sea point)
+        ! for latitudes < -60 degrees North put all non-ocean grid elements to ice (no data for antarctica) -> not here? 
+!this is for consistency check when land use information are available for glcc data (glc2000 do not include antarctica)
+! convert from texture information to soiltyp (1 ice, 2 rock, 3 sand, 4 sandy loam, 5 loam, 6 loamy clay, 7 clay, 
+!8 histosol(peat),9 sea point)
        DO ke=1, tg%ke
        DO je=1, tg%je
        target_loop: DO ie=1, tg%ie 
-         ! test if there is information of raw data grid in the target grid element, if not, find nearest neighbour in target grid (soil data)
+         ! test if there is information of raw data grid in the target grid element, 
+! if not, find nearest neighbour in target grid (soil data)
 
          IF (no_raw_data_pixel(ie,je,ke) == 0) THEN ! no data yet for target grid element
 
@@ -740,7 +758,8 @@ MODULE mo_agg_soil
               zflat   = 0.0
               zhilly  = 0.0
               zsteep  = 0.0
-              ! decode soil unit to soil texture and slope information with the legend of DSMW (stored in soil_texslo datastructure)
+              ! decode soil unit to soil texture and slope information with the legend of DSMW 
+!(stored in soil_texslo datastructure)
               IF (soil_unit == 0) then ! ocean
                 texture(ie,je,ke) = -9.
                 fr_land_soil(ie,je,ke) = 0. ! ocean point
@@ -881,7 +900,8 @@ MODULE mo_agg_soil
            IF (itex == -900000)   isoil = 9 ! undefined (inland lake)
 
            IF (itex == -900900)   isoil =   default_soiltype ! undefined (nodata), set soiltype to loam (soil type )
-           IF (itex == -901200)   isoil =   default_soiltype ! undefined (dominant part undefined), set soiltype to loam (soil type 5)
+           IF (itex == -901200)   isoil =   default_soiltype ! undefined (dominant part undefined), 
+! set soiltype to loam (soil type 5)
 
            
            IF (itex >= 0)    isoil = 7 ! fine textured, clay (soil type 7)
