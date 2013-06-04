@@ -12,9 +12,9 @@ MODULE mo_topo_data
 
 ! Modules used: 
 
- USE mo_kind,  ONLY: wp,     &
-                     i4,     &
-                     i8
+ USE mo_kind,               ONLY: wp,     &
+                                  i4,     &
+                                  i8
 
  USE mo_GRID_structures,    ONLY:  reg_lonlat_grid
 
@@ -24,7 +24,19 @@ MODULE mo_topo_data
 
  USE mo_io_units,           ONLY:  filename_max
 
-USE netcdf,       ONLY :     &
+ USE mo_topo_tg_fields, ONLY: fr_land_topo,  &
+                     &        hh_topo,       &
+                     &        stdh_topo,     &
+                     &        theta_topo,    &
+                     &        aniso_topo,    &
+                     &        slope_topo,    &
+                     &        z0_topo,       &
+                     &        slope_asp_topo,&
+                     &        slope_ang_topo,&
+                     &        horizon_topo,  &
+                     &        skyview_topo
+
+ USE netcdf,       ONLY :    &
      nf90_open,              &
      nf90_close,             &
      nf90_inquire,           &
@@ -96,7 +108,8 @@ PUBLIC :: ntiles,                  &   ! number of tiles in GLOBE / ASTER
           ntiles_row,               &
           ntiles_column,            &
           lradtopo,                 &
-          nhori
+          nhori,                    &
+          deallocate_topo_fields
 
 SAVE
  
@@ -120,17 +133,17 @@ INTEGER(KIND=i4) :: nhori
 INTEGER, PARAMETER:: topo_gl = 1
 INTEGER, PARAMETER:: topo_aster = 2
 INTEGER, PARAMETER:: max_tiles = 1000
-INTEGER, PARAMETER:: ntiles_globe_column = 4
-INTEGER, PARAMETER:: ntiles_globe_row    = 4
-INTEGER, PARAMETER:: ntiles_aster_column = 3      ! needs to be changed if ASTER tiles are added
-INTEGER, PARAMETER:: ntiles_aster_row    = 10     ! needs to be changed if ASTER tiles are added
+!INTEGER, PARAMETER:: ntiles_topo_column = 4
+!INTEGER, PARAMETER:: ntiles_topo_row    = 4
+!INTEGER, PARAMETER:: ntiles_aster_column = 3      ! needs to be changed if ASTER tiles are added
+!INTEGER, PARAMETER:: ntiles_aster_row    = 10     ! needs to be changed if ASTER tiles are added
 
 REAL(KIND=wp), ALLOCATABLE    :: tiles_lon_min(:)
 REAL(KIND=wp), ALLOCATABLE    :: tiles_lon_max(:)
 REAL(KIND=wp), ALLOCATABLE    :: tiles_lat_min(:)
 REAL(KIND=wp), ALLOCATABLE    :: tiles_lat_max(:)
-REAL(KIND=wp), ALLOCATABLE :: raw_topo_line(:)
-REAL(KIND=wp), ALLOCATABLE :: raw_topo_block(:,:)
+REAL(KIND=wp), ALLOCATABLE    :: raw_topo_line(:)
+REAL(KIND=wp), ALLOCATABLE    :: raw_topo_block(:,:)
 
 
 REAL(KIND=wp):: aster_lat_min  
@@ -147,25 +160,25 @@ CHARACTER(LEN=80) :: varname
   CONTAINS
 
 
-   SUBROUTINE num_tiles(topo,ntiles,topography) ! it gives the value of the number of tiles depending 
+   SUBROUTINE num_tiles(topo,columns, rows,ntiles,topography) ! it gives the value of the number of tiles depending 
    IMPLICIT NONE
    SAVE
-   INTEGER, INTENT(IN) :: topo      
+   INTEGER, INTENT(IN) :: topo
+   INTEGER, INTENT(IN) :: columns
+   INTEGER, INTENT(IN) :: rows
    INTEGER, INTENT(OUT):: ntiles           ! if the user chooses GLOBE or ASTER 
    INTEGER, INTENT(OUT):: topography
 
 
    SELECT CASE (topo)
      CASE (topo_gl)                          ! User specifies topo = 1, which stands for GLOBE
-     ntiles_column = ntiles_globe_column
-     ntiles_row    = ntiles_globe_row
      topography = topo
      CASE (topo_aster)                          ! User specifies topo = 2, which stands for ASTER
-     ntiles_column = ntiles_aster_column
-     ntiles_row    = ntiles_aster_row
      topography = topo
    END SELECT
 
+   ntiles_column = columns
+   ntiles_row    = rows
    ntiles = ntiles_column * ntiles_row
    PRINT*, 'number of tiles is: ', ntiles
 
@@ -371,6 +384,46 @@ CHARACTER(LEN=80) :: varname
 
   END SUBROUTINE get_varname
 
+   SUBROUTINE deallocate_topo_fields()
 
+   IMPLICIT NONE
+
+   INTEGER :: errorcode
+
+   
+   DEALLOCATE (topo_tiles_grid, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector topo_tiles_grid')
+   DEALLOCATE (tiles_lon_min, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector tiles_lon_min')
+   DEALLOCATE (tiles_lon_max, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector tiles_lon_max')
+   DEALLOCATE (tiles_lat_min, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector tiles_lat_min')
+   DEALLOCATE (tiles_lat_max, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector tiles_lat_max')
+   DEALLOCATE (hh_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector hh_topo')
+   DEALLOCATE (stdh_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector stdh_topo')
+   DEALLOCATE (theta_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector theta_topo')
+   DEALLOCATE (aniso_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector aniso_topo')
+   DEALLOCATE (slope_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector slope_topo')
+   DEALLOCATE (fr_land_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector fr_land_topo')
+   DEALLOCATE (z0_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector z0_topo')
+   DEALLOCATE (slope_asp_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector slope_asp_topo')
+   DEALLOCATE (slope_ang_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector slope_ang_topo')
+   DEALLOCATE (horizon_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector horizon_topo')
+   DEALLOCATE (skyview_topo, STAT = errorcode)
+   IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector skyview_topo')
+   
+ END SUBROUTINE deallocate_topo_fields
 
 END MODULE mo_topo_data

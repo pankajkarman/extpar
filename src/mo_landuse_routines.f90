@@ -256,7 +256,7 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(in) :: nlat_glc2000 !< number of grid elements in meridional direction for glc2000 data
         REAL (KIND=wp), INTENT(out)    :: lon_glc2000(1:nlon_glc2000) !< longitude of glc2000 raw data
         REAL (KIND=wp), INTENT(out)    :: lat_glc2000(1:nlat_glc2000) !< latitude of glc2000 raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: glc2000_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: glc2000_grid !< structure with defenition of the raw data grid for the whole GLC2000 dataset
         
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number
@@ -338,7 +338,7 @@ END SUBROUTINE read_namelists_extpar_land_use
       !> open netcdf-file and get netcdf unit file number
       SUBROUTINE open_netcdf_glc2000(path_glc2000_file, &
                                         ncid)
-        CHARACTER (len=*), INTENT(in) :: path_glc2000_file         !< filename with path to GLOBE tile
+        CHARACTER (len=*), INTENT(in) :: path_glc2000_file         !< filename with path to GLC2000 tile
         INTEGER, INTENT(out) :: ncid                             !< netcdf unit file number
 
         ! open netcdf file 
@@ -426,7 +426,7 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(in) :: nlat_glcc !< number of grid elements in meridional direction for glcc data
         REAL (KIND=wp), INTENT(out)    :: lon_glcc(1:nlon_glcc) !< longitude of glcc raw data
         REAL (KIND=wp), INTENT(out)    :: lat_glcc(1:nlat_glcc) !< latitude of glcc raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: glcc_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: glcc_grid !< structure with defenition of the raw data grid for the whole GLCC dataset
 
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number
@@ -507,7 +507,7 @@ END SUBROUTINE read_namelists_extpar_land_use
       !> open netcdf-file and get netcdf unit file number
       SUBROUTINE open_netcdf_glcc(path_glcc_file, &
                                         ncid)
-        CHARACTER (len=*), INTENT(in) :: path_glcc_file         !< filename with path to GLOBE tile
+        CHARACTER (len=*), INTENT(in) :: path_glcc_file         !< filename with path to GLCC tile
         INTEGER, INTENT(out) :: ncid                             !< netcdf unit file number
 
         ! open netcdf file 
@@ -558,7 +558,7 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(IN) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
         REAL (KIND=wp), INTENT(OUT)    :: lon_globcover(1:nlon_globcover) !< longitude of globcover raw data
         REAL (KIND=wp), INTENT(OUT)    :: lat_globcover(1:nlat_globcover) !< latitude of globcover raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: globcover_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: globcover_grid !< structure with defenition of the raw data grid for the whole GLOBECOVER dataset
 
         !local variables
 !        REAL, PARAMETER ::  xmin_glc = -180.001388888889 ! area of glcover data: western longitude
@@ -699,7 +699,7 @@ END SUBROUTINE read_namelists_extpar_land_use
          USE mo_globcover_data,   ONLY: ntiles_globcover, &
                                         nc_tiles_lu
          TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBCOVER dataset)
-         TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+         TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover) !< structure with defenition of the raw data grid for the 16 GLOBECOVER tiles
          INTEGER , INTENT(IN) :: ncids_globcover(1:ntiles_globcover)  !< ncid for the GLOBCOVER tiles, the netcdf files have to be opened previously
          REAL (KIND=wp), INTENT(OUT) :: lu_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBCOVER data 
 
@@ -724,7 +724,7 @@ END SUBROUTINE read_namelists_extpar_land_use
 
 
 
-       INTEGER :: k ! counter
+       INTEGER :: i,j,k     ! counter
        INTEGER :: errorcode !< error status variable
 
        varname = 'GLOBCOVER'   ! I know that in the GLOBCOVER netcdf files the landuse data is stored in a variable "GLOBCOVER"
@@ -740,7 +740,8 @@ END SUBROUTINE read_namelists_extpar_land_use
             &                                ta_start_je,          &
             &                                ta_end_je)
 
-          DO k=1,ntiles_globcover
+
+       DO k = 1, ntiles_globcover
            IF ((globcover_startrow(k)/=0).AND.(globcover_startcolumn(k)/=0)) THEN
              nrows = globcover_endrow(k) - globcover_startrow(k) + 1
              ncolumns = globcover_endcolumn(k) - globcover_startcolumn(k) + 1

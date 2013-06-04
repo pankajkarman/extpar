@@ -96,6 +96,7 @@ PROGRAM extpar_cru_to_buffer
   USE mo_cru_data, ONLY: read_namelists_extpar_t_clim
 
   USE mo_cru_data, ONLY : allocate_cru_data, &
+    &                      deallocate_cru_data, &
     &                      read_cru_data_input_namelist, &
     &                      get_dimension_cru_data, &
     &                      get_cru_grid_and_data, &
@@ -343,10 +344,12 @@ PROGRAM extpar_cru_to_buffer
 
 
 
+    CALL deallocate_cru_data()
 
 
-   ! PRINT *,'DONE'
-     PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
+
+  PRINT *,'============= cru_to_buffer done ==============='
+ 
   
 
 END PROGRAM extpar_cru_to_buffer

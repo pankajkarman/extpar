@@ -33,7 +33,8 @@ PRIVATE
 PUBLIC :: flake_grid, &
  &         lon_flake,  &
  &         lat_flake,  &
- &         allocate_raw_flake_fields
+ &         allocate_raw_flake_fields, &
+ &         deallocate_raw_flake_fields
 
 PUBLIC :: flake_depth_undef, flake_depth_default, DWD_max_lake_depth, DWD_min_lake_depth
           
@@ -67,6 +68,32 @@ CONTAINS
     lat_flake = 0.0
 
   END  SUBROUTINE allocate_raw_flake_fields
+
+  SUBROUTINE deallocate_raw_flake_fields()
+
+    USE mo_flake_tg_fields, ONLY: lake_depth, &
+                          &       fr_lake,    &
+                          &       flake_tot_npixel
+
+    IMPLICIT NONE
+
+    
+    INTEGER :: errorcode !< error status variable
+    
+    DEALLOCATE (lon_flake, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lon_flake')
+    DEALLOCATE (lat_flake, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lat_flake')
+    DEALLOCATE (fr_lake, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array fr_lake')
+    DEALLOCATE (lake_depth, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lake_depth')
+    DEALLOCATE (flake_tot_npixel, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array flake_tot_npixel')
+    
+    
+  END SUBROUTINE deallocate_raw_flake_fields
+
 
 END MODULE mo_flake_data
 

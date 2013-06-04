@@ -120,7 +120,7 @@ END SUBROUTINE read_namelists_extpar_lradtopo
 !---------------------------------------------------------------------------
 
 !> subroutine to compute the lradtopo parameters in EXTPAR
-SUBROUTINE compute_lradtopo(nhori,tg,hh_globe,slope_asp,slope_ang,horizon,skyview)
+SUBROUTINE compute_lradtopo(nhori,tg,hh_topo,slope_asp,slope_ang,horizon,skyview)
 
 !> \author Buzzi, Luethi
 
@@ -140,7 +140,7 @@ SUBROUTINE compute_lradtopo(nhori,tg,hh_globe,slope_asp,slope_ang,horizon,skyvie
   
   INTEGER(KIND=i4),      INTENT(IN) :: nhori                !< number of sectors for the horizon computation 
   TYPE(target_grid_def), INTENT(IN) :: tg                   !< structure with target grid description
-  REAL(KIND=wp),         INTENT(IN) :: hh_globe(:,:,:)      !< mean height 
+  REAL(KIND=wp),         INTENT(IN) :: hh_topo(:,:,:)      !< mean height 
   REAL(KIND=wp),         INTENT(OUT):: &
     slope_asp(:,:,:), &
     slope_ang(:,:,:), &
@@ -215,7 +215,7 @@ SUBROUTINE compute_lradtopo(nhori,tg,hh_globe,slope_asp,slope_ang,horizon,skyvie
   aberr       (:,:)   = 0.0_wp
 
   ! copy the orography in a 2D local variable
-  zhh(:,:) = hh_globe(:,:,1)
+  zhh(:,:) = hh_topo(:,:,1)
   
 !> position of true North Pole in rotated coordinates
   rlat_np = phi2phirot( 90.0_wp, 0.0_wp, cosmo_grid%pollat, cosmo_grid%pollon )

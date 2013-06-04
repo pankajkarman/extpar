@@ -80,7 +80,6 @@ MODULE mo_ndvi_output_nc
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
       &                         no_raw_data_pixel_meta, &
@@ -125,7 +124,7 @@ MODULE mo_ndvi_output_nc
 
     PRINT *,'ENTER write_netcdf_buffer_ndvi'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_ndvi'
 
     !-------------------------------------------------------------
     ! define global attributes
@@ -274,7 +273,7 @@ MODULE mo_ndvi_output_nc
 
     PRINT *,'ENTER write_netcdf_buffer_ndvi'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_ndvi'
 
     !-------------------------------------------------------------
     ! define global attributes
@@ -445,7 +444,7 @@ MODULE mo_ndvi_output_nc
 
     PRINT *,'ENTER write_netcdf_icon_grid_ndvi'
 
-    PRINT *,'set_global_att_globe'
+    PRINT *,'set_global_att_ndvi'
 
     !-------------------------------------------------------------
     ! define global attributes

@@ -619,8 +619,6 @@ MODULE mo_albedo_output_nc
     CALL def_alb_meta(tg,ntime,dim_3d_tg)
 
 !    netcdf_filename2 = '/e/gtmp/fbrenner/extpar/alb_buffer.nc'
-!roa
-print *, "netcdf_filename:",trim(netcdf_filename)
     PRINT *,'CALL read netcdf data ALB'
     print *, TRIM(netcdf_filename)
     CALL netcdf_get_var(TRIM(netcdf_filename),alb_field_mom_meta,alb_field_mom)

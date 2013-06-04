@@ -100,7 +100,6 @@ INCLUDE_DIRECTORIES(${EXTPAR_SOURCE_DIR}
 )
 
 
-
 # Set final binary name and list all source files needed to
 # compile it
 ADD_EXECUTABLE(extpar_aot_to_buffer            # binary name
@@ -115,7 +114,8 @@ ADD_EXECUTABLE(extpar_aot_to_buffer            # binary name
                mo_bilinterpol.f90
                mo_cosmo_grid.f90
                mo_exception.f90
-	       mo_globcover_data.f90
+	             mo_landuse_tg_fields.f90
+	             mo_globcover_data.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -130,13 +130,16 @@ ADD_EXECUTABLE(extpar_aot_to_buffer            # binary name
                mo_search_gmegrid.f90
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
 
-TARGET_LINK_LIBRARIES(extpar_aot_to_buffer
+TARGET_LINK_LIBRARIES(extpar_aot_to_buffer 
                       ${NETCDF_LIBRARY}
 )
 
@@ -145,39 +148,42 @@ TARGET_LINK_LIBRARIES(extpar_aot_to_buffer
 # compile it
 ADD_EXECUTABLE(extpar_alb_to_buffer            # binary name
                extpar_alb_to_buffer.f90       # source file
-	       info_extpar.f90
-	       mo_additional_geometry.f90  
-	       mo_agg_albedo.f90
-	       mo_albedo_data.f90
-	       mo_var_meta_data.f90	
-	       mo_albedo_output_nc.f90  
-	       mo_albedo_routines.f90  
-	       mo_albedo_tg_fields.f90 
-	       mo_base_geometry.f90 
+	             info_extpar.f90
+	             mo_additional_geometry.f90  
+	             mo_agg_albedo.f90
+	             mo_albedo_data.f90
+	             mo_var_meta_data.f90	
+	             mo_albedo_output_nc.f90  
+	             mo_albedo_routines.f90  
+	             mo_albedo_tg_fields.f90 
+	             mo_base_geometry.f90 
                mo_bilinterpol.f90 
-	       mo_cosmo_grid.f90
-	       mo_exception.f90  
-         mo_globcover_data.f90
-	       mo_grid_structures.f90
-	       mo_gme_grid.f90
-	       mo_icon_domain.f90  
-	       mo_icon_grid_data.f90
+	             mo_cosmo_grid.f90
+	             mo_exception.f90  
+	             mo_grid_structures.f90
+	             mo_globcover_data.f90
+	             mo_gme_grid.f90
+	             mo_icon_domain.f90  
+	             mo_icon_grid_data.f90
                mo_icon_grid_routines.f90
-	       mo_io_units.f90  
-	       mo_kind.f90
-	       mo_math_constants.f90  
+	             mo_io_units.f90 
+	             mo_io_utilities.f90 
+	             mo_kind.f90
+	             mo_landuse_tg_fields.f90
+	             mo_math_constants.f90  
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
                mo_search_gmegrid.f90
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
-	       mo_search_target_grid.f90
-	       mo_target_grid_data.f90
-	       mo_target_grid_routines.f90  
-	       mo_utilities_extpar.f90 
-	       mo_io_utilities.f90
-	       mo_landuse_tg_fields.f90
-	       mo_soil_tg_fields.f90
+	             mo_search_target_grid.f90
+	             mo_soil_data.f90
+	             mo_soil_tg_fields.f90
+	             mo_target_grid_data.f90
+	             mo_target_grid_routines.f90  
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
+	             mo_utilities_extpar.f90 
                mo_var_meta_data.f90
                )
 
@@ -189,7 +195,7 @@ TARGET_LINK_LIBRARIES(extpar_alb_to_buffer
 # compile it
 ADD_EXECUTABLE(extpar_cru_to_buffer            # binary name
                extpar_cru_to_buffer.f90       # source file
-	       info_extpar.f90
+	             info_extpar.f90
                mo_additional_geometry.f90
                mo_agg_cru.f90
                mo_base_geometry.f90
@@ -199,7 +205,7 @@ ADD_EXECUTABLE(extpar_cru_to_buffer            # binary name
                mo_cru_output_nc.f90
                mo_cru_target_fields.f90
                mo_exception.f90
-	       mo_globcover_data.f90
+	             mo_globcover_data.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -208,17 +214,20 @@ ADD_EXECUTABLE(extpar_cru_to_buffer            # binary name
                mo_io_units.f90
                mo_io_utilities.f90
                mo_kind.f90
+	             mo_landuse_tg_fields.f90
                mo_math_constants.f90
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
                mo_search_gmegrid.f90
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
-               
                )
 
 TARGET_LINK_LIBRARIES(extpar_cru_to_buffer 
@@ -235,12 +244,12 @@ ADD_EXECUTABLE(extpar_flake_to_buffer            # binary name
                mo_base_geometry.f90
                mo_cosmo_grid.f90
                mo_exception.f90
-	       mo_globcover_data.f90
-               mo_gme_grid.f90
                mo_flake_data.f90
                mo_flake_output_nc.f90
                mo_flake_routines.f90
                mo_flake_tg_fields.f90
+	             mo_globcover_data.f90
+               mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
                mo_icon_grid_data.f90
@@ -248,6 +257,7 @@ ADD_EXECUTABLE(extpar_flake_to_buffer            # binary name
                mo_io_units.f90
                mo_io_utilities.f90
                mo_kind.f90
+	             mo_landuse_tg_fields.f90
                mo_math_constants.f90
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
@@ -255,8 +265,11 @@ ADD_EXECUTABLE(extpar_flake_to_buffer            # binary name
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
                mo_search_target_grid.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
@@ -270,19 +283,16 @@ TARGET_LINK_LIBRARIES(extpar_flake_to_buffer
 
 # Set final binary name and list all source files needed to
 # compile it
-ADD_EXECUTABLE(extpar_globe_to_buffer            # binary name
-               extpar_globe_to_buffer.f90      # source file
+ADD_EXECUTABLE(extpar_topo_to_buffer            # binary name
+               extpar_topo_to_buffer.f90      # source file
                info_extpar.f90
                mo_additional_geometry.f90
-               mo_agg_globe.f90
+               mo_agg_topo.f90
                mo_base_geometry.f90
                mo_bilinterpol.f90
                mo_cosmo_grid.f90
                mo_exception.f90
-	       mo_globcover_data.f90
-               mo_globe_routines.f90
-               mo_globe_output_nc.f90
-               mo_globe_tg_fields.f90
+	             mo_globcover_data.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -291,7 +301,8 @@ ADD_EXECUTABLE(extpar_globe_to_buffer            # binary name
                mo_io_units.f90
                mo_io_utilities.f90
                mo_kind.f90
-               mo_lradtopo.f90
+	             mo_landuse_tg_fields.f90
+	             mo_lradtopo.f90
                mo_math_constants.f90
                mo_oro_filter.f90
                mo_physical_constants.f90
@@ -300,15 +311,20 @@ ADD_EXECUTABLE(extpar_globe_to_buffer            # binary name
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
                mo_search_target_grid.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
-               mo_topo_data.f90
+	             mo_topo_data.f90
+               mo_topo_output_nc.f90
+               mo_topo_routines.f90
+	             mo_topo_sso.f90
+               mo_topo_tg_fields.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
                
 
-TARGET_LINK_LIBRARIES(extpar_globe_to_buffer 
+TARGET_LINK_LIBRARIES(extpar_topo_to_buffer 
                       ${NETCDF_LIBRARY}
 )
 
@@ -321,7 +337,7 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_additional_geometry.f90
                mo_agg_glc2000.f90
                mo_agg_glcc.f90
-	       mo_agg_globcover.f90
+	             mo_agg_globcover.f90
                mo_base_geometry.f90
                mo_cosmo_grid.f90
                mo_exception.f90
@@ -331,7 +347,7 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_glcc_data.f90
                mo_glcc_lookup_tables.f90
                mo_glcc_tg_fields.f90
-	       mo_globcover_data.f90
+	             mo_globcover_data.f90
        	       mo_globcover_lookup_tables.f90
       	       mo_globcover_tg_fields.f90
                mo_gme_grid.f90
@@ -343,7 +359,7 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_io_utilities.f90
                mo_kind.f90
                mo_landuse_routines.f90
-	       mo_landuse_tg_fields.f90
+	             mo_landuse_tg_fields.f90
                mo_landuse_output_nc.f90
                mo_math_constants.f90
                mo_physical_constants.f90
@@ -352,8 +368,11 @@ ADD_EXECUTABLE(extpar_landuse_to_buffer            # binary name
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
                mo_search_target_grid.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
@@ -377,7 +396,7 @@ ADD_EXECUTABLE(extpar_ndvi_to_buffer            # binary name
                mo_bilinterpol.f90
                mo_cosmo_grid.f90
                mo_exception.f90
-	       mo_globcover_data.f90
+	             mo_globcover_data.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -386,19 +405,23 @@ ADD_EXECUTABLE(extpar_ndvi_to_buffer            # binary name
                mo_io_units.f90
                mo_io_utilities.f90
                mo_kind.f90
+	             mo_landuse_tg_fields.f90
                mo_math_constants.f90
+               mo_ndvi_data.f90
+               mo_ndvi_output_nc.f90
+               mo_ndvi_routines.f90
+               mo_ndvi_tg_fields.f90
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
                mo_search_gmegrid.f90
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
                mo_search_target_grid.f90
-               mo_ndvi_data.f90
-               mo_ndvi_output_nc.f90
-               mo_ndvi_routines.f90
-               mo_ndvi_tg_fields.f90
+	             mo_soil_data.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
@@ -421,7 +444,7 @@ ADD_EXECUTABLE(extpar_soil_to_buffer            # binary name
                mo_base_geometry.f90
                mo_cosmo_grid.f90
                mo_exception.f90
-	       mo_globcover_data.f90
+	             mo_globcover_data.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -430,6 +453,7 @@ ADD_EXECUTABLE(extpar_soil_to_buffer            # binary name
                mo_io_units.f90
                mo_io_utilities.f90
                mo_kind.f90
+	             mo_landuse_tg_fields.f90
                mo_math_constants.f90
                mo_physical_constants.f90
                mo_read_extpar_namelists.f90
@@ -443,6 +467,8 @@ ADD_EXECUTABLE(extpar_soil_to_buffer            # binary name
                mo_soil_tg_fields.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
+	             mo_topo_tg_fields.f90
+	             mo_topo_data.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
                )
@@ -458,18 +484,15 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                extpar_consistency_check.f90       # source file
                info_extpar.f90
                mo_additional_geometry.f90
-	       mo_albedo_data.f90
-	       mo_albedo_output_nc.f90  
-	       mo_albedo_routines.f90
-	       mo_bilinterpol.f90
-	       mo_albedo_tg_fields.f90  
+	             mo_albedo_data.f90
+	             mo_albedo_output_nc.f90  
+	             mo_albedo_routines.f90
+	             mo_albedo_tg_fields.f90  
                mo_aot_data.f90
-               mo_aot_target_fields.f90
                mo_aot_output_nc.f90
+               mo_aot_target_fields.f90
                mo_base_geometry.f90
-               mo_albedo_data.f90
-               mo_albedo_tg_fields.f90
-               mo_albedo_output_nc.f90
+	             mo_bilinterpol.f90
                mo_cru_data.f90
                mo_cru_target_fields.f90
                mo_cru_output_nc.f90
@@ -485,11 +508,8 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                mo_glc2000_tg_fields.f90
                mo_glcc_lookup_tables.f90
                mo_glcc_tg_fields.f90
-	       mo_globcover_data.f90
+	             mo_globcover_data.f90
                mo_globcover_lookup_tables.f90
-               mo_globe_output_nc.f90
-               mo_globe_tg_fields.f90
-               mo_globe_routines.f90
                mo_gme_grid.f90
                mo_grid_structures.f90
                mo_icon_domain.f90
@@ -502,7 +522,7 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                mo_landuse_output_nc.f90
                mo_landuse_routines.f90
                mo_landuse_tg_fields.f90
-               mo_lradtopo.f90
+	             mo_lradtopo.f90
                mo_math_constants.f90
                mo_ndvi_data.f90
                mo_ndvi_output_nc.f90
@@ -513,16 +533,20 @@ ADD_EXECUTABLE(extpar_consistency_check            # binary name
                mo_search_gmegrid.f90
                mo_search_icongrid.f90
                mo_search_ll_grid.f90
+	             mo_search_target_grid.f90
+	             mo_soil_consistency.f90
                mo_soil_data.f90
                mo_soil_output_nc.f90
                mo_soil_routines.f90
                mo_soil_tg_fields.f90
                mo_target_grid_data.f90
                mo_target_grid_routines.f90
-               mo_topo_data.f90
+	             mo_topo_data.f90
+               mo_topo_output_nc.f90
+               mo_topo_tg_fields.f90
+               mo_topo_routines.f90
                mo_utilities_extpar.f90
                mo_var_meta_data.f90
-	       mo_search_target_grid.f90
                )
                
 

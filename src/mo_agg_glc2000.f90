@@ -264,10 +264,10 @@ MODULE mo_agg_glc2000
            bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
            bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
-           bound_east_cosmo = MAXVAL(lon_geo) + 0.25  ! add some "buffer"
-           bound_east_cosmo = MIN(bound_east_cosmo,180.)
-           bound_west_cosmo = MINVAL(lon_geo) - 0.25  ! add some "buffer"
-           bound_west_cosmo = MAX(bound_west_cosmo,-180.)
+           bound_east_cosmo = MAXVAL(lon_geo) + 0.25_wp  ! add some "buffer"
+           bound_east_cosmo = MIN(bound_east_cosmo,180.0_wp)
+           bound_west_cosmo = MINVAL(lon_geo) - 0.25_wp  ! add some "buffer"
+           bound_west_cosmo = MAX(bound_west_cosmo,-180.0_wp)
        CASE(igrid_gme)  ! GME GRID
 
      END SELECT

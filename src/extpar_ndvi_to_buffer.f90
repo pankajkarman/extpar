@@ -95,7 +95,8 @@ PROGRAM extpar_ndvi_to_buffer
     &                           lon_ndvi, &
     &                           lat_ndvi, &
     &                           ntime_ndvi, &
-    &                           allocate_raw_ndvi_fields
+    &                           allocate_raw_ndvi_fields,&
+    &                           deallocate_ndvi_fields
                                
   USE mo_ndvi_tg_fields, ONLY: ndvi_field, &
     &                                ndvi_max, &
@@ -337,9 +338,10 @@ PROGRAM extpar_ndvi_to_buffer
    &                                     ndvi_field_mom,&
    &                                     ndvi_ratio_mom)
 
+  CALL deallocate_ndvi_fields()
+
+  PRINT *,'============= ndvi_to_buffer done ==============='
 
 
-  PRINT *,'ndvi_to_buffer done'
-  PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
 
 END PROGRAM extpar_ndvi_to_buffer

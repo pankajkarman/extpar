@@ -144,15 +144,15 @@ PUBLIC :: agg_aot_data_to_target_grid
          ! get four surrounding raw data indices
          !PRINT *,'CALL  get_4_surrounding_raw_data_indices'
 
-         CALL  get_4_surrounding_raw_data_indices(   aot_grid, &
-                                                   lon_aot,           &
-                                                   lat_aot,           &
-                                                   gldata,            &
-                                                   point_lon_geo,      &
-                                                   point_lat_geo,      &
-                                                   western_column,     &
-                                                   eastern_column,     &
-                                                   northern_row,       &
+         CALL  get_4_surrounding_raw_data_indices( aot_grid,      &
+                                                   lon_aot,       &
+                                                   lat_aot,       &
+                                                   gldata,        &
+                                                   point_lon_geo, &
+                                                   point_lat_geo, &
+                                                   western_column,&
+                                                   eastern_column,&
+                                                   northern_row,  &
                                                    southern_row)
          ! for the bilinear interpolation, use the four data pixels
          ! data(western_column,northern_row)

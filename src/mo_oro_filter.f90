@@ -242,7 +242,7 @@ END SUBROUTINE read_namelists_extpar_orosmooth
 !> subroutine to handle orography smoothing
 SUBROUTINE do_orosmooth   (tg,                                 &
       &                                      hh_target,        &
-      &                                      fr_land_globe,    &
+      &                                      fr_land_topo,    &
       &                                      lfilter_oro,      &
       &                                      ilow_pass_oro,    &
       &                                      numfilt_oro,      &
@@ -259,7 +259,7 @@ SUBROUTINE do_orosmooth   (tg,                                 &
 
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
    REAL(KIND=wp), INTENT(IN)   :: hh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
-   REAL(KIND=wp), INTENT(IN)   :: fr_land_globe(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
+   REAL(KIND=wp), INTENT(IN)   :: fr_land_topo(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
    LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
    INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
                                                             !  stencil width (1,4,5,6,8)
@@ -470,21 +470,21 @@ SUBROUTINE do_orosmooth   (tg,                                 &
   !       original sign
   DO je = 1, tg%je
      DO ie = 1, tg%ie
-        IF ((fr_land_globe(ie,je,1) < 0.5) .AND.  &
+        IF ((fr_land_topo(ie,je,1) < 0.5) .AND.  &
              (hh_target(ie,je,1) <= zhmax_sea)) THEN
            ile = MAX (1_i8,ie-1_i8)
            iri = MIN (ie+1_i8,tg%ie)
            jlo = MAX (1_i8,je-1_i8)
            jup = MIN (je+1_i8,tg%je)
            nfrl = 0
-           IF (fr_land_globe(ile,jlo,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(ie ,jlo,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(iri,jlo,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(ile,je ,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(iri,je ,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(ile,jup,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(ie ,jup,1 ) < 0.5) nfrl = nfrl + 1
-           IF (fr_land_globe(iri,jup,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(ile,jlo,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(ie ,jlo,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(iri,jlo,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(ile,je ,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(iri,je ,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(ile,jup,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(ie ,jup,1 ) < 0.5) nfrl = nfrl + 1
+           IF (fr_land_topo(iri,jup,1 ) < 0.5) nfrl = nfrl + 1
            IF (nfrl >= 4) THEN
               ff_filt(ie,je,1) = hh_target(ie,je,1)
            ENDIF

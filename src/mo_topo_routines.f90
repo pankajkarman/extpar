@@ -19,7 +19,7 @@
 !> Fortran module with routines and settings for GLOBE orography data
 !> \author Hermann Asensio
 !>
-MODULE mo_globe_routines
+MODULE mo_topo_routines
 
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
@@ -36,9 +36,9 @@ USE netcdf,      ONLY :   &
   nf90_inquire_attribute, &
   nf90_get_att,           &
   nf90_inquire_dimension, &
-  nf90_inq_varid,          &
-  nf90_get_var,            &
-  nf90_noerr,              &
+  nf90_inq_varid,         &
+  nf90_get_var,           &
+  nf90_noerr,             &
   nf90_strerror
 
 USE netcdf,      ONLY:     &
@@ -51,7 +51,7 @@ USE netcdf,      ONLY:     &
   nf90_put_var
 
  
-USE netcdf,      ONLY :   &
+USE netcdf,      ONLY :    &
   NF90_CHAR,               &
   NF90_DOUBLE,             &
   NF90_FLOAT,              &
@@ -60,7 +60,7 @@ USE netcdf,      ONLY :   &
   NF90_SHORT
 
 
-USE netcdf,      ONLY :   &
+USE netcdf,      ONLY :    &
   NF90_GLOBAL,             &
   NF90_UNLIMITED,          &
   NF90_CLOBBER,            &
@@ -70,45 +70,48 @@ USE netcdf,      ONLY :   &
 !> abort_extpar defined in MODULE utilities_extpar
 USE mo_utilities_extpar, ONLY: abort_extpar
 
-USE mo_grid_structures,        ONLY: reg_lonlat_grid
-USE mo_base_geometry,          ONLY: geographical_coordinates
+USE mo_grid_structures,  ONLY: reg_lonlat_grid
+USE mo_base_geometry,    ONLY: geographical_coordinates
 
-USE mo_io_units,               ONLY: filename_max
+USE mo_io_units,         ONLY: filename_max
 
 
-USE mo_io_utilities,           ONLY: check_netcdf
+USE mo_io_utilities,     ONLY: check_netcdf
 
 IMPLICIT NONE
 
 PRIVATE
 
-PUBLIC :: read_globe_data_input_namelist,  &
+PUBLIC :: read_topo_data_input_namelist,  &
           read_namelists_extpar_orography, &
-          det_globe_tiles_grid,            &
-          det_globe_grid,                  &
-          get_globe_tile_nr,               &
-          get_globe_tile_block_indices,    &
-          open_netcdf_GLOBE_tile,          &
-          close_netcdf_GLOBE_tile,         &
-          get_globe_data_band,             &
-          get_globe_data_parallel
+          det_topo_tiles_grid,            &
+          det_topo_grid,                  &
+          get_topo_tile_nr,               &
+          get_topo_tile_block_indices,    &
+          open_netcdf_topo_tile,          &
+          close_netcdf_topo_tile,         &
+          get_topo_data_band,             &
+          get_topo_data_parallel
 
-PUBLIC :: det_band_gd, get_globe_data_block
+PUBLIC :: det_band_gd, get_topo_data_block
 
 CONTAINS
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for orography data settings for EXTPAR 
-SUBROUTINE read_namelists_extpar_orography(namelist_file,        &
-                                         raw_data_orography_path,&
-                                         topo_files,             &  !mes>
-                                         itopo_type,              &  !mes<
-                                         orography_buffer_file,  &
-                                         orography_output_file)
+SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
+                                           raw_data_orography_path,&
+                                           topo_files,             &  !mes>
+                                           ntiles_column,          &
+                                           ntiles_row,             &
+                                           itopo_type,             &  
+                                           lsso_param,             &  !mes<
+                                           orography_buffer_file,  &
+                                           orography_output_file)
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
-  USE mo_topo_data,        ONLY : max_tiles  
+  USE mo_topo_data,        ONLY: max_tiles  
 
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
@@ -117,8 +120,10 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,        &
   
   CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_orography_path        !< path to raw data
   CHARACTER (LEN=24), INTENT(OUT) :: topo_files(1:max_tiles)                     !< filenames globe raw data
+  INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_column     !< number of tile columns
+  INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_row        !< number of tile rows
   INTEGER (KIND=i4), INTENT(OUT)  :: itopo_type
-
+  LOGICAL, INTENT(OUT)            :: lsso_param
   CHARACTER (len=filename_max), INTENT(OUT) :: orography_buffer_file !< name for orography buffer file
   CHARACTER (len=filename_max), INTENT(OUT) :: orography_output_file !< name for orography output file
 
@@ -131,7 +136,7 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,        &
   NAMELIST /orography_io_extpar/ orography_buffer_file, orography_output_file
   !> namelist with information on orography data input
 ! mes > include topo_type in namelist
-  NAMELIST /orography_raw_data/ itopo_type, raw_data_orography_path, topo_files
+  NAMELIST /orography_raw_data/ itopo_type, lsso_param, raw_data_orography_path, ntiles_column, ntiles_row, topo_files
 ! mes < 
     
 
@@ -149,7 +154,7 @@ END SUBROUTINE read_namelists_extpar_orography
         !> read namelist with settings for GLOBE raw data grid
         !> or ASTER raw data grid                               !mes
         !> \author Hermann Asensio
-       SUBROUTINE read_globe_data_input_namelist(input_namelist_file,       &
+       SUBROUTINE read_topo_data_input_namelist(input_namelist_file,       &
                                                  topo_files)
 
          USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
@@ -173,12 +178,12 @@ END SUBROUTINE read_namelists_extpar_orography
 
               close(nuin)
 
-            END SUBROUTINE read_globe_data_input_namelist
+            END SUBROUTINE read_topo_data_input_namelist
 
             
         !> determine GLOBE raw data grid
         !> \author Hermann Asensio
-       SUBROUTINE det_globe_tiles_grid(topo_tiles_grid)
+       SUBROUTINE det_topo_tiles_grid(topo_tiles_grid)
          USE mo_topo_data, ONLY : ntiles , &    !< GLOBE raw data has 16 tiles and ASTER has 13
                                 topography,    &
                                 topo_aster,    &
@@ -223,13 +228,13 @@ END SUBROUTINE read_namelists_extpar_orography
             ENDDO
             
 
-       END SUBROUTINE det_globe_tiles_grid
+       END SUBROUTINE det_topo_tiles_grid
 
 
 
        !> determine complete(global) GLOBE raw data grid 
        !> \author Hermann Asensio
-       SUBROUTINE det_globe_grid(topo_grid)
+       SUBROUTINE det_topo_grid(topo_grid)
          USE mo_topo_data, ONLY :  nc_tot,       &      
            &                        nr_tot,       &
            &                        topography,   &      ! mes >
@@ -289,14 +294,14 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
 
-       END SUBROUTINE det_globe_grid
+       END SUBROUTINE det_topo_grid
 
        !> determine grid description of band for GLOBE I/O 
        !> \author Hermann Asensio
-       SUBROUTINE det_band_gd(topo_grid,start_globe_row, ta_grid)
+       SUBROUTINE det_band_gd(topo_grid,start_topo_row, ta_grid)
 
          TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid !< structure with definition of the global data grid of the GLOBE data 
-         INTEGER, INTENT(IN) :: start_globe_row !< number of the start row of band of topo_grid (global domain)
+         INTEGER, INTENT(IN) :: start_topo_row !< number of the start row of band of topo_grid (global domain)
          TYPE(reg_lonlat_grid), INTENT(OUT) :: ta_grid !< structure with defenition of the target area grid
 
          INTEGER  :: nrows = 500 !< number of rows, set to 1000 as default
@@ -311,7 +316,7 @@ END SUBROUTINE read_namelists_extpar_orography
           
          ! latitude from north to south, negative increment
          ta_grid%nlat_reg = nrows
-         ta_grid%start_lat_reg = topo_grid%start_lat_reg + ta_grid%dlat_reg * (start_globe_row - 1)  ! latitude from north to south, note the negative increment!
+         ta_grid%start_lat_reg = topo_grid%start_lat_reg + ta_grid%dlat_reg * (start_topo_row - 1)  ! latitude from north to south, note the negative increment!
          ta_grid%end_lat_reg  =  ta_grid%start_lat_reg + ta_grid%dlat_reg * (nrows - 1)! latitude from north to south, note the negative increment!
          ! check for south pole
          IF (ta_grid%end_lat_reg < topo_grid%end_lat_reg) THEN ! band is at south pole
@@ -328,7 +333,7 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
        !> find GLOBE tile for given geographical coordinates
-       ELEMENTAL FUNCTION get_globe_tile_nr(point_geo) RESULT (index_k)
+       ELEMENTAL FUNCTION get_topo_tile_nr(point_geo) RESULT (index_k)
        TYPE(geographical_coordinates), INTENT(IN) :: point_geo !< geographical coordinats of a point [degrees]
        INTEGER (KIND=i4) :: index_k !< index of GLOBE tile which contains point_geo
 
@@ -366,7 +371,7 @@ END SUBROUTINE read_namelists_extpar_orography
 
        index_k = (t_j - 1) * 4 + t_i ! the way the 16 element array is sorted (columns first)
 
-       END FUNCTION get_globe_tile_nr
+       END FUNCTION get_topo_tile_nr
 !----------------------------------------------------------------------------------------------------------------
 
        !> get startrow, endrow, startcolumn and endcolumn of each GLOBE tile (raw data) for a 
@@ -377,12 +382,12 @@ END SUBROUTINE read_namelists_extpar_orography
        !! target area.
        !! GLOBE/ASTER tiles which are outside the target block will get indices with the value '0'
 
-       SUBROUTINE get_globe_tile_block_indices(ta_grid,         &
+       SUBROUTINE get_topo_tile_block_indices(ta_grid,         &
          &                                     topo_tiles_grid, &
-         &                                     globe_startrow,  &
-         &                                     globe_endrow,    & 
-         &                                     globe_startcolumn,&
-         &                                     globe_endcolumn, &
+         &                                     topo_startrow,  &
+         &                                     topo_endrow,    & 
+         &                                     topo_startcolumn,&
+         &                                     topo_endcolumn, &
          &                                     ta_start_ie, &
          &                                     ta_end_ie,   &
          &                                     ta_start_je, &
@@ -406,11 +411,11 @@ END SUBROUTINE read_namelists_extpar_orography
 
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
 
-       INTEGER (KIND=i4), INTENT(OUT) :: globe_startrow(1:ntiles)    !< startrow indices for each GLOBE tile
-       INTEGER (KIND=i4), INTENT(OUT) :: globe_endrow(1:ntiles)      !< endrow indices for each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: topo_startrow(1:ntiles)    !< startrow indices for each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: topo_endrow(1:ntiles)      !< endrow indices for each GLOBE tile
 
-       INTEGER (KIND=i4), INTENT(OUT) :: globe_startcolumn(1:ntiles)  !< starcolumn indices for each GLOBE tile
-       INTEGER (KIND=i4), INTENT(OUT) :: globe_endcolumn(1:ntiles)   !< endcolumn indices for each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: topo_startcolumn(1:ntiles)  !< starcolumn indices for each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: topo_endcolumn(1:ntiles)   !< endcolumn indices for each GLOBE tile
 
        INTEGER (KIND=i4), INTENT(OUT) :: ta_start_ie(1:ntiles)    !< indices of target area block for first column of each GLOBE tile
        INTEGER (KIND=i4), INTENT(OUT) :: ta_end_ie(1:ntiles)      !< indices of target area block for last column of each GLOBE tile
@@ -467,10 +472,10 @@ END SUBROUTINE read_namelists_extpar_orography
        INTEGER :: k
 
        undefined = 0
-       globe_startrow     = undefined
-       globe_endrow       = undefined
-       globe_startcolumn   = undefined
-       globe_endcolumn    = undefined
+       topo_startrow     = undefined
+       topo_endrow       = undefined
+       topo_startcolumn   = undefined
+       topo_endcolumn    = undefined
        ta_start_ie = undefined 
        ta_end_ie = undefined
        ta_start_je = undefined
@@ -549,30 +554,30 @@ END SUBROUTINE read_namelists_extpar_orography
          ! get startcolumn for tile k
          startcolumn = NINT((ta_grid%start_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) +1 ! here I want nearest index (NINT)
          IF (startcolumn < 1) THEN 
-           globe_startcolumn(k) = 1
+           topo_startcolumn(k) = 1
            ! get the start index of the subtile for the target area block
            ta_start_ie(k) = NINT ((topo_tiles_grid(k)%start_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 ! index of target area block
 
          ELSE IF (startcolumn > tiles_ncolumns(k)) THEN
-           globe_startcolumn(k) = 0
+           topo_startcolumn(k) = 0
            ta_start_ie(k) = 0
          ELSE
-           globe_startcolumn(k) = startcolumn
+           topo_startcolumn(k) = startcolumn
            ta_start_ie(k) = 1
          ENDIF
 
          ! get endcolumn for tile k
          endcolumn = NINT((ta_grid%end_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) +1
          IF (endcolumn > tiles_ncolumns(k)) THEN 
-           globe_endcolumn(k) = tiles_ncolumns(k)
+           topo_endcolumn(k) = tiles_ncolumns(k)
            ! get the end index of the subtile for the target area block
            stile_ur_lon =  topo_tiles_grid(k)%end_lon_reg ! coordinates [degrees]
            ta_end_ie(k) = NINT ((topo_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1                ! index of target area block
          ELSE IF (endcolumn < 1) THEN
-           globe_endcolumn(k) = 0
+           topo_endcolumn(k) = 0
            ta_end_ie(k) = 0
          ELSE
-           globe_endcolumn(k) = endcolumn
+           topo_endcolumn(k) = endcolumn
            ta_end_ie(k) = ta_grid%nlon_reg
          ENDIF
 
@@ -581,15 +586,15 @@ END SUBROUTINE read_namelists_extpar_orography
          startrow = NINT((ta_grid%start_lat_reg - topo_tiles_grid(k)%start_lat_reg)/dlat) + 1
         
          IF (startrow < 1) THEN 
-           globe_startrow(k) = 1
+           topo_startrow(k) = 1
            ! get the start index of the subtile for the target area block
            ta_start_je(k) = NINT ((topo_tiles_grid(k)%start_lat_reg  - ta_grid%start_lat_reg)/dlat) + 1 ! index of target area block
             
           ELSE IF (startrow > tiles_nrows(k)) THEN
-           globe_startrow(k) = 0
+           topo_startrow(k) = 0
            ta_start_je(k) = 0
          ELSE
-           globe_startrow(k) = startrow
+           topo_startrow(k) = startrow
            ta_start_je(k) = 1
          ENDIF
 
@@ -598,15 +603,15 @@ END SUBROUTINE read_namelists_extpar_orography
          endrow   = NINT(( ta_grid%end_lat_reg - topo_tiles_grid(k)%start_lat_reg )/dlat)  + 1
         
          IF (endrow > tiles_nrows(k)) THEN 
-           globe_endrow(k) = tiles_nrows(k)
+           topo_endrow(k) = tiles_nrows(k)
            ! get the start index of the subtile for the target area block
            ta_end_je(k) = NINT ((topo_tiles_grid(k)%end_lat_reg -  ta_grid%start_lat_reg )/dlat) + 1 ! index of target area block
 
          ELSE IF (endrow < 1) THEN
-           globe_endrow(k) = 0
+           topo_endrow(k) = 0
            ta_end_je(k) = 0
          ELSE
-           globe_endrow(k) = endrow
+           topo_endrow(k) = endrow
            ta_end_je(k) =  ta_grid%nlat_reg
          ENDIF
  
@@ -615,36 +620,36 @@ END SUBROUTINE read_namelists_extpar_orography
        ENDDO  ! loop over the tiles 
 
 
-       END SUBROUTINE get_globe_tile_block_indices
+       END SUBROUTINE get_topo_tile_block_indices
 
 
 !----------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------
     !> open netcdf-file and get netcdf unit file number
-       SUBROUTINE open_netcdf_GLOBE_tile(path_globe_tile, &
+       SUBROUTINE open_netcdf_topo_tile(path_topo_tile, &
                                         ncid)
-         CHARACTER (len=*), INTENT(in) :: path_globe_tile         !< filename with path to GLOBE tile
+         CHARACTER (len=*), INTENT(in) :: path_topo_tile         !< filename with path to GLOBE tile
          INTEGER, INTENT(out) :: ncid                             !< netcdf unit file number
 
         !! open netcdf file 
-            call check_netcdf( nf90_open(TRIM(path_globe_tile),NF90_NOWRITE, ncid))
+            call check_netcdf( nf90_open(TRIM(path_topo_tile),NF90_NOWRITE, ncid))
 
-       END SUBROUTINE open_netcdf_GLOBE_tile
+       END SUBROUTINE open_netcdf_TOPO_tile
 
         !> close netcdf-file 
-       SUBROUTINE close_netcdf_GLOBE_tile(ncid)
+       SUBROUTINE close_netcdf_TOPO_tile(ncid)
          INTEGER, INTENT(in) :: ncid                             !< netcdf unit file number
 
         !! close netcdf file 
             call check_netcdf( nf90_close( ncid))
 
-       END SUBROUTINE close_netcdf_GLOBE_tile
+       END SUBROUTINE close_netcdf_TOPO_tile
 
 !----------------------------------------------------------------------------------------------------------------
        !> get globe data on a single circle of latitude
-       SUBROUTINE get_globe_data_parallel(mlat,        &
-                                          ncids_globe, &
+       SUBROUTINE get_topo_data_parallel(mlat,        &
+                                          ncids_topo, &
                                           h_parallel)
        USE mo_topo_data, ONLY : ntiles  !< there are 16 GLOBE tiles 
        USE mo_topo_data, ONLY : nc_tot     !< total number of columns in GLOBE data: 43200
@@ -653,7 +658,7 @@ END SUBROUTINE read_namelists_extpar_orography
        USE mo_topo_data, ONLY : h_tile_row !< variable for height of GLOBE data for a data row of a tile
        
        INTEGER , INTENT(IN) :: mlat  !< global index of raw data line
-       INTEGER , INTENT(IN) :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
        INTEGER (KIND=i4), INTENT(OUT) :: h_parallel(1:nc_tot)     !< GLOBE altitude data along a parallel
 
        ! local variables
@@ -695,15 +700,15 @@ END SUBROUTINE read_namelists_extpar_orography
           tile_start = 13
           tile_row   = mlat - 16800 ! row in the tiles M, N, O, P
         CASE DEFAULT
-          CALL abort_extpar('get_globe_data_parallel: mlat not in data range of GLOBE tiles')
+          CALL abort_extpar('get_topo_data_parallel: mlat not in data range of TOPO tiles')
         END SELECT
 
         tile_end = tile_start + 3 ! numbering of GLOBE tiles
         nt = 0
         DO k=tile_start,tile_end
           nt = nt + 1 ! count the number of tiles
-          CALL check_netcdf(nf90_inq_varid(ncids_globe(k),TRIM(varname),varid)) ! get the varid of the altitude variable
-          CALL check_netcdf(nf90_get_var(ncids_globe(k), varid,  h_tile_row, & ! get the data of one tile row
+          CALL check_netcdf(nf90_inq_varid(ncids_topo(k),TRIM(varname),varid)) ! get the varid of the altitude variable
+          CALL check_netcdf(nf90_get_var(ncids_topo(k), varid,  h_tile_row, & ! get the data of one tile row
            &    start=(/1,tile_row/),count=(/nc_tile,1/)))
           os = (nt-1) * nc_tile ! offset for array with data along latitude circle
           !DO i=1,nc_tile
@@ -717,13 +722,13 @@ END SUBROUTINE read_namelists_extpar_orography
         
 
 
-       END SUBROUTINE get_globe_data_parallel
+       END SUBROUTINE get_topo_data_parallel
 !----------------------------------------------------------------------------------------------------------------
    !> get GLOBE data block for a given target area from the tile block indices
-       SUBROUTINE get_globe_data_block(topo_file_1,     &   !mes ><
+       SUBROUTINE get_topo_data_block(topo_file_1,     &   !mes ><
          &                             ta_grid,         &
          &                             topo_tiles_grid, &
-         &                             ncids_globe, &
+         &                             ncids_topo, &
          &                             h_block)
 
        USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
@@ -743,15 +748,15 @@ END SUBROUTINE read_namelists_extpar_orography
        TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
 
-       INTEGER , INTENT(IN) :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
 
        INTEGER (KIND=i4), INTENT(OUT) :: h_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBE altitude data 
        !local variables
 
-       INTEGER (KIND=i4) :: globe_startrow(1:ntiles) !< startrow indices for each GLOBE tile
-       INTEGER (KIND=i4) :: globe_endrow(1:ntiles) !< endrow indices for each GLOBE tile
-       INTEGER (KIND=i4) :: globe_startcolumn(1:ntiles) !< starcolumn indices for each GLOBE tile
-       INTEGER (KIND=i4) :: globe_endcolumn(1:ntiles) !< endcolumn indices for each GLOBE tile
+       INTEGER (KIND=i4) :: topo_startrow(1:ntiles) !< startrow indices for each GLOBE tile
+       INTEGER (KIND=i4) :: topo_endrow(1:ntiles) !< endrow indices for each GLOBE tile
+       INTEGER (KIND=i4) :: topo_startcolumn(1:ntiles) !< starcolumn indices for each GLOBE tile
+       INTEGER (KIND=i4) :: topo_endcolumn(1:ntiles) !< endcolumn indices for each GLOBE tile
 
        INTEGER (KIND=i4) :: ta_start_ie(1:ntiles)    !< indices of target area block for first column of each GLOBE tile
        INTEGER (KIND=i4) :: ta_end_ie(1:ntiles)      !< indices of target area block for last column of each GLOBE tile
@@ -759,13 +764,13 @@ END SUBROUTINE read_namelists_extpar_orography
        INTEGER (KIND=i4) :: ta_end_je(1:ntiles)   !< indices of target area block for last row of each GLOBE tile
 
 
-       INTEGER (KIND=i4), ALLOCATABLE :: raw_globe_block(:,:) !< a block with GLOBE data
+       INTEGER (KIND=i4), ALLOCATABLE :: raw_topo_block(:,:) !< a block with GLOBE data
 
        INTEGER :: varid               !< id of variable
        CHARACTER (LEN=80) :: varname  !< name of variable
 
-       INTEGER :: nrows !< number of rows ! dimensions for raw_globe_block
-       INTEGER :: ncolumns !< number of columns ! dimensions for raw_globe_block
+       INTEGER :: nrows !< number of rows ! dimensions for raw_topo_block
+       INTEGER :: ncolumns !< number of columns ! dimensions for raw_topo_block
 
 
 
@@ -781,18 +786,18 @@ END SUBROUTINE read_namelists_extpar_orography
 ! mes <
        
        
-       CALL get_globe_tile_block_indices( ta_grid,         &
+       CALL get_topo_tile_block_indices( ta_grid,         &
          &                                topo_tiles_grid,& 
-         &                                globe_startrow,  &
-         &                                globe_endrow,    & 
-         &                                globe_startcolumn,&
-         &                                globe_endcolumn,  &
+         &                                topo_startrow,  &
+         &                                topo_endrow,    & 
+         &                                topo_startcolumn,&
+         &                                topo_endcolumn,  &
          &                                ta_start_ie, &
          &                                ta_end_ie,   &
          &                                ta_start_je, &
          &                                ta_end_je)
-       !  allocate_raw_globe_fields(nrows,ncolumns)
-       ! raw_globe_block
+       !  allocate_raw_topo_fields(nrows,ncolumns)
+       ! raw_topo_block
 
  !        print*, ta_grid%start_lat_reg
  !        print*, ta_grid%end_lat_reg
@@ -803,36 +808,36 @@ END SUBROUTINE read_namelists_extpar_orography
 
        
           DO k=1,ntiles
-           IF ((globe_startrow(k)/=0).AND.(globe_startcolumn(k)/=0)) THEN
-             nrows = globe_endrow(k) - globe_startrow(k) + 1
-             ncolumns = globe_endcolumn(k) - globe_startcolumn(k) + 1
+           IF ((topo_startrow(k)/=0).AND.(topo_startcolumn(k)/=0)) THEN
+             nrows = topo_endrow(k) - topo_startrow(k) + 1
+             ncolumns = topo_endcolumn(k) - topo_startcolumn(k) + 1
    !          print*, k      
-   !          print*, globe_startrow(k)
-   !          print*, globe_endrow(k) 
+   !          print*, topo_startrow(k)
+   !          print*, topo_endrow(k) 
 
    !          print*, k      
-   !          print*, globe_startcolumn(k)
-   !          print*, globe_endcolumn(k)
+   !          print*, topo_startcolumn(k)
+   !          print*, topo_endcolumn(k)
            
-             ALLOCATE (raw_globe_block(1:ncolumns,1:nrows), STAT=errorcode)
-             IF(errorcode/=0) CALL abort_extpar('Cant allocate the array raw_globe_block')
-             ! raw_globe_block(ncolumns,nrows)
+             ALLOCATE (raw_topo_block(1:ncolumns,1:nrows), STAT=errorcode)
+             IF(errorcode/=0) CALL abort_extpar('Cant allocate the array raw_topo_block')
+             ! raw_topo_block(ncolumns,nrows)
              !print*, TRIM(varname)
 
-             !           print*, globe_startcolumn(k),globe_startrow(k),ncolumns,nrows
-             CALL check_netcdf(nf90_inq_varid(ncids_globe(k),TRIM(varname),varid)) ! get the varid of the altitude variable
-             ! get the data into the raw_globe_block
-             CALL check_netcdf(nf90_get_var(ncids_globe(k), varid,  raw_globe_block,     & 
-                  &     start=(/globe_startcolumn(k),globe_startrow(k)/),count=(/ncolumns,nrows/)))
+             !           print*, topo_startcolumn(k),topo_startrow(k),ncolumns,nrows
+             CALL check_netcdf(nf90_inq_varid(ncids_topo(k),TRIM(varname),varid)) ! get the varid of the altitude variable
+             ! get the data into the raw_topo_block
+             CALL check_netcdf(nf90_get_var(ncids_topo(k), varid,  raw_topo_block,     & 
+                  &     start=(/topo_startcolumn(k),topo_startrow(k)/),count=(/ncolumns,nrows/)))
             
 
-                h_block(ta_start_ie(k):ta_end_ie(k),ta_start_je(k):ta_end_je(k)) = raw_globe_block(1:ncolumns,1:nrows)
+                h_block(ta_start_ie(k):ta_end_ie(k),ta_start_je(k):ta_end_je(k)) = raw_topo_block(1:ncolumns,1:nrows)
 
 
              !           Print*, h_block
             
-             DEALLOCATE (raw_globe_block, STAT=errorcode)
-             IF(errorcode/=0) CALL abort_extpar('Cant deallocate the array raw_globe_block')
+             DEALLOCATE (raw_topo_block, STAT=errorcode)
+             IF(errorcode/=0) CALL abort_extpar('Cant deallocate the array raw_topo_block')
           
            ENDIF
          ENDDO
@@ -840,7 +845,7 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
 
-       END SUBROUTINE get_globe_data_block
+       END SUBROUTINE get_topo_data_block
 
 
 
@@ -849,9 +854,9 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
  !> get globe data band on a circle of latitude
-       SUBROUTINE get_globe_data_band(mstart, &
+       SUBROUTINE get_topo_data_band(mstart, &
                                       nrows,  &
-                                      ncids_globe, &
+                                      ncids_topo, &
                                       h_band)
        USE mo_topo_data, ONLY : ntiles  !< there are 16 GLOBE tiles 
        USE mo_topo_data, ONLY : nc_tot     !< total number of columns in GLOBE data: 43200
@@ -863,7 +868,7 @@ END SUBROUTINE read_namelists_extpar_orography
 
        INTEGER , INTENT(IN) :: mstart  !< global index of first raw data line
        INTEGER , INTENT(IN) :: nrows   !< total number or row data rows to read in
-       INTEGER , INTENT(IN) :: ncids_globe(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_TOPO_tile
        INTEGER (KIND=i4), INTENT(OUT) :: h_band(1:nc_tot,1:nrows)     !< GLOBE altitude data along a parallel
 
        ! local variables
@@ -906,7 +911,7 @@ END SUBROUTINE read_namelists_extpar_orography
             tile_start = 13
             !tile_row   = mlat - 16800 ! row in the tiles M, N, O, P
           CASE DEFAULT
-            CALL abort_extpar('get_globe_data_band: mlat not in data range of GLOBE tiles')
+            CALL abort_extpar('get_topo_data_band: mlat not in data range of TOPO tiles')
           END SELECT
 
           SELECT CASE(m_end)
@@ -920,7 +925,7 @@ END SUBROUTINE read_namelists_extpar_orography
           CASE (16801:21600)
             tile_end = 16   ! row in the tiles M, N, O, P
           CASE DEFAULT
-            CALL abort_extpar('get_globe_data_band: mlat not in data range of GLOBE tiles')
+            CALL abort_extpar('get_topo_data_band: mlat not in data range of TOPO tiles')
           END SELECT
 
 
@@ -943,15 +948,15 @@ END SUBROUTINE read_namelists_extpar_orography
             tile_start = 13
             tile_row   = mlat - 16800 ! row in the tiles M, N, O, P
           CASE DEFAULT
-            CALL abort_extpar('get_globe_data_band: mlat not in data range of GLOBE tiles')
+            CALL abort_extpar('get_topo_data_band: mlat not in data range of TOPO tiles')
           END SELECT
 
           tile_end = tile_start + 3 ! numbering of GLOBE tiles
           nt = 0
           DO k=tile_start,tile_end
             nt = nt + 1 ! count the number of tiles
-            CALL check_netcdf(nf90_inq_varid(ncids_globe(k),TRIM(varname),varid)) ! get the varid of the altitude variable
-            CALL check_netcdf(nf90_get_var(ncids_globe(k), varid,  h_tile_row,     & ! get the data of one tile row
+            CALL check_netcdf(nf90_inq_varid(ncids_topo(k),TRIM(varname),varid)) ! get the varid of the altitude variable
+            CALL check_netcdf(nf90_get_var(ncids_topo(k), varid,  h_tile_row,     & ! get the data of one tile row
                  start=(/1,tile_row/),count=(/nc_tile,1/)))
             os = (nt-1) * nc_tile ! offset for array with data along latitude circle
             h_band(os+1:os+nc_tile,n_row) = h_tile_row(1:nc_tile)
@@ -962,10 +967,10 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
 
-       END SUBROUTINE get_globe_data_band
+       END SUBROUTINE get_topo_data_band
 !----------------------------------------------------------------------------------------------------------------
 
 
 
 
-END MODULE mo_globe_routines
+END MODULE mo_topo_routines

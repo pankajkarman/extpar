@@ -71,19 +71,19 @@ END SUBROUTINE read_namelists_extpar_grid_def
 
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for consitency check settings for EXTPAR 
-SUBROUTINE read_namelists_extpar_check(namelist_file, &
-                                         grib_output_filename, &
-                                         grib_sample, &
-                                         netcdf_output_filename, &
-                                         orography_buffer_file, &
-                                         soil_buffer_file, &
-                                         lu_buffer_file, &
-                                         glcc_buffer_file, &
-                                         flake_buffer_file, &
-                                         ndvi_buffer_file, &
-                                         t_clim_buffer_file, &
-                                         aot_buffer_file, &
-                                         alb_buffer_file)
+SUBROUTINE read_namelists_extpar_check(namelist_file,         &
+                                       grib_output_filename,  &
+                                       grib_sample,           &
+                                       netcdf_output_filename,&
+                                       orography_buffer_file, &
+                                       soil_buffer_file,      &
+                                       lu_buffer_file,        &
+                                       glcc_buffer_file,      &
+                                       flake_buffer_file,     &
+                                       ndvi_buffer_file,      &
+                                       t_clim_buffer_file,    &
+                                       aot_buffer_file,       &
+                                       alb_buffer_file)
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
 
@@ -129,9 +129,9 @@ SUBROUTINE read_namelists_extpar_check(namelist_file, &
 
 
    nuin = free_un()  ! functioin free_un returns free Fortran unit number
-!roa: what is that!?!
-!   grib_output_filename = 'external_parameters.grb'
-!   grib_sample = 'GRIB2'
+ !roa: what the heck is that!?!
+  ! grib_output_filename = 'external_parameters.grb'
+  ! grib_sample = 'GRIB2'
 
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 

@@ -99,7 +99,8 @@ PROGRAM extpar_flake_to_buffer
   USE mo_flake_data, ONLY: flake_grid, &
  &         lon_flake,  &
  &         lat_flake,  &
- &         allocate_raw_flake_fields
+ &         allocate_raw_flake_fields,  &
+ &         deallocate_raw_flake_fields
 
   USE mo_flake_tg_fields, ONLY: fr_lake, &
   &       lake_depth,    &
@@ -124,7 +125,7 @@ PROGRAM extpar_flake_to_buffer
 
   CHARACTER(len=filename_max) :: namelist_grid_def
 
-  CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
+  CHARACTER (len=filename_max) :: namelist_topo_data_input !< file with input namelist with GLOBE data information
   CHARACTER(len=filename_max) :: input_flake_namelist_file 
   CHARACTER(len=filename_max) :: flake_file
 
@@ -342,7 +343,11 @@ PROGRAM extpar_flake_to_buffer
       CASE(igrid_gme) ! GME grid   
 
     END SELECT
-   
-    PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'  !mes
+
+    CALL deallocate_raw_flake_fields()
+
+
+  PRINT *,'============= flake_to_buffer done ==============='
+
 
 END PROGRAM extpar_flake_to_buffer

@@ -107,20 +107,24 @@ MODULE mo_var_meta_data
   PUBLIC :: def_lu_fields_meta
 
   PUBLIC :: def_glc2000_fields_meta
-  PUBLIC :: dim_buffer_vertex
+  PUBLIC :: dim_buffer_cell, dim_buffer_vertex
 
-  PUBLIC :: hh_globe_meta, fr_land_globe_meta, &
-    &       stdh_globe_meta, theta_globe_meta, &
-    &       aniso_globe_meta, slope_globe_meta, &
-    &       hh_vert_meta, npixel_vert_meta,    &
-    &       hh_fis_meta, z0_topo_meta,         &
-    &       slope_asp_globe_meta, slope_ang_globe_meta,    &
-    &       horizon_globe_meta, skyview_globe_meta 
+  PUBLIC :: hh_topo_meta, fr_land_topo_meta,         &
+    &       stdh_topo_meta, theta_topo_meta,         &
+    &       aniso_topo_meta, slope_topo_meta,        &
+    &       hh_vert_meta, npixel_vert_meta,            &
+    &       hh_fis_meta, z0_topo_meta,                 &
+    &       slope_asp_topo_meta, slope_ang_topo_meta,&
+    &       horizon_topo_meta, skyview_topo_meta
   
-  PUBLIC :: def_globe_meta, def_globe_vertex_meta
+  PUBLIC :: def_topo_meta, def_topo_vertex_meta
 
   PUBLIC :: def_soil_meta
-  PUBLIC :: fr_land_soil_meta, soiltype_fao_meta
+  PUBLIC :: fr_land_soil_meta, soiltype_fao_meta, soiltype_deep_meta
+  PUBLIC :: HWSD_SAND_meta, HWSD_SILT_meta, HWSD_CLAY_meta
+  PUBLIC :: HWSD_OC_meta, HWSD_BD_meta,HWSD_DM_meta
+  PUBLIC :: HWSD_SAND_DEEP_meta, HWSD_SILT_DEEP_meta, HWSD_CLAY_DEEP_meta
+  PUBLIC :: HWSD_OC_DEEP_meta, HWSD_BD_DEEP_meta,HWSD_DM_DEEP_meta
 
   PUBLIC :: lake_depth_meta, fr_lake_meta, &
     &       flake_tot_npixel_meta
@@ -147,6 +151,7 @@ MODULE mo_var_meta_data
   TYPE(dim_meta_info), TARGET :: dim_icon(1:7)
   TYPE(dim_meta_info), TARGET :: dim_cells_icon(1:1)
   TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
+  TYPE(dim_meta_info), TARGET :: dim_buffer_cell(1:3)
   TYPE(dim_meta_info), TARGET :: dim_buffer_vertex(1:3)
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_aot_tg(:) !< dimensions for field with all aerosol types
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_aot_ty(:) !< dimensions for fields with single aerosol types 
@@ -244,23 +249,37 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: emissivity_lu_meta !< additional information for variable
   TYPE(var_meta_info) :: fr_ocean_lu_meta  !< additional information for variable
 
-  TYPE(var_meta_info) :: hh_globe_meta  !< additional information for variable
+  TYPE(var_meta_info) :: hh_topo_meta  !< additional information for variable
   TYPE(var_meta_info) :: hh_fis_meta    !< additional information for variable
-  TYPE(var_meta_info) :: fr_land_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: stdh_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: theta_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: aniso_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: slope_globe_meta  !< additional information for variable
+  TYPE(var_meta_info) :: fr_land_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: stdh_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: theta_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: aniso_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: slope_topo_meta  !< additional information for variable
   TYPE(var_meta_info) :: hh_vert_meta  !< additional information for variable
   TYPE(var_meta_info) :: npixel_vert_meta  !< additional information for variable
   TYPE(var_meta_info) :: z0_topo_meta  !< additional information for variable
-  TYPE(var_meta_info) :: slope_asp_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: slope_ang_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: horizon_globe_meta  !< additional information for variable
-  TYPE(var_meta_info) :: skyview_globe_meta  !< additional information for variable
 
+  TYPE(var_meta_info) :: slope_asp_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: slope_ang_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: horizon_topo_meta  !< additional information for variable
+  TYPE(var_meta_info) :: skyview_topo_meta  !< additional information for variable
   TYPE(var_meta_info) :: fr_land_soil_meta !< additional information for variable
-  TYPE(var_meta_info) :: soiltype_fao_meta !< additional information for variable
+  TYPE(var_meta_info) :: soiltype_fao_meta !< additional information for variable 
+  TYPE(var_meta_info) :: soiltype_deep_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_SAND_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_SILT_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_CLAY_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_OC_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_BD_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_DM_meta !< additional information for variable
+
+  TYPE(var_meta_info) :: HWSD_SAND_DEEP_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_SILT_DEEP_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_CLAY_DEEP_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_OC_DEEP_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_BD_DEEP_meta !< additional information for variable
+  TYPE(var_meta_info) :: HWSD_DM_DEEP_meta !< additional information for variable
 
   TYPE(var_meta_info) :: lake_depth_meta !< additional information for variable
   TYPE(var_meta_info) :: fr_lake_meta !< additional information for variable
@@ -372,6 +391,7 @@ MODULE mo_var_meta_data
       nhori_meta%grid_mapping = c_undef
       nhori_meta%coordinates = c_undef
     ENDIF
+
 
   END SUBROUTINE def_dimension_info_cosmo
 
@@ -491,8 +511,12 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_crutemp_meta
 
   !> define meta information for soil data for netcdf output
-  SUBROUTINE def_soil_meta(diminfo,coordinates,grid_mapping)
-    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+  SUBROUTINE def_soil_meta(diminfo,isoil_data,coordinates,grid_mapping)
+
+    USE mo_soil_data, ONLY: soil_data, FAO_data, HWSD_data
+
+    TYPE(dim_meta_info), TARGET  :: diminfo(:)     !< pointer to dimensions of variable
+    INTEGER (KIND=i4), INTENT(IN):: isoil_data
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
 
@@ -514,7 +538,12 @@ MODULE mo_var_meta_data
     fr_land_soil_meta%diminfo => diminfo
     fr_land_soil_meta%vartype = vartype_real !REAL variable
     fr_land_soil_meta%standard_name = 'FR_LAND soil'
-    fr_land_soil_meta%long_name = 'Fraction Land due to FAO Digital Soil Map of the World'
+    SELECT CASE (isoil_data)
+    CASE(FAO_data)
+      fr_land_soil_meta%long_name = 'Fraction Land due to FAO Digital Soil Map of the World'
+    CASE(HWSD_data)
+      fr_land_soil_meta%long_name = 'Fraction Land due to HWSD Digital Soil Map of the World'
+    END SELECT
     fr_land_soil_meta%shortName = 'FR_LAND'
     fr_land_soil_meta%units = c_undef
     fr_land_soil_meta%grid_mapping = gridmp
@@ -526,11 +555,161 @@ MODULE mo_var_meta_data
     soiltype_fao_meta%diminfo => diminfo
     soiltype_fao_meta%vartype = vartype_int !REAL variable
     soiltype_fao_meta%standard_name = 'soil_type'
-    soiltype_fao_meta%long_name = 'soil type derived from FAO Digital Soil Map of the World'
+    SELECT CASE (isoil_data)
+    CASE(FAO_data)
+      soiltype_fao_meta%long_name = 'soil type derived from FAO Digital Soil Map of the World'
+    CASE(HWSD_data)
+      soiltype_fao_meta%long_name = 'soil type derived from HWSD Digital Soil Map of the World'
+    END SELECT
     soiltype_fao_meta%shortName = 'SOILTYP'
     soiltype_fao_meta%units = c_undef
     soiltype_fao_meta%grid_mapping = gridmp
     soiltype_fao_meta%coordinates = coord
+
+    soiltype_deep_meta%varname = 'SUBSOILTYP'
+    soiltype_deep_meta%n_dim = n_dim
+    soiltype_deep_meta%diminfo => diminfo
+    soiltype_deep_meta%vartype = vartype_int !REAL variable
+    soiltype_deep_meta%standard_name = 'subsoil_type'
+    soiltype_deep_meta%long_name = 'deep soil type derived from HWSD Digital Soil Map of the World'
+    soiltype_deep_meta%shortName = 'SUBSOILTYP'
+    soiltype_deep_meta%units = c_undef
+    soiltype_deep_meta%grid_mapping = gridmp
+    soiltype_deep_meta%coordinates = coord
+
+    IF (isoil_data == HWSD_data) THEN
+      HWSD_SAND_meta%varname = 'FR_SAND'
+      HWSD_SAND_meta%n_dim = n_dim
+      HWSD_SAND_meta%diminfo => diminfo
+      HWSD_SAND_meta%vartype = vartype_real !REAL variable
+      HWSD_SAND_meta%standard_name = 'sand_frac'
+      HWSD_SAND_meta%long_name = 'fraction of sand for soil index'
+      HWSD_SAND_meta%shortName = 'ru-103d'
+      HWSD_SAND_meta%units = c_undef
+      HWSD_SAND_meta%grid_mapping = gridmp
+      HWSD_SAND_meta%coordinates = coord
+
+      HWSD_SILT_meta%varname = 'FR_SILT'
+      HWSD_SILT_meta%n_dim = n_dim
+      HWSD_SILT_meta%diminfo => diminfo
+      HWSD_SILT_meta%vartype = vartype_real !REAL variable
+      HWSD_SILT_meta%standard_name = 'silt_frac'
+      HWSD_SILT_meta%long_name = 'fraction of silt for soil index'
+      HWSD_SILT_meta%shortName = 'ru-103w'
+      HWSD_SILT_meta%units = c_undef
+      HWSD_SILT_meta%grid_mapping = gridmp
+      HWSD_SILT_meta%coordinates = coord
+
+      HWSD_CLAY_meta%varname = 'FR_CLAY'
+      HWSD_CLAY_meta%n_dim = n_dim
+      HWSD_CLAY_meta%diminfo => diminfo
+      HWSD_CLAY_meta%vartype = vartype_real !REAL variable
+      HWSD_CLAY_meta%standard_name = 'clay_frac'
+      HWSD_CLAY_meta%long_name = 'fraction of clay for soil index'
+      HWSD_CLAY_meta%shortName = 'sr-90d'
+      HWSD_CLAY_meta%units = c_undef
+      HWSD_CLAY_meta%grid_mapping = gridmp
+      HWSD_CLAY_meta%coordinates = coord
+
+      HWSD_OC_meta%varname = 'FR_OC'
+      HWSD_OC_meta%n_dim = n_dim
+      HWSD_OC_meta%diminfo => diminfo
+      HWSD_OC_meta%vartype = vartype_real !REAL variable
+      HWSD_OC_meta%standard_name = 'oc_frac'
+      HWSD_OC_meta%long_name = 'fraction of oc for soil index'
+      HWSD_OC_meta%shortName = 'sr-90w'
+      HWSD_OC_meta%units = c_undef
+      HWSD_OC_meta%grid_mapping = gridmp
+      HWSD_OC_meta%coordinates = coord
+      
+      HWSD_BD_meta%varname = 'BULK_DENS'
+      HWSD_BD_meta%n_dim = n_dim
+      HWSD_BD_meta%diminfo => diminfo
+      HWSD_BD_meta%vartype = vartype_real !REAL variable
+      HWSD_BD_meta%standard_name = 'bd_dens'
+      HWSD_BD_meta%long_name = 'bulk density for soil index'
+      HWSD_BD_meta%shortName = 'i-131ad'
+      HWSD_BD_meta%units = c_undef
+      HWSD_BD_meta%grid_mapping = gridmp
+      HWSD_BD_meta%coordinates = coord
+      
+      HWSD_DM_meta%varname = 'DUMMY'
+      HWSD_DM_meta%n_dim = n_dim
+      HWSD_DM_meta%diminfo => diminfo
+      HWSD_DM_meta%vartype = vartype_real !REAL variable
+      HWSD_DM_meta%standard_name = 'bd_dens'
+      HWSD_DM_meta%long_name = 'bulk density for soil index'
+      HWSD_DM_meta%shortName = 'i-131aw'
+      HWSD_DM_meta%units = c_undef
+      HWSD_DM_meta%grid_mapping = gridmp
+      HWSD_DM_meta%coordinates = coord
+
+      HWSD_SAND_DEEP_meta%varname = 'SUB_FR_SAND'
+      HWSD_SAND_DEEP_meta%n_dim = n_dim
+      HWSD_SAND_DEEP_meta%diminfo => diminfo
+      HWSD_SAND_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_SAND_DEEP_meta%standard_name = 'sand_frac'
+      HWSD_SAND_DEEP_meta%long_name = 'fraction of sand for deep soil index'
+      HWSD_SAND_DEEP_meta%shortName = 'ru-103d'
+      HWSD_SAND_DEEP_meta%units = c_undef
+      HWSD_SAND_DEEP_meta%grid_mapping = gridmp
+      HWSD_SAND_DEEP_meta%coordinates = coord
+
+      HWSD_SILT_DEEP_meta%varname = 'SUB_FR_SILT'
+      HWSD_SILT_DEEP_meta%n_dim = n_dim
+      HWSD_SILT_DEEP_meta%diminfo => diminfo
+      HWSD_SILT_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_SILT_DEEP_meta%standard_name = 'silt_frac'
+      HWSD_SILT_DEEP_meta%long_name = 'fraction of silt for deep soil index'
+      HWSD_SILT_DEEP_meta%shortName = 'ru-103w'
+      HWSD_SILT_DEEP_meta%units = c_undef
+      HWSD_SILT_DEEP_meta%grid_mapping = gridmp
+      HWSD_SILT_DEEP_meta%coordinates = coord
+
+      HWSD_CLAY_DEEP_meta%varname = 'SUB_FR_CLAY'
+      HWSD_CLAY_DEEP_meta%n_dim = n_dim
+      HWSD_CLAY_DEEP_meta%diminfo => diminfo
+      HWSD_CLAY_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_CLAY_DEEP_meta%standard_name = 'clay_frac'
+      HWSD_CLAY_DEEP_meta%long_name = 'fraction of clay for deep soil index'
+      HWSD_CLAY_DEEP_meta%shortName = 'sr-90d'
+      HWSD_CLAY_DEEP_meta%units = c_undef
+      HWSD_CLAY_DEEP_meta%grid_mapping = gridmp
+      HWSD_CLAY_DEEP_meta%coordinates = coord
+
+      HWSD_OC_DEEP_meta%varname = 'SUB_FR_OC'
+      HWSD_OC_DEEP_meta%n_dim = n_dim
+      HWSD_OC_DEEP_meta%diminfo => diminfo
+      HWSD_OC_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_OC_DEEP_meta%standard_name = 'oc_frac'
+      HWSD_OC_DEEP_meta%long_name = 'fraction of oc for deep soil index'
+      HWSD_OC_DEEP_meta%shortName = 'sr-90w'
+      HWSD_OC_DEEP_meta%units = c_undef
+      HWSD_OC_DEEP_meta%grid_mapping = gridmp
+      HWSD_OC_DEEP_meta%coordinates = coord
+      
+      HWSD_BD_DEEP_meta%varname = 'SUB_BULK_DENS'
+      HWSD_BD_DEEP_meta%n_dim = n_dim
+      HWSD_BD_DEEP_meta%diminfo => diminfo
+      HWSD_BD_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_BD_DEEP_meta%standard_name = 'bd_dens'
+      HWSD_BD_DEEP_meta%long_name = 'bulk density for deep soil index'
+      HWSD_BD_DEEP_meta%shortName = 'i-131ad'
+      HWSD_BD_DEEP_meta%units = c_undef
+      HWSD_BD_DEEP_meta%grid_mapping = gridmp
+      HWSD_BD_DEEP_meta%coordinates = coord
+      
+      HWSD_DM_DEEP_meta%varname = 'SUB_DUMMY'
+      HWSD_DM_DEEP_meta%n_dim = n_dim
+      HWSD_DM_DEEP_meta%diminfo => diminfo
+      HWSD_DM_DEEP_meta%vartype = vartype_real !REAL variable
+      HWSD_DM_DEEP_meta%standard_name = 'bd_dens'
+      HWSD_DM_DEEP_meta%long_name = 'bulk density for deep soil index'
+      HWSD_DM_DEEP_meta%shortName = 'i-131aw'
+      HWSD_DM_DEEP_meta%units = c_undef
+      HWSD_DM_DEEP_meta%grid_mapping = gridmp
+      HWSD_DM_DEEP_meta%coordinates = coord
+    END IF
 
     
   END SUBROUTINE def_soil_meta
@@ -1747,6 +1926,7 @@ MODULE mo_var_meta_data
     n_dim = SIZE(diminfo)
 
 
+
   
     lake_depth_meta%varname = 'DEPTH_LK'
     lake_depth_meta%n_dim = n_dim
@@ -1792,7 +1972,12 @@ MODULE mo_var_meta_data
 
 
   !> define meta information for target fields derived from GLOBE data
-  SUBROUTINE def_globe_meta(diminfo,coordinates,grid_mapping,diminfohor)
+  SUBROUTINE def_topo_meta(diminfo,coordinates,grid_mapping,diminfohor)
+
+    USE mo_topo_data, ONLY: topography,&
+                            topo_aster,&
+                            topo_gl
+
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
@@ -1814,18 +1999,19 @@ MODULE mo_var_meta_data
     IF (PRESENT(diminfohor)) n_dimhor = SIZE(diminfohor)
     IF (PRESENT(diminfohor) .AND. PRESENT(coordinates)) coordhor =  TRIM(coordinates)// ' nhori'
 
+    ! set meta information for strucutre dim_buffer_cell
+    dim_buffer_cell = dim_3d_tg
   
-    hh_globe_meta%varname = 'HSURF'
-    hh_globe_meta%n_dim = n_dim
-    hh_globe_meta%diminfo => diminfo
-    hh_globe_meta%vartype = vartype_real !REAL variable
-    hh_globe_meta%standard_name = 'surface_height'
-    hh_globe_meta%long_name = 'geometric height of the earths surface above sea level'
-    hh_globe_meta%shortName = 'HSURF'
-    hh_globe_meta%units = 'm'
-    hh_globe_meta%grid_mapping = gridmp
-    hh_globe_meta%coordinates = coord
-
+    hh_topo_meta%varname = 'HSURF'
+    hh_topo_meta%n_dim = n_dim
+    hh_topo_meta%diminfo => diminfo
+    hh_topo_meta%vartype = vartype_real !REAL variable
+    hh_topo_meta%standard_name = 'surface_height'
+    hh_topo_meta%long_name = 'geometric height of the earths surface above sea level'
+    hh_topo_meta%shortName = 'HSURF'
+    hh_topo_meta%units = 'm'
+    hh_topo_meta%grid_mapping = gridmp
+    hh_topo_meta%coordinates = coord
 
     hh_fis_meta%varname = 'FIS'
     hh_fis_meta%n_dim = n_dim
@@ -1839,65 +2025,66 @@ MODULE mo_var_meta_data
     hh_fis_meta%coordinates = coord
 
 
-
      
-    stdh_globe_meta%varname = 'SSO_STDH'
-    stdh_globe_meta%n_dim = n_dim
-    stdh_globe_meta%diminfo => diminfo
-    stdh_globe_meta%vartype = vartype_real !REAL variable
-    stdh_globe_meta%standard_name = 'standard deviation of height'
-    stdh_globe_meta%long_name = 'standard deviation of subgrid scale orography'
-    stdh_globe_meta%shortName = 'SSO_STDH'
-    stdh_globe_meta%units = 'm'
-    stdh_globe_meta%grid_mapping = gridmp
-    stdh_globe_meta%coordinates = coord
+    stdh_topo_meta%varname = 'SSO_STDH'
+    stdh_topo_meta%n_dim = n_dim
+    stdh_topo_meta%diminfo => diminfo
+    stdh_topo_meta%vartype = vartype_real !REAL variable
+    stdh_topo_meta%standard_name = 'standard deviation of height'
+    stdh_topo_meta%long_name = 'standard deviation of subgrid scale orography'
+    stdh_topo_meta%shortName = 'SSO_STDH'
+    stdh_topo_meta%units = 'm'
+    stdh_topo_meta%grid_mapping = gridmp
+    stdh_topo_meta%coordinates = coord
     
-
-    theta_globe_meta%varname = 'SSO_THETA'
-    theta_globe_meta%n_dim = n_dim
-    theta_globe_meta%diminfo => diminfo
-    theta_globe_meta%vartype = vartype_real !REAL variable
-    theta_globe_meta%standard_name = 'angle of principal axis'
-    theta_globe_meta%long_name = 'Angle of sub-gridscale orography'
-    theta_globe_meta%shortName = 'SSO_THETA'
-    theta_globe_meta%units = 'rad'
-    theta_globe_meta%grid_mapping = gridmp
-    theta_globe_meta%coordinates = coord
+    theta_topo_meta%varname = 'SSO_THETA'
+    theta_topo_meta%n_dim = n_dim
+    theta_topo_meta%diminfo => diminfo
+    theta_topo_meta%vartype = vartype_real !REAL variable
+    theta_topo_meta%standard_name = 'angle of principal axis'
+    theta_topo_meta%long_name = 'Angle of sub-gridscale orography'
+    theta_topo_meta%shortName = 'SSO_THETA'
+    theta_topo_meta%units = 'rad'
+    theta_topo_meta%grid_mapping = gridmp
+    theta_topo_meta%coordinates = coord
     
-
-    aniso_globe_meta%varname = 'SSO_GAMMA'
-    aniso_globe_meta%n_dim = n_dim
-    aniso_globe_meta%diminfo => diminfo
-    aniso_globe_meta%vartype = vartype_real !REAL variable
-    aniso_globe_meta%standard_name = 'anisotropy factor'
-    aniso_globe_meta%long_name = 'anisotropy of sub-gridscale orography'
-    aniso_globe_meta%shortName = 'SSO_GAMMA'
-    aniso_globe_meta%units =  c_undef
-    aniso_globe_meta%grid_mapping = gridmp
-    aniso_globe_meta%coordinates = coord
+    aniso_topo_meta%varname = 'SSO_GAMMA'
+    aniso_topo_meta%n_dim = n_dim
+    aniso_topo_meta%diminfo => diminfo
+    aniso_topo_meta%vartype = vartype_real !REAL variable
+    aniso_topo_meta%standard_name = 'anisotropy factor'
+    aniso_topo_meta%long_name = 'anisotropy of sub-gridscale orography'
+    aniso_topo_meta%shortName = 'SSO_GAMMA'
+    aniso_topo_meta%units =  c_undef
+    aniso_topo_meta%grid_mapping = gridmp
+    aniso_topo_meta%coordinates = coord
     
-
-    slope_globe_meta%varname = 'SSO_SIGMA'
-    slope_globe_meta%n_dim = n_dim
-    slope_globe_meta%diminfo => diminfo
-    slope_globe_meta%vartype = vartype_real !REAL variable
-    slope_globe_meta%standard_name = 'slope of terrain'
-    slope_globe_meta%long_name = 'Slope of sub-gridscale orography'
-    slope_globe_meta%shortName = 'SSO_SIGMA'
-    slope_globe_meta%units = c_undef
-    slope_globe_meta%grid_mapping = gridmp
-    slope_globe_meta%coordinates = coord
+    slope_topo_meta%varname = 'SSO_SIGMA'
+    slope_topo_meta%n_dim = n_dim
+    slope_topo_meta%diminfo => diminfo
+    slope_topo_meta%vartype = vartype_real !REAL variable
+    slope_topo_meta%standard_name = 'slope of terrain'
+    slope_topo_meta%long_name = 'Slope of sub-gridscale orography'
+    slope_topo_meta%shortName = 'SSO_SIGMA'
+    slope_topo_meta%units = c_undef
+    slope_topo_meta%grid_mapping = gridmp
+    slope_topo_meta%coordinates = coord
     
-    fr_land_globe_meta%varname = 'FR_LAND_GLOBE'
-    fr_land_globe_meta%n_dim = n_dim
-    fr_land_globe_meta%diminfo => diminfo
-    fr_land_globe_meta%vartype = vartype_real !REAL variable
-    fr_land_globe_meta%standard_name = 'FR_LAND'
-    fr_land_globe_meta%long_name = 'fraction land due to GLOBE data'
-    fr_land_globe_meta%shortName = 'FR_LAND'
-    fr_land_globe_meta%units =  c_undef
-    fr_land_globe_meta%grid_mapping = gridmp
-    fr_land_globe_meta%coordinates = coord
+    fr_land_topo_meta%varname = 'FR_LAND_TOPO'
+    fr_land_topo_meta%n_dim = n_dim
+    fr_land_topo_meta%diminfo => diminfo
+    fr_land_topo_meta%vartype = vartype_real !REAL variable
+    fr_land_topo_meta%standard_name = 'FR_LAND'
+    SELECT CASE(topography)
+      CASE(topo_aster)
+        fr_land_topo_meta%long_name = 'fraction land due to ASTER data'
+      CASE(topo_gl)
+        fr_land_topo_meta%long_name = 'fraction land due to GLOBE data'
+      END SELECT
+    fr_land_topo_meta%shortName = 'FR_LAND'
+    fr_land_topo_meta%units =  c_undef
+    fr_land_topo_meta%grid_mapping = gridmp
+    fr_land_topo_meta%coordinates = coord
 
     ! z0_topo_meta
     z0_topo_meta%varname = 'Z0_TOPO'
@@ -1912,56 +2099,57 @@ MODULE mo_var_meta_data
     z0_topo_meta%coordinates = coord
 
     !lradtopo parameters
-    slope_asp_globe_meta%varname = 'SLO_ASP'
-    slope_asp_globe_meta%n_dim = n_dim
-    slope_asp_globe_meta%diminfo => diminfo
-    slope_asp_globe_meta%vartype = vartype_real !REAL variable
-    slope_asp_globe_meta%standard_name = 'SLO_ASP'
-    slope_asp_globe_meta%long_name = 'slope aspect - topography'
-    slope_asp_globe_meta%shortName = 'slope_aspect'
-    slope_asp_globe_meta%units = 'rad'
-    slope_asp_globe_meta%grid_mapping = gridmp
-    slope_asp_globe_meta%coordinates = coord
+    slope_asp_topo_meta%varname = 'SLO_ASP'
+    slope_asp_topo_meta%n_dim = n_dim
+    slope_asp_topo_meta%diminfo => diminfo
+    slope_asp_topo_meta%vartype = vartype_real !REAL variable
+    slope_asp_topo_meta%standard_name = 'SLO_ASP'
+    slope_asp_topo_meta%long_name = 'slope aspect - topography'
+    slope_asp_topo_meta%shortName = 'slope_aspect'
+    slope_asp_topo_meta%units = 'rad'
+    slope_asp_topo_meta%grid_mapping = gridmp
+    slope_asp_topo_meta%coordinates = coord
 
-    slope_ang_globe_meta%varname = 'SLO_ANG'
-    slope_ang_globe_meta%n_dim = n_dim
-    slope_ang_globe_meta%diminfo => diminfo
-    slope_ang_globe_meta%vartype = vartype_real !REAL variable
-    slope_ang_globe_meta%standard_name = 'SLO_ANG'
-    slope_ang_globe_meta%long_name = 'slope angle - topography'
-    slope_ang_globe_meta%shortName = 'slope_angle'
-    slope_ang_globe_meta%units = 'rad'
-    slope_ang_globe_meta%grid_mapping = gridmp
-    slope_ang_globe_meta%coordinates = coord
+    slope_ang_topo_meta%varname = 'SLO_ANG'
+    slope_ang_topo_meta%n_dim = n_dim
+    slope_ang_topo_meta%diminfo => diminfo
+    slope_ang_topo_meta%vartype = vartype_real !REAL variable
+    slope_ang_topo_meta%standard_name = 'SLO_ANG'
+    slope_ang_topo_meta%long_name = 'slope angle - topography'
+    slope_ang_topo_meta%shortName = 'slope_angle'
+    slope_ang_topo_meta%units = 'rad'
+    slope_ang_topo_meta%grid_mapping = gridmp
+    slope_ang_topo_meta%coordinates = coord
+
 
     IF (PRESENT(diminfohor)) THEN
-      horizon_globe_meta%varname = 'HORIZON'
-      horizon_globe_meta%n_dim = n_dimhor
-      horizon_globe_meta%diminfo => diminfohor
-      horizon_globe_meta%vartype = vartype_real !REAL variable
-      horizon_globe_meta%standard_name = 'HORIZON'
-      horizon_globe_meta%long_name = 'horizon angle - topography'
-      horizon_globe_meta%shortName = 'horizon_angle'
-      horizon_globe_meta%units = 'deg'
-      horizon_globe_meta%grid_mapping = gridmp
-      horizon_globe_meta%coordinates = coordhor
+      horizon_topo_meta%varname = 'HORIZON'
+      horizon_topo_meta%n_dim = n_dimhor
+      horizon_topo_meta%diminfo => diminfohor
+      horizon_topo_meta%vartype = vartype_real !REAL variable
+      horizon_topo_meta%standard_name = 'HORIZON'
+      horizon_topo_meta%long_name = 'horizon angle - topography'
+      horizon_topo_meta%shortName = 'horizon_angle'
+      horizon_topo_meta%units = 'deg'
+      horizon_topo_meta%grid_mapping = gridmp
+      horizon_topo_meta%coordinates = coordhor
     ENDIF
 
-    skyview_globe_meta%varname = 'SKYVIEW'
-    skyview_globe_meta%n_dim = n_dim
-    skyview_globe_meta%diminfo => diminfo
-    skyview_globe_meta%vartype = vartype_real !REAL variable
-    skyview_globe_meta%standard_name = 'SKYVIEW'
-    skyview_globe_meta%long_name = 'sky-view factor'
-    skyview_globe_meta%shortName = 'skyview'
-    skyview_globe_meta%units = '-'
-    skyview_globe_meta%grid_mapping = gridmp
-    skyview_globe_meta%coordinates = coord
+    skyview_topo_meta%varname = 'SKYVIEW'
+    skyview_topo_meta%n_dim = n_dim
+    skyview_topo_meta%diminfo => diminfo
+    skyview_topo_meta%vartype = vartype_real !REAL variable
+    skyview_topo_meta%standard_name = 'SKYVIEW'
+    skyview_topo_meta%long_name = 'sky-view factor'
+    skyview_topo_meta%shortName = 'skyview'
+    skyview_topo_meta%units = '-'
+    skyview_topo_meta%grid_mapping = gridmp
+    skyview_topo_meta%coordinates = coord
     
-  END SUBROUTINE def_globe_meta
+  END SUBROUTINE def_topo_meta
 
   !> define meta information for target fields defined on vertices derived from GLOBE data
-  SUBROUTINE def_globe_vertex_meta(nvertex)
+  SUBROUTINE def_topo_vertex_meta(nvertex)
   INTEGER, INTENT(IN) :: nvertex !< total number of vertices
 
     ! set meta information for strucutre dim_buffer_vertex
@@ -1993,7 +2181,7 @@ MODULE mo_var_meta_data
     npixel_vert_meta%units = c_undef
     npixel_vert_meta%grid_mapping = c_undef
     npixel_vert_meta%coordinates = c_undef
-  END SUBROUTINE def_globe_vertex_meta
+  END SUBROUTINE def_topo_vertex_meta
 
 
 

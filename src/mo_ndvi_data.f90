@@ -33,7 +33,8 @@ PUBLIC :: allocate_raw_ndvi_fields, &
           ndvi_field_row, &
           lon_ndvi, &
           lat_ndvi, &
-          ntime_ndvi
+          ntime_ndvi,&
+          deallocate_ndvi_fields
 
 PUBLIC :: undef_ndvi, minimal_ndvi
 
@@ -89,6 +90,35 @@ CONTAINS
   END  SUBROUTINE allocate_raw_ndvi_fields
 
 
+  SUBROUTINE deallocate_ndvi_fields()
 
+    USE mo_ndvi_tg_fields, ONLY: ndvi_field,    &
+                        &        ndvi_max,      &
+                        &        ndvi_field_mom,&
+                        &        ndvi_ratio_mom
+
+    IMPLICIT NONE
+
+    INTEGER :: errorcode !< error status variable
+
+
+    DEALLOCATE(lat_ndvi, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field lat_ndvi')
+    DEALLOCATE(lon_ndvi, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field lon_ndvi')
+    DEALLOCATE(ndvi_field_row_mom, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_field_row_mom')
+    DEALLOCATE(ndvi_field, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_field')
+    DEALLOCATE(ndvi_max, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_max')
+    DEALLOCATE(ndvi_field_mom, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_field_mom')
+    DEALLOCATE(ndvi_ratio_mom, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_ratio_mom')
+    DEALLOCATE(ndvi_field_row, STAT=errorcode) 
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the field ndvi_field_row')
+
+    END SUBROUTINE deallocate_ndvi_fields
 
 END MODULE mo_ndvi_data

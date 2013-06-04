@@ -112,6 +112,7 @@ PROGRAM extpar_aot_to_buffer
   USE mo_aot_data, ONLY:  read_namelists_extpar_aerosol
 
   USE mo_aot_data, ONLY : allocate_aot_data, &
+    &                      deallocate_aot_data, &
     &                      read_aot_data_input_namelist, &
     &                      get_dimension_aot_data, &
     &                      get_aot_grid_and_data, &
@@ -287,19 +288,20 @@ PROGRAM extpar_aot_to_buffer
        netcdf_filename = TRIM(aot_buffer_file)
         print *,'write output to ', TRIM(netcdf_filename)
        
-       CALL write_netcdf_buffer_aot(netcdf_filename,  &
+       CALL write_netcdf_buffer_aot(netcdf_filename, &
    &                                     tg,         &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     ntype,           &
-   &                                     ntime,        &
+   &                                     undefined,  &
+   &                                     undef_int,  &
+   &                                     lon_geo,    &
+   &                                     lat_geo,    &
+   &                                     ntype,      &
+   &                                     ntime,      &
    &                                     aot_tg)
 
+       CALL deallocate_aot_data()
 
-     !  PRINT *,'DONE'
-        PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m' !mes
+
+  PRINT *,'============= aot_to_buffer done ==============='
 
   
 

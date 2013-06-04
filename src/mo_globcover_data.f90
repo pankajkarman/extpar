@@ -87,7 +87,8 @@ PUBLIC :: globcover_grid,                &
           lu_tiles_nrows,                &   ! number of rows (latitude increments) in each GLOBCOVER tile
           globcover_tiles_grid,          &
           fill_globcover_data,           &   ! subroutine (intent(in) and intent(out))
-          allocate_globcover_data 
+          allocate_globcover_data,       &
+          deallocate_landuse_data
 
 TYPE(reg_lonlat_grid) :: globcover_grid !< structure with defenition of the raw data grid for the whole globcover dataset
 
@@ -108,7 +109,7 @@ REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lon_max(:)
 REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lat_min(:)
 REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lat_max(:)
 REAL(KIND=wp), ALLOCATABLE    :: raw_lu_line(:)
-REAL(KIND=wp), ALLOCATABLE    :: raw_topo_block(:,:)
+REAL(KIND=wp), ALLOCATABLE    :: raw_lu_block(:,:)
 ! <mes
 
 CONTAINS
@@ -224,6 +225,87 @@ CONTAINS
    END SUBROUTINE fill_globcover_data
 
 ! <mes
+
+
+   SUBROUTINE  deallocate_landuse_data()
+
+     USE mo_lu_tg_fields, ONLY: fr_land_lu,       &
+                       &        ice_lu,           &
+                       &        z0_lu,            &
+                       &        z0_tot,           &
+                       &        root_lu,          &
+                       &        plcov_mn_lu,      &
+                       &        plcov_mx_lu,      &
+                       &        lai_mn_lu,        &
+                       &        lai_mx_lu,        &
+                       &        rs_min_lu,        &
+                       &        urban_lu,         &
+                       &        for_d_lu,         &
+                       &        for_e_lu,         &
+                       &        emissivity_lu,    &
+                       &        fr_ocean_lu,      &
+                       &        lu_class_fraction,&
+                       &        lu_class_npixel,  &
+                       &        lu_tot_npixel
+     
+     IMPLICIT NONE     
+
+     INTEGER :: errorcode
+
+       DEALLOCATE (lu_tiles_lon_min, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_lon_min')
+       DEALLOCATE (lu_tiles_lon_max, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_lon_max')
+       DEALLOCATE (lu_tiles_lat_min, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_lat_min')
+       DEALLOCATE (lu_tiles_lat_max, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_lat_max')
+       DEALLOCATE (lu_tiles_ncolumns, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_ncolumns')
+       DEALLOCATE (lu_tiles_nrows, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tiles_nrows')
+       DEALLOCATE (lat_globcover, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lat_globcover')
+       DEALLOCATE (lon_globcover, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lon_globcover')
+       DEALLOCATE (fr_land_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector fr_land_lu')
+       DEALLOCATE (ice_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector ice_lu')
+       DEALLOCATE (z0_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector z0_lu')
+       DEALLOCATE (z0_tot, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector z0_tot')
+       DEALLOCATE (root_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector root_lu')
+       DEALLOCATE (plcov_mn_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector plcov_mn_lu')
+       DEALLOCATE (plcov_mx_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector plcov_mx_lu')
+       DEALLOCATE (lai_mn_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lai_mn_lu')
+       DEALLOCATE (lai_mx_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lai_mx_lu')
+       DEALLOCATE (rs_min_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector rs_min_lu')
+       DEALLOCATE (urban_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector urban_lu')
+       DEALLOCATE (for_d_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector for_d_lu')
+       DEALLOCATE (for_e_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector for_e_lu')
+       DEALLOCATE (emissivity_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector emissivity_lu')
+       DEALLOCATE (fr_ocean_lu, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector fr_ocean_lu')
+       DEALLOCATE (lu_class_fraction, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_class_fraction')
+       DEALLOCATE (lu_class_npixel, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_class_npixel')
+       DEALLOCATE (lu_tot_npixel, STAT = errorcode)
+       IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lu_tot_npixel')
+
+     END SUBROUTINE deallocate_landuse_data
 
 
 END MODULE mo_globcover_data

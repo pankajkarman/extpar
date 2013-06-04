@@ -75,6 +75,7 @@ PRIVATE
 
 PUBLIC :: aot_grid
 PUBLIC :: allocate_aot_data, &
+          deallocate_aot_data, &
           read_namelists_extpar_aerosol, &
           read_aot_data_input_namelist, &
           get_dimension_aot_data, &
@@ -374,5 +375,25 @@ END SUBROUTINE read_namelists_extpar_aerosol
 
    END SUBROUTINE get_aot_grid_and_data
 
+
+  SUBROUTINE deallocate_aot_data()
+
+    USE mo_aot_target_fields, ONLY: aot_tg
+
+    IMPLICIT NONE
+   
+    INTEGER :: errorcode !< error status variable
+
+
+    DEALLOCATE (lon_aot, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lon_aot')
+    DEALLOCATE (lat_aot, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lat_aot')
+    DEALLOCATE (aot_data, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_data')
+    DEALLOCATE (aot_tg, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_tg')
+    
+  END SUBROUTINE deallocate_aot_data
 
 END MODULE mo_aot_data

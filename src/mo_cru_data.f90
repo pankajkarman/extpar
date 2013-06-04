@@ -76,6 +76,7 @@ PRIVATE
 
 PUBLIC :: cru_grid
 PUBLIC :: allocate_cru_data, &
+          deallocate_cru_data, &
           read_cru_data_input_namelist, &
           read_namelists_extpar_t_clim, &
           get_dimension_cru_data, &
@@ -320,11 +321,6 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
 
 
-    
-
-
-
-
       ! close netcdf file 
      call check_netcdf( nf90_close( ncid))
 
@@ -335,9 +331,24 @@ END SUBROUTINE read_namelists_extpar_t_clim
    END SUBROUTINE get_cru_grid_and_data
 
 
+  SUBROUTINE deallocate_cru_data()
 
+    USE mo_cru_target_fields, ONLY: crutemp
 
-
+    IMPLICIT NONE
+    
+    INTEGER :: errorcode !< error status variable
+    
+    DEALLOCATE (lon_cru, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lon_aot')
+    DEALLOCATE (lat_cru, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lat_cru')
+    DEALLOCATE (cru_raw_data, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array cru_raw_data')
+    DEALLOCATE (crutemp, STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array crutemp')
+    
+  END SUBROUTINE deallocate_cru_data
 
 
 

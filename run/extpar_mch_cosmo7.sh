@@ -12,12 +12,13 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/s
 workdir=./                                                   # adjust the path setting!
 # path to raw data for external parameter
 data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path setting!
+data_dir2=/store/s83/messmerm/ncfiles/                       # adjust the path setting!
 # path to binaries
 progdir=../build                                             # adjust the path setting!
 
 binary_alb=extpar_alb_to_buffer
 binary_lu=extpar_landuse_to_buffer
-binary_globe=extpar_globe_to_buffer
+binary_topo=extpar_topo_to_buffer
 binary_aot=extpar_aot_to_buffer
 binary_tclim=extpar_cru_to_buffer
 binary_ndvi=extpar_ndvi_to_buffer
@@ -61,8 +62,14 @@ raw_data_glcc='glcc_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
 output_glcc='glcc_landuse_cosmo.nc'
 
-raw_data_globcover='GLOBCOVER_L4_200901_200912_V2.3_int16.nc'
-raw_data_globcover_gz='GLOBCOVER_L4_200901_200912_V2.3_int16.nc.gz'
+# raw_data_globcover='GLOBCOVER_L4_200901_200912_V2.3_int16.nc'
+raw_data_globcover_0='GLOBCOVER_0_16bit.nc'
+raw_data_globcover_1='GLOBCOVER_1_16bit.nc'
+raw_data_globcover_2='GLOBCOVER_2_16bit.nc'
+raw_data_globcover_3='GLOBCOVER_3_16bit.nc'
+raw_data_globcover_4='GLOBCOVER_4_16bit.nc'
+raw_data_globcover_5='GLOBCOVER_5_16bit.nc'
+
 buffer_lu='extpar_landuse_buffer.nc'
 output_lu='extpar_landuse_cosmo.nc'
 
@@ -82,16 +89,24 @@ raw_data_globe_M10='GLOBE_M10.nc'
 raw_data_globe_N10='GLOBE_N10.nc'
 raw_data_globe_O10='GLOBE_O10.nc'
 raw_data_globe_P10='GLOBE_P10.nc'
-buffer_globe='GLOBE_buffer.nc'
-output_globe='GLOBE_COSMO.nc'
+
+buffer_topo='topography_buffer.nc'
+output_topo='topography_COSMO.nc'
 
 raw_data_ndvi='NDVI_1998_2003.nc'
 buffer_ndvi='NDVI_buffer.nc'
 output_ndvi='ndvi_extpar_cosmo.nc'
 
-raw_data_soil='FAO_DSMW.nc'
+raw_data_soil_FAO='FAO_DSMW_DP.nc'
+raw_data_soil_HWSD='HWSD0_30_texture_2.nc'
+raw_data_deep_soil='HWSD30_100_texture_2.nc'
 buffer_soil='FAO_DSMW_buffer.nc'
 output_soil='FAO_DSMW_COSMO.nc'
+
+raw_landuse_table_HWSD='LU_TAB_HWSD_UF.data'
+raw_HWSD_data='HWSD_DATA_COSMO.data'
+raw_HWSD_data_deep='HWSD_DATA_COSMO_S.data'
+raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
 raw_data_flake='lakedepth.nc'
 buffer_flake='flake_buffer.nc'
@@ -189,12 +204,16 @@ EOF_lu
 #---
 cat > INPUT_ORO << EOF_oro
 &orography_io_extpar
-  orography_buffer_file='${buffer_globe}',
-  orography_output_file='${output_globe}'
+ orography_buffer_file='${buffer_topo}',
+  orography_output_file='${output_topo}'
 /
 &orography_raw_data
- raw_data_orography_path='', 
- GLOBE_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'  
+ itopo_type = 1,
+ lsso_param = .TRUE.,
+ raw_data_orography_path='',
+ ntiles_column = 4,
+ ntiles_row = 4,
+ topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
 /
 EOF_oro
 #---
@@ -215,6 +234,13 @@ cat > INPUT_OROSMOOTH << EOF_orosm
 /
 EOF_orosm
 #---
+cat > INPUT_RADTOPO << EOF_radtopo
+&radtopo
+  lradtopo=.TRUE.,
+  nhori=24
+/
+EOF_radtopo
+#---
 cat > INPUT_NDVI << EOF_ndvi
 &ndvi_raw_data
   raw_data_ndvi_path='',
@@ -228,13 +254,23 @@ EOF_ndvi
 #---
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
+ isoil_data = 2,
+ ldeep_soil = .FALSE.,
  raw_data_soil_path='',
- raw_data_soil_filename='${raw_data_soil}'
-/
+ raw_data_soil_filename='${raw_data_soil_HWSD}',
+ raw_data_deep_soil_filename='${raw_data_deep_soil}'
+/ 
 &soil_io_extpar
   soil_buffer_file='${buffer_soil}',
   soil_output_file='${output_soil}'
-/ 
+/
+&HWSD_index_files
+ path_HWSD_index_files='',
+ landuse_table_HWSD='${raw_landuse_table_HWSD}', 
+ HWSD_data='${raw_HWSD_data}',
+ HWSD_data_deep='${raw_HWSD_data_deep}',
+ HWSD_data_extpar='${raw_HWSD_data_extpar}'
+/
 EOF_soil
 #---
 cat > INPUT_FLAKE << EOF_flake
@@ -254,7 +290,7 @@ cat > INPUT_CHECK << EOF_check
   grib_output_filename="${grib_output_filename}",
   grib_sample="${grib_sample}",
   netcdf_output_filename="${netcdf_output_filename}",
-  orography_buffer_file="${buffer_globe}",
+  orography_buffer_file="${buffer_topo}",
   soil_buffer_file="${buffer_soil}",
   lu_buffer_file="${buffer_lu}",
   glcc_buffer_file="${buffer_glcc}",
@@ -278,7 +314,14 @@ ln -s ${data_dir}/${raw_data_tclim}
 ln -s ${data_dir}/${raw_data_glc2000}
 ln -s ${data_dir}/${raw_data_glcc}
 
-ln -s ${data_dir}/${raw_data_globcover}
+ln -s ${data_dir2}/${raw_data_globcover_0}
+ln -s ${data_dir2}/${raw_data_globcover_1}
+ln -s ${data_dir2}/${raw_data_globcover_2}
+ln -s ${data_dir2}/${raw_data_globcover_3}
+ln -s ${data_dir2}/${raw_data_globcover_4}
+ln -s ${data_dir2}/${raw_data_globcover_5}
+
+
 
 ln -s ${data_dir}/${raw_data_globe_A10} 
 ln -s ${data_dir}/${raw_data_globe_B10}
@@ -299,7 +342,13 @@ ln -s ${data_dir}/${raw_data_globe_P10}
 
 ln -s ${data_dir}/${raw_data_ndvi}
 
-ln -s ${data_dir}/${raw_data_soil}
+ln -s ${data_dir2}/${raw_data_soil_FAO}
+ln -s ${data_dir2}/${raw_data_soil_HWSD}
+ln -s ${data_dir2}/${raw_data_deep_soil}
+
+ln -s ${data_dir2}/${raw_landuse_table_HWSD}
+ln -s ${data_dir2}/${raw_HWSD_data}
+ln -s ${data_dir2}/${raw_HWSD_data_deep}
 
 ln -s ${data_dir}/${raw_data_flake}
 
@@ -309,7 +358,7 @@ time ${progdir}/${binary_alb}
 time ${progdir}/${binary_aot}
 time ${progdir}/${binary_tclim}
 time ${progdir}/${binary_lu}
-time ${progdir}/${binary_globe}
+time ${progdir}/${binary_topo}
 time ${progdir}/${binary_ndvi}
 time ${progdir}/${binary_soil}
 time ${progdir}/${binary_flake}

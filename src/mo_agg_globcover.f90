@@ -41,8 +41,8 @@ MODULE mo_agg_globcover
 
   USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index, &
     &                          find_rotated_lonlat_grid_element_index
-  USE mo_io_units,          ONLY: filename_max
-  USE mo_io_utilities, ONLY: check_netcdf
+  USE mo_io_units,       ONLY: filename_max
+  USE mo_io_utilities,   ONLY: check_netcdf
 
   USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
@@ -94,10 +94,6 @@ MODULE mo_agg_globcover
     &                                          for_e_globcover,         &
     &                                          emissivity_globcover)
 
-
-
-
-
   !-------------------------------------------------------------------------------------
   ! list of modules which are used as "input"
   USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
@@ -114,7 +110,7 @@ MODULE mo_agg_globcover
   USE mo_globcover_lookup_tables, ONLY: name_lookup_table_globcover
   USE mo_globcover_lookup_tables, ONLY: i_extpar_lookup_table, i_extpar_test_lookup_table
 
-  USE mo_globcover_lookup_tables, ONLY: init_globcover_lookup_tables, &
+  USE mo_globcover_lookup_tables, ONLY: init_globcover_lookup_tables,     &
     &                                   get_name_globcover_lookup_tables, &
     &                                   get_globcover_idx
   USE mo_globcover_lookup_tables, ONLY:   z0_lt_globcover, lnz0_lt_globcover, plc_mn_lt_globcover, plc_mx_lt_globcover, &
@@ -143,6 +139,7 @@ MODULE mo_agg_globcover
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
     USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
+
 
 
      CHARACTER (LEN=filename_max), INTENT(IN) :: globcover_file(1:max_tiles_lu)  !< filename globcover raw data
@@ -193,7 +190,8 @@ MODULE mo_agg_globcover
      INTEGER (KIND=i8) :: i1, i2
 
      INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
-     REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) !< area weight of all raw data pixels in target grid
+     REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) 
+!< area weight of all raw data pixels in target grid
      REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_globcover) 
 !< area for each land use class grid  in target grid element (for a area weight)
      REAL (KIND=wp), ALLOCATABLE:: lu_block(:,:)  ! a block of GLOBCOVER land use data
@@ -252,6 +250,7 @@ MODULE mo_agg_globcover
 !$   INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
 
 
+
      apix_e  = re * re * deg2rad* ABS(globcover_grid%dlon_reg) * deg2rad * ABS(globcover_grid%dlat_reg) 
 ! area of globcover raw data pixel at equator
      PRINT *,'area pixel at equator: ',apix_e
@@ -280,10 +279,11 @@ MODULE mo_agg_globcover
            bound_south_cosmo = MINVAL(lat_geo) - 0.05_wp  ! add some "buffer"
            bound_south_cosmo = MAX(bound_south_cosmo,-90.0_wp)
 
-           bound_east_cosmo = MAXVAL(lon_geo) + 0.25  ! add some "buffer"
-           bound_east_cosmo = MIN(bound_east_cosmo,180.)
-           bound_west_cosmo = MINVAL(lon_geo) - 0.25  ! add some "buffer"
-           bound_west_cosmo = MAX(bound_west_cosmo,-180.)
+           bound_east_cosmo = MAXVAL(lon_geo) + 0.25_wp  ! add some "buffer"
+           bound_east_cosmo = MIN(bound_east_cosmo,180.0_wp)
+           bound_west_cosmo = MINVAL(lon_geo) - 0.25_wp  ! add some "buffer"
+           bound_west_cosmo = MAX(bound_west_cosmo,-180.0_wp)
+
        CASE(igrid_gme)  ! GME GRID
 
      END SELECT
@@ -304,6 +304,11 @@ MODULE mo_agg_globcover
       CALL get_name_globcover_lookup_tables(ilookup_table_globcover, name_lookup_table_globcover)
 
      nlon = globcover_grid%nlon_reg
+     ALLOCATE(ie_vec(nlon),je_vec(nlon),ke_vec(nlon))
+     ie_vec(:) = 0
+     je_vec(:) = 0
+     ke_vec(:) = 0
+     start_cell_id = 1
 
      ! open netcdf file
      PRINT *,'open GLOBCOVER files'
@@ -316,11 +321,6 @@ MODULE mo_agg_globcover
      varname = 'GLOBCOVER' ! I know that the globcover data are stored in a variable called 'GLOBCOVER'
 
      CALL check_netcdf(nf90_inq_varid(ncid_globcover(1), TRIM(varname), varid_globcover))
-     ALLOCATE(ie_vec(nlon),je_vec(nlon),ke_vec(nlon))
-     ie_vec(:) = 0
-     je_vec(:) = 0
-     ke_vec(:) = 0
-     start_cell_id = 1
 
 ! >mes
      mlat = 1
@@ -380,7 +380,6 @@ MODULE mo_agg_globcover
      PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
      print*, 'Start loop over GLOBCOVER rows'
-
      globcover_rows: DO mlat = 1,globcover_grid%nlat_reg
 
          IF (MOD(mlat,500)==0) PRINT *, 'GLOBCOVER row:', mlat
@@ -402,7 +401,6 @@ MODULE mo_agg_globcover
          ENDIF
 
          point_lat = lat_globcover(mlat)
-
 
          IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
            IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
@@ -461,39 +459,41 @@ MODULE mo_agg_globcover
 
   columns2: DO i_col=istartlon,iendlon
   ! find the corresponding target grid indices
+       
 
        ie = ie_vec(i_col)
        je = je_vec(i_col)
        ke = ke_vec(i_col)
 
+
        IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
          ! raw data pixel within target grid, see output of routine find_rotated_lonlat_grid_element_index
-         !- summation of variables
 
          lu = globcover_data_row(i_col)                        ! land use class
-         CALL globcover_look_up(lu,            &
-            &      nclass_globcover,           &
-            &      lnz0_lt_globcover,          &
-            &      plc_mn_lt_globcover,        &
-            &      plc_mx_lt_globcover,        &
-            &      lai_mn_lt_globcover,        &
-            &      lai_mx_lt_globcover,        &
-            &      rd_lt_globcover,            &
-            &      emiss_lt_globcover,         &
-            &      rs_min_lt_globcover,        &
-            &      pland,          &
-            &      pice,           &
-            &      plnz0,          &
-            &      proot,          &
-            &      pmn,            &
-            &      pmx,            &
-            &      plaimn,         &
-            &      plaimx,         &
-            &      purb,           &
-            &      pfor_d,         &
-            &      pfor_e,         &
-            &      pemissivity,    &
-            &      prs_min,        &
+
+         CALL globcover_look_up(lu,    &
+            &      nclass_globcover,   & 
+            &      lnz0_lt_globcover,  &
+            &      plc_mn_lt_globcover,&
+            &      plc_mx_lt_globcover,&
+            &      lai_mn_lt_globcover,&
+            &      lai_mx_lt_globcover,&
+            &      rd_lt_globcover,    &
+            &      emiss_lt_globcover, &
+            &      rs_min_lt_globcover,&
+            &      pland,              &
+            &      pice,               &
+            &      plnz0,              &
+            &      proot,              &
+            &      pmn,                &
+            &      pmx,                &
+            &      plaimn,             &
+            &      plaimx,             &
+            &      purb,               &
+            &      pfor_d,             &
+            &      pfor_e,             &
+            &      pemissivity,        &
+            &      prs_min,            &
             &      k_error)
 
 
@@ -509,33 +509,35 @@ MODULE mo_agg_globcover
             emissivity_globcover(ie,je,ke) =  emissivity_globcover(ie,je,ke) + apix * pemissivity
             IF (pland >  0.0) THEN ! only for land pixel
 
-              ! weighted with whole area
-              fr_land_globcover(ie,je,ke) = fr_land_globcover(ie,je,ke) + apix * pland
-              ice_globcover(ie,je,ke) = ice_globcover(ie,je,ke) + apix * pice
-              urban_globcover(ie,je,ke) = urban_globcover(ie,je,ke) + apix * purb
-              ! z0 is averaged logarithmic
-              IF ( lnhp /= plnz0) THEN ! z0 is averaged logarithmic
-                pwz0 = 1./(lnhp - plnz0)
-              ELSE
-                pwz0 = 0.
-              ENDIF
-              z0_globcover(ie,je,ke)      = z0_globcover(ie,je,ke) + apix * pwz0
-              plcov_mn_globcover(ie,je,ke) = plcov_mn_globcover(ie,je,ke) + apix * pmn
-              plcov_mx_globcover(ie,je,ke) = plcov_mx_globcover(ie,je,ke) + apix * pmx
+            ! weighted with whole area
+            fr_land_globcover(ie,je,ke) = fr_land_globcover(ie,je,ke) + apix * pland
+            ice_globcover(ie,je,ke) = ice_globcover(ie,je,ke) + apix * pice
+            urban_globcover(ie,je,ke) = urban_globcover(ie,je,ke) + apix * purb
+            ! z0 is averaged logarithmic
+            IF ( lnhp /= plnz0) THEN ! z0 is averaged logarithmic
+              pwz0 = 1./(lnhp - plnz0)
+            ELSE
+              pwz0 = 0.
+            ENDIF
+            z0_globcover(ie,je,ke)      = z0_globcover(ie,je,ke) + apix * pwz0
+            plcov_mn_globcover(ie,je,ke) = plcov_mn_globcover(ie,je,ke) + apix * pmn
+            plcov_mx_globcover(ie,je,ke) = plcov_mx_globcover(ie,je,ke) + apix * pmx
 
-              ! the following fields are weighted with the plant cover
-              root_globcover(ie,je,ke) = root_globcover(ie,je,ke) + apix * pmx * proot
-              lai_mn_globcover(ie,je,ke) = lai_mn_globcover(ie,je,ke) + apix * pmx * plaimn
-              lai_mx_globcover(ie,je,ke) = lai_mx_globcover(ie,je,ke) + apix * pmx * plaimx
-              rs_min_globcover(ie,je,ke) = rs_min_globcover(ie,je,ke) + apix * pmx * prs_min
-              for_d_globcover(ie,je,ke) = for_d_globcover(ie,je,ke) + apix * pmx * pfor_d
-              for_e_globcover(ie,je,ke) = for_e_globcover(ie,je,ke) + apix * pmx * pfor_e
-            END IF
+            ! the following fields are weighted with the plant cover
+            root_globcover(ie,je,ke) = root_globcover(ie,je,ke) + apix * pmx * proot
+            lai_mn_globcover(ie,je,ke) = lai_mn_globcover(ie,je,ke) + apix * pmx * plaimn
+            lai_mx_globcover(ie,je,ke) = lai_mx_globcover(ie,je,ke) + apix * pmx * plaimx
+            rs_min_globcover(ie,je,ke) = rs_min_globcover(ie,je,ke) + apix * pmx * prs_min
+            for_d_globcover(ie,je,ke) = for_d_globcover(ie,je,ke) + apix * pmx * pfor_d
+            for_e_globcover(ie,je,ke) = for_e_globcover(ie,je,ke) + apix * pmx * pfor_e
 
-          ENDIF
+          END IF
+
         ENDIF
+      ENDIF
 
-      ENDDO columns2
+      ! end loops
+    ENDDO columns2
     ENDDO globcover_rows
 
      DEALLOCATE(ie_vec,je_vec,ke_vec)
@@ -692,18 +694,22 @@ MODULE mo_agg_globcover
 
       point_lon = lon_geo(ie,je,ke)
       point_lat = lat_geo(ie,je,ke)
+
         CALL find_reg_lonlat_grid_element_index(point_lon,      &
           &                                     point_lat,      &
           &                                     globcover_grid, &
           &                                     i_lu,           &
           &                                     j_lu,           &
-          &                                     tile = tile,     &
+          &                                     tile = tile,    &
           &                                     regular_tiles_grid_info=globcover_tiles_grid)
 
         IF ((i_lu /= 0).AND.(j_lu /= 0))THEN
 
         i_col = i_lu
         j_row = j_lu
+
+        CALL check_netcdf(nf90_open(TRIM(globcover_file(tile)),NF90_NOWRITE, ncid_globcover(tile)))
+        CALL check_netcdf(nf90_inq_varid(ncid_globcover(tile), TRIM(varname), varid_globcover))        
         CALL check_netcdf(nf90_get_var(ncid_globcover(tile), varid_globcover,  globcover_data_pixel,  &
           &               start=(/ i_col,j_row /),count=(/ 1,1 /)))
         CALL check_netcdf(nf90_close(ncid_globcover(tile)))
@@ -791,8 +797,6 @@ MODULE mo_agg_globcover
    ENDDO
    ENDDO
 
-
-    ! close netcdf file
 
   END SUBROUTINE agg_globcover_data_to_target_grid
 

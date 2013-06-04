@@ -102,13 +102,8 @@ PUBLIC :: find_rotated_lonlat_grid_element_index
 
 
                    tile = k
-                   if(point_lat_index < 1) then
-                     CYCLE tiles
-                   elseif(point_lon_index < 1) then
-                     CYCLE tiles
-                   elseif(point_lon_index > regular_tiles_grid_info(k)%nlon_reg) then
-                     CYCLE tiles
-                   elseif(point_lat_index > regular_tiles_grid_info(k)%nlat_reg) then
+                   if(point_lat_index.lt.1 .or. point_lon_index.lt.1 .or. &
+                    & point_lon_index.gt.regular_tiles_grid_info(k)%nlon_reg .or. point_lat_index.gt.regular_tiles_grid_info(k)%nlat_reg) then
                      CYCLE tiles
                    else
                      EXIT tiles

@@ -18,7 +18,7 @@
 !=======================================================================
 !> Fortran module for netcdf output of GLOBE data
 !> \author Hermann Asensio
-MODULE mo_globe_output_nc
+MODULE mo_topo_output_nc
   
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
@@ -56,57 +56,57 @@ MODULE mo_globe_output_nc
 
   PRIVATE
 
-  PUBLIC :: write_netcdf_buffer_globe
-  PUBLIC :: write_netcdf_cosmo_grid_globe
-  PUBLIC :: write_netcdf_icon_grid_globe
+  PUBLIC :: write_netcdf_buffer_topo
+  PUBLIC :: write_netcdf_cosmo_grid_topo
+  PUBLIC :: write_netcdf_icon_grid_topo
 
-  PUBLIC :: read_netcdf_buffer_globe
+  PUBLIC :: read_netcdf_buffer_topo
 
 
 
   CONTAINS
 
     !> create a netcdf file for the fields derived from GLOBE data to the buffer 
-   SUBROUTINE write_netcdf_buffer_globe(netcdf_filename,  &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
-     &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo,             &
-     &                                     lrad,                &
-     &                                     nhori,               &
-     &                                     vertex_param,        &
-     &                                     slope_asp_globe,     &
-     &                                     slope_ang_globe,     &
-     &                                     horizon_globe,       &
-     &                                     skyview_globe)
+   SUBROUTINE write_netcdf_buffer_topo(netcdf_filename,&
+     &                                  tg,            &
+     &                                  undefined,     &
+     &                                  undef_int,     &
+     &                                  lon_geo,       &
+     &                                  lat_geo,       &
+     &                                  fr_land_topo,  &
+     &                                  hh_topo,       &
+     &                                  stdh_topo,     &
+     &                                  z0_topo,       &
+     &                                  lrad,          &
+     &                                  nhori,         &
+     &                                  theta_topo,    &
+     &                                  aniso_topo,    &
+     &                                  slope_topo,    &
+     &                                  vertex_param,  &
+     &                                  slope_asp_topo,&
+     &                                  slope_ang_topo,&
+     &                                  horizon_topo,  &
+     &                                  skyview_topo)
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, dim_4d_tg,    &
-    &                         def_dimension_info_buffer
+    &                          def_dimension_info_buffer
 
-   USE mo_globe_tg_fields, ONLY: add_parameters_domain
+   USE mo_topo_tg_fields, ONLY: add_parameters_domain
 
    USE mo_var_meta_data, ONLY: lon_geo_meta, &
      &                         lat_geo_meta, &
      &                         no_raw_data_pixel_meta, &
      &                         def_com_target_fields_meta  
      
-   USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
-   USE mo_var_meta_data, ONLY: dim_buffer_vertex
+   USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
+   USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
-   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-    &       stdh_globe_meta, theta_globe_meta, &
-    &       aniso_globe_meta, slope_globe_meta, &
+   USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta, &
+    &       stdh_topo_meta, theta_topo_meta, &
+    &       aniso_topo_meta, slope_topo_meta, &
     &       hh_vert_meta, npixel_vert_meta, z0_topo_meta, &
-    &       slope_asp_globe_meta, slope_ang_globe_meta,   &
-    &       horizon_globe_meta, skyview_globe_meta
+    &       slope_asp_topo_meta, slope_ang_topo_meta,   &
+    &       horizon_topo_meta, skyview_topo_meta
 
    
    CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
@@ -116,13 +116,9 @@ MODULE mo_globe_output_nc
    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
-   REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
-   REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
-
-   REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-   REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-   REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-   REAL(KIND=wp), INTENT(IN)  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
+   REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
+   REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
+   REAL(KIND=wp), INTENT(IN)  :: fr_land_topo(:,:,:) !< fraction land due to GLOBE raw data
    REAL(KIND=wp), INTENT(IN)  :: z0_topo(:,:,:) !< roughness length due to orography
 
    LOGICAL,         INTENT(IN)  :: lrad    
@@ -130,10 +126,14 @@ MODULE mo_globe_output_nc
 
    TYPE(add_parameters_domain), INTENT(IN), OPTIONAL :: vertex_param  !< additional external parameters for ICON domain
 
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_topo(:,:,:)   !< lradtopo parameter, slope_aspect
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_topo  (:,:,:)   !< lradtopo parameter, skyview
 
 
    ! local variables
@@ -162,13 +162,13 @@ MODULE mo_globe_output_nc
   INTEGER (KIND=i8) :: istart, iend, jstart, jend
   INTEGER (KIND=i8) :: tmp_nlon, tmp_nlat
 
-  PRINT *,'ENTER write_netcdf_buffer_globe'
+  PRINT *,'ENTER write_netcdf_buffer_topo'
 
-  PRINT *,'set_global_att_globe'
+  PRINT *,'set_global_att_topo'
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_globe(global_attributes)
+  CALL set_global_att_topo(global_attributes)
   PRINT *,'def_dimension_info_buffer'
 
 
@@ -186,7 +186,7 @@ MODULE mo_globe_output_nc
    !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg,nhori=nhori)
   ! dim_3d_tg, dim_4d_tg
-  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
+  PRINT *,'HA debug, tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
   PRINT *,'dim_3d_tg: ', dim_3d_tg
   PRINT *,'dim_4d_tg: ', dim_4d_tg
   PRINT *,'undefined: ', undefined
@@ -198,21 +198,21 @@ MODULE mo_globe_output_nc
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
-   PRINT *,'def_globe_meta'
+   PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lrad) THEN
-    CALL def_globe_meta(dim_3d_tg,diminfohor=dim_4d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta, 
-    !         slope_asp_globe_meta, slope_ang_globe_meta, 
-    !         horizon_globe_meta, skyview_globe_meta
+    !         slope_asp_topo_meta, slope_ang_topo_meta, 
+    !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_globe_meta(dim_3d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_3d_tg)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
   ENDIF
   PRINT *,'set dimensions'
@@ -220,7 +220,7 @@ MODULE mo_globe_output_nc
   IF (PRESENT(vertex_param))  THEN
     nvertex = SIZE(vertex_param%npixel_vert,1)
 
-    CALL def_globe_vertex_meta(nvertex)
+    CALL def_topo_vertex_meta(nvertex)
     ! dim_buffer_vertex
     !  hh_vert_meta, npixel_vert_meta
     ndims = SIZE(dim_3d_tg) + 3
@@ -242,8 +242,8 @@ MODULE mo_globe_output_nc
   ENDIF
 
   !-----------------------------------------------------------------
-  CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
-      &                       dim_list=dim_list,                  &
+  CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename), &
+      &                       dim_list=dim_list,                   &
       &                       global_attributes=global_attributes, &
       &                       ncid=ncid)
 
@@ -267,23 +267,29 @@ MODULE mo_globe_output_nc
   ! lat
   CALL netcdf_put_var(ncid,lat_geo(istart:iend,jstart:jend,:),lat_geo_meta,undefined)
 
-  ! hh_globe
-  CALL netcdf_put_var(ncid,hh_globe(istart:iend,jstart:jend,:),hh_globe_meta,undefined)
+  ! hh_topo
+  CALL netcdf_put_var(ncid,hh_topo(istart:iend,jstart:jend,:),hh_topo_meta,undefined)
 
-  ! stdh_globe
-  CALL netcdf_put_var(ncid,stdh_globe(istart:iend,jstart:jend,:),stdh_globe_meta,undefined)
+  ! stdh_topo
+  CALL netcdf_put_var(ncid,stdh_topo(istart:iend,jstart:jend,:),stdh_topo_meta,undefined)
 
-  ! theta_globe
-  CALL netcdf_put_var(ncid,theta_globe(istart:iend,jstart:jend,:),theta_globe_meta,undefined)
+  ! theta_topo
+  IF (PRESENT(theta_topo)) THEN
+  CALL netcdf_put_var(ncid,theta_topo(istart:iend,jstart:jend,:),theta_topo_meta,undefined)
+  ENDIF
 
-  ! aniso_globe
-  CALL netcdf_put_var(ncid,aniso_globe(istart:iend,jstart:jend,:),aniso_globe_meta,undefined)
+  ! aniso_topo
+  IF (PRESENT(aniso_topo)) THEN
+  CALL netcdf_put_var(ncid,aniso_topo(istart:iend,jstart:jend,:),aniso_topo_meta,undefined)
+  ENDIF
 
-  ! slope_globe
-  CALL netcdf_put_var(ncid,slope_globe(istart:iend,jstart:jend,:),slope_globe_meta,undefined)
+  ! slope_topo
+  IF (PRESENT(slope_topo)) THEN
+  CALL netcdf_put_var(ncid,slope_topo(istart:iend,jstart:jend,:),slope_topo_meta,undefined)
+  ENDIF
 
-  ! fr_land_globe
-  CALL netcdf_put_var(ncid,fr_land_globe(istart:iend,jstart:jend,:),fr_land_globe_meta,undefined)
+  ! fr_land_topo
+  CALL netcdf_put_var(ncid,fr_land_topo(istart:iend,jstart:jend,:),fr_land_topo_meta,undefined)
 
   ! z0_topo
   CALL netcdf_put_var(ncid,z0_topo(istart:iend,jstart:jend,:),z0_topo_meta,undefined)
@@ -294,80 +300,82 @@ MODULE mo_globe_output_nc
     &                 hh_vert_meta,undefined)
   ENDIF
 
-  ! slope_asp_globe
-  IF (PRESENT(slope_asp_globe)) THEN
-    CALL netcdf_put_var(ncid,slope_asp_globe(istart:iend,jstart:jend,:),slope_asp_globe_meta,undefined)
+  ! slope_asp_topo
+  IF (PRESENT(slope_asp_topo)) THEN
+    CALL netcdf_put_var(ncid,slope_asp_topo(istart:iend,jstart:jend,:),slope_asp_topo_meta,undefined)
   ENDIF
 
-  ! slope_ang_globe
-  IF (PRESENT(slope_ang_globe)) THEN
-    CALL netcdf_put_var(ncid,slope_ang_globe(istart:iend,jstart:jend,:),slope_ang_globe_meta,undefined)
+  ! slope_ang_topo
+  IF (PRESENT(slope_ang_topo)) THEN
+    CALL netcdf_put_var(ncid,slope_ang_topo(istart:iend,jstart:jend,:),slope_ang_topo_meta,undefined)
   ENDIF
 
-  ! horizon_globe
-  IF (PRESENT(horizon_globe)) THEN
-    CALL netcdf_put_var(ncid,horizon_globe(istart:iend,jstart:jend,:,:),horizon_globe_meta,undefined)
+!ROATODO: check for 4D variable
+  ! horizon_topo
+  IF (PRESENT(horizon_topo)) THEN
+    CALL netcdf_put_var(ncid,horizon_topo(istart:iend,jstart:jend,:,:),horizon_topo_meta,undefined)
   ENDIF
 
-  ! skyview_globe
-  IF (PRESENT(skyview_globe)) THEN
-    CALL netcdf_put_var(ncid,skyview_globe(istart:iend,jstart:jend,:),skyview_globe_meta,undefined)
+  ! skyview_topo
+  IF (PRESENT(skyview_topo)) THEN
+    CALL netcdf_put_var(ncid,skyview_topo(istart:iend,jstart:jend,:),skyview_topo_meta,undefined)
   ENDIF
 
   CALL close_netcdf_file(ncid)
    
-  END SUBROUTINE write_netcdf_buffer_globe
+  END SUBROUTINE write_netcdf_buffer_topo
 
 !> create a netcdf file for the fields derived from GLOBE data to the COSMO grid
-  SUBROUTINE write_netcdf_cosmo_grid_globe(netcdf_filename,  &
-     &                                     cosmo_grid,       &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
-     &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo,             & 
-     &                                     lrad,                &
-     &                                     nhori,               &
-     &                                     slope_asp_globe,     &
-     &                                     slope_ang_globe,     &
-     &                                     horizon_globe,       &
-     &                                     skyview_globe)
+  SUBROUTINE write_netcdf_cosmo_grid_topo(netcdf_filename,  &
+     &                                     cosmo_grid,      &
+     &                                     tg,              &
+     &                                     undefined,       &
+     &                                     undef_int,       &
+     &                                     lon_geo,         &
+     &                                     lat_geo,         &
+     &                                     fr_land_topo,    &
+     &                                     hh_topo,         &
+     &                                     stdh_topo,       &
+     &                                     z0_topo,         & 
+     &                                     lrad,            &
+     &                                     nhori,           &
+     &                                     theta_topo,      &
+     &                                     aniso_topo,      &
+     &                                     slope_topo,      &
+     &                                     slope_asp_topo,  &
+     &                                     slope_ang_topo,  &
+     &                                     horizon_topo,    &
+     &                                     skyview_topo)
    
    USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
-    &                         set_nc_grid_def_cosmo
+    &                          set_nc_grid_def_cosmo
 
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
+    &                          def_dimension_info_buffer
 
    USE mo_var_meta_data, ONLY: lon_geo_meta, &
      &                         lat_geo_meta, &
      &                         no_raw_data_pixel_meta, &
      &                         def_com_target_fields_meta  
      
-   USE mo_var_meta_data, ONLY: def_globe_meta
+   USE mo_var_meta_data, ONLY: def_topo_meta
+   USE mo_var_meta_data, ONLY: dim_buffer_cell
 
-   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-    &       stdh_globe_meta, theta_globe_meta, &
-    &       aniso_globe_meta, slope_globe_meta, z0_topo_meta, &
-    &       slope_asp_globe_meta, slope_ang_globe_meta,   &
-    &       horizon_globe_meta, skyview_globe_meta
+   USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta, &
+    &       stdh_topo_meta, theta_topo_meta,                    &
+    &       aniso_topo_meta, slope_topo_meta, z0_topo_meta,     &
+    &       slope_asp_topo_meta, slope_ang_topo_meta,           &
+    &       horizon_topo_meta, skyview_topo_meta
 
    USE mo_var_meta_data, ONLY: dim_rlon_cosmo, &
-    &                         dim_rlat_cosmo, &
-    &                         dim_nhori_cosmo, &
-    &                         dim_2d_cosmo,   &
-    &                         dim_3d_cosmo,   &
-    &                         rlon_meta,      &
-    &                         rlat_meta,      &
-    &                         def_dimension_info_cosmo
+    &                          dim_rlat_cosmo, &
+    &                          dim_nhori_cosmo,&
+    &                          dim_2d_cosmo,   &
+    &                          dim_3d_cosmo,   &
+    &                          rlon_meta,      &
+    &                          rlat_meta,      &
+    &                          def_dimension_info_cosmo
 
    USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
 
@@ -381,22 +389,22 @@ MODULE mo_globe_output_nc
    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
-   REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
-   REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
+   REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
+   REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
 
-   REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-   REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-   REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-   REAL(KIND=wp), INTENT(IN)  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
+   REAL(KIND=wp), INTENT(IN)  :: fr_land_topo(:,:,:) !< fraction land due to GLOBE raw data
    REAL(KIND=wp), INTENT(IN)  :: z0_topo(:,:,:) !< roughness length due to orography
 
-   LOGICAL,       INTENT(IN)  :: lrad    
+   LOGICAL,       INTENT(IN)    :: lrad    
    INTEGER(KIND=i4), INTENT(IN) :: nhori
 
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
-   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_topo(:,:,:)   !< lradtopo parameter, slope_aspect
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_topo  (:,:,:)   !< lradtopo parameter, skyview
 
    ! local variables
 
@@ -419,11 +427,11 @@ MODULE mo_globe_output_nc
 
   INTEGER(KIND=i8) :: istart, iend, jstart, jend
 
-  PRINT *,'ENTER write_netcdf_cosmo_grid_globe'
+  PRINT *,'ENTER write_netcdf_cosmo_grid_topo'
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_globe(global_attributes)
+  CALL set_global_att_topo(global_attributes)
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg,nhori=nhori)
@@ -436,6 +444,7 @@ MODULE mo_globe_output_nc
   grid_mapping="rotated_pole"
   coordinates="lon lat"
 
+!ROATODO: check if sth should be added for nhori here
   CALL set_nc_grid_def_cosmo(cosmo_grid,grid_mapping)
   ! nc_grid_def_cosmo
 
@@ -446,18 +455,18 @@ MODULE mo_globe_output_nc
 
   ! define meta information for various GLOBE data related variables for netcdf output
   IF(lrad) THEN
-    CALL def_globe_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
-    !         slope_asp_globe_meta, slope_ang_globe_meta, 
-    !         horizon_globe_meta, skyview_globe_meta
+    !         slope_asp_topo_meta, slope_ang_topo_meta, 
+    !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_globe_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
   ENDIF
 
@@ -508,95 +517,103 @@ MODULE mo_globe_output_nc
     CALL netcdf_put_var(ncid,lat_geo(istart:iend,jstart:jend,1), &
       &                 lat_geo_meta,undefined)
 
-    ! hh_globe
-    CALL netcdf_put_var(ncid, hh_globe(istart:iend,jstart:jend,1), &
-      &                 hh_globe_meta,undefined)
+    ! hh_topo
+    CALL netcdf_put_var(ncid, hh_topo(istart:iend,jstart:jend,1), &
+      &                 hh_topo_meta,undefined)
 
-    ! stdh_globe
-    CALL netcdf_put_var(ncid,stdh_globe(istart:iend,jstart:jend,1), &
-      &                 stdh_globe_meta,undefined)
+    ! stdh_topo
+    CALL netcdf_put_var(ncid,stdh_topo(istart:iend,jstart:jend,1), &
+      &                 stdh_topo_meta,undefined)
 
-    ! theta_globe
-    CALL netcdf_put_var(ncid,theta_globe(istart:iend,jstart:jend,1), &
-      &                 theta_globe_meta,undefined)
+    ! theta_topo
+    IF (PRESENT(theta_topo)) THEN
+    CALL netcdf_put_var(ncid,theta_topo(istart:iend,jstart:jend,1), &
+      &                 theta_topo_meta,undefined)
+    ENDIF
 
-    ! aniso_globe
-    CALL netcdf_put_var(ncid,aniso_globe(istart:iend,jstart:jend,1), &
-      &                 aniso_globe_meta,undefined)
+    ! aniso_topo
+    IF (PRESENT(aniso_topo)) THEN
+    CALL netcdf_put_var(ncid,aniso_topo(istart:iend,jstart:jend,1), &
+      &                 aniso_topo_meta,undefined)
+    ENDIF
 
-    ! slope_globe
-    CALL netcdf_put_var(ncid,slope_globe(istart:iend,jstart:jend,1), &
-      &                 slope_globe_meta,undefined)
-    
-    ! fr_land_globe
-    CALL netcdf_put_var(ncid,fr_land_globe(istart:iend,jstart:jend,1), &
-      &                 fr_land_globe_meta,undefined)
+    ! slope_topo
+    IF (PRESENT(slope_topo)) THEN
+    CALL netcdf_put_var(ncid,slope_topo(istart:iend,jstart:jend,1), &
+      &                 slope_topo_meta,undefined)
+    ENDIF
+
+    ! fr_land_topo
+    CALL netcdf_put_var(ncid,fr_land_topo(istart:iend,jstart:jend,1), &
+      &                 fr_land_topo_meta,undefined)
 
     ! z0_topo
     CALL netcdf_put_var(ncid,z0_topo(istart:iend,jstart:jend,1), &
       &                 z0_topo_meta,undefined)
 
-    ! slope_asp_globe
-    IF (PRESENT(slope_asp_globe)) THEN
-      CALL netcdf_put_var(ncid,slope_asp_globe(istart:iend,jstart:jend,1),slope_asp_globe_meta,undefined)
+    ! slope_asp_topo
+    IF (PRESENT(slope_asp_topo)) THEN
+      CALL netcdf_put_var(ncid,slope_asp_topo(istart:iend,jstart:jend,1),slope_asp_topo_meta,undefined)
     ENDIF
   
-    ! slope_ang_globe
-    IF (PRESENT(slope_ang_globe)) THEN
-      CALL netcdf_put_var(ncid,slope_ang_globe(istart:iend,jstart:jend,1),slope_ang_globe_meta,undefined)
+    ! slope_ang_topo
+    IF (PRESENT(slope_ang_topo)) THEN
+      CALL netcdf_put_var(ncid,slope_ang_topo(istart:iend,jstart:jend,1),slope_ang_topo_meta,undefined)
     ENDIF
   
-    ! horizon_globe
-    IF (PRESENT(horizon_globe)) THEN
-      CALL netcdf_put_var(ncid,horizon_globe(istart:iend,jstart:jend,1,:),horizon_globe_meta,undefined)
+    !ROATODO: check for 4D variable
+    ! horizon_topo
+    IF (PRESENT(horizon_topo)) THEN
+      CALL netcdf_put_var(ncid,horizon_topo(istart:iend,jstart:jend,1,:),horizon_topo_meta,undefined)
     ENDIF
   
-    ! skyview_globe
-    IF (PRESENT(skyview_globe)) THEN
-      CALL netcdf_put_var(ncid,skyview_globe(istart:iend,jstart:jend,1),skyview_globe_meta,undefined)
+    ! skyview_topo
+    IF (PRESENT(skyview_topo)) THEN
+      CALL netcdf_put_var(ncid,skyview_topo(istart:iend,jstart:jend,1),skyview_topo_meta,undefined)
     ENDIF
 
      !-----------------------------------------------------------------
-
+!ROATODO: check if sth should be added for nhori here
     CALL netcdf_def_grid_mapping(ncid, nc_grid_def_cosmo, varid)
 
     CALL close_netcdf_file(ncid)
 
    
-  END SUBROUTINE write_netcdf_cosmo_grid_globe
+  END SUBROUTINE write_netcdf_cosmo_grid_topo
 
 !> create a netcdf file for the fields derived from GLOBE data to the ICON grid 
-   SUBROUTINE write_netcdf_icon_grid_globe(netcdf_filename,  &
-     &                                     icon_grid,       &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     lon_geo,     &
-     &                                     lat_geo, &
-     &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo,             &
-     &                                     vertex_param)
+   SUBROUTINE write_netcdf_icon_grid_topo(netcdf_filename,&
+     &                                     icon_grid,      &
+     &                                     tg,             &
+     &                                     undefined,      &
+     &                                     undef_int,      &
+     &                                     lon_geo,        &
+     &                                     lat_geo,        &
+     &                                     fr_land_topo,  &
+     &                                     hh_topo,       &
+     &                                     stdh_topo,     &
+     &                                     z0_topo,        &
+     &                                     vertex_param,   &
+     &                                     theta_topo,    &
+     &                                     aniso_topo,    &
+     &                                     slope_topo)
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
+    &                          def_dimension_info_buffer
 
-   USE mo_globe_tg_fields, ONLY: add_parameters_domain
+   USE mo_topo_tg_fields, ONLY: add_parameters_domain
 
-   USE mo_var_meta_data, ONLY: lon_geo_meta, &
-     &                         lat_geo_meta, &
+   USE mo_var_meta_data, ONLY: lon_geo_meta,           &
+     &                         lat_geo_meta,           &
      &                         no_raw_data_pixel_meta, &
      &                         def_com_target_fields_meta  
      
-   USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
+   USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
+   USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
-   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-    &       stdh_globe_meta, theta_globe_meta, &
-    &       aniso_globe_meta, slope_globe_meta, &
+   USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta, &
+    &       stdh_topo_meta, theta_topo_meta,                    &
+    &       aniso_topo_meta, slope_topo_meta,                   &
     &       hh_vert_meta, npixel_vert_meta, z0_topo_meta
   
    USE mo_var_meta_data, ONLY:  dim_icon, &
@@ -616,17 +633,19 @@ MODULE mo_globe_output_nc
    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
-   REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
-   REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
+   REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
+   REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
 
-   REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-   REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-   REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-   REAL(KIND=wp), INTENT(IN)  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
+
+   REAL(KIND=wp), INTENT(IN)  :: fr_land_topo(:,:,:) !< fraction land due to GLOBE raw data
    REAL(KIND=wp), INTENT(IN)  :: z0_topo(:,:,:) !< roughness length due to orography
 
 
    TYPE(add_parameters_domain), INTENT(IN) :: vertex_param  !< additional external parameters for ICON domain
+
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
 
    ! local variables
 
@@ -651,11 +670,11 @@ MODULE mo_globe_output_nc
 
   INTEGER :: n !< counter
 
-  PRINT *,'ENTER write_netcdf_icon_grid_globe'
-  PRINT *,'set_global_att_globe'
+  PRINT *,'ENTER write_netcdf_icon_grid_topo'
+  PRINT *,'set_global_att_topo'
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_globe(global_attributes)
+  CALL set_global_att_topo(global_attributes)
 PRINT *,'def_dimension_info_buffer'
 
    !set up dimensions for buffer
@@ -680,18 +699,18 @@ PRINT *,'def_dimension_info_buffer'
 
 
   ! define meta information for various GLOBE data related variables for netcdf output
-  CALL def_globe_meta(dim_icon)
+  CALL def_topo_meta(dim_icon)
 
-  !  hh_globe_meta, fr_land_globe_meta, &
-  !         stdh_globe_meta, theta_globe_meta, &
-  !         aniso_globe_meta, slope_globe_meta, &
+  !  hh_topo_meta, fr_land_topo_meta, &
+  !         stdh_topo_meta, theta_topo_meta, &
+  !         aniso_topo_meta, slope_topo_meta, &
   !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
   !\TODO HA: this is a "quick fix" for ICON, find a better solution
-  hh_globe_meta%varname = 'topography_c'
+  hh_topo_meta%varname = 'topography_c'
 
   !set up dimensions for buffer netcdf output 
    nvertex = icon_grid%nvertex
-   CALL def_globe_vertex_meta(nvertex)
+   CALL def_topo_vertex_meta(nvertex)
    !  hh_vert_meta, npixel_vert_meta
  PRINT *,'set dimensions'
 
@@ -720,43 +739,54 @@ PRINT *,'def_dimension_info_buffer'
    ! lat
    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
 
-   ! hh_globe
-   CALL netcdf_put_var(ncid,hh_globe(1:icon_grid%ncell,1,1),hh_globe_meta,undefined)
+   ! hh_topo
+   CALL netcdf_put_var(ncid,hh_topo(1:icon_grid%ncell,1,1),hh_topo_meta,undefined)
 
-   ! stdh_globe
-   CALL netcdf_put_var(ncid,stdh_globe(1:icon_grid%ncell,1,1),stdh_globe_meta,undefined)
+   ! stdh_topo
+   CALL netcdf_put_var(ncid,stdh_topo(1:icon_grid%ncell,1,1),stdh_topo_meta,undefined)
 
-   ! theta_globe
-   CALL netcdf_put_var(ncid,theta_globe(1:icon_grid%ncell,1,1),theta_globe_meta,undefined)
+   ! theta_topo
+   IF (PRESENT(theta_topo)) THEN
+   CALL netcdf_put_var(ncid,theta_topo(1:icon_grid%ncell,1,1),theta_topo_meta,undefined)
+   ENDIF
 
-   ! aniso_globe
-   CALL netcdf_put_var(ncid,aniso_globe(1:icon_grid%ncell,1,1),aniso_globe_meta,undefined)
+   ! aniso_topo
+   IF (PRESENT(aniso_topo)) THEN
+   CALL netcdf_put_var(ncid,aniso_topo(1:icon_grid%ncell,1,1),aniso_topo_meta,undefined)
+   ENDIF
 
-   ! slope_globe
-   CALL netcdf_put_var(ncid,slope_globe(1:icon_grid%ncell,1,1),slope_globe_meta,undefined)
-      
-   ! fr_land_globe
-   CALL netcdf_put_var(ncid,fr_land_globe(1:icon_grid%ncell,1,1),fr_land_globe_meta,undefined)
+   ! slope_topo
+   IF (PRESENT(slope_topo)) THEN
+   CALL netcdf_put_var(ncid,slope_topo(1:icon_grid%ncell,1,1),slope_topo_meta,undefined)
+   ENDIF
+
+   ! fr_land_topo
+   CALL netcdf_put_var(ncid,fr_land_topo(1:icon_grid%ncell,1,1),fr_land_topo_meta,undefined)
 
    ! z0_topo
    CALL netcdf_put_var(ncid,z0_topo(1:icon_grid%ncell,1,1),z0_topo_meta,undefined)
 
    ! for vertex_param%hh_vert
-   CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:icon_grid%nvertex,1,1),hh_vert_meta,undefined)
+      CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:icon_grid%nvertex,1,1),hh_vert_meta,undefined)
 
    !-----------------------------------------------------------------
 
    CALL close_netcdf_file(ncid)
 
 
-   END SUBROUTINE write_netcdf_icon_grid_globe
+   END SUBROUTINE write_netcdf_icon_grid_topo
 
   !----------------------------------------------------------------------------
   !----------------------------------------------------------------------------
   !----------------------------------------------------------------------- 
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with GLOBE data
-  SUBROUTINE set_global_att_globe(global_attributes)
+  SUBROUTINE set_global_att_topo(global_attributes)
+
+    USE mo_topo_data, ONLY: topography,&
+                            topo_gl,   &
+                            topo_aster
+
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
 
     !local variables
@@ -774,12 +804,23 @@ PRINT *,'def_dimension_info_buffer'
     ! define global attributes
     
     global_attributes(1)%attname = 'title'
-    global_attributes(1)%attributetext='GLOBE data '
+    SELECT CASE(topography)
+      CASE(topo_aster)
+        global_attributes(1)%attributetext='ASTER data '
+      CASE(topo_gl)
+        global_attributes(1)%attributetext='GLOBE data '
+      END SELECT
     global_attributes(2)%attname = 'institution'
     global_attributes(2)%attributetext='Deutscher Wetterdienst'
 
     global_attributes(3)%attname = 'source'
-    global_attributes(3)%attributetext='GLOBE, Global Land One-km Base Elevation'
+    SELECT CASE(topography)
+      CASE(topo_aster)
+        global_attributes(3)%attributetext='ASTER,The Advanced Spaceborne Thermal Emission and Reflection Radiometer, 1 arc-second digital elevation model'
+      CASE(topo_gl)
+        global_attributes(3)%attributetext='GLOBE, Global Land One-km Base Elevation'
+      END SELECT
+    
 
     CALL DATE_AND_TIME(ydate,ytime)
     READ(ydate,'(4A2)') cc,yy,mm,dd
@@ -789,57 +830,63 @@ PRINT *,'def_dimension_info_buffer'
     ytime=TRIM(hh)//':'//TRIM(minute) 
 
     global_attributes(4)%attname = 'history'
-    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' globe_to_buffer'
+    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' topo_to_buffer'
 
     global_attributes(5)%attname = 'references'
-    global_attributes(5)%attributetext='http://www.ngdc.noaa.gov/mgg/topo/globe.html'
+    SELECT CASE(topography)
+      CASE(topo_aster)
+        global_attributes(5)%attributetext='http://www.jspacesystems.or.jp/ersdac/GDEM/E/4.html'
+      CASE(topo_gl)
+        global_attributes(5)%attributetext='http://www.ngdc.noaa.gov/mgg/topo/globe.html'
+      END SELECT
 
     global_attributes(6)%attname = 'comment'
     global_attributes(6)%attributetext=''
 
-  END SUBROUTINE set_global_att_globe
+  END SUBROUTINE set_global_att_topo
   !-----------------------------------------------------------------------
 
   !> read netcdf file for the fields derived from GLOBE data from the buffer 
-   SUBROUTINE read_netcdf_buffer_globe(netcdf_filename,  &
-     &                                     tg,         &
-     &                                     undefined, &
-     &                                     undef_int,   &
-     &                                     fr_land_globe, &
-     &                                     hh_globe,            &
-     &                                     stdh_globe,          &
-     &                                     theta_globe,         &
-     &                                     aniso_globe,         &
-     &                                     slope_globe,         &
-     &                                     z0_topo,             &
-     &                                     lrad,                &
-     &                                     nhori,               &
-     &                                     vertex_param,        &
-     &                                     slope_asp_globe,     &
-     &                                     slope_ang_globe,     &
-     &                                     horizon_globe,       &
-     &                                     skyview_globe)
+   SUBROUTINE read_netcdf_buffer_topo(netcdf_filename,&
+     &                                 tg,             &
+     &                                 undefined,      &  
+     &                                 undef_int,      &
+     &                                 fr_land_topo,  &
+     &                                 hh_topo,       &
+     &                                 stdh_topo,     &
+     &                                 z0_topo,        &
+     &                                 lrad,           &
+     &                                 nhori,          &
+     &                                 vertex_param,   &
+     &                                 theta_topo,    &
+     &                                 aniso_topo,    &
+     &                                 slope_topo,    &
+     &                                 slope_asp_topo,&
+     &                                 slope_ang_topo,&
+     &                                 horizon_topo,  &
+     &                                 skyview_topo)
 
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                          dim_4d_tg, &
     &                         def_dimension_info_buffer
 
-   USE mo_globe_tg_fields, ONLY: add_parameters_domain
+   USE mo_topo_tg_fields, ONLY: add_parameters_domain
 
    USE mo_var_meta_data, ONLY: lon_geo_meta, &
      &                         lat_geo_meta, &
      &                         no_raw_data_pixel_meta, &
      &                         def_com_target_fields_meta  
      
-   USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
+   USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
+   USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
-   USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-    &       stdh_globe_meta, theta_globe_meta, &
-    &       aniso_globe_meta, slope_globe_meta, &
+   USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta, &
+    &       stdh_topo_meta, theta_topo_meta, &
+    &       aniso_topo_meta, slope_topo_meta, &
     &       hh_vert_meta, npixel_vert_meta, z0_topo_meta, &
-    &       slope_asp_globe_meta, slope_ang_globe_meta, &
-    &       horizon_globe_meta, skyview_globe_meta
+    &       slope_asp_topo_meta, slope_ang_topo_meta, &
+    &       horizon_topo_meta, skyview_topo_meta
 
    USE mo_io_utilities, ONLY: netcdf_get_var
 
@@ -852,23 +899,22 @@ PRINT *,'def_dimension_info_buffer'
    REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
    INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
 
-   REAL(KIND=wp), INTENT(OUT)  :: hh_globe(:,:,:)  !< mean height 
-   REAL(KIND=wp), INTENT(OUT)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
+   REAL(KIND=wp), INTENT(OUT)  :: hh_topo(:,:,:)  !< mean height 
+   REAL(KIND=wp), INTENT(OUT)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
 
-   REAL(KIND=wp), INTENT(OUT)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-   REAL(KIND=wp), INTENT(OUT)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-   REAL(KIND=wp), INTENT(OUT)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-   REAL(KIND=wp), INTENT(OUT)  :: fr_land_globe(:,:,:) !< fraction land due to GLOBE raw data
+   REAL(KIND=wp), INTENT(OUT)  :: fr_land_topo(:,:,:) !< fraction land due to GLOBE raw data
    REAL(KIND=wp), INTENT(OUT)  :: z0_topo(:,:,:) !< roughness length due to orography
 
 
    TYPE(add_parameters_domain), INTENT(INOUT), OPTIONAL :: vertex_param  !< additional external parameters for ICON domain
 
-
-   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
-   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
-   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
-   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
+   REAL(KIND=wp), INTENT(OUT), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+   REAL(KIND=wp), INTENT(OUT), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+   REAL(KIND=wp), INTENT(OUT), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: slope_asp_topo(:,:,:)   !< lradtopo parameter, slope_aspect
+   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
+   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
+   REAL(KIND=wp),INTENT(INOUT), OPTIONAL  :: skyview_topo  (:,:,:)   !< lradtopo parameter, skyview
 
    ! local variables
 
@@ -899,53 +945,63 @@ PRINT *,'def_dimension_info_buffer'
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
-   PRINT *,'def_globe_meta'
+   PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lzrad) THEN
-    CALL def_globe_meta(dim_3d_tg,diminfohor=dim_4d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
-    !         slope_asp_globe_meta, slope_ang_globe_meta, 
-    !         horizon_globe_meta, skyview_globe_meta
+    !         slope_asp_topo_meta, slope_ang_topo_meta, 
+    !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_globe_meta(dim_3d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_3d_tg)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
   ENDIF
   PRINT *,'set dimensions'
   !set up dimensions for buffer netcdf output 
   IF (PRESENT(vertex_param))  THEN
+!roa
+print *,"present vertex"
     nvertex = SIZE(vertex_param%hh_vert,1)
    ! PRINT *,'nvertex: ',nvertex
 
-    CALL def_globe_vertex_meta(nvertex)
+    CALL def_topo_vertex_meta(nvertex)
     !  hh_vert_meta, npixel_vert_meta
     ALLOCATE(topography_v(1:nvertex,1:1,1:1),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant ALLOCATE topography_c')
 
   ENDIF
+!roa
+print *,"netcdf_fn",trim(netcdf_filename)
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),hh_globe_meta,hh_globe)
-  PRINT *,'hh_globe read'
+  CALL netcdf_get_var(TRIM(netcdf_filename),hh_topo_meta,hh_topo)
+  PRINT *,'hh_topo read'
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),stdh_globe_meta,stdh_globe)
-  PRINT *,'stdh_globe read'
+  CALL netcdf_get_var(TRIM(netcdf_filename),stdh_topo_meta,stdh_topo)
+  PRINT *,'stdh_topo read'
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),theta_globe_meta,theta_globe)
-  PRINT *,'theta_globe read'
+  IF (PRESENT(theta_topo)) THEN
+  CALL netcdf_get_var(TRIM(netcdf_filename),theta_topo_meta,theta_topo)
+  PRINT *,'theta_topo read'
+  ENDIF
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),aniso_globe_meta,aniso_globe)
-  PRINT *,'aniso_globe read'
+  IF (PRESENT(aniso_topo)) THEN
+  CALL netcdf_get_var(TRIM(netcdf_filename),aniso_topo_meta,aniso_topo)
+  PRINT *,'aniso_topo read'
+  ENDIF
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),slope_globe_meta,slope_globe)
-  PRINT *,'slope_globe read'
+  IF (PRESENT(slope_topo)) THEN
+  CALL netcdf_get_var(TRIM(netcdf_filename),slope_topo_meta,slope_topo)
+  PRINT *,'slope_topo read'
+  ENDIF
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),fr_land_globe_meta,fr_land_globe)
-  PRINT *,'fr_land_globe read'
+  CALL netcdf_get_var(TRIM(netcdf_filename),fr_land_topo_meta,fr_land_topo)
+  PRINT *,'fr_land_topo read'
 
    CALL netcdf_get_var(TRIM(netcdf_filename),z0_topo_meta,z0_topo)
   PRINT *,'z0 read'
@@ -960,38 +1016,38 @@ PRINT *,'def_dimension_info_buffer'
 
   ENDIF
 
-  ! slope_asp_globe
-  IF (PRESENT(slope_asp_globe)) THEN
-    CALL netcdf_get_var(TRIM(netcdf_filename),slope_asp_globe_meta,slope_asp_globe)
-    PRINT *,'slope_asp_globe read'
+  ! slope_asp_topo
+  IF (PRESENT(slope_asp_topo)) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),slope_asp_topo_meta,slope_asp_topo)
+    PRINT *,'slope_asp_topo read'
   ENDIF
 
-  ! slope_ang_globe
-  IF (PRESENT(slope_ang_globe)) THEN
-    CALL netcdf_get_var(TRIM(netcdf_filename),slope_ang_globe_meta,slope_ang_globe)
-    PRINT *,'slope_ang_globe read'
+  ! slope_ang_topo
+  IF (PRESENT(slope_ang_topo)) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),slope_ang_topo_meta,slope_ang_topo)
+    PRINT *,'slope_ang_topo read'
   ENDIF
 
-  ! horizon_globe
-  IF (PRESENT(horizon_globe)) THEN
-    CALL netcdf_get_var(TRIM(netcdf_filename),horizon_globe_meta,horizon_globe)
-    PRINT *,'horizon_globe read'
+  ! horizon_topo
+  IF (PRESENT(horizon_topo)) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),horizon_topo_meta,horizon_topo)
+    PRINT *,'horizon_topo read'
   ENDIF
 
-  ! skyview_globe
-  IF (PRESENT(skyview_globe)) THEN
-    CALL netcdf_get_var(TRIM(netcdf_filename),skyview_globe_meta,skyview_globe)
-    PRINT *,'skyview_globe read'
+  ! skyview_topo
+  IF (PRESENT(skyview_topo)) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),skyview_topo_meta,skyview_topo)
+    PRINT *,'skyview_topo read'
   ENDIF
 
 
 
    
-   END SUBROUTINE read_netcdf_buffer_globe
+   END SUBROUTINE read_netcdf_buffer_topo
 
 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE mo_globe_output_nc
+END MODULE mo_topo_output_nc
 

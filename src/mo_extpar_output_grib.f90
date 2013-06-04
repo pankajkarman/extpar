@@ -56,6 +56,8 @@ MODULE mo_extpar_output_grib
   USE mo_aot_data, ONLY: ntype_aot, ntime_aot
   USE mo_albedo_data, ONLY: ntime_alb
 
+  USE mo_soil_data,   ONLY: soil_data, FAO_data, HWSD_data
+
   USE grib_api 
   USE mo_io_grib_api
 
@@ -74,47 +76,55 @@ MODULE mo_extpar_output_grib
 
 
   !> grib output of external parameters for COSMO
-  SUBROUTINE write_cosmo_grid_extpar_grib(grib_filename,  &
-    &                                     grib_sample,       &
-    &                                     cosmo_grid,       &
-    &                                     tg,         &
-    &                                     lrad,                &
-    &                                     nhori,               &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, & 
-    &                                     fr_land_lu, & ! &                                     ice_lu, &
-    &                                     z0_lu, &
-    &                                     root_lu, &
-    &                                     plcov_mn_lu, &
-    &                                     plcov_mx_lu, &
-    &                                     lai_mn_lu, &
-    &                                     lai_mx_lu, &
-    &                                     rs_min_lu, &
-    &                                     urban_lu,  &
-    &                                     for_d_lu,  &
-    &                                     for_e_lu, &
+  SUBROUTINE write_cosmo_grid_extpar_grib(grib_filename, &
+    &                                     grib_sample,   &
+    &                                     cosmo_grid,    &
+    &                                     tg,            &
+    &                                     isoil_data,    &
+    &                                     ldeep_soil,    &
+    &                                     lsso,          &
+    &                                     lrad,          &
+    &                                     nhori,         &
+    &                                     undefined,     &
+    &                                     undef_int,     &
+    &                                     lon_geo,       &
+    &                                     lat_geo,       &   
+    &                                     fr_land_lu,    & ! &                                     ice_lu, &
+    &                                     z0_lu,         &
+    &                                     root_lu,       &
+    &                                     plcov_mn_lu,   &
+    &                                     plcov_mx_lu,   &
+    &                                     lai_mn_lu,     &
+    &                                     lai_mx_lu,     &
+    &                                     rs_min_lu,     &
+    &                                     urban_lu,      &
+    &                                     for_d_lu,      &
+    &                                     for_e_lu,      &
     &                                     emissivity_lu, &
-    &                                     lake_depth, &
-    &                                     fr_lake,    &
-    &                                     soiltype_fao, &
-    &                                     ndvi_max,  &
+    &                                     lake_depth,    &
+    &                                     fr_lake,       &
+    &                                     soiltype_fao,  &
+    &                                     ndvi_max,      &
     &                                     ndvi_field_mom,&
-    &                                     ndvi_ratio_mom, &
-    &                                     hh_globe,            &
-    &                                     stdh_globe,          &
-    &                                     theta_globe,         &
-    &                                     aniso_globe,         &
-    &                                     slope_globe,   &
-    &                                     aot_tg, &
-    &                                     crutemp,             &
-    &                                     alb_field_mom,       &
-    &                                     slope_asp_globe,     &
-    &                                     slope_ang_globe,     &
-    &                                     horizon_globe,       &
-    &                                     skyview_globe )
-
+    &                                     ndvi_ratio_mom,&
+    &                                     hh_topo,       &
+    &                                     stdh_topo,     &
+    &                                     aot_tg,        &
+    &                                     crutemp,       &
+    &                                     alb_field_mom, &
+    &                                     fr_sand,       & 
+    &                                     fr_silt,       &
+    &                                     fr_clay,       &
+    &                                     fr_oc,         &
+    &                                     fr_bd,         &
+    &                                     fr_dm,         &
+    &                                     theta_topo,    &
+    &                                     aniso_topo,    &
+    &                                     slope_topo,    &
+    &                                     slope_asp_topo,&
+    &                                     slope_ang_topo,&
+    &                                     horizon_topo,  &
+    &                                     skyview_topo)
  
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -155,51 +165,57 @@ MODULE mo_extpar_output_grib
   USE mo_var_meta_data, ONLY: lake_depth_meta, fr_lake_meta
 
   USE mo_var_meta_data, ONLY: def_soil_meta
-  USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta
+  USE mo_var_meta_data, ONLY: fr_land_soil_meta, soiltype_fao_meta,&
+      &                       HWSD_SAND_META,HWSD_SILT_META,       &
+      &                       HWSD_CLAY_META,HWSD_OC_META,         &
+      &                       HWSD_BD_META,HWSD_DM_META
 
   USE mo_var_meta_data, ONLY: dim_alb_tg
   USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
-      &                       def_alb_meta, &
+      &                       def_alb_meta,       &
       &                       alb_interpol_meta
   
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
-  USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-      &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
-      &                         def_ndvi_meta
+  USE mo_var_meta_data, ONLY: ndvi_max_meta,       &
+      &                       ndvi_field_mom_meta, &
+      &                       ndvi_ratio_mom_meta, &
+      &                       def_ndvi_meta
 
- USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
- USE mo_var_meta_data, ONLY: dim_buffer_vertex
+ USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
+ USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
- USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-   &       stdh_globe_meta, theta_globe_meta, &
-   &       aniso_globe_meta, slope_globe_meta, &
-   &       hh_vert_meta, npixel_vert_meta,    &
-   &       hh_fis_meta, slope_asp_globe_meta, & 
-   &       slope_ang_globe_meta, horizon_globe_meta, &
-   &       skyview_globe_meta
+ USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta,        &
+   &                         stdh_topo_meta, theta_topo_meta,        &
+   &                         aniso_topo_meta, slope_topo_meta,       &
+   &                         hh_vert_meta, npixel_vert_meta,           &
+   &                         hh_fis_meta, npixel_vert_meta,            &
+   &                         hh_fis_meta, slope_asp_topo_meta,        & 
+   &                         slope_ang_topo_meta, horizon_topo_meta, &
+   &                         skyview_topo_meta
 
+ USE mo_var_meta_data, ONLY: dim_aot_tg,  &
+    &                        aot_tg_meta, &
+    &                        def_aot_tg_meta
+ USE mo_var_meta_data, ONLY: aot_type_shortname
 
-  USE mo_var_meta_data, ONLY: dim_aot_tg, &
-    &                         aot_tg_meta, &
-    &                         def_aot_tg_meta
-  USE mo_var_meta_data, ONLY: aot_type_shortname
-
-  USE mo_var_meta_data, ONLY: crutemp_meta, &
-    &                         def_crutemp_meta
+ USE mo_var_meta_data, ONLY: crutemp_meta, &
+    &                        def_crutemp_meta
 
   USE mo_physical_constants, ONLY: grav
 
-!roa bug
+
   CHARACTER (len=*), INTENT(IN) :: grib_filename !< filename for the grib file
   CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  INTEGER (KIND=i4), INTENT(IN)     :: isoil_data
+  LOGICAL,         INTENT(IN)       :: ldeep_soil 
+  LOGICAL,         INTENT(IN)       :: lsso  
   LOGICAL,         INTENT(IN)       :: lrad  
   INTEGER(KIND=i4),INTENT(IN)       :: nhori
-  REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
+  REAL(KIND=wp), INTENT(IN)         :: undefined       !< value to indicate undefined grid elements 
+  INTEGER, INTENT(IN)               :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
@@ -227,20 +243,24 @@ MODULE mo_extpar_output_grib
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
 
-  REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
-  REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
-  REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-  REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-  REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-
+  REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
+  REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)   !< oc fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)   !< bulk density due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm(:,:,:)   !< bulk density due to HWSD
 
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_globe(:,:,:)   !< lradtopo parameter, slope_aspect
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_globe(:,:,:)   !< lradtopo parameter, slope_angle
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_globe  (:,:,:,:) !< lradtopo parameter, horizon
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_globe  (:,:,:)   !< lradtopo parameter, skyview
-
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_topo(:,:,:)   !< lradtopo parameter, slope_aspect
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_topo  (:,:,:)   !< lradtopo parameter, skyview
 
   ! local variables
 
@@ -276,7 +296,7 @@ MODULE mo_extpar_output_grib
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
 
-  CALL def_soil_meta(dim_3d_tg)
+  CALL def_soil_meta(dim_3d_tg,isoil_data)
   !  fr_land_soil_meta, soiltype_fao_meta
 
   CALL def_alb_meta(tg,ntime_alb,dim_3d_tg)
@@ -285,20 +305,18 @@ MODULE mo_extpar_output_grib
   CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
   ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
-  ! define meta information for various GLOBE data related variables for netcdf output
+  ! define meta information for various TOPO data related variables for netcdf output
   IF (lrad) THEN
-    CALL def_globe_meta(dim_3d_tg,diminfohor=dim_4d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
-    !         hh_vert_meta, npixel_vert_meta, z0_topo_meta
-    !         slope_asp_globe_meta, slope_ang_globe_meta, 
-    !         horizon_globe_meta, skyview_globe_meta
+  CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+  !  hh_topo_meta, fr_land_topo_meta, &
+  !         stdh_topo_meta, theta_topo_meta, &
+  !         aniso_topo_meta, slope_topo_meta, &
+  !         hh_vert_meta, npixel_vert_meta
   ELSE
-    CALL def_globe_meta(dim_3d_tg)
-    !  hh_globe_meta, fr_land_globe_meta, &
-    !         stdh_globe_meta, theta_globe_meta, &
-    !         aniso_globe_meta, slope_globe_meta, &
+    CALL def_topo_meta(dim_3d_tg)
+    !  hh_topo_meta, fr_land_topo_meta, &
+    !         stdh_topo_meta, theta_topo_meta, &
+    !         aniso_topo_meta, slope_topo_meta, &
     !         hh_vert_meta, npixel_vert_meta
   ENDIF
   ! define dimensions and meta information for variable aot_tg for netcdf output
@@ -327,51 +345,56 @@ MODULE mo_extpar_output_grib
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_land_lu,fr_land_lu_meta%shortName,dataDate,dataTime)
 
-  PRINT *,'hh_globe_meta%shortName: ',hh_globe_meta%shortName
+  PRINT *,'hh_topo_meta%shortName: ',hh_topo_meta%shortName
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,hh_globe,hh_globe_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,hh_topo,hh_topo_meta%shortName,dataDate,dataTime)
   
   ! output FIS as well
   PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,hh_globe*grav,hh_fis_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,hh_topo*grav,hh_fis_meta%shortName,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,stdh_globe,stdh_globe_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,stdh_topo,stdh_topo_meta%shortName,dataDate,dataTime)
   
+  IF (lsso) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,theta_globe,theta_globe_meta%shortName,dataDate,dataTime)
-  
-  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,aniso_globe,aniso_globe_meta%shortName,dataDate,dataTime)
-  
-  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,slope_globe,slope_globe_meta%shortName,dataDate,dataTime)
-  
+  & cosmo_grid,theta_topo,theta_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
 
-  IF (PRESENT(slope_asp_globe)) THEN
-    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,slope_asp_globe,slope_asp_globe_meta%shortName,dataDate,dataTime)
+  IF (lsso) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,aniso_topo,aniso_topo_meta%shortName,dataDate,dataTime)
   ENDIF
-  IF (PRESENT(slope_ang_globe)) THEN
-    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,slope_ang_globe,slope_ang_globe_meta%shortName,dataDate,dataTime)
+
+  IF (lsso) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,slope_topo,slope_topo_meta%shortName,dataDate,dataTime)
   ENDIF
-  IF (PRESENT(horizon_globe)) THEN
+
+  IF (lrad) THEN
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,slope_asp_topo,slope_asp_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
+  IF (lrad) THEN
+    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+    & cosmo_grid,slope_ang_topo,slope_ang_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
+!ROATODO: check 4D
+  IF (lrad) THEN
     DO mm=1,nhori
       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
-      & horizon_globe(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
+      & horizon_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
       CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-      & cosmo_grid,extpar_cosmo_buffer,horizon_globe_meta%shortName,dataDate,dataTime)
+      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime)
     ENDDO
   ENDIF
-  IF (PRESENT(skyview_globe)) THEN
+  IF (lrad) THEN
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,skyview_globe,skyview_globe_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,skyview_topo,skyview_topo_meta%shortName,dataDate,dataTime)
   ENDIF
-
-
+  
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
 
@@ -410,6 +433,37 @@ MODULE mo_extpar_output_grib
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_sand,HWSD_SAND_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_silt,HWSD_SILT_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_clay,HWSD_CLAY_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_oc,HWSD_OC_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_bd,HWSD_BD_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF(soil_data == HWSD_data) THEN
+  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+  & cosmo_grid,fr_dm,HWSD_DM_meta%shortName,dataDate,dataTime)
+  ENDIF
+
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,crutemp,crutemp_meta%shortName,dataDate,dataTime)
@@ -476,43 +530,46 @@ MODULE mo_extpar_output_grib
   !-----------------------------------------------------------------------
 
   !> grib output of external parameters for GME
-  SUBROUTINE write_gme_grid_extpar_grib(grib_filename,  &
-    &                                     grib_sample,       &
-    &                                     gme_grid,       &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, & 
-    &                                     fr_land_lu, & ! &                                     ice_lu, &
-    &                                     z0_lu, &
-    &                                     root_lu, &
-    &                                     plcov_mn_lu, &
-    &                                     plcov_mx_lu, &
-    &                                     lai_mn_lu, &
-    &                                     lai_mx_lu, &
-    &                                     rs_min_lu, &
-    &                                     urban_lu,  &
-    &                                     for_d_lu,  &
-    &                                     for_e_lu, &
+  SUBROUTINE write_gme_grid_extpar_grib(grib_filename,   &
+    &                                     grib_sample,   &
+    &                                     gme_grid,      &
+    &                                     tg,            &
+    &                                     isoil_data,    &
+    &                                     ldeep_soil,    &
+    &                                     lsso,          &
+    &                                     undefined,     &
+    &                                     undef_int,     &
+    &                                     lon_geo,       &
+    &                                     lat_geo,       & 
+    &                                     fr_land_lu,    & ! &                                     ice_lu, &
+    &                                     z0_lu,         &
+    &                                     root_lu,       &
+    &                                     plcov_mn_lu,   &
+    &                                     plcov_mx_lu,   &
+    &                                     lai_mn_lu,     &
+    &                                     lai_mx_lu,     &
+    &                                     rs_min_lu,     &
+    &                                     urban_lu,      &
+    &                                     for_d_lu,      &
+    &                                     for_e_lu,      &
     &                                     emissivity_lu, &
-    &                                     lake_depth, &
-    &                                     fr_lake,    &
-    &                                     soiltype_fao, &
-    &                                     ndvi_max,  &
+    &                                     lake_depth,    &
+    &                                     fr_lake,       &
+    &                                     soiltype_fao,  &
+    &                                     ndvi_max,      &
     &                                     ndvi_field_mom,&
-    &                                     ndvi_ratio_mom, &
-    &                                     hh_globe,            &
-    &                                     stdh_globe,          &
-    &                                     theta_globe,         &
-    &                                     aniso_globe,         &
-    &                                     slope_globe,   &
-    &                                     aot_tg, &
-    &                                     crutemp, &
-    &                                     alb_field_mom)
+    &                                     ndvi_ratio_mom,&
+    &                                     hh_topo,      &
+    &                                     stdh_topo,    &
+    &                                     aot_tg,        &
+    &                                     crutemp,       &
+    &                                     alb_field_mom, &
+    &                                     theta_topo,   &
+    &                                     aniso_topo,   &
+    &                                     slope_topo)
  
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
+  USE mo_var_meta_data, ONLY: lon_geo_meta,           &
+    &                         lat_geo_meta,           &
     &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
    
@@ -547,23 +604,23 @@ MODULE mo_extpar_output_grib
       &                       def_alb_meta
   
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
-  USE mo_var_meta_data, ONLY: ndvi_max_meta, &
+  USE mo_var_meta_data, ONLY: ndvi_max_meta,         &
       &                         ndvi_field_mom_meta, &
-      &                         ndvi_ratio_mom_meta,&
+      &                         ndvi_ratio_mom_meta, &
       &                         def_ndvi_meta
 
- USE mo_var_meta_data, ONLY: def_globe_meta, def_globe_vertex_meta
- USE mo_var_meta_data, ONLY: dim_buffer_vertex
+ USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
+ USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
- USE mo_var_meta_data, ONLY: hh_globe_meta, fr_land_globe_meta, &
-   &       stdh_globe_meta, theta_globe_meta, &
-   &       aniso_globe_meta, slope_globe_meta, &
-   &       hh_vert_meta, npixel_vert_meta,    &
+ USE mo_var_meta_data, ONLY: hh_topo_meta, fr_land_topo_meta, &
+   &       stdh_topo_meta, theta_topo_meta,                   &
+   &       aniso_topo_meta, slope_topo_meta,                  &
+   &       hh_vert_meta, npixel_vert_meta,                      &
    &       hh_fis_meta
 
 
 
-  USE mo_var_meta_data, ONLY: dim_aot_tg, &
+  USE mo_var_meta_data, ONLY: dim_aot_tg,  &
     &                         aot_tg_meta, &
     &                         def_aot_tg_meta
   USE mo_var_meta_data, ONLY: aot_type_shortname
@@ -579,6 +636,10 @@ MODULE mo_extpar_output_grib
 
   TYPE(gme_triangular_grid), INTENT(IN) :: gme_grid !< structure which contains the definition of the GME grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  INTEGER (KIND=i4),     INTENT(IN) :: isoil_data
+  LOGICAL ,              INTENT(IN) :: ldeep_soil
+  LOGICAL,               INTENT(IN) :: lsso
+
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
@@ -608,14 +669,14 @@ MODULE mo_extpar_output_grib
   REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
   REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
 
-  REAL(KIND=wp), INTENT(IN)  :: hh_globe(:,:,:)  !< mean height 
-  REAL(KIND=wp), INTENT(IN)  :: stdh_globe(:,:,:) !< standard deviation of subgrid scale orographic height
-  REAL(KIND=wp), INTENT(IN)  :: theta_globe(:,:,:) !< sso parameter, angle of principal axis
-  REAL(KIND=wp), INTENT(IN)  :: aniso_globe(:,:,:) !< sso parameter, anisotropie factor
-  REAL(KIND=wp), INTENT(IN)  :: slope_globe(:,:,:) !< sso parameter, mean slope
-
+  REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
+  REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,,ntype,ntime)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+
 
   ! local variables
 
@@ -654,7 +715,7 @@ MODULE mo_extpar_output_grib
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
 
-  CALL def_soil_meta(dim_3d_tg)
+  CALL def_soil_meta(dim_3d_tg,isoil_data)
   !  fr_land_soil_meta, soiltype_fao_meta
 
   ! define meta information for various albedo variables for nc output
@@ -664,11 +725,11 @@ MODULE mo_extpar_output_grib
   CALL def_ndvi_meta(tg,ntime_ndvi,dim_3d_tg)
   ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
-  ! define meta information for various GLOBE data related variables for netcdf output
-  CALL def_globe_meta(dim_3d_tg)
-  !  hh_globe_meta, fr_land_globe_meta, &
-  !         stdh_globe_meta, theta_globe_meta, &
-  !         aniso_globe_meta, slope_globe_meta, &
+  ! define meta information for various TOPO data related variables for netcdf output
+  CALL def_topo_meta(dim_3d_tg)
+  !  hh_topo_meta, fr_land_topo_meta, &
+  !         stdh_topo_meta, theta_topo_meta, &
+  !         aniso_topo_meta, slope_topo_meta, &
   !         hh_vert_meta, npixel_vert_meta
 
   ! define dimensions and meta information for variable aot_tg for netcdf output
@@ -698,26 +759,33 @@ MODULE mo_extpar_output_grib
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
   & gme_grid,fr_land_lu,TRIM(fr_land_lu_meta%shortName),dataDate,dataTime)
 
-  PRINT *,'hh_globe_meta%shortName: ',hh_globe_meta%shortName
+  PRINT *,'hh_topo_meta%shortName: ',hh_topo_meta%shortName
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,hh_globe,hh_globe_meta%shortName,dataDate,dataTime)
+  & gme_grid,hh_topo,hh_topo_meta%shortName,dataDate,dataTime)
   ! output FIS as well
   PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,hh_globe*grav,hh_fis_meta%shortName,dataDate,dataTime)
+  & gme_grid,hh_topo*grav,hh_fis_meta%shortName,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,stdh_globe,stdh_globe_meta%shortName,dataDate,dataTime)
+  & gme_grid,stdh_topo,stdh_topo_meta%shortName,dataDate,dataTime)
   
+  IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,theta_globe,theta_globe_meta%shortName,dataDate,dataTime)
+  & gme_grid,theta_topo,theta_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
 
+  IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,aniso_globe,aniso_globe_meta%shortName,dataDate,dataTime)
+  & gme_grid,aniso_topo,aniso_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
+
+  IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,slope_globe,slope_globe_meta%shortName,dataDate,dataTime)
-  
+  & gme_grid,slope_topo,slope_topo_meta%shortName,dataDate,dataTime)
+  ENDIF
+
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
   & gme_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
   

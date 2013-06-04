@@ -15,7 +15,7 @@
 !   Parallel threads for ICON and COSMO using Open-MP, 
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
-!   simplified namelist control for ICON  
+!   simplified namelist control for ICON 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -66,7 +66,7 @@ PROGRAM extpar_landuse_to_buffer
   USE mo_target_grid_routines, ONLY: init_target_grid
 
   USE mo_icon_grid_data, ONLY: ICON_grid  !< structure which contains the definition of the ICON grid
- 
+
   USE  mo_cosmo_grid, ONLY: COSMO_grid, &
     &                       lon_rot, &
     &                       lat_rot, &
@@ -87,15 +87,15 @@ PROGRAM extpar_landuse_to_buffer
 
   USE mo_exception,         ONLY: message_text, message, finish
 
-  USE mo_utilities_extpar, ONLY: abort_extpar
+  USE mo_utilities_extpar,  ONLY: abort_extpar
 
   USE mo_additional_geometry,   ONLY: cc2gc,                  &
-    &                            gc2cc,                  &
-    &                            arc_length,             &
-    &                            cos_arc_length,         &
-    &                            inter_section,          &
-    &                            vector_product,         &
-    &                            point_in_polygon_sp
+    &                                 gc2cc,                  &
+    &                                 arc_length,             &
+    &                                 cos_arc_length,         &
+    &                                 inter_section,          &
+    &                                 vector_product,         &
+    &                                 point_in_polygon_sp
 
 
   USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
@@ -111,22 +111,22 @@ PROGRAM extpar_landuse_to_buffer
     &                             det_band_globcover_data
 ! <mes
 
-
-
  USE mo_glc2000_data, ONLY: glc2000_grid, &
-    &                         lon_glc2000,  &
-    &                         lat_glc2000,  &
-    &                         allocate_raw_glc2000_fields
+    &                       lon_glc2000,  &
+    &                       lat_glc2000,  &
+    &                       allocate_raw_glc2000_fields,  &
+    &                       deallocate_glc2000_fields
 
   USE mo_glcc_data, ONLY: glcc_grid, &
- &         lon_glcc,  &
- &         lat_glcc,  &
- &         allocate_raw_glcc_fields
+ &                        lon_glcc,  &
+ &                        lat_glcc,  &
+ &                        allocate_raw_glcc_fields,&
+ &                        deallocate_glcc_fields
 
   USE mo_glc2000_lookup_tables, ONLY: glc2000_legend
   USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
-  USE mo_glc2000_lookup_tables, ONLY: i_gme_lookup_table, &
-    &                                 i_cosmo_lookup_table,  &
+  USE mo_glc2000_lookup_tables, ONLY: i_gme_lookup_table,   &
+    &                                 i_cosmo_lookup_table, &
     &                                 i_experimental_lookup_table
   USE mo_glc2000_lookup_tables, ONLY: init_glc2000_lookup_tables
 
@@ -146,40 +146,40 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   USE mo_glc2000_tg_fields, ONLY: allocate_glc2000_target_fields
 
-  USE mo_glc2000_tg_fields, ONLY:  fr_land_glc2000, &
-    &      glc2000_class_fraction,    &
-    &      glc2000_class_npixel, &
-    &      glc2000_tot_npixel, &
-    &      ice_glc2000, &
-    &      z0_glc2000, &
-    &      root_glc2000, &
-    &      plcov_mn_glc2000, &
-    &      plcov_mx_glc2000, &
-    &      lai_mn_glc2000, &
-    &      lai_mx_glc2000, &
-    &      rs_min_glc2000, &
-    &      urban_glc2000,  &
-    &      for_d_glc2000,  &
-    &      for_e_glc2000, &
-    &      emissivity_glc2000
+  USE mo_glc2000_tg_fields, ONLY: fr_land_glc2000,       &
+    &                             glc2000_class_fraction,&
+    &                             glc2000_class_npixel,  &
+    &                             glc2000_tot_npixel,    &
+    &                             ice_glc2000,           &
+    &                             z0_glc2000,            &
+    &                             root_glc2000,          &
+    &                             plcov_mn_glc2000,      &
+    &                             plcov_mx_glc2000,      &
+    &                             lai_mn_glc2000,        &
+    &                             lai_mx_glc2000,        &
+    &                             rs_min_glc2000,        &
+    &                             urban_glc2000,         &
+    &                             for_d_glc2000,         &
+    &                             for_e_glc2000,         &
+    &                             emissivity_glc2000
 
-  USE mo_glcc_tg_fields, ONLY:  fr_land_glcc, &
-      &       glcc_class_fraction,    &
-      &        glcc_class_npixel, &
-      &        glcc_tot_npixel, &
-      &        ice_glcc, &
-      &        z0_glcc, &
-      &        root_glcc, &
-      &        plcov_mn_glcc, &
-      &        plcov_mx_glcc, &
-      &        lai_mn_glcc, &
-      &        lai_mx_glcc, &
-      &        rs_min_glcc, &
-      &        urban_glcc,  &
-      &        for_d_glcc,  &
-      &        for_e_glcc, &
-      &        emissivity_glcc, &
-      &        allocate_glcc_target_fields
+  USE mo_glcc_tg_fields, ONLY:  fr_land_glcc,       &
+      &                         glcc_class_fraction,&
+      &                         glcc_class_npixel,  &
+      &                         glcc_tot_npixel,    &
+      &                         ice_glcc,           & 
+      &                         z0_glcc,            &
+      &                         root_glcc,          &
+      &                         plcov_mn_glcc,      &
+      &                         plcov_mx_glcc,      &
+      &                         lai_mn_glcc,        &
+      &                         lai_mx_glcc,        &
+      &                         rs_min_glcc,        &
+      &                         urban_glcc,         &
+      &                         for_d_glcc,         &
+      &                         for_e_glcc,         &
+      &                         emissivity_glcc,    &
+      &                         allocate_glcc_target_fields
 
   USE mo_agg_glc2000, ONLY : agg_glc2000_data_to_target_grid
 
@@ -187,39 +187,41 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
   USE mo_lu_tg_fields, ONLY: allocate_lu_target_fields, allocate_add_lu_fields
-  USE mo_lu_tg_fields, ONLY: fr_land_lu, &
-  &        ice_lu, &
-  &        z0_lu, &
-  &        z0_tot, &
-  &        root_lu, &
-  &        plcov_mn_lu, &
-  &        plcov_mx_lu, &
-  &        lai_mn_lu, &
-  &        lai_mx_lu, &
-  &        rs_min_lu, &
-  &        urban_lu,  &
-  &        for_d_lu,  &
-  &        for_e_lu, &
-  &        emissivity_lu, &
-  &        fr_ocean_lu, &
-  &        lu_class_fraction,    &
-  &        lu_class_npixel, &
-  &        lu_tot_npixel
+  USE mo_lu_tg_fields, ONLY: fr_land_lu,       &
+  &                          ice_lu,           &
+  &                          z0_lu,            &
+  &                          z0_tot,           &
+  &                          root_lu,          &
+  &                          plcov_mn_lu,      &
+  &                          plcov_mx_lu,      &
+  &                          lai_mn_lu,        &
+  &                          lai_mx_lu,        &
+  &                          rs_min_lu,        &
+  &                          urban_lu,         &
+  &                          for_d_lu,         &
+  &                          for_e_lu,         &
+  &                          emissivity_lu,    &
+  &                          fr_ocean_lu,      &
+  &                          lu_class_fraction,&
+  &                          lu_class_npixel,  &
+  &                          lu_tot_npixel
 
 
 
-  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_glc2000, &
+  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_glc2000,     &
     &                             write_netcdf_cosmo_grid_glc2000, &
     &                             write_netcdf_icon_grid_glc2000
 
-  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_glcc, &
+  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_glcc,     &   
     &                             write_netcdf_cosmo_grid_glcc, &
     &                             write_netcdf_icon_grid_glcc
-  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_lu             
+  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_lu
+           
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover
   USE mo_globcover_lookup_tables, ONLY: init_globcover_lookup_tables
-  USE mo_landuse_routines, ONLY: get_dimension_globcover_data,       &
-    &                             get_lonlat_globcover_data
+
+  USE mo_landuse_routines, ONLY: get_dimension_globcover_data, &
+    &                            get_lonlat_globcover_data
 
   USE mo_globcover_data, ONLY: globcover_grid,                &
     &                          lon_globcover,                 &
@@ -234,7 +236,8 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                          nc_tiles_lu,                   &
     &                          allocate_raw_globcover_fields, &
     &                          allocate_globcover_data,       &
-    &                          fill_globcover_data
+    &                          fill_globcover_data,           &
+    &                          deallocate_landuse_data
 
  USE mo_agg_globcover, ONLY : agg_globcover_data_to_target_grid
 
@@ -248,7 +251,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   CHARACTER(len=filename_max) :: namelist_grid_def
 
-  CHARACTER (len=filename_max) :: namelist_globe_data_input !< file with input namelist with GLOBE data information
+  CHARACTER (len=filename_max) :: namelist_topo_data_input !< file with input namelist with GLOBE data information
   CHARACTER(len=filename_max) :: input_lu_namelist_file
   CHARACTER(len=filename_max), ALLOCATABLE:: lu_file(:)
 
@@ -542,7 +545,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
    undef_int = -999
 
    netcdf_filename = TRIM(lu_buffer_file)
-   print *, 'GLC2000 buffer filename: ',TRIM(netcdf_filename)
+   print *, 'Land-use buffer filename: ',TRIM(netcdf_filename)
 
    
    CALL write_netcdf_buffer_lu(TRIM(netcdf_filename),  &
@@ -598,8 +601,25 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                     emissivity_glcc)
    ENDIF
 
-   PRINT *, achar(27)//'[32m DONE'//achar(27)//'[0m'    !mes
+ SELECT CASE (i_landuse_data)
+    CASE(i_lu_globcover)
+      CALL deallocate_landuse_data()
 
+    CASE(i_lu_glc2000)
+      CALL  deallocate_glc2000_fields()
+
+   CASE(i_lu_glcc)
+     CALL deallocate_glcc_fields()
+
+   END SELECT
+
+   IF (l_use_glcc) THEN
+     CALL deallocate_glcc_fields()
+
+   ENDIF
+
+
+  PRINT *,'============= landuse_to_buffer done ==============='
 
 END PROGRAM extpar_landuse_to_buffer
 

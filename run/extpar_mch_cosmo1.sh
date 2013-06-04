@@ -18,7 +18,7 @@ progdir=../build                                             # adjust the path s
 
 binary_alb=extpar_alb_to_buffer
 binary_lu=extpar_landuse_to_buffer
-binary_globe=extpar_globe_to_buffer
+binary_topo=extpar_topo_to_buffer
 binary_aot=extpar_aot_to_buffer
 binary_tclim=extpar_cru_to_buffer
 binary_ndvi=extpar_ndvi_to_buffer
@@ -129,16 +129,23 @@ raw_data_aster_T34='ASTER_eu_T34.nc'
 raw_data_aster_T35='ASTER_eu_T35.nc'
 raw_data_aster_T36='ASTER_eu_T36.nc'
 
-buffer_globe='GLOBE_buffer.nc'
-output_globe='GLOBE_COSMO.nc'
+buffer_topo='topography_buffer.nc'
+output_topo='topography_COSMO.nc'
 
 raw_data_ndvi='NDVI_1998_2003.nc'
 buffer_ndvi='NDVI_buffer.nc'
 output_ndvi='ndvi_extpar_cosmo.nc'
 
-raw_data_soil='FAO_DSMW.nc'
+raw_data_soil_FAO='FAO_DSMW_DP.nc'
+raw_data_soil_HWSD='HWSD0_30_texture_2.nc'
+raw_data_deep_soil='HWSD30_100_texture_2.nc'
 buffer_soil='FAO_DSMW_buffer.nc'
 output_soil='FAO_DSMW_COSMO.nc'
+
+raw_landuse_table_HWSD='LU_TAB_HWSD_UF.data'
+raw_HWSD_data='HWSD_DATA_COSMO.data'
+raw_HWSD_data_deep='HWSD_DATA_COSMO_S.data'
+raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
 raw_data_flake='lakedepth.nc'
 buffer_flake='flake_buffer.nc'
@@ -216,9 +223,9 @@ EOF_tclim
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
    raw_data_lu_path='',
-   raw_data_lu_filename='${raw_data_globcover_0}' '${raw_data_globcover_1}' '${raw_data_globcover_2}' '${raw_data_globcover_3}' '${raw_data_globcover_4}' '${raw_data_globcover_5}',
-   i_landuse_data=1,
-   ilookup_table_lu=1
+   raw_data_lu_filename='${raw_data_glc2000}'
+   i_landuse_data=2,
+   ilookup_table_lu=2 
 /
 &lu_io_extpar
    lu_buffer_file='${buffer_lu}',
@@ -236,13 +243,16 @@ EOF_lu
 #---
 cat > INPUT_ORO << EOF_oro
 &orography_io_extpar
-  orography_buffer_file='${buffer_globe}',
-  orography_output_file='${output_globe}'
+  orography_buffer_file='${buffer_topo}',
+  orography_output_file='${output_topo}'
 /
 &orography_raw_data
- itopo_type = 1
+ itopo_type = 1,
+ lsso_param = .TRUE.,
  raw_data_orography_path='',
-topo_FILES ='${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
+ ntiles_column = 4,
+ ntiles_row = 4,
+ topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
 /
 EOF_oro
 #--- topo_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'topo_FILES = '${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'  
@@ -265,7 +275,7 @@ EOF_orosm
 cat > INPUT_RADTOPO << EOF_radtopo
 &radtopo
   lradtopo=.FALSE.,
-  nhori=12
+  nhori=24
 /
 EOF_radtopo
 #---
@@ -282,13 +292,23 @@ EOF_ndvi
 #---
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
+ isoil_data = 2,
+ ldeep_soil = .FALSE.,
  raw_data_soil_path='',
- raw_data_soil_filename='${raw_data_soil}'
+ raw_data_soil_filename='${raw_data_soil_HWSD}',
+ raw_data_deep_soil_filename='${raw_data_deep_soil}'
 /
 &soil_io_extpar
   soil_buffer_file='${buffer_soil}',
   soil_output_file='${output_soil}'
-/ 
+/
+&HWSD_index_files
+ path_HWSD_index_files='',
+ landuse_table_HWSD='${raw_landuse_table_HWSD}', 
+ HWSD_data='${raw_HWSD_data}',
+ HWSD_data_deep='${raw_HWSD_data_deep}',
+ HWSD_data_extpar='${raw_HWSD_data_extpar}'
+/
 EOF_soil
 #---
 cat > INPUT_FLAKE << EOF_flake
@@ -308,7 +328,7 @@ cat > INPUT_CHECK << EOF_check
   grib_output_filename="${grib_output_filename}",
   grib_sample="${grib_sample}",
   netcdf_output_filename="${netcdf_output_filename}",
-  orography_buffer_file="${buffer_globe}",
+  orography_buffer_file="${buffer_topo}",
   soil_buffer_file="${buffer_soil}",
   lu_buffer_file="${buffer_lu}",
   glcc_buffer_file="${buffer_glcc}",
@@ -393,10 +413,24 @@ ln -s ${data_dir2}/${raw_data_aster_T33}
 ln -s ${data_dir2}/${raw_data_aster_T34} 
 ln -s ${data_dir2}/${raw_data_aster_T35} 
 ln -s ${data_dir2}/${raw_data_aster_T36} 
+ln -s ${data_dir2}/topo.ASTER_orig_T006.nc 
+ln -s ${data_dir2}/topo.ASTER_orig_T007.nc
+ln -s ${data_dir2}/topo.ASTER_orig_T018.nc
+ln -s ${data_dir2}/topo.ASTER_orig_T019.nc
+ln -s ${data_dir2}/topo.ASTER_orig_T030.nc
+ln -s ${data_dir2}/topo.ASTER_orig_T031.nc 
+ln -s ${data_dir2}/topo.ASTER_orig_T042.nc
+ln -s ${data_dir2}/topo.ASTER_orig_T043.nc
 
 ln -s ${data_dir}/${raw_data_ndvi}
 
-ln -s ${data_dir}/${raw_data_soil}
+ln -s ${data_dir2}/${raw_data_soil_FAO}
+ln -s ${data_dir2}/${raw_data_soil_HWSD}
+ln -s ${data_dir2}/${raw_data_deep_soil}
+
+ln -s ${data_dir2}/${raw_landuse_table_HWSD}
+ln -s ${data_dir2}/${raw_HWSD_data}
+ln -s ${data_dir2}/${raw_HWSD_data_deep}
 
 ln -s ${data_dir}/${raw_data_flake}
 
@@ -406,7 +440,7 @@ time ${progdir}/${binary_alb}
 time ${progdir}/${binary_aot}
 time ${progdir}/${binary_tclim}
 time ${progdir}/${binary_lu}
-time ${progdir}/${binary_globe}
+time ${progdir}/${binary_topo}
 time ${progdir}/${binary_ndvi}
 time ${progdir}/${binary_soil}
 time ${progdir}/${binary_flake}
