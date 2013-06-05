@@ -3,7 +3,7 @@
 ! History:
 ! Version      Date       Name
 ! ------------ ---------- ----
-! V1_8         2013-03-12 Frank Brenner
+! V1_8         2013/03/12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)
 !
 ! Code Description:

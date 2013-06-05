@@ -27,6 +27,10 @@
 !   simplified namelist control for ICON 
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)        
+! V1_11        2013/04/16 Juergen Helmert
+!  Adaptions for using special points and external land-sea mask 
+! V1_12        2013-04-24 Frank Brenner
+!  bug fix regarding old file paths         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -108,7 +112,8 @@ USE mo_utilities_extpar, ONLY: abort_extpar
 
 USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
 
-USE mo_read_extpar_namelists, ONLY: read_namelists_extpar_check
+USE mo_read_extpar_namelists, ONLY: read_namelists_extpar_check,&
+                             read_namelists_extpar_special_points
 
 USE mo_soil_routines, ONLY: read_namelists_extpar_soil
 
@@ -215,6 +220,7 @@ USE mo_landuse_routines, ONLY: read_namelists_extpar_land_use
 USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
 
 USE mo_lu_tg_fields, ONLY: fr_land_lu, &
+  &    fr_land_mask, &
   &        ice_lu, &
   &        z0_lu, &
   &        z0_tot, &
@@ -327,6 +333,8 @@ USE mo_flake_data, ONLY: DWD_min_lake_depth !< Minimal lake depth in [m] for FLA
 
 USE mo_flake_output_nc, ONLY: read_netcdf_buffer_flake
 
+USE mo_lsm_output_nc, ONLY: read_netcdf_buffer_lsm
+
 USE mo_extpar_output_nc, ONLY: write_netcdf_icon_grid_extpar, &
   &                        write_netcdf_cosmo_grid_extpar
 
@@ -337,6 +345,8 @@ USE mo_math_constants, ONLY: deg2rad, rad2deg
 USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
 
 USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
+
+USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
 
   IMPLICIT NONE
@@ -408,6 +418,8 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
   CHARACTER (len=filename_max) :: alb_buffer_file    !< name for albedo buffer file
   CHARACTER (len=filename_max) :: alb_output_file    !< name for albedo output file
   !-----------------------------------------------------------------------------------------------------------------------
+  CHARACTER (len=filename_max) :: land_sea_mask_file !< name for external land-sea-mask
+
   ! NDVI
   CHARACTER (len=filename_max) :: raw_data_ndvi_path        !< path to raw data
   CHARACTER (len=filename_max) :: raw_data_ndvi_filename !< filename NDVI raw data
@@ -493,6 +505,7 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
 
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
   INTEGER  :: i_landuse_data !<integer switch to choose a land use raw data set
+  INTEGER  :: i_lsm_data !<integer switch to choose a land sea mask data set
   INTEGER  :: ilookup_table_lu !< integer switch to choose a lookup table
   INTEGER  :: nclass_lu !< number of land use classes 
 
@@ -533,6 +546,22 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
   REAL (KIND=wp)   :: alb_nw       !< value of the NDVI raw data pixel north west
   REAL (KIND=wp)   :: lon_alt
 
+!Special Points
+  INTEGER          :: number_special_points
+  REAL (KIND=wp)   ::                           lon_geo_sp=-999.,           &
+                                                lat_geo_sp=-999.,           &
+                                                soiltype_sp=-999.,          &
+                                                z0_sp=-999.,                &
+                                                rootdp_sp=-999.,            &
+                                                plcovmn_sp=-999.,           &
+                                                plcovmx_sp=-999.,           &
+                                                laimn_sp=-999.,               &
+                                                laimx_sp=-999.
+  INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
+  INTEGER (KIND=i8) :: isp,i_sp,j_sp,k_sp
+
+
+
   INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
   INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
   INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
@@ -549,9 +578,8 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
   CHARACTER (len=filename_max) :: path_alb_file 
   CHARACTER (len=filename_max) :: path_alnid_file
   CHARACTER (len=filename_max) :: path_aluvd_file
-  CHARACTER (len=filename_max) :: alb_source 
-  CHARACTER (len=filename_max) :: alnid_source
-  CHARACTER (len=filename_max) :: aluvd_source
+  CHARACTER (len=filename_max) :: alb_source, alnid_source, aluvd_source
+  CHARACTER (len=filename_max) :: namelist_alb_data_input
 
 
   ! Print the default information to stdout:
@@ -610,7 +638,7 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
   igrid_type = tg%igrid_type
 
  
-SELECT CASE(igrid_type)
+SELECT CASE(igrid_type) 
      CASE(igrid_icon) ! ICON GRID
      PRINT *,'icon_grid%ncell: ',icon_grid%ncell
      PRINT *,'icon_grid%nvertex: ',icon_grid%nvertex
@@ -669,7 +697,10 @@ END SELECT
                                      ndvi_buffer_file, &
                                      t_clim_buffer_file, &
                                      aot_buffer_file, &
-                                     alb_buffer_file)
+                                     alb_buffer_file, &
+                                     i_lsm_data, &
+                                     land_sea_mask_file,&
+                                     number_special_points )
 
   ! test for glcc data
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
@@ -788,6 +819,8 @@ END SELECT
    &                           alb_field_mom, &
    &                           alnid_field_mom, &
    &                           aluvd_field_mom)
+
+
 
   PRINT *,'Read in NDVI data'
   CALL read_netcdf_buffer_ndvi(ndvi_buffer_file,  &
@@ -925,6 +958,17 @@ END SELECT
     &                                     flake_tot_npixel)
 
 
+    IF (i_lsm_data == 2) THEN
+    PRINT *,'Read in Land-Sea-Mask from file  ',land_sea_mask_file
+    CALL read_netcdf_buffer_lsm(land_sea_mask_file,  &
+   &                           tg, &
+   &                           fr_land_mask)
+    PRINT *,'Land-Sea-Mask file  ',land_sea_mask_file," is used for consistency tests."
+    ELSE
+    PRINT *,'External  Land-Sea-Mask is NOT used for consistency tests.'
+    END IF
+
+
 
 !------------------------------------------------------------------------------------------
 !------------- land use data --------------------------------------------------------------
@@ -945,6 +989,9 @@ END SELECT
         fr_land_lu = MAX(0.51_wp,fr_land_lu)
       ENDWHERE
 
+       IF (i_lsm_data == 2) THEN
+          fr_land_lu = fr_land_mask
+      ENDIF
 
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart
@@ -1036,6 +1083,7 @@ END SELECT
         ENDDO
         !HA debug
         PRINT *,'number of grid elements set to ice soiltype: ', db_ice_counter
+        PRINT *,'Soiltype range MIN/MAX: ', MINVAL(soiltype_fao),MAXVAL(soiltype_fao)
 
       ELSE   ! iI_lu_glc2000 or i_lu_glcc     
 
@@ -1087,6 +1135,7 @@ END SELECT
       ENDIF
 
     END SELECT
+
       !------------------------------------------------------------------------------------------
 
     SELECT CASE (isoil_data)
@@ -1278,18 +1327,22 @@ END SELECT
 
      CALL CPU_TIME(timestart)
 
-     namelist_file = 'INPUT_ALB'
 
-     CALL read_namelists_extpar_alb(namelist_file,             &
-    &                                  raw_data_alb_path,      &
-    &                                  raw_data_alb_filename,  &
-    &                                  raw_data_alnid_filename,&
-    &                                  raw_data_aluvd_filename,&
-    &                                  alb_buffer_file,        &
-    &                                  alb_output_file,        &
-    &                                  alb_source,             &
-    &                                  alnid_source,           &
+     namelist_alb_data_input = 'INPUT_ALB'
+
+     CALL  read_namelists_extpar_alb(namelist_alb_data_input, &
+    &                                  raw_data_alb_path, &
+    &                                  raw_data_alb_filename, &
+    &                                  raw_data_alnid_filename, &
+    &                                  raw_data_aluvd_filename, &
+    &                                  alb_buffer_file, &
+    &                                  alb_output_file, &
+    &                                  alb_source, &
+    &                                  alnid_source, &
     &                                  aluvd_source)
+
+     path_alb_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alb_filename)
+     print *, path_alb_file
 
      nlon_reg = alb_raw_data_grid%nlon_reg
      nlat_reg = alb_raw_data_grid%nlat_reg
@@ -1313,11 +1366,11 @@ END SELECT
       ENDDO
     ENDDO
 
-    CALL const_check_interpol_alb(alb_field_mom)
+    CALL const_check_interpol_alb(alb_field_mom,fr_land_lu)
 
-    CALL const_check_interpol_alb(alnid_field_mom)
+    CALL const_check_interpol_alb(alnid_field_mom,fr_land_lu)
 
-    CALL const_check_interpol_alb(aluvd_field_mom)
+    CALL const_check_interpol_alb(aluvd_field_mom,fr_land_lu)
 
 
     CALL CPU_TIME(timeend)
@@ -1367,6 +1420,103 @@ END SELECT
 !------------- NDVI data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
+!------------------------------------------------------------------------------------------
+!------------- Special Points        ------------------------------------------------------
+
+     SELECT CASE(igrid_type)  
+           CASE(igrid_cosmo) ! COSMO grid
+
+            
+
+     do isp=1,number_special_points
+        IF (number_special_points<1) THEN
+           write(*,*) 'No treatment of special points: Number of special points is ',number_special_points
+           EXIT
+        END IF
+
+!------------------------------------------------------------------------------------------
+! CAUTION! Tested only for COSMO!!!
+
+  !--------------------------------------------------------------------------------------------------------
+  ! get file
+  
+        write(namelist_file,'(A9,I1)') 'INPUT_SP_',isp
+
+  !---------------------------------------------------------------------------
+
+       CALL read_namelists_extpar_special_points(namelist_file, &
+                                                lon_geo_sp,           &
+                                                lat_geo_sp,           &
+                                                soiltype_sp,          &
+                                                z0_sp,                &
+                                                rootdp_sp,            &
+                                                plcovmn_sp,           &
+                                                plcovmx_sp,           &
+                                                laimn_sp,             &
+                                                laimx_sp)
+
+! Consider only well defined variables, default is -999.!
+       IF ((lon_geo_sp < -360._wp ).OR.(lat_geo_sp < -90._wp)) THEN
+          PRINT*,"CAUTION! Special points defined but not in target domain!"
+       ELSE
+         start_cell_id = 1
+
+
+         CALL  find_nearest_target_grid_element(lon_geo_sp, &
+                                              & lat_geo_sp, &
+                                              & tg,            &
+                                              & start_cell_id, &
+                                              & i_sp,      &
+                                              & j_sp,      &
+                                              & k_sp)
+
+         
+write(*,'(A26,A10,A4,2X,I1)') "Consider special point in ",namelist_file," of ",number_special_points
+write(*,'(A33,1X,2(F6.3,2X))') "Consider special point: lon,lat  ",lon_geo_sp,lat_geo_sp
+write(*,'(A33,1X,2(I5,2X))') "Consider special point:  ie,je   ",i_sp,j_sp
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," z0_tot old ",z0_tot (i_sp,j_sp,k_sp),"new ",z0_sp
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," root_lu old ",root_lu(i_sp,j_sp,k_sp),"new ",rootdp_sp
+write(*,'(A23,i4,2X,I4,A19,I5,2X,A4,I5)')"Consider special point: ",&
+i_sp,j_sp," soiltype_fao old  ",soiltype_fao(i_sp,j_sp,k_sp),"new ",NINT(soiltype_sp)
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," plcov_mn_lu  old  ",plcov_mn_lu (i_sp,j_sp,k_sp),"new ",plcovmn_sp
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," plcov_mx_lu  old  ",plcov_mx_lu (i_sp,j_sp,k_sp),"new ",plcovmx_sp
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," lai_mn_lu    old  ",lai_mn_lu (i_sp,j_sp,k_sp),"new ",laimn_sp
+write(*,'(A23,i4,2X,I4,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+i_sp,j_sp," lai_mx_lu    old  ",lai_mx_lu (i_sp,j_sp,k_sp),"new ",laimx_sp
+
+          IF ((i_sp == 0).OR.(j_sp == 0)) PRINT*,"CAUTION! Special points out of range of target domain!"
+
+
+! Consider only well defined variables, default is -999.!
+             IF(z0_sp > 0._wp)          z0_tot (i_sp,j_sp,k_sp)      = z0_sp
+             IF(rootdp_sp>0._wp)        root_lu(i_sp,j_sp,k_sp)      = rootdp_sp
+             IF(soiltype_sp>0._wp )     soiltype_fao(i_sp,j_sp,k_sp) = NINT(soiltype_sp)
+             IF(plcovmn_sp>0._wp)       plcov_mn_lu (i_sp,j_sp,k_sp) = plcovmn_sp
+             IF(plcovmx_sp>0._wp)       plcov_mx_lu (i_sp,j_sp,k_sp) = plcovmx_sp
+             IF(laimn_sp>0._wp)         lai_mn_lu (i_sp,j_sp,k_sp)   = laimn_sp
+             IF(laimx_sp>0._wp)         lai_mx_lu (i_sp,j_sp,k_sp)   = laimx_sp
+
+! Optional parameters for special point - not considered yet
+    !                                     rs_min_lu, &
+    !                                     urban_lu,  &
+    !                                     for_d_lu,  &
+    !                                     for_e_lu, &
+    !                                     emissivity_lu, &
+    !                                     soiltype_fao, &
+    !                                     ndvi_max,  &
+    !                                     ndvi_field_mom,&
+    !                                     ndvi_ratio_mom, &
+    !                                     hh_globe,            &
+                     END IF
+
+                  END DO ! Special Points  loop
+
+           END SELECT
 !------------------------------------------------------------------------------------------
 !------------- data output ----------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -1441,6 +1591,7 @@ SELECT CASE(igrid_type)
 
       PRINT *,'write out ', TRIM(netcdf_output_filename)
  
+      IF(ldeep_soil) THEN
       CALL  write_netcdf_cosmo_grid_extpar(TRIM(netcdf_output_filename),&
      &                                     cosmo_grid,                  &
      &                                     tg,                          &
@@ -1505,7 +1656,65 @@ SELECT CASE(igrid_type)
      &                                     slope_ang_topo=slope_ang_topo,&
      &                                     horizon_topo=horizon_topo,    &
      &                                     skyview_topo=skyview_topo)
-
+     ELSE
+      CALL  write_netcdf_cosmo_grid_extpar(TRIM(netcdf_output_filename),&
+     &                                     cosmo_grid,                  &
+     &                                     tg,                          &
+     &                                     isoil_data,                  &
+     &                                     ldeep_soil,                  &
+     &                                     lsso_param,                  & 
+     &                                     lradtopo,                    &  
+     &                                     nhori,                       &
+     &                                     fill_value_real,             &
+     &                                     fill_value_int,              &
+     &                                     TRIM(name_lookup_table_lu),  &
+     &                                     TRIM(lu_dataset),            &
+     &                                     nclass_lu,                   &
+     &                                     lon_geo,                     &
+     &                                     lat_geo,                     &
+     &                                     fr_land_lu,                  &
+     &                                     lu_class_fraction,           &
+     &                                     ice_lu,                      &
+     &                                     z0_tot,                      &
+     &                                     z0_lu,                       &
+     &                                     z0_topo,                     &
+     &                                     root_lu,                     &
+     &                                     plcov_mn_lu,                 &
+     &                                     plcov_mx_lu,                 &
+     &                                     lai_mn_lu,                   &
+     &                                     lai_mx_lu,                   &
+     &                                     rs_min_lu,                   &
+     &                                     urban_lu,                    &
+     &                                     for_d_lu,                    &
+     &                                     for_e_lu,                    &
+     &                                     emissivity_lu,               &
+     &                                     lake_depth,                  &
+     &                                     fr_lake,                     &
+     &                                     soiltype_fao,                &
+     &                                     ndvi_max,                    &
+     &                                     ndvi_field_mom,              &
+     &                                     ndvi_ratio_mom,              &
+     &                                     hh_topo,                     &
+     &                                     stdh_topo,                   &
+     &                                     aot_tg,                      &
+     &                                     crutemp,                     &
+     &                                     alb_field_mom,               &
+     &                                     alnid_field_mom,             &
+     &                                     aluvd_field_mom,             &
+     &                                     fr_sand = fr_sand,           &
+     &                                     fr_silt = fr_silt,           &
+     &                                     fr_clay = fr_clay,           &
+     &                                     fr_oc = fr_oc,               &
+     &                                     fr_bd = fr_bd,               &
+     &                                     fr_dm = fr_dm,               &
+     &                                     theta_topo=theta_topo,       &
+     &                                     aniso_topo=aniso_topo,       &
+     &                                     slope_topo=slope_topo,       &
+     &                                     slope_asp_topo=slope_asp_topo,&
+     &                                     slope_ang_topo=slope_ang_topo,&
+     &                                     horizon_topo=horizon_topo,    &
+     &                                     skyview_topo=skyview_topo)
+     ENDIF
      PRINT *,'write out ', TRIM(grib_output_filename)
      
 

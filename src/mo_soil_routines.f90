@@ -5,7 +5,7 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
-! V1_10        2013-03-26 Juergen Helmert
+! V1_10        2013/03/26 Juergen Helmert
 !  Adaption in DSMW grid increment computation         
 !
 ! Code Description:

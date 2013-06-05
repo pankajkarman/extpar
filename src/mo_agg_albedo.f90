@@ -5,8 +5,10 @@
 ! ------------ ---------- ----
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)
-! V1_9         2013-03-15 Frank Brenner
+! V1_9         2013/03/15 Frank Brenner
 !  minor bug fix         
+! V1_13        2013-05-29 Frank Brenner
+!  missing values fixed         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -172,6 +174,8 @@ PUBLIC :: agg_alb_data_to_target_grid
     ! global data flag
     LOGICAL :: gldata=.TRUE. ! input data is global
 
+    INTEGER (KIND=i4), ALLOCATABLE :: no_valid_raw_data_pixel(:,:,:)
+
 
 
 
@@ -242,12 +246,15 @@ PUBLIC :: agg_alb_data_to_target_grid
     CALL open_netcdf_ALB_data(path_alb_file, &
                                ncid_alb)
 
+    ALLOCATE(no_valid_raw_data_pixel(tg%ie, tg%je, tg%ke))
+
     PRINT *, 'mo_agg_albedo, albedo nc input file opened'
 
     ! read in albedo data row by row and assign albedo raw data pixel to COSMO grid
     ! start loop over albedo raw data
     time_loop: DO time_index=1,12
-    no_raw_data_pixel = 0 ! set count to 0
+    no_raw_data_pixel       = 0 ! set count to 0
+    no_valid_raw_data_pixel = 0 ! set count to 0
     alb_sum = 0.  ! set sum to 0
 
     data_rows: DO row_index=northern_bound_index,southern_bound_index
@@ -297,9 +304,12 @@ PUBLIC :: agg_alb_data_to_target_grid
                         ENDIF
 
                     IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
-                        no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1                                
+                      no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1
+                      IF (alb_field_row(column_index)>0.02) THEN
+                         no_valid_raw_data_pixel(ie,je,ke) = no_valid_raw_data_pixel(ie,je,ke) + 1
             ! count raw data pixel within COSMO grid element
-                        alb_sum(ie,je,ke)  = alb_sum(ie,je,ke) + alb_field_row(column_index) ! sum data values
+                         alb_sum(ie,je,ke)  = alb_sum(ie,je,ke) + alb_field_row(column_index) ! sum data values
+                      ENDIF
                     ENDIF
                   ENDDO column
     END DO data_rows
@@ -328,9 +338,12 @@ PUBLIC :: agg_alb_data_to_target_grid
     DO j=1, tg%je
     DO i=1, tg%ie
 
-     IF (no_raw_data_pixel(i,j,k) /= 0) THEN 
-          alb_field(i,j,k) = alb_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
-     ELSE ! bilinear interpolation
+     IF (no_valid_raw_data_pixel(i,j,k) /= 0) THEN 
+          alb_field(i,j,k) = alb_sum(i,j,k) / REAL(no_valid_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
+!roa sorry but the next line is not correct! Please ask DWD to repair! I just do a quick fix... >
+  !   ELSE IF (no_raw_data_pixel(ie,je,ke) == 0) THEN! bilinear interpolation
+     ELSEIF (no_valid_raw_data_pixel(i,j,k) == 0) THEN
+!roa <
        !--------------------------------------------------------------------------------------------------
          point_lon_geo = lon_geo(i,j,k) 
          point_lat_geo = lat_geo(i,j,k)
@@ -423,8 +436,12 @@ PUBLIC :: agg_alb_data_to_target_grid
          ENDIF
 
         ! perform the interpolation
-         target_value = calc_value_bilinear_interpol(bwlon, bwlat, &
+        IF (alb_point_sw > 0.02 .AND. alb_point_se > 0.02 .AND. alb_point_ne > 0.02 .AND. alb_point_nw > 0.02) THEN
+          target_value = calc_value_bilinear_interpol(bwlon, bwlat, &
                                            alb_point_sw, alb_point_se, alb_point_ne, alb_point_nw)
+        ELSE
+           target_value = -999. ! assume missing value - will be fixed later in the cross check
+        ENDIF
 
 !         IF (target_value.gt.1) THEN
 !           PRINT *, 'alb_field interpolation error: ',i,j,k,target_value
@@ -440,6 +457,10 @@ PUBLIC :: agg_alb_data_to_target_grid
        ELSE ! grid element outside target grid
          alb_field(i,j,k) = default_value
        ENDIF
+
+     ELSE
+       alb_field(i,j,k) = -999. !assume missing value if no valid data point was present, will be fixed later in the cross check
+
      ENDIF
 
      ENDDO !i
@@ -453,6 +474,7 @@ PUBLIC :: agg_alb_data_to_target_grid
 
     END DO time_loop
     CALL  close_netcdf_ALB_data(ncid_alb)
+    DEALLOCATE(no_valid_raw_data_pixel)
   
   END SUBROUTINE agg_alb_data_to_target_grid
 

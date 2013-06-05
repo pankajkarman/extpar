@@ -3,8 +3,10 @@
 ! History:
 ! Version      Date       Name
 ! ------------ ---------- ----
-! V1_8         2013-03-12 Frank Brenner
+! V1_8         2013/03/12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s) 
+! V1_12        2013-04-24 Frank Brenner
+!  bug fix regarding old file paths         
 ! 
 ! Code Description:
 ! Language: Fortran 2003.
@@ -209,10 +211,6 @@ PROGRAM extpar_albedo_to_buffer
     &                                  aluvd_source)
 
    
-!  raw_data_alb_filename   = 'month_alb.nc'
-!  raw_data_alnid_filename = 'month_alnid.nc'
-!  raw_data_aluvd_filename = 'month_aluvd.nc'
-
   path_alb_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alb_filename)
   path_alnid_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alnid_filename)
   path_aluvd_file = TRIM(raw_data_alb_path)//TRIM(raw_data_aluvd_filename)

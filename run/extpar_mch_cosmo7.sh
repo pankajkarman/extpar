@@ -14,16 +14,16 @@ workdir=./                                                   # adjust the path s
 data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path setting!
 data_dir2=/store/s83/messmerm/ncfiles/                       # adjust the path setting!
 # path to binaries
-progdir=../build                                             # adjust the path setting!
+progdir=../                                                  # adjust the path setting!
 
-binary_alb=extpar_alb_to_buffer
-binary_lu=extpar_landuse_to_buffer
-binary_topo=extpar_topo_to_buffer
-binary_aot=extpar_aot_to_buffer
-binary_tclim=extpar_cru_to_buffer
-binary_ndvi=extpar_ndvi_to_buffer
-binary_soil=extpar_soil_to_buffer
-binary_flake=extpar_flake_to_buffer
+binary_alb=extpar_alb_to_buffer.exe
+binary_lu=extpar_landuse_to_buffer.exe
+binary_topo=extpar_topo_to_buffer.exe
+binary_aot=extpar_aot_to_buffer.exe
+binary_tclim=extpar_cru_to_buffer.exe
+binary_ndvi=extpar_ndvi_to_buffer.exe
+binary_soil=extpar_soil_to_buffer.exe
+binary_flake=extpar_flake_to_buffer.exe
 
 binary_extpar_consistency_check=extpar_consistency_check
 
@@ -299,6 +299,9 @@ cat > INPUT_CHECK << EOF_check
   t_clim_buffer_file="${buffer_tclim}",
   aot_buffer_file="${buffer_aot}",
   alb_buffer_file="${buffer_alb}"
+  i_lsm_data=1,
+  land_sea_mask_file="",
+  number_special_points=0,
 /  
 EOF_check
 

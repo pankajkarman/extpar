@@ -54,10 +54,10 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 !
 ! Following declarations have to be defined just after checkout from the version control system:
 CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_10'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2013-03-26 12:39:41'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '25'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2013-04-08 11:05:20'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_13'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2013-05-29 13:03:26'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '31'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2013-05-31 08:01:30'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = ''
 ! Following declarations have to be defined just before compiling:
 CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = &

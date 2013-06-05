@@ -12,6 +12,8 @@
 ! add support for GRIB1 and GRIB2
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
+! V1_11        2013/04/16 Juergen Helmert
+!  Adaptions for using special points and external land-sea-mask
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -27,6 +29,7 @@ MODULE mo_read_extpar_namelists
 
  PUBLIC :: read_namelists_extpar_grid_def
  PUBLIC :: read_namelists_extpar_check
+ PUBLIC :: read_namelists_extpar_special_points
 
 CONTAINS
 
@@ -83,7 +86,10 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                        ndvi_buffer_file,      &
                                        t_clim_buffer_file,    &
                                        aot_buffer_file,       &
-                                       alb_buffer_file)
+                                       alb_buffer_file,       &
+                                       i_lsm_data,            &
+                                       land_sea_mask_file,    &
+                                       number_special_points )
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
 
@@ -106,7 +112,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
    CHARACTER (len=filename_max) :: t_clim_buffer_file  !< name for t_clim buffer file
    CHARACTER (len=filename_max) :: aot_buffer_file  !< name for aot buffer file
    CHARACTER (len=filename_max) :: alb_buffer_file  !< name for albedo buffer file
-
+   CHARACTER (len=filename_max) :: land_sea_mask_file  !< name for land-sea mask file
+   INTEGER                      :: number_special_points, i_lsm_data
 
 
    !> namelist with filenames for output of soil data
@@ -121,7 +128,10 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                          ndvi_buffer_file, &
                                          t_clim_buffer_file, &
                                          aot_buffer_file, &
-                                         alb_buffer_file
+                                         alb_buffer_file, &
+                                         i_lsm_data, &
+                                         land_sea_mask_file,&
+                                         number_special_points
                                          
 
    INTEGER           :: nuin !< unit number
@@ -142,7 +152,77 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
 
 END SUBROUTINE read_namelists_extpar_check
 !---------------------------------------------------------------------------
+SUBROUTINE read_namelists_extpar_special_points(namelist_file,        &
+                                                lon_geo_sp,           &
+                                                lat_geo_sp,           &
+                                                soiltype_sp,          &
+                                                z0_sp,                &
+                                                rootdp_sp,            &
+                                                plcovmn_sp,           &
+                                                plcovmx_sp,           &
+                                                laimn_sp,             &
+                                                laimx_sp)
 
+
+  USE mo_utilities_extpar, ONLY: free_un, & ! function to get free unit number
+                                 abort_extpar
+  
+  CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
+                                                            ! orography smoothing
+  
+
+
+  REAL(KIND=wp),    INTENT(OUT) ::              lon_geo_sp,           &
+                                                lat_geo_sp,           &
+                                                soiltype_sp,          &
+                                                z0_sp,                &
+                                                rootdp_sp,            &
+                                                plcovmn_sp,           &
+                                                plcovmx_sp,           &
+                                                laimn_sp,             &
+                                                laimx_sp
+
+!> local variables
+  INTEGER           :: nuin     !< unit number
+  INTEGER (KIND=i4) :: ierr     !< error flag
+
+
+!> define the namelist group
+  NAMELIST /special_points/ &
+    lon_geo_sp, lat_geo_sp, soiltype_sp, z0_sp, rootdp_sp, plcovmn_sp, plcovmx_sp, &
+    laimn_sp, laimx_sp
+                                 
+!> initialization
+  ierr     = 0
+     
+
+
+!> read namelist  
+  print *,"special points namelist:", TRIM(namelist_file)
+  nuin = free_un()  ! function free_un returns free Fortran unit number
+  OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+  IF (ierr /= 0) THEN
+    CALL abort_extpar('read_namelists_extpar_special_points: cannot open file')
+  ENDIF
+  READ(nuin, NML=special_points, IOSTAT=ierr)
+  IF (ierr /= 0) THEN
+    CALL abort_extpar(&
+ 'read_namelists_extpar_special_points: cannot read file: please compare number of special points and defined files!')
+  ENDIF
+  CLOSE(nuin)
+
+!> check values for consistency
+
+!!$    IF ((ifill_valley < 1) .OR. (ifill_valley > 2)) THEN
+!!$      PRINT *,' Warning  *** ifill valley has to be 1 or 2 *** '
+!!$      PRINT *,'          *** set ifill valley = 1 (default value)! *** '
+!!$      ifill_valley = 1
+!!$    ENDIF    
+
+
+
+
+END SUBROUTINE read_namelists_extpar_special_points
 
 END MODULE mo_read_extpar_namelists
 

@@ -54,7 +54,7 @@ MODULE mo_search_icongrid
 
   PRIVATE
 
-  CHARACTER(len=*), PARAMETER :: version = '$Id: mo_search_icongrid.f90,v 1.7 2013-01-25 07:40:39 for0adm Exp $'
+  CHARACTER(len=*), PARAMETER :: version = '$Id: mo_search_icongrid.f90,v 1.11 2013-04-16 11:09:20 for0adm Exp $'
 
   PUBLIC :: walk_to_nc
   PUBLIC :: find_nc

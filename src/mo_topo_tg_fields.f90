@@ -127,7 +127,6 @@ CONTAINS
     ALLOCATE (slope_ang_topo(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
       IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array slope_ang_topo')
     slope_ang_topo = 0.0
-!ROATODO check that the dimension order is ok (inversion of ke and nhori?)
     ALLOCATE (horizon_topo(1:tg%ie,1:tg%je,1:tg%ke,nhori), STAT=errorcode)
       IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array horizon_topo')
     horizon_topo = 0.0

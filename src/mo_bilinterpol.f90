@@ -5,7 +5,7 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
-! V1_8         2013-03-12 Frank Brenner
+! V1_8         2013/03/12 Frank Brenner
 !  fixed bug in get_4_surrounding_raw_data_indices regarding negative longitudes
 !
 ! Code Description:

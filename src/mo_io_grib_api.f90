@@ -15,6 +15,8 @@
 ! V1_8         2013-03-12 Frank Brenner
 !  small bug fix regarding grib_set "stepType" to "avg" with new GRIB API 
 !  versions (above 1.9.9)         
+! V1_11        2013/04/16 Juergen Helmert
+!  Specify resolutionAndComponentFlags       
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -338,6 +340,8 @@ MODULE mo_io_grib_api
       CALL grib_set(gribid,'localDecodeDateHour ',hh)
       CALL grib_set(gribid,'localDecodeDateMinute ',minute)
     ENDIF
+
+     CALL grib_set(gribid,'resolutionAndComponentFlags',0)
 
   END SUBROUTINE set_parameter_grib
 

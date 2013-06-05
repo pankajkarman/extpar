@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_3         2011/04/19 Hermann Asensio
 ! introduce Globcover 2009 land use data set for external parameters
+! V1_11        2013/04/16 Juergen Helmert
+!  Adaptions for using external land-sea mask 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -40,6 +42,7 @@ IMPLICIT NONE
 PRIVATE
 
 PUBLIC :: fr_land_lu, &
+  &  fr_land_mask, &
   &        ice_lu, &
   &        z0_lu, &
   &        z0_tot, &
@@ -81,6 +84,7 @@ PUBLIC :: allocate_lu_ds_target_fields
 
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_land_lu(:,:,:) !< fraction land due to land use raw data
+       REAL (KIND=wp), ALLOCATABLE  :: fr_land_mask(:,:,:) !< fraction land due to external target data
        REAL (KIND=wp), ALLOCATABLE  :: ice_lu(:,:,:)     !< fraction of ice due to land use raw data
        REAL (KIND=wp), ALLOCATABLE  :: z0_lu(:,:,:)      !< roughness length due to land use land use data
        REAL (KIND=wp), ALLOCATABLE  :: z0_tot(:,:,:)      !< total roughness length 
@@ -98,11 +102,14 @@ PUBLIC :: allocate_lu_ds_target_fields
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_ocean_lu(:,:,:) !< fraction ocean due to land use raw data
 
-       REAL (KIND=wp), ALLOCATABLE  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+       REAL (KIND=wp), ALLOCATABLE  :: lu_class_fraction(:,:,:,:)  
+!< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
 
-       INTEGER (KIND=i8), ALLOCATABLE :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
+       INTEGER (KIND=i8), ALLOCATABLE :: lu_class_npixel(:,:,:,:) 
+!< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
 
-       INTEGER (KIND=i8), ALLOCATABLE :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
+       INTEGER (KIND=i8), ALLOCATABLE :: lu_tot_npixel(:,:,:)  
+!< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
        
        REAL (KIND=wp), ALLOCATABLE  :: fr_land(:,:,:,:) !< fraction land due to land use raw data
        REAL (KIND=wp), ALLOCATABLE  :: ice(:,:,:,:)     !< fraction of ice due to land use raw data
@@ -144,6 +151,10 @@ CONTAINS
     ALLOCATE (fr_land_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_land_lu')
     fr_land_lu = 0.0
+
+    ALLOCATE (fr_land_mask(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_land_mask')
+    fr_land_mask = 0.0
 
      ALLOCATE (ice_lu(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array ice_lu')

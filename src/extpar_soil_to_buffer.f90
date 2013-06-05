@@ -191,43 +191,43 @@ USE mo_target_grid_routines, ONLY: init_target_grid
       default_value =  3 ! default value
       path_deep_soil_file = "" !default name
 
-    !--------------------------------------------------------------------------------------------------------
-    !--------------------------------------------------------------------------------------------------------
-    ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
-    ! for th target grid
-
-    namelist_grid_def = 'INPUT_grid_org'
-    CALL  init_target_grid(namelist_grid_def)
-
-    !--------------------------------------------------------------------------------------------------------
-    !--------------------------------------------------------------------------------------------------------
-
-
-    ! get information on soil raw data
-    !--------------------------------------------------------------------------------------------------------
+      !--------------------------------------------------------------------------------------------------------
+      !--------------------------------------------------------------------------------------------------------
+      ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
+      ! for th target grid
       
-    ! read namelist with soil data information (path, filename)
-
-    namelist_soil_data_input = 'INPUT_SOIL'
-    CALL read_namelists_extpar_soil(namelist_soil_data_input,        &
-                                         isoil_data,                 &
-                                         ldeep_soil,                 &
-                                         raw_data_soil_path,         &
-                                         raw_data_soil_filename,     &
-                                         raw_data_deep_soil_filename,&
-                                         soil_buffer_file,           &
-                                         soil_output_file,           &
-                                         soil_buffer_file_consistent,&
-                                         soil_output_file_consistent)
-
-     
-
-
-    IF (ldeep_soil.eq..TRUE. .and. isoil_data /= HWSD_data) THEN
-      ldeep_soil = .FALSE.
-      print*, '********* you can only use the deep soil if HWSD data is used *********'
-      print*, '********* ldeep_soil is set to FALSE *********'
-    ENDIF
+      namelist_grid_def = 'INPUT_grid_org'
+      CALL  init_target_grid(namelist_grid_def)
+      
+      !--------------------------------------------------------------------------------------------------------
+      !--------------------------------------------------------------------------------------------------------
+      
+      
+      ! get information on soil raw data
+      !--------------------------------------------------------------------------------------------------------
+        
+      ! read namelist with soil data information (path, filename)
+      
+      namelist_soil_data_input = 'INPUT_SOIL'
+      CALL read_namelists_extpar_soil(namelist_soil_data_input,        &
+                                           isoil_data,                 &
+                                           ldeep_soil,                 &
+                                           raw_data_soil_path,         &
+                                           raw_data_soil_filename,     &
+                                           raw_data_deep_soil_filename,&
+                                           soil_buffer_file,           &
+                                           soil_output_file,           &
+                                           soil_buffer_file_consistent,&
+                                           soil_output_file_consistent)
+      
+       
+      
+      
+      IF (ldeep_soil.eq..TRUE. .and. isoil_data /= HWSD_data) THEN
+        ldeep_soil = .FALSE.
+        print*, '********* you can only use the deep soil if HWSD data is used *********'
+        print*, '********* ldeep_soil is set to FALSE *********'
+      ENDIF
 
 
       !HA debug
@@ -293,7 +293,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
       undefined = 0.0
 
-        CALL agg_soil_data_to_target_grid(tg,            &
+      CALL agg_soil_data_to_target_grid(tg,              &
                   &                   undefined,         &
                   &                   soil_texslo,       &
                   &                   dsmw_soil_unit,    &
@@ -306,20 +306,20 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
  
       
-        print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
-        print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
+      print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
+      print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
 
-        print *,'MAXVAL(cosmo_soiltyp): ', MAXVAL(soiltype_fao)
-        print *,'MINVAL(cosmo_soiltyp): ', MINVAL(soiltype_fao)
+      print *,'MAXVAL(cosmo_soiltyp): ', MAXVAL(soiltype_fao)
+      print *,'MINVAL(cosmo_soiltyp): ', MINVAL(soiltype_fao)
 
-        print *,'MAXVAL(fr_land_soil): ', MAXVAL(fr_land_soil)
-        print *,'MINVAL(fr_land_soil): ', MINVAL(fr_land_soil)
+      print *,'MAXVAL(fr_land_soil): ', MAXVAL(fr_land_soil)
+      print *,'MINVAL(fr_land_soil): ', MINVAL(fr_land_soil)
 
 
 
-        print *,'Start filling of undefined target grid elements with nearest grid point raw data'
+      print *,'Start filling of undefined target grid elements with nearest grid point raw data'
 
-          CALL nearest_soil_data_to_target_grid(tg,     &
+      CALL nearest_soil_data_to_target_grid(tg,         &
                   &                   undefined,        &
                   &                   soil_texslo,      &
                   &                   dsmw_soil_unit,   &
@@ -331,23 +331,23 @@ USE mo_target_grid_routines, ONLY: init_target_grid
                   &                   fr_land_soil)
 
 
-         print *,'Filling of undefined target grid elements with nearest grid point raw data done.'
+      print *,'Filling of undefined target grid elements with nearest grid point raw data done.'
 
 
-        print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
-        print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
+      print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
+      print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
 
-        print *,'MAXVAL(cosmo_soiltyp): ', MAXVAL(soiltype_fao)
-        print *,'MINVAL(cosmo_soiltyp): ', MINVAL(soiltype_fao)
+      print *,'MAXVAL(cosmo_soiltyp): ', MAXVAL(soiltype_fao)
+      print *,'MINVAL(cosmo_soiltyp): ', MINVAL(soiltype_fao)
 
-        print *,'MAXVAL(fr_land_soil): ', MAXVAL(fr_land_soil)
-        print *,'MINVAL(fr_land_soil): ', MINVAL(fr_land_soil)
+      print *,'MAXVAL(fr_land_soil): ', MAXVAL(fr_land_soil)
+      print *,'MINVAL(fr_land_soil): ', MINVAL(fr_land_soil)
 
 
-        DEALLOCATE (dsmw_soil_unit, STAT = errorcode)
-        IF (errorcode /= 0) print*, 'Cant deallocate dsmw_soil_unit'
-        DEALLOCATE (soil_texslo, STAT = errorcode)
-        IF (errorcode /= 0) print*, 'Cant deallocate soil_texslo'
+      DEALLOCATE (dsmw_soil_unit, STAT = errorcode)
+      IF (errorcode /= 0) print*, 'Cant deallocate dsmw_soil_unit'
+      DEALLOCATE (soil_texslo, STAT = errorcode)
+      IF (errorcode /= 0) print*, 'Cant deallocate soil_texslo'
 
       IF (ldeep_soil) THEN
         CALL allocate_raw_deep_soil_fields(nlon_soil, nlat_soil, n_unit)
@@ -386,29 +386,31 @@ USE mo_target_grid_routines, ONLY: init_target_grid
                   &                   soiltype_deep)
 
 
-         print *,'Filling of undefined deep soil target grid elements with nearest grid point raw data done.'
+        print *,'Filling of undefined deep soil target grid elements with nearest grid point raw data done.'
 
 
-         print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
-         print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
+        print *,'MAXVAL(no_raw_data_pixel): ', MAXVAL(no_raw_data_pixel)
+        print *,'MINVAL(no_raw_data_pixel): ', MINVAL(no_raw_data_pixel)
 
-         print *,'MAXVAL(cosmo_deep_soiltyp): ', MAXVAL(soiltype_deep)
-         print *,'MINVAL(cosmo_deep_soiltyp): ', MINVAL(soiltype_deep)
+        print *,'MAXVAL(cosmo_deep_soiltyp): ', MAXVAL(soiltype_deep)
+        print *,'MINVAL(cosmo_deep_soiltyp): ', MINVAL(soiltype_deep)
        
-         DEALLOCATE (dsmw_deep_soil_unit, STAT = errorcode)
-         IF (errorcode /= 0) print*, 'Cant deallocate dsmw_deep_soil_unit'
-         DEALLOCATE (soil_texslo_deep, STAT = errorcode)
-         IF (errorcode /= 0) print*, 'Cant deallocate soil_texslo_deep'
-       ENDIF
+        DEALLOCATE (dsmw_deep_soil_unit, STAT = errorcode)
+        IF (errorcode /= 0) print*, 'Cant deallocate dsmw_deep_soil_unit'
+        DEALLOCATE (soil_texslo_deep, STAT = errorcode)
+        IF (errorcode /= 0) print*, 'Cant deallocate soil_texslo_deep'
+      ENDIF
 
-         PRINT *,'Start buffer output'
+      PRINT *,'Start buffer output'
 
-         netcdf_filename=  TRIM(soil_buffer_file)
+      netcdf_filename=  TRIM(soil_buffer_file)
 
-         undefined = -999.0
-         undefined_integer= 999
+      undefined = -999.0
+      undefined_integer= 999
 
-         CALL write_netcdf_soil_buffer(netcdf_filename,  &
+!roa bug fix soiltype_deep>
+      IF (ldeep_soil) THEN
+        CALL write_netcdf_soil_buffer(netcdf_filename,   &
    &                                   tg,               &
    &                                   isoil_data,       &
    &                                   ldeep_soil,       &
@@ -419,12 +421,25 @@ USE mo_target_grid_routines, ONLY: init_target_grid
    &                                   fr_land_soil,     &
    &                                   soiltype_fao,     &
    &                                   soiltype_deep = soiltype_deep)
+      ELSE
+        CALL write_netcdf_soil_buffer(netcdf_filename,   &
+   &                                   tg,               &
+   &                                   isoil_data,       &
+   &                                   ldeep_soil,       &
+   &                                   undefined,        &
+   &                                   undefined_integer,&
+   &                                   lon_geo,          &
+   &                                   lat_geo,          &
+   &                                   fr_land_soil,     &
+   &                                   soiltype_fao)
+      ENDIF
+!roa bug fix soiltype_deep<
 
-         PRINT *,'buffer output done'
-         PRINT *,'Start target grid output'
+      PRINT *,'buffer output done'
+      PRINT *,'Start target grid output'
 
 
-    SELECT CASE(tg%igrid_type)
+      SELECT CASE(tg%igrid_type)
        !-----------------------------------------------------------------
        CASE(igrid_icon) ! ICON GRID
 
@@ -433,7 +448,8 @@ USE mo_target_grid_routines, ONLY: init_target_grid
          undefined = -999.0
          undefined_integer= -999
 
-
+!roa bug fix soiltype_deep>
+      IF (ldeep_soil) THEN
          CALL write_netcdf_soil_icon_grid(netcdf_filename,  &
    &                                     icon_grid,         &
    &                                     isoil_data,        &
@@ -446,7 +462,20 @@ USE mo_target_grid_routines, ONLY: init_target_grid
    &                                     fr_land_soil,      &
    &                                     soiltype_fao,      &
    &                                     soiltype_deep = soiltype_deep)
-
+      ELSE
+         CALL write_netcdf_soil_icon_grid(netcdf_filename,  &
+   &                                     icon_grid,         &
+   &                                     isoil_data,        &
+   &                                     tg,                &
+   &                                     ldeep_soil,        &
+   &                                     undefined,         &
+   &                                     undefined_integer, &
+   &                                     lon_geo,           &
+   &                                     lat_geo,           &
+   &                                     fr_land_soil,      &
+   &                                     soiltype_fao)
+      ENDIF
+!roa bug fix soiltype_deep<
 
        CASE(igrid_cosmo) ! COSMO grid
 
@@ -455,7 +484,8 @@ USE mo_target_grid_routines, ONLY: init_target_grid
          undefined = -999.0
          undefined_integer= -999
 
-
+!roa bug fix soiltype_deep>
+      IF (ldeep_soil) THEN
           CALL write_netcdf_soil_cosmo_grid(netcdf_filename, &
    &                                     cosmo_grid,         &
    &                                     tg,                 &
@@ -468,7 +498,20 @@ USE mo_target_grid_routines, ONLY: init_target_grid
    &                                     fr_land_soil,       &
    &                                     soiltype_fao,       &
    &                                     soiltype_deep = soiltype_deep)
-
+      ELSE
+          CALL write_netcdf_soil_cosmo_grid(netcdf_filename, &
+   &                                     cosmo_grid,         &
+   &                                     tg,                 &
+   &                                     isoil_data,         &
+   &                                     ldeep_soil,         &
+   &                                     undefined,          &
+   &                                     undefined_integer,  &
+   &                                     lon_geo,            &
+   &                                     lat_geo,            &
+   &                                     fr_land_soil,       &
+   &                                     soiltype_fao)
+      ENDIF
+!roa bug fix soiltype_deep<
 
        CASE(igrid_gme) ! GME grid   
     END SELECT

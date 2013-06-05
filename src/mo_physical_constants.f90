@@ -36,7 +36,7 @@ MODULE mo_physical_constants
   IMPLICIT NONE
 
 ! !VERSION CONTROL:
-  CHARACTER(len=*), PARAMETER, PRIVATE :: version = '$Id: mo_physical_constants.f90,v 1.7 2013-01-25 07:40:39 for0adm Exp $'
+  CHARACTER(len=*), PARAMETER, PRIVATE :: version = '$Id: mo_physical_constants.f90,v 1.11 2013-04-16 11:09:20 for0adm Exp $'
 
   PUBLIC
 

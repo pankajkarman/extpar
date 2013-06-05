@@ -22,6 +22,8 @@
 !   simplified namelist control for ICON  
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
+! V1_11        2013/04/16 Juergen Helmert
+!  Small adaptions in output of global attributes
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -339,7 +341,11 @@ MODULE mo_extpar_output_nc
     !-------------------------------------------------------------
     ! define global attributes
     CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset)
-    PRINT *,'global_attributes: ', global_attributes
+    write(*,*) '----------------   NetCDF global_attributes ----------------------'
+    DO n=1,nglob_atts
+    write(*,*) global_attributes(n)
+    END DO
+    write(*,*) '------------------------------------------------------------------'
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg,nhori=nhori)

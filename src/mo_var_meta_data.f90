@@ -16,6 +16,8 @@
 !  implementation of orography smoothing
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
+! V1_11        2013/04/16 Juergen Helmert
+!  Adaptions for external land-sea mask
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -94,7 +96,7 @@ MODULE mo_var_meta_data
 
   PUBLIC :: dim_lu_tg
 
-  PUBLIC :: fr_land_lu_meta, lu_tot_npixel_meta, &
+  PUBLIC :: fr_land_lu_meta, fr_land_mask_meta,lu_tot_npixel_meta, &
     &       lu_class_fraction_meta, lu_class_npixel_meta, &
     &       ice_lu_meta, z0_lu_meta, &
     &       plcov_mx_lu_meta, plcov_mn_lu_meta, &
@@ -130,6 +132,7 @@ MODULE mo_var_meta_data
     &       flake_tot_npixel_meta
 
   PUBLIC :: def_flake_fields_meta
+  PUBLIC :: def_lsm_fields_meta
 
 
   PUBLIC :: dim_ndvi_tg, def_ndvi_meta
@@ -232,6 +235,7 @@ MODULE mo_var_meta_data
 
 
   TYPE(var_meta_info) :: fr_land_lu_meta  !< additional information for variable
+  TYPE(var_meta_info) :: fr_land_mask_meta  !< additional information for variable
   TYPE(var_meta_info) :: lu_tot_npixel_meta !< additional information for variable
   TYPE(var_meta_info) :: lu_class_npixel_meta !< additional information for variable
   TYPE(var_meta_info) :: lu_class_fraction_meta !< additional information for variable
@@ -1705,6 +1709,7 @@ MODULE mo_var_meta_data
     fr_land_lu_meta%coordinates = coord
 
 
+
    ! lu_tot_npixel_meta
     lu_tot_npixel_meta%varname = 'LU_TOT_NPIXEL'
     lu_tot_npixel_meta%n_dim = n_dim
@@ -1968,6 +1973,41 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_flake_fields_meta
 
 
+  !> define meta information for flake data for netcdf output
+  SUBROUTINE def_lsm_fields_meta(diminfo,coordinates,grid_mapping)
+    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
+    CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+
+    ! local variables
+    INTEGER  :: n_dim      !< number of dimensions
+    CHARACTER (len=80) :: gridmp
+    CHARACTER (len=80) :: coord
+
+    gridmp = c_undef
+    coord = c_undef
+    
+    IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
+    IF (PRESENT(coordinates)) coord = TRIM(coordinates)
+    n_dim = SIZE(diminfo)
+
+
+
+      ! fr_land_mask_meta
+    fr_land_mask_meta%varname = 'FR_LAND'
+    fr_land_mask_meta%n_dim = n_dim
+    fr_land_mask_meta%diminfo => diminfo
+    fr_land_mask_meta%vartype = vartype_real !REAL variable
+    fr_land_mask_meta%standard_name = 'land_area_fraction'
+    fr_land_mask_meta%long_name = 'Fraction land'
+    fr_land_mask_meta%shortName = 'FR_LAND'
+    fr_land_mask_meta%units =  c_undef
+    fr_land_mask_meta%grid_mapping = gridmp
+    fr_land_mask_meta%coordinates = coord
+
+     
+    
+  END SUBROUTINE def_lsm_fields_meta
 
 
 

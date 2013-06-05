@@ -5,6 +5,12 @@
 ! ------------ ---------- ----
 ! V1_8         2013-03-12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s)
+! V1_11        2013/04/16 Juergen Helmert
+!  Adaptions for using external land-sea mask  
+! V1_12        2013-04-24 Frank Brenner
+!  bug fix regarding old file paths         
+! V1_13        2013-05-29 Frank Brenner
+!  missing values fixed         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -28,9 +34,9 @@ USE netcdf,      ONLY :   &
   nf90_inquire_attribute, &
   nf90_get_att,           &
   nf90_inquire_dimension, &
-  nf90_inq_varid,         &
-  nf90_get_var,           &
-  nf90_noerr,             &
+  nf90_inq_varid,          &
+  nf90_get_var,            &
+  nf90_noerr,              &
   nf90_strerror
 
 USE netcdf,      ONLY:     &
@@ -43,7 +49,7 @@ USE netcdf,      ONLY:     &
   nf90_put_var
 
  
-USE netcdf,      ONLY :    &
+USE netcdf,      ONLY :   &
   NF90_CHAR,               &
   NF90_DOUBLE,             &
   NF90_FLOAT,              &
@@ -51,7 +57,7 @@ USE netcdf,      ONLY :    &
   NF90_BYTE,               &
   NF90_SHORT
 
-USE netcdf,      ONLY :    &
+USE netcdf,      ONLY :   &
   NF90_GLOBAL,             &
   NF90_UNLIMITED,          &
   NF90_CLOBBER,            &
@@ -62,11 +68,11 @@ USE netcdf,      ONLY :    &
 USE mo_utilities_extpar, ONLY: abort_extpar
 
 
-USE mo_io_utilities,     ONLY: check_netcdf
-USE mo_io_units,         ONLY: filename_max
+USE mo_io_utilities,           ONLY: check_netcdf
+USE mo_io_units,          ONLY: filename_max
 
 
-USE mo_GRID_structures,  ONLY: reg_lonlat_grid
+USE mo_GRID_structures,        ONLY: reg_lonlat_grid
 
 
 
@@ -90,15 +96,15 @@ CONTAINS
 
 !---------------------------------------------------------------------------
 !> subroutine to read namelist including albedo data settings for EXTPAR 
-SUBROUTINE read_namelists_extpar_alb(namelist_file,             &
-    &                                  raw_data_alb_path,       &
-    &                                  raw_data_alb_filename,   &
+SUBROUTINE read_namelists_extpar_alb(namelist_file, &
+    &                                  raw_data_alb_path, &
+    &                                  raw_data_alb_filename, &
     &                                  raw_data_alnid_filename, &
     &                                  raw_data_aluvd_filename, &
-    &                                  alb_buffer_file,         &
-    &                                  alb_output_file,         &
-    &                                  alb_source,              &
-    &                                  alnid_source,            &
+    &                                  alb_buffer_file, &
+    &                                  alb_output_file, &
+    &                                  alb_source, &
+    &                                  alnid_source, &
     &                                  aluvd_source)
 
 
@@ -107,22 +113,23 @@ SUBROUTINE read_namelists_extpar_alb(namelist_file,             &
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
 
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_alb_path        !< path to raw data
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_alb_filename !< filenames albedo raw data
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_alnid_filename
-CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_aluvd_filename
+! NDVI
+CHARACTER (len=filename_max) :: raw_data_alb_path        !< path to raw data
+CHARACTER (len=filename_max) :: raw_data_alb_filename !< filenames albedo raw data
+CHARACTER (len=filename_max) :: raw_data_alnid_filename
+CHARACTER (len=filename_max) :: raw_data_aluvd_filename
 
-CHARACTER (len=filename_max), INTENT(OUT) :: alb_buffer_file !< name for albedo buffer file
-CHARACTER (len=filename_max), INTENT(OUT) :: alb_output_file !< name for albedo output file
+CHARACTER (len=filename_max) :: alb_buffer_file !< name for albedo buffer file
+CHARACTER (len=filename_max) :: alb_output_file !< name for albedo output file
 
-CHARACTER (len=filename_max), INTENT(OUT) :: alb_source
-CHARACTER (len=filename_max), INTENT(OUT) :: alnid_source
-CHARACTER (len=filename_max), INTENT(OUT) :: aluvd_source
+CHARACTER (len=filename_max) :: alb_source
+CHARACTER (len=filename_max) :: alnid_source
+CHARACTER (len=filename_max) :: aluvd_source
 
 !> namelist with filenames for albedo data input
 NAMELIST /alb_raw_data/ raw_data_alb_path, raw_data_alb_filename
-NAMELIST /alnid_raw_data/ raw_data_alnid_filename
-NAMELIST /aluvd_raw_data/ raw_data_aluvd_filename
+NAMELIST /alnid_raw_data/ raw_data_alb_path, raw_data_alnid_filename
+NAMELIST /aluvd_raw_data/ raw_data_alb_path, raw_data_aluvd_filename
 
 !> namelist with filenames for albedo data output
 NAMELIST /alb_io_extpar/ alb_buffer_file, alb_output_file
@@ -133,7 +140,7 @@ NAMELIST /alb_source_file/ alb_source, alnid_source, aluvd_source
    INTEGER (KIND=i4) :: ierr !< error flag
 
 
-   nuin = free_un()  ! function free_un returns free Fortran unit number
+   nuin = free_un()  ! functioin free_un returns free Fortran unit number
 
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 
@@ -141,9 +148,8 @@ NAMELIST /alb_source_file/ alb_source, alnid_source, aluvd_source
    READ(nuin, NML=alnid_raw_data, IOSTAT=ierr)
    READ(nuin, NML=aluvd_raw_data, IOSTAT=ierr)
    READ(nuin, NML=alb_io_extpar, IOSTAT=ierr)
-
    READ(nuin, NML=alb_source_file, IOSTAT=ierr)
-
+   
    CLOSE(nuin)
 
 
@@ -798,27 +804,30 @@ END SUBROUTINE read_namelists_extpar_alb
 
 
 
- SUBROUTINE const_check_interpol_alb(alb_field_mom_d)
+ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu)
 
   USE mo_albedo_tg_fields, ONLY: alb_interpol
   USE mo_soil_tg_fields, ONLY:  soiltype_fao
   USE mo_target_grid_data, ONLY: tg
-  USE mo_lu_tg_fields, ONLY: fr_land_lu
+!  USE mo_lu_tg_fields, ONLY: fr_land_lu
   USE mo_target_grid_data, ONLY: lon_geo,lat_geo
   USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
    &                       calc_weight_bilinear_interpol, &
    &                       calc_value_bilinear_interpol
 
   USE mo_albedo_data, ONLY: lon_alb, &
-                            lat_alb, &
-                            zalso
-  USE  mo_icon_grid_data, ONLY: icon_grid 
+                          lat_alb, &
+                          zalso
+  USE  mo_icon_grid_data, ONLY: icon_grid
+  USE  mo_icon_grid_data, ONLY: icon_grid_region
+  USE  mo_icon_grid_data, ONLY: nvertex_per_cell
+
                      
   REAL(KIND=wp), INTENT(INOUT) :: alb_field_mom_d(:,:,:,:)
-  REAL (KIND=wp), ALLOCATABLE  :: fr_land_lu_boarder(:,:,:)
+  REAL(KIND=wp), INTENT(IN) :: fr_land_lu(:,:,:)
   INTEGER (KIND=i4), PARAMETER :: mpy=12     !< month per year
   INTEGER (KIND=i4) :: t,k,j,i,i_miss
-  INTEGER (KIND=i4) :: count1,count2,count3
+  INTEGER (KIND=i4) :: count1,count2,count3,count4,count5,count6
   INTEGER (KIND=i4) :: igrid_type 
   REAL (KIND=wp) :: lon_geo_w,lon_geo_e,lat_geo_n,lat_geo_s
   REAL (KIND=wp)   :: alb_sw,alb_nw,alb_se,alb_ne
@@ -833,24 +842,20 @@ END SUBROUTINE read_namelists_extpar_alb
   INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
   INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
   INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data
+  INTEGER :: nnb !< number of neighbor grid elements with common edge
+  INTEGER :: nv  !< number of vertices
+  INTEGER, ALLOCATABLE :: n_index(:) !< help variable
 
-  INTEGER :: errorcode                    !< error status variable
+
 
   igrid_type = tg%igrid_type
 
-     count1 = 1
-     count2 = 1
-     count3 = 1
-
-     ALLOCATE (fr_land_lu_boarder(0:tg%ie+1,0:tg%je+1,1:tg%ke), STAT=errorcode)
-     IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_land_lu_boarder')
-     fr_land_lu_boarder = 0.0
-     fr_land_lu_boarder(1:tg%ie,1:tg%je,1:tg%ke) = fr_land_lu(1:tg%ie,1:tg%je,1:tg%ke)
-     fr_land_lu_boarder(0:0,1:tg%je,1:tg%ke) = fr_land_lu(1:1,1:tg%je,1:tg%ke)
-     fr_land_lu_boarder(tg%ie+1:tg%ie+1,1:tg%je,1:tg%ke) = fr_land_lu(tg%ie:tg%ie,1:tg%je,1:tg%ke)
-     fr_land_lu_boarder(1:tg%ie,0:0,1:tg%ke) = fr_land_lu(1:tg%ie,1:1,1:tg%ke)
-     fr_land_lu_boarder(1:tg%ie,tg%je+1:tg%je+1,1:tg%ke) = fr_land_lu(1:tg%ie,tg%je:tg%je,1:tg%ke)
-
+     count1 = 0
+     count2 = 0
+     count3 = 0
+     count4 = 0
+     count5 = 0
+     count6 = 0
 
      !preparing albedo values for interpolation, original data is copied to
      !alb_interpol to easier remove the procedure if necessary.
@@ -868,208 +873,158 @@ END SUBROUTINE read_namelists_extpar_alb
      print *,'alb_interpol filled with albedo values'
 
       DO t=1, mpy
-        DO k=1,tg%ke
-          DO j=1,tg%je
-           DO i=1,tg%ie
+       DO k=1,tg%ke
+        DO j=1,tg%je
+         DO i=1,tg%ie
   
+            IF (igrid_type.eq.2) THEN !COSMO interpolation
+
             !albedo < 0.07 and no water point
-            IF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN
-
-              IF (igrid_type.eq.2) THEN !COSMO interpolation
-
-               IF (i.eq.(1)) THEN                
-                 lon_geo_w = lon_geo(i,j,k)
-               ELSE
-                 lon_geo_w = lon_geo(i-1,j,k)
-               ENDIF
-               IF (i.eq.(tg%ie)) THEN
-                lon_geo_e = lon_geo(i,j,k)
-               ELSE
+              IF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN                       
+                lon_geo_w = lon_geo(i-1,j,k)
                 lon_geo_e = lon_geo(i+1,j,k)
-               ENDIF
+                lat_geo_n = lat_geo(i,j+1,k)
+                lat_geo_s = lat_geo(i,j-1,k)
 
-               IF (j.eq.(tg%je)) THEN
-                 lat_geo_n = lat_geo(i,j,k)
-               ELSE
-                 lat_geo_n = lat_geo(i,j+1,k) 
-               ENDIF
-               IF (j.eq.1) THEN
-                 lat_geo_s = lat_geo(i,j,k)
-               ELSE
-                 lat_geo_s = lat_geo(i,j-1,k)
-               ENDIF
+                IF (j.eq.(tg%je)) THEN
+                  lat_geo_n = lat_geo(i,j,k)
+                ENDIF
+
+                alb_sw = alb_interpol(i-1,j-1,k,t)
+                alb_se = alb_interpol(i+1,j-1,k,t)
+                alb_nw = alb_interpol(i-1,j+1,k,t)
+                alb_ne = alb_interpol(i+1,j+1,k,t)
 
                !calculate weights for interpolation
                !these weights might give wrong results, if there are no 4 valid
                !points surrounding the interpolated point(i,j)
-               CALL calc_weight_bilinear_interpol(lon_geo(i,j,k), &
+                CALL calc_weight_bilinear_interpol(lon_geo(i,j,k), &
                                                   lat_geo(i,j,k), &
                                                   lon_geo_w,      &
                                                   lon_geo_e,      &
-                                                  lat_geo_n,      &
-                                                  lat_geo_s,      &
-                                                  bwlon,          &
+                                                  lat_geo_n,     &
+                                                  lat_geo_s,     &
+                                                  bwlon,         &
                                                   bwlat)
 
-                 !exception for last row, need to be fixed
-                 IF (j.ne.(tg%je) .and. j.ne.1) THEN
-                   IF (i.ne.(tg%ie) .and. i.ne.1) THEN
-                     alb_sw = alb_interpol(i-1,j-1,k,t)
-                     alb_se = alb_interpol(i+1,j-1,k,t)
-                     alb_nw = alb_interpol(i-1,j+1,k,t)
-                     alb_ne = alb_interpol(i+1,j+1,k,t)
-                   ENDIF
-                 ELSEIF (j.eq.1) THEN
-                   IF (i.eq.1) THEN
-                     alb_sw = alb_interpol(i,j,k,t)
-                     alb_se = alb_interpol(i+1,j,k,t)
-                     alb_nw = alb_interpol(i,j+1,k,t)
-                     alb_ne = alb_interpol(i+1,j+1,k,t)
-                   ELSEIF (i.eq.tg%ie) THEN
-                     alb_sw = alb_interpol(i-1,j,k,t)
-                     alb_se = alb_interpol(i,j,k,t)
-                     alb_nw = alb_interpol(i-1,j+1,k,t)
-                     alb_ne = alb_interpol(i,j+1,k,t)
-                   ELSE
-                     alb_sw = alb_interpol(i-1,j,k,t)
-                     alb_se = alb_interpol(i+1,j,k,t)
-                     alb_nw = alb_interpol(i-1,j+1,k,t)
-                     alb_ne = alb_interpol(i+1,j+1,k,t)
-                   ENDIF
-                 ELSE 
-                   IF (i.eq.1) THEN
-                     alb_sw = alb_interpol(i,j-1,k,t)
-                     alb_se = alb_interpol(i+1,j-1,k,t)
-                     alb_nw = alb_interpol(i,j,k,t)
-                     alb_ne = alb_interpol(i+1,j,k,t)
-                   ELSEIF (i.eq.tg%ie) THEN
-                     alb_sw = alb_interpol(i-1,j-1,k,t)
-                     alb_se = alb_interpol(i,j-1,k,t)
-                     alb_nw = alb_interpol(i-1,j,k,t)
-                     alb_ne = alb_interpol(i,j,k,t)
-                   ELSE
-                     alb_sw = alb_interpol(i-1,j-1,k,t)
-                     alb_se = alb_interpol(i+1,j-1,k,t)
-                     alb_nw = alb_interpol(i-1,j,k,t)
-                     alb_ne = alb_interpol(i+1,j,k,t)
-                   ENDIF
-                 ENDIF
-
-
-               ELSEIF (igrid_type.eq.1) THEN !ICON interpolation, get indices need to be done
-               GOTO 101
-               print *,'debug1'
-               point_lon_geo = lon_geo(i,j,k)
-               point_lat_geo = lat_geo(i,j,k)
-               print *,'debug1.1',point_lon_geo,point_lat_geo,i
-
-!               nvert = noOfVertices(i)
-!               print *, 'nvert: ',nvert
-!               print *,neighbor_index(1,i)
-!               print *,icon_grid%cells%neighbor_index(i,1:3)
-               nvert = 3
-
-               DO dummy = 1,nvert
-!                alb_index(dummy) = neighbor_index(i,dummy)
-!                print *,alb_index(dummy)
-               ENDDO
-
-               print *,'debug3'
-
-                CALL calc_weight_bilinear_interpol(point_lon_geo,          &
-                                                   point_lat_geo,          &
-                                                   lon_alb(western_column),&
-                                                   lon_alb(eastern_column),&
-                                                   lat_alb(northern_row),  &
-                                                   lat_alb(southern_row),  &
-                                                   bwlon,                  &
-                                                   bwlat) 
-                print *,' debug4'
-
-               ELSE
-                print *,'exception, fix to do'
-                  
-              ENDIF  !igrid_type 
+               !exception for last row, need to be fixed
+!roa bugfix indices alb interpol>
+                IF (j.eq.(tg%je)) THEN
+                 alb_nw = alb_interpol(i-1,j,k,t)
+                 alb_ne = alb_interpol(i+1,j,k,t)
+                ENDIF   
+!roa bugfix indices alb interpol<
                
-               !calculate weights for interpolation
-               !these weights might give wrong results, if there are no 4 valid
-               !points surrounding the interpolated point(i,j)
- 
-               i_miss = 0
+                i_miss = 0
 !               using only landpoints for albedo interpolation
 !               if an interpolation point is not surrounded by 4 landpoints, an
 !               additional factor (4/(4-i_miss)) is multiplied to the weightings
 !               from calc_weight_bilinear_interpol
 !               IF (igrid_type.eq.2) THEN !COSMO
-
-               IF (fr_land_lu_boarder(i-1,j-1,k).lt.0.5) THEN
+                IF (fr_land_lu(i-1,j-1,k).lt.0.5) THEN
                    alb_sw = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu_boarder(i+1,j-1,k).lt.0.5) THEN
+                IF (fr_land_lu(i+1,j-1,k).lt.0.5) THEN
                    alb_se = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu_boarder(i-1,j+1,k).lt.0.5) THEN
+                IF (fr_land_lu(i-1,j+1,k).lt.0.5) THEN
                    alb_nw = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu_boarder(i+1,j+1,k).lt.0.5) THEN
+                IF (fr_land_lu(i+1,j+1,k).lt.0.5) THEN
                    alb_ne = 0.
                    i_miss = i_miss + 1
                 ENDIF
 
-               
-!               ELSEIF (igrid_type.eq.1) THEN !ICON
-                
-!               ENDIF !igrid_type
-
-               IF (i_miss.eq.4) THEN
+                IF (i_miss.eq.4) THEN
 !                  print *,'albedo point is surrounded by water only'
 !                  if there are no valid interpolation values, the next step is skipped  
                   i_miss = 5
-                  GOTO 101
-               ENDIF
+                  GOTO 100
+                ENDIF
                
-               alb_interpol(i,j,k,t) = calc_value_bilinear_interpol(bwlon, bwlat, &
+                alb_interpol(i,j,k,t) = calc_value_bilinear_interpol(bwlon, bwlat, &
    &                    alb_sw, alb_se, alb_ne, alb_nw)*(4/(4-i_miss))
 
-                !printing albedo values that are still too small
-  101          IF (alb_interpol(i,j,k,t).lt.0.07 .and. soiltype_fao(i,j,k).le.9 .and. soiltype_fao(i,j,k).ne.0) THEN
-                 count3 = count3 + 1
-               !values that are still too small, will receive a soiltype dependent albedo
-                 alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)
-               ELSEIF (alb_interpol(i,j,k,t).lt.0.07 .and. (soiltype_fao(i,j,k).gt.9 .or. soiltype_fao(i,j,k).eq.0)) THEN
-                 count3 = count3 + 1
-                 alb_interpol(i,j,k,t) = 0.07
-               ENDIF
-      
-               !printing physically wrong albedo values
-               IF (alb_interpol(i,j,k,t).lt.0.OR.alb_interpol(i,j,k,t).gt.1) THEN
-!                  print *,'albedo out of range ',count1,alb_interpol(i,j,k,t),lon_geo(i,j,k),&
-!   &               lat_geo(i,j,k),alb_sw,alb_se,alb_nw,alb_ne
-!                  alb_interpol(i,j,k,t) = 0.7
-               ENDIF
+                !printing albedo values that are still too small, only COSMO!!
+  100           IF (alb_interpol(i,j,k,t).lt.0.07) THEN
+                   count3 = count3 + 1
+                !values that are still too small, will receive a soiltype dependent albedo
+                   alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
+                                          0.07*(1.-fr_land_lu(i,j,k))
+                ENDIF
 
-             count1 = count1 + 1
-           ELSEIF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).lt.0.5)) THEN
-              count2 = count2 + 1
-              alb_interpol(i,j,k,t) = 0.07
-            ENDIF 
+                 count1 = count1 + 1
+              ELSEIF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).lt.0.5)) THEN
+!                  count2 = count2 + 1
+                alb_interpol(i,j,k,t) = 0.07
+              ELSEIF ((alb_interpol(i,j,k,t).ge.0.07).AND.(fr_land_lu(i,j,k).lt.0.5)) THEN
+                count2 = count2 + 1
+                alb_interpol(i,j,k,t) = 0.07
+              ENDIF
+
+            ELSEIF (igrid_type.eq.1) THEN !ICON interpolation 
+
+             IF (fr_land_lu(i,j,k).lt.0.5) THEN
+               !water point
+               alb_interpol(i,j,k,t) = 0.07
+             ELSEIF ((alb_interpol(i,j,k,t).le.0).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN
+               !land point with albedo = 0
  
+              count1 = count1+1
+
+              alb_se = alb_interpol(icon_grid_region%cells%neighbor_index(i,1),j,k,t)
+              alb_nw = alb_interpol(icon_grid_region%cells%neighbor_index(i,2),j,k,t)
+              alb_ne = alb_interpol(icon_grid_region%cells%neighbor_index(i,3),j,k,t)
+
+              IF (alb_se.gt.0.AND.alb_nw.gt.0.AND.alb_ne.gt.0) THEN
+                count2 = count2+1
+                alb_interpol(i,j,k,t) = (alb_se+alb_nw+alb_ne)/3
+              ELSE IF (alb_se.gt.0.AND.alb_nw.gt.0) THEN
+                count3 = count3+1
+                alb_interpol(i,j,k,t) = (alb_se+alb_nw)/2
+              ELSE IF (alb_nw.gt.0.AND.alb_ne.gt.0) THEN
+                alb_interpol(i,j,k,t) = (alb_nw+alb_ne)/2
+                count4 = count4+1
+              ELSE IF (alb_nw.gt.0.AND.alb_se.gt.0) THEN
+                alb_interpol(i,j,k,t) = (alb_nw+alb_se)/2
+              ELSE
+                count5 = count5+1
+                IF (soiltype_fao(i,j,k).eq.1) THEN
+                  count6 = count6+1
+                ENDIF
+                alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
+                                          0.07*(1.-fr_land_lu(i,j,k))
+              ENDIF
+
+             ENDIF     
+            ENDIF  !ICON interpolation
+
             !Gletscher
-            IF ((soiltype_fao(i,j,k).eq.1).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN
+  101       IF ((soiltype_fao(i,j,k).eq.1).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN
                alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)
             ENDIF
  
            ENDDO !i
           ENDDO !j
          ENDDO !k
-!!$        print *,'t: ',t,'alb < 0.07, fr_land >= 0.5 ',count1,'after interp.: ', &
-!!$     &           count3
-         count1 = 1
-         count2 = 1
-         count3 = 1
+!roa this level of verbose is not ok!
+!!$         IF (igrid_type.eq.2) THEN !COSMO counting
+!!$           print *,'t: ',t,'alb < 0.07, fr_land >= 0.5 ',count1,'after interp.: ', &
+!!$       &           count3,' alb > 0.07, fr_land < 0.5: ',count2
+!!$         ELSE IF (igrid_type.eq.1) THEN !ICON counting
+!!$           print *,'t: ',t,'missing values over land: ',count1,', without valid neighbours: ',count5-count6
+!!$         ENDIF
+!!$         print *,'         albedo max value: ',maxval(alb_interpol(:,:,:,t)),'  albedo min value: ' &
+!!$              ,minval(alb_interpol(:,:,:,t))
+         count1 = 0
+         count2 = 0
+         count3 = 0
+         count4 = 0
+         count5 = 0
+         count6 = 0
       ENDDO !t           
 
 
@@ -1077,17 +1032,15 @@ END SUBROUTINE read_namelists_extpar_alb
       DO k=1,tg%ke
        DO j=1,tg%je
         DO i=1,tg%ie
-                IF (alb_interpol(i,j,k,t).lt.0.07) THEN
-                   print *,'albedo too small',i,j,k,t
-                ENDIF
+!                IF (alb_interpol(i,j,k,t).lt.0.07) THEN
+!                   print *,'albedo too small',i,j,k,t
+!                ENDIF
                 alb_field_mom_d(i,j,k,t) = 100*alb_interpol(i,j,k,t)
         ENDDO
        ENDDO
       ENDDO
      ENDDO
-
-     DEALLOCATE (fr_land_lu_boarder, STAT=errorcode)
-     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array fr_land_lu_boarder')        
+          
    
  END SUBROUTINE const_check_interpol_alb
 
