@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V2_0         2013/06/07 Martina Messmer
+!  The routine 'find_reg_lonlat_grid_element_index' must be adapted, as the Globcover 2009 data set consists of 6 tiles.
 !
 ! Code Description:
 ! Language: Fortran 2003.

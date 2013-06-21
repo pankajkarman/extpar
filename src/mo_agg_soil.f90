@@ -12,6 +12,10 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2_0         2013/06/04 Martina Messmer
+!   adaptations such that additionally the HWSD data set 
+!   can be aggregated (topsoil and subsoil)
+!   Code received from Juergen Helmert.
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -248,11 +252,14 @@ MODULE mo_agg_soil
 
        print*, 'soil_data: ', soil_data
 
-       DO jr=1,dsmw_grid%nlat_reg
+       lat_loop: DO jr=1,dsmw_grid%nlat_reg
        raw_loop: DO ir=1,dsmw_grid%nlon_reg
           ! find target data grid element index which is nearest to the raw data grid
           lon_pixel = lon_soil(ir)
           lat_pixel = lat_soil(jr)
+          IF (lat_pixel>bound_north_cosmo .or. lat_pixel<bound_south_cosmo) THEN
+            CYCLE lat_loop
+          ENDIF
 
           ! Reset start cell when entering a new row or when the previous data point was outside
           ! the model domain
@@ -436,7 +443,7 @@ MODULE mo_agg_soil
           !----------------------------------------------------------------------------------------------
 
        ENDDO raw_loop
-       ENDDO
+     ENDDO lat_loop
 
          
        SELECT CASE(tg%igrid_type)

@@ -82,6 +82,7 @@ MODULE mo_extpar_output_grib
     &                                     tg,            &
     &                                     isoil_data,    &
     &                                     ldeep_soil,    &
+    &                                     itopo_type,    &
     &                                     lsso,          &
     &                                     lrad,          &
     &                                     nhori,         &
@@ -210,7 +211,8 @@ MODULE mo_extpar_output_grib
   TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER (KIND=i4), INTENT(IN)     :: isoil_data
-  LOGICAL,         INTENT(IN)       :: ldeep_soil 
+  LOGICAL,         INTENT(IN)       :: ldeep_soil
+  INTEGER (KIND=i4), INTENT(IN)     :: itopo_type
   LOGICAL,         INTENT(IN)       :: lsso  
   LOGICAL,         INTENT(IN)       :: lrad  
   INTEGER(KIND=i4),INTENT(IN)       :: nhori
@@ -307,13 +309,13 @@ MODULE mo_extpar_output_grib
 
   ! define meta information for various TOPO data related variables for netcdf output
   IF (lrad) THEN
-  CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+  CALL def_topo_meta(dim_3d_tg,itopo_type,diminfohor=dim_4d_tg)
   !  hh_topo_meta, fr_land_topo_meta, &
   !         stdh_topo_meta, theta_topo_meta, &
   !         aniso_topo_meta, slope_topo_meta, &
   !         hh_vert_meta, npixel_vert_meta
   ELSE
-    CALL def_topo_meta(dim_3d_tg)
+    CALL def_topo_meta(dim_3d_tg,itopo_type)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -536,6 +538,7 @@ MODULE mo_extpar_output_grib
     &                                     tg,            &
     &                                     isoil_data,    &
     &                                     ldeep_soil,    &
+    &                                     itopo_type,    &
     &                                     lsso,          &
     &                                     undefined,     &
     &                                     undef_int,     &
@@ -638,6 +641,7 @@ MODULE mo_extpar_output_grib
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER (KIND=i4),     INTENT(IN) :: isoil_data
   LOGICAL ,              INTENT(IN) :: ldeep_soil
+  INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
 
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
@@ -726,7 +730,7 @@ MODULE mo_extpar_output_grib
   ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
   ! define meta information for various TOPO data related variables for netcdf output
-  CALL def_topo_meta(dim_3d_tg)
+  CALL def_topo_meta(dim_3d_tg,itopo_type)
   !  hh_topo_meta, fr_land_topo_meta, &
   !         stdh_topo_meta, theta_topo_meta, &
   !         aniso_topo_meta, slope_topo_meta, &

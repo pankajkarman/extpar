@@ -16,8 +16,11 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
-! @VERSION@    @DATE@     Martina Messmer
-!  adaptation in order to allow user to chose between GLOBE and ASTER topography
+! V2_0         2013/06/04 Martina Messmer
+!   introduction of the ASTER topography raw data set for external parameters
+!   switch to choose if SSO parameters are desired or not
+! V2_0         2013/06/04 Anne Roches
+!  Implementation of the topographical corrected radiation parameters
 !
 ! Code Description:
 ! Language: Fortran 2003.

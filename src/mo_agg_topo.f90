@@ -19,7 +19,8 @@
 !   simplified namelist control for ICON
 !   Potential bugfix in treatment of GLOBE data for COSMO -
 !   no impact on results detected so far
-! V1_11        2013/04/09 Martina Messmer
+! V2_0        2013/04/09 Martina Messmer
+!  introduce ASTER topography for external parameters
 !  Change all 'globe' to topo in globe_files, remove all 'globe' in 
 !  change mo_GLOBE_data to mo_topo_data, globe_tiles_grid to 
 !  topo_tiles_grid, globe_files to topo_files, globe_grid to

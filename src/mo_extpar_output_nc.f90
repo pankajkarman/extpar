@@ -24,6 +24,12 @@
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
 ! V1_11        2013/04/16 Juergen Helmert
 !  Small adaptions in output of global attributes
+! V2_0         1013-06-04 Anne Roches
+!  introduced topographical corrected radiaton parameters as new 
+!  external parameters
+! V2_0         2013-06-04 Martina Messmer
+!  introduced HWSD data set as new external parameters (Juergen Helmert)
+!  SSO parameters changed to optional parameters        
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -74,6 +80,7 @@ MODULE mo_extpar_output_nc
   USE mo_aot_data,    ONLY: ntype_aot, ntime_aot
 
   USE mo_soil_data,   ONLY: FAO_data, HWSD_data
+  USE mo_topo_data,   ONLY: topo_aster, topo_gl
 
   IMPLICIT NONE
 
@@ -92,6 +99,7 @@ MODULE mo_extpar_output_nc
     &                                     tg,                  &
     &                                     isoil_data,          &
     &                                     ldeep_soil,          &
+    &                                     itopo_type,          &
     &                                     lsso,                &
     &                                     lrad,                &
     &                                     nhori,               &
@@ -249,6 +257,7 @@ MODULE mo_extpar_output_nc
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER,               INTENT(IN) :: isoil_data
   LOGICAL,               INTENT(IN) :: ldeep_soil
+  INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
   LOGICAL,               INTENT(IN) :: lrad
   INTEGER(KIND=i4),      INTENT(IN) :: nhori
@@ -396,7 +405,7 @@ MODULE mo_extpar_output_nc
     ! define meta information for various TOPO data related variables for netcdf output
     PRINT *,'def_topo_meta'
     IF(lrad) THEN
-      CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
+      CALL def_topo_meta(dim_2d_cosmo,itopo_type,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
       !  hh_topo_meta, fr_land_topo_meta, &
       !  stdh_topo_meta, theta_topo_meta, &
       !  aniso_topo_meta, slope_topo_meta, &
@@ -404,7 +413,7 @@ MODULE mo_extpar_output_nc
       !  slope_asp_topo_meta, slope_ang_topo_meta, 
       !  horizon_topo_meta, skyview_topo_meta
     ELSE
-      CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping)
+      CALL def_topo_meta(dim_2d_cosmo,itopo_type,coordinates=coordinates,grid_mapping=grid_mapping)
       !  hh_topo_meta, fr_land_topo_meta, &
       !  stdh_topo_meta, theta_topo_meta, &
       !  aniso_topo_meta, slope_topo_meta, &
@@ -792,6 +801,7 @@ MODULE mo_extpar_output_nc
     &                                     tg,                  &
     &                                     isoil_data,          &
     &                                     ldeep_soil,          &
+    &                                     itopo_type,          &
     &                                     lsso,                &
     &                                     undefined,           &
     &                                     undef_int,           &
@@ -826,19 +836,19 @@ MODULE mo_extpar_output_nc
     &                                     alb_field_mom,       &
     &                                     alnid_field_mom,     &
     &                                     aluvd_field_mom,     &
-!    &                                     fr_sand,             &
-!    &                                     fr_silt,             &
-!    &                                     fr_clay,             &
-!    &                                     fr_oc,               &
-!    &                                     fr_bd,               &
-!    &                                     fr_dm,               &
-!    &                                     soiltype_deep,       &
-!    &                                     fr_sand_deep,        &
-!    &                                     fr_silt_deep,        &
-!    &                                     fr_clay_deep,        &
-!    &                                     fr_oc_deep,          &
-!    &                                     fr_bd_deep,          &
-!    &                                     fr_dm_deep,          &
+    &                                     fr_sand,             &
+    &                                     fr_silt,             &
+    &                                     fr_clay,             &
+    &                                     fr_oc,               &
+    &                                     fr_bd,               &
+    &                                     fr_dm,               &
+    &                                     soiltype_deep,       &
+    &                                     fr_sand_deep,        &
+    &                                     fr_silt_deep,        &
+    &                                     fr_clay_deep,        &
+    &                                     fr_oc_deep,          &
+    &                                     fr_bd_deep,          &
+    &                                     fr_dm_deep,          &
     &                                     theta_topo,          &
     &                                     aniso_topo,          &
     &                                     slope_topo)
@@ -933,6 +943,7 @@ MODULE mo_extpar_output_nc
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER,               INTENT(IN) :: isoil_data
   LOGICAL,               INTENT(IN) :: ldeep_soil
+  INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
 
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
@@ -972,19 +983,19 @@ MODULE mo_extpar_output_nc
   TYPE(add_parameters_domain), INTENT(IN) :: vertex_param !< additional external parameters for ICON domain
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm(:,:,:)     !< bulk density due to HWSD
-!  INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
-!  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm_deep(:,:,:)     !< bulk density due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm(:,:,:)     !< bulk density due to HWSD
+  INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm_deep(:,:,:)     !< bulk density due to HWSD
 
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
@@ -1099,7 +1110,7 @@ MODULE mo_extpar_output_nc
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
       ! define meta information for various TOPO data related variables for netcdf output
-    CALL def_topo_meta(dim_1d_icon)
+    CALL def_topo_meta(dim_1d_icon,itopo_type)
 
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
@@ -1138,6 +1149,82 @@ MODULE mo_extpar_output_nc
     !-----------------------------------------------------------------
     ! soiltype
     CALL netcdf_put_var(ncid,soiltype_fao(1:icon_grid%ncell,1,1),soiltype_fao_meta,undef_int)
+
+    ! soiltype_deep
+    IF (ldeep_soil) THEN
+      CALL netcdf_put_var(ncid,soiltype_deep(1:icon_grid%ncell,1,1),soiltype_deep_meta,undef_int)
+    ENDIF
+
+    ! fr_sand
+    IF (isoil_data == HWSD_data) THEN
+      CALL netcdf_put_var(ncid,fr_sand(1:icon_grid%ncell,1,1),HWSD_SAND_meta,undefined)
+      print*, "write fr_sand"
+    ENDIF
+
+    ! fr_silt
+    IF (isoil_data == HWSD_data) THEN
+      CALL netcdf_put_var(ncid,fr_silt(1:icon_grid%ncell,1,1),HWSD_SILT_meta,undefined)
+      print*, "write fr_silt"
+    ENDIF
+
+    ! fr_clay
+    IF (isoil_data == HWSD_data) THEN
+      CALL netcdf_put_var(ncid,fr_clay(1:icon_grid%ncell,1,1),HWSD_CLAY_meta,undefined)
+      print*, "write fr_clay"
+    ENDIF
+
+    ! fr_oc
+    IF (isoil_data == HWSD_data) THEN
+     CALL netcdf_put_var(ncid,fr_oc(1:icon_grid%ncell,1,1),HWSD_OC_meta,undefined)
+      print*, "write fr_oc"
+    ENDIF
+
+    ! fr_bd
+    IF (isoil_data == HWSD_data) THEN
+     CALL netcdf_put_var(ncid,fr_bd(1:icon_grid%ncell,1,1),HWSD_BD_meta,undefined)
+      print*, "write fr_bd"
+    ENDIF
+
+    ! fr_dm
+    IF (isoil_data == HWSD_data) THEN
+     CALL netcdf_put_var(ncid,fr_dm(1:icon_grid%ncell,1,1),HWSD_DM_meta,undefined)
+    ENDIF
+
+    ! fr_sand_deep
+    IF (ldeep_soil) THEN
+      CALL netcdf_put_var(ncid,fr_sand_deep(1:icon_grid%ncell,1,1),HWSD_SAND_deep_meta,undefined)
+      print*, "write fr_sand_deep"
+    ENDIF
+
+    ! fr_silt_deep
+    IF (ldeep_soil) THEN
+     CALL netcdf_put_var(ncid,fr_silt_deep(1:icon_grid%ncell,1,1),HWSD_SILT_deep_meta,undefined)
+      print*, "write fr_silt_deep"
+    ENDIF
+
+    ! fr_clay_deep
+    IF (ldeep_soil) THEN
+     CALL netcdf_put_var(ncid,fr_clay_deep(1:icon_grid%ncell,1,1),HWSD_CLAY_deep_meta,undefined)
+      print*, "write fr_clay_deep"
+    ENDIF
+
+    ! fr_oc_deep
+    IF (ldeep_soil) THEN
+     CALL netcdf_put_var(ncid,fr_oc_deep(1:icon_grid%ncell,1,1),HWSD_OC_deep_meta,undefined)
+      print*, "write fr_oc_deep"
+    ENDIF
+
+    ! fr_bd_deep
+    IF (ldeep_soil) THEN
+     CALL netcdf_put_var(ncid,fr_bd_deep(1:icon_grid%ncell,1,1),HWSD_BD_deep_meta,undefined)
+      print*, "write fr_bd_deep"
+    ENDIF
+
+    ! fr_dm_deep
+    IF (ldeep_soil) THEN
+     CALL netcdf_put_var(ncid,fr_dm_deep(1:icon_grid%ncell,1,1),HWSD_DM_deep_meta,undefined)
+     print*, "write fr_dm_deep"
+    ENDIF
 
     !-----------------------------------------------------------------
     n=1 ! fr_land_lu

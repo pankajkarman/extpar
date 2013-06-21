@@ -5,6 +5,9 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V2_0         1013/06/04 Martina Messmer
+!  adaptations in a way that HWSD data set can be used (top- and subsoil)
+!  Code received from Juergen Helmert
 !
 ! Code Description:
 ! Language: Fortran 2003.

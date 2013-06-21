@@ -826,7 +826,7 @@ END SUBROUTINE read_namelists_extpar_alb
   REAL(KIND=wp), INTENT(INOUT) :: alb_field_mom_d(:,:,:,:)
   REAL(KIND=wp), INTENT(IN) :: fr_land_lu(:,:,:)
   INTEGER (KIND=i4), PARAMETER :: mpy=12     !< month per year
-  INTEGER (KIND=i4) :: t,k,j,i,i_miss
+  INTEGER (KIND=i4) :: t,k,j,i,i_miss,i2,j2
   INTEGER (KIND=i4) :: count1,count2,count3,count4,count5,count6
   INTEGER (KIND=i4) :: igrid_type 
   REAL (KIND=wp) :: lon_geo_w,lon_geo_e,lat_geo_n,lat_geo_s
@@ -880,20 +880,37 @@ END SUBROUTINE read_namelists_extpar_alb
             IF (igrid_type.eq.2) THEN !COSMO interpolation
 
             !albedo < 0.07 and no water point
-              IF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN                       
-                lon_geo_w = lon_geo(i-1,j,k)
-                lon_geo_e = lon_geo(i+1,j,k)
-                lat_geo_n = lat_geo(i,j+1,k)
-                lat_geo_s = lat_geo(i,j-1,k)
+              IF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN 
 
+                      
+                !avoiding 'out of range' errors at the border
+                j2 = j
+                i2 = i
                 IF (j.eq.(tg%je)) THEN
-                  lat_geo_n = lat_geo(i,j,k)
+                  j2 = j-1
+                ENDIF
+                IF (j.eq.1) THEN
+                  j2 = j+1
+                ENDIF
+                IF (i.eq.(tg%ie)) THEN
+                  i2 = i-1
+                ENDIF
+                IF (i.eq.1) THEN
+                  i2 = i+1
                 ENDIF
 
-                alb_sw = alb_interpol(i-1,j-1,k,t)
-                alb_se = alb_interpol(i+1,j-1,k,t)
-                alb_nw = alb_interpol(i-1,j+1,k,t)
-                alb_ne = alb_interpol(i+1,j+1,k,t)
+                !coordinates and albedo values for neighbor points
+
+                lon_geo_w = lon_geo(i2-1,j2,k)
+                lon_geo_e = lon_geo(i2+1,j2,k)
+                lat_geo_n = lat_geo(i2,j2+1,k)
+                lat_geo_s = lat_geo(i2,j2-1,k)
+
+                alb_sw = alb_interpol(i2-1,j2-1,k,t)
+                alb_se = alb_interpol(i2+1,j2-1,k,t)
+                alb_nw = alb_interpol(i2-1,j2+1,k,t)
+                alb_ne = alb_interpol(i2+1,j2+1,k,t)
+               
 
                !calculate weights for interpolation
                !these weights might give wrong results, if there are no 4 valid
@@ -907,13 +924,6 @@ END SUBROUTINE read_namelists_extpar_alb
                                                   bwlon,         &
                                                   bwlat)
 
-               !exception for last row, need to be fixed
-!roa bugfix indices alb interpol>
-                IF (j.eq.(tg%je)) THEN
-                 alb_nw = alb_interpol(i-1,j,k,t)
-                 alb_ne = alb_interpol(i+1,j,k,t)
-                ENDIF   
-!roa bugfix indices alb interpol<
                
                 i_miss = 0
 !               using only landpoints for albedo interpolation
@@ -921,22 +931,23 @@ END SUBROUTINE read_namelists_extpar_alb
 !               additional factor (4/(4-i_miss)) is multiplied to the weightings
 !               from calc_weight_bilinear_interpol
 !               IF (igrid_type.eq.2) THEN !COSMO
-                IF (fr_land_lu(i-1,j-1,k).lt.0.5) THEN
+                IF (fr_land_lu(i2-1,j2-1,k).lt.0.5) THEN
                    alb_sw = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu(i+1,j-1,k).lt.0.5) THEN
+                IF (fr_land_lu(i2+1,j2-1,k).lt.0.5) THEN
                    alb_se = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu(i-1,j+1,k).lt.0.5) THEN
+                IF (fr_land_lu(i2-1,j2+1,k).lt.0.5) THEN
                    alb_nw = 0.
                    i_miss = i_miss + 1
                 ENDIF
-                IF (fr_land_lu(i+1,j+1,k).lt.0.5) THEN
+                IF (fr_land_lu(i2+1,j2+1,k).lt.0.5) THEN
                    alb_ne = 0.
                    i_miss = i_miss + 1
                 ENDIF
+
 
                 IF (i_miss.eq.4) THEN
 !                  print *,'albedo point is surrounded by water only'
@@ -949,14 +960,25 @@ END SUBROUTINE read_namelists_extpar_alb
    &                    alb_sw, alb_se, alb_ne, alb_nw)*(4/(4-i_miss))
 
                 !printing albedo values that are still too small, only COSMO!!
-  100           IF (alb_interpol(i,j,k,t).lt.0.07) THEN
+  100           IF (alb_interpol(i,j,k,t).lt.0.07.and. soiltype_fao(i,j,k).le.9 .and. soiltype_fao(i,j,k).ne.0) THEN
                    count3 = count3 + 1
                 !values that are still too small, will receive a soiltype dependent albedo
+                   alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
+                                          0.07*(1.-fr_land_lu(i,j,k))
+                 ELSEIF (alb_interpol(i,j,k,t).lt.0.07 .and. (soiltype_fao(i,j,k).gt.9 &
+                      & .or. soiltype_fao(i,j,k).eq.0)) THEN
+                   count3 = count3 + 1
+                   alb_interpol(i,j,k,t) = 0.07
+                 ENDIF
+!override wrong values due to bad interpolation (occurs only at some borderpoints)
+                IF (alb_interpol(i,j,k,t).gt.0.7) THEN
+!                   print *,'exception at: ',i,j,k,t,alb_interpol(i,j,k,t),fr_land_lu(i,j,k)
                    alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
                                           0.07*(1.-fr_land_lu(i,j,k))
                 ENDIF
 
                  count1 = count1 + 1
+              !water points:
               ELSEIF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).lt.0.5)) THEN
 !                  count2 = count2 + 1
                 alb_interpol(i,j,k,t) = 0.07

@@ -3,7 +3,11 @@
 !  History:
 !  Version                  Date                 Name
 !  ------------------------ -------------------- -----------------
-!  V1_0                     2013/04/17           Martina Messmer
+!  V2_0                     2013/04/17           Martina Messmer
+!    initial release
+!    calculation of SSO parameters are separated from the main program
+!    the SSO parameters are only calculated if desired due to performance
+!    reasons
 ! 
 !  Code Description:
 !  Language: Fortran 90

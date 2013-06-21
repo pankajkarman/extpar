@@ -16,6 +16,10 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON 
+! V2_0         2013/06/04 Martina Messmer
+!   introduce a new reading routine of the Globcover data set
+!   (available as 6 tiles)
+!   routines are adapted from the topography
 !
 ! Code Description:
 ! Language: Fortran 2003.

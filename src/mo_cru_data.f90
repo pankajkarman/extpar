@@ -5,6 +5,10 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V2_0         2013/06/04 Martina Messmer
+!  introduction of a finer CRU temperature data set (CLM Community)
+!  new parameter for the CRU temperature elevation
+!  introduction of a deallocate subroutine
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -83,7 +87,8 @@ PUBLIC :: allocate_cru_data, &
           get_cru_grid_and_data, &
           lon_cru, &
           lat_cru, &
-          cru_raw_data
+          cru_raw_data, &
+          cru_raw_elev
 
 
 
@@ -95,7 +100,7 @@ REAL (KIND=wp), ALLOCATABLE :: lon_cru(:) !< longitude of aot grid
 REAL (KIND=wp), ALLOCATABLE :: lat_cru(:) !< latitude of aot grid
 
 REAL (KIND=wp), ALLOCATABLE :: cru_raw_data(:,:,:) !< aerosol optical thickness, aot(ncolumns,nrows,ntime) 
-
+REAL (KIND=wp), ALLOCATABLE :: cru_raw_elev(:,:,:) !< surface height in cru (ncolumns,nrows,ntime)
 
 
 
@@ -104,26 +109,28 @@ CONTAINS
 
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for t_clim data settings for EXTPAR 
-SUBROUTINE read_namelists_extpar_t_clim(namelist_file, &
-                                         raw_data_t_clim_path, &
+SUBROUTINE read_namelists_extpar_t_clim(namelist_file,             &
+                                         raw_data_t_id,            &
+                                         raw_data_t_clim_path,     &
                                          raw_data_t_clim_filename, &
-                                         t_clim_buffer_file, &
+                                         t_clim_buffer_file,       &
                                          t_clim_output_file)
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
 
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
+  INTEGER (KIND=i8), INTENT(OUT) :: raw_data_t_id !< integer switch to choose a land use raw data set
+                                        !! 1 CRU fine (new), 2 CRU coarse (old)
+  ! temperature climatology
+  CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_path        !< path to raw data
+  CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_filename !< filename temperature climatology raw data
 
-! temperature climatology
-CHARACTER (len=filename_max) :: raw_data_t_clim_path        !< path to raw data
-CHARACTER (len=filename_max) :: raw_data_t_clim_filename !< filename temperature climatology raw data
-
-CHARACTER (len=filename_max) :: t_clim_buffer_file !< name for temperature climatology buffer
-CHARACTER (len=filename_max) :: t_clim_output_file !< name for temperature climatology output file
+  CHARACTER (len=filename_max), INTENT(OUT) :: t_clim_buffer_file !< name for temperature climatology buffer
+  CHARACTER (len=filename_max), INTENT(OUT) :: t_clim_output_file !< name for temperature climatology output file
 
 !> namelist with filename for temperature climatlogy data output
-NAMELIST /t_clim_raw_data/ raw_data_t_clim_path, raw_data_t_clim_filename
+NAMELIST /t_clim_raw_data/ raw_data_t_clim_path, raw_data_t_clim_filename, raw_data_t_id
 
 !> namelist with filename for temperature climatlogy data output
 NAMELIST /t_clim_io_extpar/ t_clim_buffer_file, t_clim_output_file
@@ -157,16 +164,20 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
 
     ALLOCATE (lon_cru(1:ncolumns), STAT=errorcode)
-        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lon_aot')
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lon_cru')
     lon_cru = 0.0
 
      ALLOCATE (lat_cru(1:nrows), STAT=errorcode)
-        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lat_aot')
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lat_cru')
     lat_cru = 0.0
 
     ALLOCATE (cru_raw_data(1:ncolumns,1:nrows,1:ntime),STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array aot')
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array cru_raw_data')
       cru_raw_data = 0.0
+
+    ALLOCATE (cru_raw_elev(1:ncolumns,1:nrows,1:ntime),STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array cru_raw_elev')
+      cru_raw_elev = 0.0
 
 
 
@@ -203,7 +214,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
                                      nrows,        &
                                      ncolumns,     &
                                      ntime)
-   
+
    IMPLICIT NONE
    CHARACTER (LEN=*), INTENT(IN)  ::  cru_filename  !< filename aot raw data
 
@@ -223,7 +234,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
         CHARACTER (len=80) :: dimname               !< name of dimensiona
         INTEGER :: length                           !< length of dimension
 
-
+    ntime = 1
 
     ! open netcdf file 
     call check_netcdf( nf90_open(TRIM(cru_filename),NF90_NOWRITE, ncid))
@@ -253,12 +264,19 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
 
    !> get all aot data and coordinates and grid description
-   SUBROUTINE get_cru_grid_and_data(cru_filename, &
-                                     nrows,        &
-                                     ncolumns,     &
+   SUBROUTINE get_cru_grid_and_data(cru_filename,   &
+                                     raw_data_t_id, &
+                                     nrows,         &
+                                     ncolumns,      &
                                      ntime)
+
+
+   USE mo_cru_target_fields, ONLY: i_t_cru_fine, &
+    &                              i_t_cru_coarse
+
    IMPLICIT NONE
-   CHARACTER (LEN=*), INTENT(IN)  ::  cru_filename  !< filename aot raw data
+   CHARACTER (LEN=*), INTENT(IN) :: cru_filename  !< filename aot raw data
+   INTEGER (KIND=i8), INTENT(IN) :: raw_data_t_id !< gives the data id (CRU fine (1) and CRU coarse (2))
    INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
    INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
    INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
@@ -267,9 +285,21 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
     !local variables
         INTEGER :: ncid                             !< netcdf unit file number
+        INTEGER :: ndimension                       !< number of dimensions in netcdf file
+        INTEGER :: nVars                            !< number of variables in netcdf file
+        INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
+        INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-        CHARACTER (LEN=80) :: varname  !< name of variable
-        INTEGER :: varid               !< id of variable
+        CHARACTER (LEN=80) :: varname               !< name of variable
+                                                    !< new CRU temperature has 2 variables (temperature and elevation)
+                                                    !< old CRU temperatue has 1 variable (temperature)
+        INTEGER :: varid                            !< id of variable
+        INTEGER :: xtype                            !< netcdf type of variable/attribute
+        INTEGER :: ndim                             !< number of dimensions of variable
+        INTEGER, ALLOCATABLE :: var_dimids(:)       !< id of variable dimensions, vector, maximal dimension ndimension
+        INTEGER :: nAtts                            !< number of attributes for a netcdf variable
+        
+        INTEGER :: errorcode                        !< error status variable
 
         CHARACTER (LEN=80) :: cooname(2) !< name of coordinates
         INTEGER :: coovarid(2)           !< varid of coordinats
@@ -281,7 +311,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
         cooname(1) = 'lon'
         cooname(2) = 'lat'
-        varname = 'tem' ! the name of the temperature variable in the netcdf file
+!        varname = 'tem' ! the name of the temperature variable in the netcdf file
 
 
   
@@ -295,17 +325,37 @@ END SUBROUTINE read_namelists_extpar_t_clim
     CALL check_netcdf(nf90_get_var(ncid, coovarid(1),  lon_cru))
     CALL check_netcdf(nf90_get_var(ncid, coovarid(2),  lat_cru))
 
+    CALL check_netcdf(nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
 
+    ALLOCATE (var_dimids(ndimension), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array var_dimids')
+    var_dimids = 0
 
-    call check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+    variables: DO varid = 1,nVars
+    CALL check_netcdf(nf90_inquire_variable(ncid,varid,varname,xtype, ndim, var_dimids, nAtts))
+    print*, 'varname: ', TRIM(varname)
 
-    attname="scale_factor"
-    call check_netcdf( nf90_get_att(ncid, varid, TRIM(attname), scale_factor))
+    getvar: SELECT CASE(TRIM(varname))
+    CASE ('tem')      ! the variable of the old CRU file is called tem
+      CALL check_netcdf( nf90_get_var(ncid, varid, cru_raw_data))
 
+      attname="scale_factor"
+      CALL check_netcdf( nf90_get_att(ncid, varid, TRIM(attname), scale_factor))
 
-    CALL check_netcdf(nf90_get_var(ncid, varid,  cru_raw_data))
+    CASE ('T_CL')     ! the variable of the new CRU temperature is called T_CL
+      CALL check_netcdf( nf90_get_var(ncid, varid, cru_raw_data))
 
+    CASE ('HSURF')  ! the variable of the new CRU elevation is called HSURF
+      CALL check_netcdf( nf90_get_var(ncid, varid, cru_raw_elev))
+
+    END SELECT getvar
+
+  ENDDO variables
+
+  SELECT CASE(raw_data_t_id)
+  CASE(i_t_cru_coarse)
     cru_raw_data = cru_raw_data * scale_factor
+  END SELECT
 
 
 
@@ -322,7 +372,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
 
       ! close netcdf file 
-     call check_netcdf( nf90_close( ncid))
+     CALL check_netcdf( nf90_close(ncid))
 
 
 
@@ -347,7 +397,8 @@ END SUBROUTINE read_namelists_extpar_t_clim
     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array cru_raw_data')
     DEALLOCATE (crutemp, STAT=errorcode)
     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array crutemp')
-    
+    DEALLOCATE (cru_raw_elev,STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array cru_raw_elev')
   END SUBROUTINE deallocate_cru_data
 
 

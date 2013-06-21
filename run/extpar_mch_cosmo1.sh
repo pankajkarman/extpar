@@ -50,7 +50,8 @@ raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
 
-raw_data_tclim='absolute_hadcrut3.nc'
+raw_data_tclim_coarse='absolute_hadcrut3.nc'
+raw_data_tclim_fine='CRU_T2M_SURF_clim.nc'
 buffer_tclim='crutemp_clim_extpar_buffer.nc'
 output_tclim='crutemp_clim_extpar_cosmo.nc'
 
@@ -180,9 +181,11 @@ cat > INPUT_ALB << EOF_alb
   raw_data_alb_filename='${raw_data_alb}'
 /
 &alnid_raw_data
+  raw_data_alb_path='',
   raw_data_alnid_filename='${raw_data_alnid}'
 /
 &aluvd_raw_data
+  raw_data_alb_path='',
   raw_data_aluvd_filename='${raw_data_aluvd}'
 /
 &alb_io_extpar
@@ -210,7 +213,8 @@ EOF_aot
 cat > INPUT_TCLIM << EOF_tclim
 &t_clim_raw_data
   raw_data_t_clim_path='',
-  raw_data_t_clim_filename='${raw_data_tclim}'
+  raw_data_t_clim_filename='${raw_data_tclim_coarse}',
+  raw_data_t_id = 2
 /  
 
 &t_clim_io_extpar
@@ -292,7 +296,7 @@ EOF_ndvi
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
  isoil_data = 2,
- ldeep_soil = .FALSE.,
+ ldeep_soil = .TRUE.,
  raw_data_soil_path='',
  raw_data_soil_filename='${raw_data_soil_HWSD}',
  raw_data_deep_soil_filename='${raw_data_deep_soil}'
@@ -343,98 +347,99 @@ cat > INPUT_CHECK << EOF_check
 EOF_check
 
 # link raw data files to local workdir
-ln -s ${data_dir}/${raw_data_alb}
-ln -s ${data_dir}/${raw_data_alnid}
-ln -s ${data_dir}/${raw_data_aluvd}
+ln -s -f ${data_dir}/${raw_data_alb}
+ln -s -f ${data_dir}/${raw_data_alnid}
+ln -s -f ${data_dir}/${raw_data_aluvd}
 
-ln -s ${data_dir}/${raw_data_aot}
+ln -s -f ${data_dir}/${raw_data_aot}
 
-ln -s ${data_dir}/${raw_data_tclim}
+ln -s -f ${data_dir}/${raw_data_tclim_coarse}
+ln -s -f ${data_dir2}/${raw_data_tclim_fine}
 
-ln -s ${data_dir}/${raw_data_glc2000}
-ln -s ${data_dir}/${raw_data_glcc}
+ln -s -f ${data_dir}/${raw_data_glc2000}
+ln -s -f ${data_dir}/${raw_data_glcc}
 
-ln -s ${data_dir2}/${raw_data_globcover_0}
-ln -s ${data_dir2}/${raw_data_globcover_1}
-ln -s ${data_dir2}/${raw_data_globcover_2}
-ln -s ${data_dir2}/${raw_data_globcover_3}
-ln -s ${data_dir2}/${raw_data_globcover_4}
-ln -s ${data_dir2}/${raw_data_globcover_5}
+ln -s -f ${data_dir2}/${raw_data_globcover_0}
+ln -s -f ${data_dir2}/${raw_data_globcover_1}
+ln -s -f ${data_dir2}/${raw_data_globcover_2}
+ln -s -f ${data_dir2}/${raw_data_globcover_3}
+ln -s -f ${data_dir2}/${raw_data_globcover_4}
+ln -s -f ${data_dir2}/${raw_data_globcover_5}
 
 
-ln -s ${data_dir}/${raw_data_globe_A10} 
-ln -s ${data_dir}/${raw_data_globe_B10}
-ln -s ${data_dir}/${raw_data_globe_C10} 
-ln -s ${data_dir}/${raw_data_globe_D10} 
-ln -s ${data_dir}/${raw_data_globe_E10}
-ln -s ${data_dir}/${raw_data_globe_F10} 
-ln -s ${data_dir}/${raw_data_globe_G10} 
-ln -s ${data_dir}/${raw_data_globe_H10} 
-ln -s ${data_dir}/${raw_data_globe_I10} 
-ln -s ${data_dir}/${raw_data_globe_J10} 
-ln -s ${data_dir}/${raw_data_globe_K10} 
-ln -s ${data_dir}/${raw_data_globe_L10} 
-ln -s ${data_dir}/${raw_data_globe_M10} 
-ln -s ${data_dir}/${raw_data_globe_N10} 
-ln -s ${data_dir}/${raw_data_globe_O10} 
-ln -s ${data_dir}/${raw_data_globe_P10}
+ln -s -f ${data_dir}/${raw_data_globe_A10} 
+ln -s -f ${data_dir}/${raw_data_globe_B10}
+ln -s -f ${data_dir}/${raw_data_globe_C10} 
+ln -s -f ${data_dir}/${raw_data_globe_D10} 
+ln -s -f ${data_dir}/${raw_data_globe_E10}
+ln -s -f ${data_dir}/${raw_data_globe_F10} 
+ln -s -f ${data_dir}/${raw_data_globe_G10} 
+ln -s -f ${data_dir}/${raw_data_globe_H10} 
+ln -s -f ${data_dir}/${raw_data_globe_I10} 
+ln -s -f ${data_dir}/${raw_data_globe_J10} 
+ln -s -f ${data_dir}/${raw_data_globe_K10} 
+ln -s -f ${data_dir}/${raw_data_globe_L10} 
+ln -s -f ${data_dir}/${raw_data_globe_M10} 
+ln -s -f ${data_dir}/${raw_data_globe_N10} 
+ln -s -f ${data_dir}/${raw_data_globe_O10} 
+ln -s -f ${data_dir}/${raw_data_globe_P10}
 
-ln -s ${data_dir2}/${raw_data_aster_T01} 
-ln -s ${data_dir2}/${raw_data_aster_T02}
-ln -s ${data_dir2}/${raw_data_aster_T03} 
-ln -s ${data_dir2}/${raw_data_aster_T04} 
-ln -s ${data_dir2}/${raw_data_aster_T05}
-ln -s ${data_dir2}/${raw_data_aster_T06} 
-ln -s ${data_dir2}/${raw_data_aster_T07} 
-ln -s ${data_dir2}/${raw_data_aster_T08} 
-ln -s ${data_dir2}/${raw_data_aster_T09} 
-ln -s ${data_dir2}/${raw_data_aster_T10} 
-ln -s ${data_dir2}/${raw_data_aster_T11} 
-ln -s ${data_dir2}/${raw_data_aster_T12} 
-ln -s ${data_dir2}/${raw_data_aster_T13} 
-ln -s ${data_dir2}/${raw_data_aster_T14} 
-ln -s ${data_dir2}/${raw_data_aster_T15}
-ln -s ${data_dir2}/${raw_data_aster_T16} 
-ln -s ${data_dir2}/${raw_data_aster_T17} 
-ln -s ${data_dir2}/${raw_data_aster_T18} 
-ln -s ${data_dir2}/${raw_data_aster_T19} 
-ln -s ${data_dir2}/${raw_data_aster_T20} 
-ln -s ${data_dir2}/${raw_data_aster_T21} 
-ln -s ${data_dir2}/${raw_data_aster_T22} 
-ln -s ${data_dir2}/${raw_data_aster_T23} 
-ln -s ${data_dir2}/${raw_data_aster_T24} 
-ln -s ${data_dir2}/${raw_data_aster_T25}
-ln -s ${data_dir2}/${raw_data_aster_T26} 
-ln -s ${data_dir2}/${raw_data_aster_T27} 
-ln -s ${data_dir2}/${raw_data_aster_T28} 
-ln -s ${data_dir2}/${raw_data_aster_T29} 
-ln -s ${data_dir2}/${raw_data_aster_T30} 
-ln -s ${data_dir2}/${raw_data_aster_T31} 
-ln -s ${data_dir2}/${raw_data_aster_T32} 
-ln -s ${data_dir2}/${raw_data_aster_T33} 
-ln -s ${data_dir2}/${raw_data_aster_T34} 
-ln -s ${data_dir2}/${raw_data_aster_T35} 
-ln -s ${data_dir2}/${raw_data_aster_T36} 
-ln -s ${data_dir2}/topo.ASTER_orig_T006.nc 
-ln -s ${data_dir2}/topo.ASTER_orig_T007.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T018.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T019.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T030.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T031.nc 
-ln -s ${data_dir2}/topo.ASTER_orig_T042.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T043.nc
+ln -s -f ${data_dir2}/${raw_data_aster_T01} 
+ln -s -f ${data_dir2}/${raw_data_aster_T02}
+ln -s -f ${data_dir2}/${raw_data_aster_T03} 
+ln -s -f ${data_dir2}/${raw_data_aster_T04} 
+ln -s -f ${data_dir2}/${raw_data_aster_T05}
+ln -s -f ${data_dir2}/${raw_data_aster_T06} 
+ln -s -f ${data_dir2}/${raw_data_aster_T07} 
+ln -s -f ${data_dir2}/${raw_data_aster_T08} 
+ln -s -f ${data_dir2}/${raw_data_aster_T09} 
+ln -s -f ${data_dir2}/${raw_data_aster_T10} 
+ln -s -f ${data_dir2}/${raw_data_aster_T11} 
+ln -s -f ${data_dir2}/${raw_data_aster_T12} 
+ln -s -f ${data_dir2}/${raw_data_aster_T13} 
+ln -s -f ${data_dir2}/${raw_data_aster_T14} 
+ln -s -f ${data_dir2}/${raw_data_aster_T15}
+ln -s -f ${data_dir2}/${raw_data_aster_T16} 
+ln -s -f ${data_dir2}/${raw_data_aster_T17} 
+ln -s -f ${data_dir2}/${raw_data_aster_T18} 
+ln -s -f ${data_dir2}/${raw_data_aster_T19} 
+ln -s -f ${data_dir2}/${raw_data_aster_T20} 
+ln -s -f ${data_dir2}/${raw_data_aster_T21} 
+ln -s -f ${data_dir2}/${raw_data_aster_T22} 
+ln -s -f ${data_dir2}/${raw_data_aster_T23} 
+ln -s -f ${data_dir2}/${raw_data_aster_T24} 
+ln -s -f ${data_dir2}/${raw_data_aster_T25}
+ln -s -f ${data_dir2}/${raw_data_aster_T26} 
+ln -s -f ${data_dir2}/${raw_data_aster_T27} 
+ln -s -f ${data_dir2}/${raw_data_aster_T28} 
+ln -s -f ${data_dir2}/${raw_data_aster_T29} 
+ln -s -f ${data_dir2}/${raw_data_aster_T30} 
+ln -s -f ${data_dir2}/${raw_data_aster_T31} 
+ln -s -f ${data_dir2}/${raw_data_aster_T32} 
+ln -s -f ${data_dir2}/${raw_data_aster_T33} 
+ln -s -f ${data_dir2}/${raw_data_aster_T34} 
+ln -s -f ${data_dir2}/${raw_data_aster_T35} 
+ln -s -f ${data_dir2}/${raw_data_aster_T36} 
+ln -s -f ${data_dir2}/topo.ASTER_orig_T006.nc 
+ln -s -f ${data_dir2}/topo.ASTER_orig_T007.nc
+ln -s -f ${data_dir2}/topo.ASTER_orig_T018.nc
+ln -s -f ${data_dir2}/topo.ASTER_orig_T019.nc
+ln -s -f ${data_dir2}/topo.ASTER_orig_T030.nc
+ln -s -f ${data_dir2}/topo.ASTER_orig_T031.nc 
+ln -s -f ${data_dir2}/topo.ASTER_orig_T042.nc
+ln -s -f ${data_dir2}/topo.ASTER_orig_T043.nc
 
-ln -s ${data_dir}/${raw_data_ndvi}
+ln -s -f ${data_dir}/${raw_data_ndvi}
 
-ln -s ${data_dir2}/${raw_data_soil_FAO}
-ln -s ${data_dir2}/${raw_data_soil_HWSD}
-ln -s ${data_dir2}/${raw_data_deep_soil}
+ln -s -f ${data_dir2}/${raw_data_soil_FAO}
+ln -s -f ${data_dir2}/${raw_data_soil_HWSD}
+ln -s -f ${data_dir2}/${raw_data_deep_soil}
 
-ln -s ${data_dir2}/${raw_landuse_table_HWSD}
-ln -s ${data_dir2}/${raw_HWSD_data}
-ln -s ${data_dir2}/${raw_HWSD_data_deep}
+ln -s -f ${data_dir2}/${raw_landuse_table_HWSD}
+ln -s -f ${data_dir2}/${raw_HWSD_data}
+ln -s -f ${data_dir2}/${raw_HWSD_data_deep}
 
-ln -s ${data_dir}/${raw_data_flake}
+ln -s -f ${data_dir}/${raw_data_flake}
 
 # run the programs
 # the next seven programs can run independent of each other

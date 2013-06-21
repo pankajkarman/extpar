@@ -9,6 +9,8 @@
 ! introduce Globcover 2009 land use data set for external parameters
 ! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V2_0         2013/06/07 Martina Messmer
+!  Adaptations in a way that the Globcover 2009 data set (6 tiles) can be read
 !
 ! Code Description:
 ! Language: Fortran 2003.

@@ -5,7 +5,7 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
-! @Version@    @Date@     Martina Messmer
+! V2_0         2013/06/04 Martina Messmer
 !  Change all 'globe' to topo in globe_files, remove all 'globe' in 
 !  globe_tiles_lat/lon_min/max, change mo_GLOBE_data to mo_topo_data,
 !  globe_tiles_grid to topo_tiles_grid, globe_tiles_ncolumns/nrow to 

@@ -12,6 +12,10 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON         
+! V2_0         2013/06/04 Martina Messmer
+!  introduction of a finer temperature climatology (CRU) and 
+!  CRU temperature elevation (CLM Community)
+!  there is a switch to choose between the fine and coarse data set
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -82,7 +86,7 @@ PROGRAM extpar_cru_to_buffer
   USE mo_utilities_extpar, ONLY: abort_extpar
 
 
-  USE mo_additional_geometry,   ONLY: cc2gc,                  &
+  USE mo_additional_geometry,   ONLY: cc2gc,             &
     &                            gc2cc,                  &
     &                            arc_length,             &
     &                            cos_arc_length,         &
@@ -96,10 +100,10 @@ PROGRAM extpar_cru_to_buffer
   USE mo_cru_data, ONLY: read_namelists_extpar_t_clim
 
   USE mo_cru_data, ONLY : allocate_cru_data, &
-    &                      deallocate_cru_data, &
-    &                      read_cru_data_input_namelist, &
-    &                      get_dimension_cru_data, &
-    &                      get_cru_grid_and_data, &
+    &                     deallocate_cru_data, &
+    &                     read_cru_data_input_namelist, &
+    &                     get_dimension_cru_data, &
+    &                     get_cru_grid_and_data, &
     &                     lon_cru, &
     &                     lat_cru, &
     &                     cru_raw_data, &
@@ -107,7 +111,11 @@ PROGRAM extpar_cru_to_buffer
  
   USE mo_cru_target_fields, ONLY: allocate_cru_target_fields,&
     &                              crutemp, &
-    &                              meta_crutemp
+    &                              meta_crutemp, &
+    &                              cruelev,      &
+    &                              meta_cruelev, &
+    &                              i_t_cru_fine, &
+    &                              i_t_cru_coarse
 
   USE mo_agg_cru, ONLY: agg_cru_data_to_target_grid
 
@@ -130,6 +138,8 @@ PROGRAM extpar_cru_to_buffer
   CHARACTER(len=filename_max) :: input_glc2000_namelist_file 
   CHARACTER(len=filename_max) :: glc2000_file
 
+  INTEGER (KIND=i8):: raw_data_t_id !< integer switch to choose a land use raw data set
+                                        !! 1 CRU (fine), 2 CRU (coarse)
 
   CHARACTER (len=filename_max) :: raw_data_t_clim_path        !< path to raw data
   CHARACTER (len=filename_max) :: raw_data_t_clim_filename !< filename temperature climatology raw data
@@ -232,11 +242,11 @@ PROGRAM extpar_cru_to_buffer
 
   namelist_file = 'INPUT_TCLIM'
   CALL  read_namelists_extpar_t_clim(namelist_file, &
+                                         raw_data_t_id, &
                                          raw_data_t_clim_path, &
                                          raw_data_t_clim_filename, &
                                          t_clim_buffer_file, &
                                          t_clim_output_file)
-
 
   filename = TRIM(raw_data_t_clim_path) // TRIM(raw_data_t_clim_filename)
 
@@ -244,10 +254,10 @@ PROGRAM extpar_cru_to_buffer
 
   ! inquire dimensions
 
-  CALL  get_dimension_cru_data(filename, &
-    &                                 nrows,        &
-    &                                 ncolumns,     &
-    &                                 ntime)
+  CALL  get_dimension_cru_data(filename,     &
+    &                          nrows,        &
+    &                          ncolumns,     &
+    &                          ntime)
 
     PRINT *, 'nrows: ',nrows
     PRINT *, 'ncolumns: ',ncolumns
@@ -257,10 +267,11 @@ PROGRAM extpar_cru_to_buffer
 
 
     ! read in aot raw data
-    CALL get_cru_grid_and_data(filename, &
-      &                               nrows,        &
-      &                               ncolumns,     &
-      &                               ntime)
+    CALL get_cru_grid_and_data(filename,     &
+         &                     raw_data_t_id,&
+         &                     nrows,        &
+         &                     ncolumns,     &
+         &                     ntime)
                                      
     PRINT *, 'cru_grid: ', cru_grid
 
@@ -276,9 +287,10 @@ PROGRAM extpar_cru_to_buffer
     undef_int = -999
 
     crutemp  =  undefined  ! set target grid values to undefined
+    cruelev  = undefined
 
-    PRINT *,'agg_cru_data_to_target_grid agg_aot_data_to_target_grid'
-    CALL  agg_cru_data_to_target_grid(nrows,ncolumns,ntime)
+    PRINT *,'agg_cru_data_to_target_grid'
+    CALL  agg_cru_data_to_target_grid(nrows,ncolumns,ntime,raw_data_t_id)
 
     PRINT *,'aggregation done'
 
@@ -294,6 +306,8 @@ PROGRAM extpar_cru_to_buffer
         netcdf_filename = TRIM(t_clim_output_file)
         PRINT *,'write out ', TRIM(netcdf_filename)
 
+        SELECT CASE (raw_data_t_id)
+        CASE(i_t_cru_coarse)
          
         CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
     &                                     icon_grid,       &
@@ -304,15 +318,27 @@ PROGRAM extpar_cru_to_buffer
     &                                     lat_geo, &
     &                                     crutemp)
   
- 
+        CASE(i_t_cru_fine)
 
+        CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
+    &                                     icon_grid,       &
+    &                                     tg,         &
+    &                                     undefined, &
+    &                                     undef_int,   &
+    &                                     lon_geo,     &
+    &                                     lat_geo, &
+    &                                     crutemp, &
+    &                                     cruelev=cruelev)
+
+      END SELECT
 
       CASE(igrid_cosmo) ! COSMO grid
 
          netcdf_filename = TRIM(t_clim_output_file)
          PRINT *,'write out ', TRIM(netcdf_filename)
 
-
+        SELECT CASE (raw_data_t_id)
+        CASE(i_t_cru_coarse)
         CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
     &                                     cosmo_grid,       &
     &                                     tg,         &
@@ -323,6 +349,18 @@ PROGRAM extpar_cru_to_buffer
     &                                     crutemp)
      
 
+       CASE(i_t_cru_fine)
+         CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
+    &                                     cosmo_grid,       &
+    &                                     tg,         &
+    &                                     undefined, &
+    &                                     undef_int,   &
+    &                                     lon_geo,     &
+    &                                     lat_geo, &
+    &                                     crutemp, &
+    &                                     cruelev=cruelev)
+
+      END SELECT
 
 
       CASE(igrid_gme) ! GME grid   
@@ -333,6 +371,8 @@ PROGRAM extpar_cru_to_buffer
     netcdf_filename = TRIM(t_clim_buffer_file)
     PRINT *,'write out ', TRIM(netcdf_filename)
 
+    SELECT CASE (raw_data_t_id)
+    CASE(i_t_cru_coarse)
     CALL write_netcdf_buffer_cru(netcdf_filename,  &
    &                                     tg,         &
    &                                     undefined, &
@@ -341,6 +381,17 @@ PROGRAM extpar_cru_to_buffer
    &                                     lat_geo, &
    &                                     crutemp)
 
+    CASE(i_t_cru_fine)
+      CALL write_netcdf_buffer_cru(netcdf_filename,  &
+   &                                     tg,         &
+   &                                     undefined, &
+   &                                     undef_int,   &
+   &                                     lon_geo,     &
+   &                                     lat_geo, &
+   &                                     crutemp, &
+   &                                     cruelev=cruelev)
+
+    END SELECT
 
 
 
@@ -353,3 +404,5 @@ PROGRAM extpar_cru_to_buffer
   
 
 END PROGRAM extpar_cru_to_buffer
+
+

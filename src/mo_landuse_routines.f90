@@ -7,6 +7,9 @@
 !  Initial release
 ! V1_3         2011/04/19 Hermann Asensio
 ! introduce Globcover 2009 land use data set for external parameters
+! V2_0         2013/06/04 Martina Messmer
+!  adjusted to the Globcover tiles
+!  introduction of a deallocation subroutine
 !
 ! Code Description:
 ! Language: Fortran 2003.

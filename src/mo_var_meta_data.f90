@@ -18,6 +18,11 @@
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
 ! V1_11        2013/04/16 Juergen Helmert
 !  Adaptions for external land-sea mask
+! V2_0         2013-06-04 Anne Roches
+!  introduced topographical corrected radiation parameters
+! V2_0         2013-06-04 Martina Messmer
+!  introduced HWSD soil data set as new external parameters (Juergen Helmert)
+!  contains the topsoil and the subsoil        
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -65,6 +70,7 @@ MODULE mo_var_meta_data
   PUBLIC :: lon_geo_meta, lat_geo_meta, no_raw_data_pixel_meta, def_com_target_fields_meta
 
   PUBLIC :: crutemp_meta, def_crutemp_meta
+  PUBLIC :: cruelev_meta, def_cruelev_meta
 
   PUBLIC :: nc_grid_def_cosmo, set_nc_grid_def_cosmo
 
@@ -182,7 +188,7 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: alb_interpol_meta !< additional information for variable
 
   TYPE(var_meta_info) :: crutemp_meta !< additional information for variable crutemp
-
+  TYPE(var_meta_info) :: cruelev_meta !< additional information for variable cruelev
   TYPE(var_meta_info) :: lon_geo_meta !< additional information for variable lon_geo_meta
   TYPE(var_meta_info) :: lat_geo_meta !< additional information for variable lat_geo_meta
   TYPE(var_meta_info) :: no_raw_data_pixel_meta !< additional information for variable no_raw_data_pixel_meta
@@ -511,18 +517,50 @@ MODULE mo_var_meta_data
     crutemp_meta%units = 'K'
     crutemp_meta%grid_mapping = gridmp
     crutemp_meta%coordinates = coord
-    
+
   END SUBROUTINE def_crutemp_meta
+
+ !> define meta information for variable crutemp for netcdf output
+  SUBROUTINE def_cruelev_meta(diminfo,coordinates,grid_mapping)
+    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
+    CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+
+    ! local variables
+    INTEGER  :: n_dim      !< number of dimensions
+    CHARACTER (len=80) :: gridmp
+    CHARACTER (len=80) :: coord
+
+    gridmp = c_undef
+    coord = c_undef
+
+    IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
+    IF (PRESENT(coordinates)) coord = TRIM(coordinates)
+    n_dim = SIZE(diminfo)
+    !ha change varname to CAPITAL letters
+    cruelev_meta%varname = 'HSURF'
+    cruelev_meta%n_dim = n_dim
+    cruelev_meta%diminfo => diminfo
+    cruelev_meta%vartype = vartype_real !REAL variable
+    cruelev_meta%standard_name = 'surface_altitude'
+    cruelev_meta%long_name = 'CRU grid elevation'
+    cruelev_meta%shortName = 'T_2M_CL'
+    cruelev_meta%units = 'm'
+    cruelev_meta%grid_mapping = gridmp
+    cruelev_meta%coordinates = coord
+
+  END SUBROUTINE def_cruelev_meta
 
   !> define meta information for soil data for netcdf output
   SUBROUTINE def_soil_meta(diminfo,isoil_data,coordinates,grid_mapping)
 
-    USE mo_soil_data, ONLY: soil_data, FAO_data, HWSD_data
 
     TYPE(dim_meta_info), TARGET  :: diminfo(:)     !< pointer to dimensions of variable
     INTEGER (KIND=i4), INTENT(IN):: isoil_data
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+    INTEGER (KIND=i4), PARAMETER :: FAO_data = 1
+    INTEGER (KIND=i4), PARAMETER :: HWSD_data = 2
 
     ! local variables
     INTEGER  :: n_dim      !< number of dimensions
@@ -2012,13 +2050,10 @@ MODULE mo_var_meta_data
 
 
   !> define meta information for target fields derived from GLOBE data
-  SUBROUTINE def_topo_meta(diminfo,coordinates,grid_mapping,diminfohor)
-
-    USE mo_topo_data, ONLY: topography,&
-                            topo_aster,&
-                            topo_gl
+  SUBROUTINE def_topo_meta(diminfo,topography,coordinates,grid_mapping,diminfohor)
 
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    INTEGER (KIND=i4), INTENT(IN):: topography   !< defines the desired topography (ASTER or GLOBE)
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
     TYPE(dim_meta_info),TARGET, OPTIONAL :: diminfohor(:)     !< pointer to dimensions of variable
@@ -2028,6 +2063,8 @@ MODULE mo_var_meta_data
     CHARACTER (len=80) :: gridmp
     CHARACTER (len=80) :: coord, coordhor
     INTEGER  :: n_dimhor   !< number of dimensions
+    INTEGER (KIND=i4), PARAMETER  :: topo_aster = 2
+    INTEGER (KIND=i4), PARAMETER  :: topo_gl = 1
 
     gridmp = c_undef
     coord = c_undef

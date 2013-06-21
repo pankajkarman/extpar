@@ -7,6 +7,10 @@
 !  Initial release
 ! V1_2         2011/03/25 Hermann Asensio
 !  Update doxygen documetation (comments)
+! V2_0         2013/06/04 Anne Roches
+!  introduction of the topographical corrected radiation parameters
+! V2_0         2013/06/04 Martina Messmer
+!  renaming of all the variables that contained a 'globe' into 'topo'
 !
 ! Code Description:
 ! Language: Fortran 2003.

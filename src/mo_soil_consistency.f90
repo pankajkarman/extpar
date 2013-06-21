@@ -5,6 +5,7 @@
 ! ------------ ---------- ----
 ! V2_0         24/4/2013 Juergen Helmert / Martina Messmer
 !  Initial release
+!  The soiltype is converted from the HWSD world code to the TERRA code.
 !
 ! Code Description:
 ! Language: Fortran 2003.

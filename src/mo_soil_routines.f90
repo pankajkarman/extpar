@@ -7,6 +7,9 @@
 !  Initial release
 ! V1_10        2013/03/26 Juergen Helmert
 !  Adaption in DSMW grid increment computation         
+! V2_0         1013/06/04 Martina Messmer
+!  adaptations in a way that HWSD data set can be used (top- and subsoil)
+!  Code received from Juergen Helmert
 !
 ! Code Description:
 ! Language: Fortran 2003.

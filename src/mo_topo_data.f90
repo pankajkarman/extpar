@@ -3,7 +3,11 @@
 !  History:
 !  Version                  Date                 Name
 !  ------------------------ -------------------- -----------------
-!  V1_0                     2012/11/21           Martina Messmer
+!  V2_0                     2012/11/21           Martina Messmer
+!   initial release
+!   replaces the older module mo_globe_data.f90
+!   introduce the ASTER topography as external parameters
+!   contains a deallocation subroutine
 ! 
 !  Code Description:
 !  Language: Fortran 90

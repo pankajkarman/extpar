@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_4         2011/04/21 Hermann Asensio
 !  Hermann Asensio
+! V2_0         2013/06/04 Martina Messmer
+!  add a new parameter for CRU temperature elevation (CLM Community)
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -63,13 +65,16 @@ MODULE mo_cru_output_nc
     &                                     undef_int,   &
     &                                     lon_geo,     &
     &                                     lat_geo, &
-    &                                     crutemp)
+    &                                     crutemp, &
+    &                                     cruelev)
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: crutemp_meta, &
-    &                         def_crutemp_meta
+    &                         def_crutemp_meta, &
+    &                         cruelev_meta,     &
+    &                         def_cruelev_meta
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
@@ -83,6 +88,7 @@ MODULE mo_cru_output_nc
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+  REAL(KIND=wp), OPTIONAL, INTENT(IN)  :: cruelev(:,:,:)  !< cru elevation , cruelev(ie,je,ke)
 
   ! local variables
   INTEGER :: ndims  
@@ -109,6 +115,11 @@ MODULE mo_cru_output_nc
   CALL def_crutemp_meta(dim_3d_tg)
   ! crutemp_meta
 
+  IF(PRESENT(cruelev)) THEN
+    CALL def_cruelev_meta(dim_3d_tg)
+  ENDIF
+! cruelev_meta
+
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
@@ -129,16 +140,22 @@ MODULE mo_cru_output_nc
 
   ! crutemp
    CALL netcdf_put_var(ncid,crutemp,crutemp_meta,undefined)
-  ! lon
-  CALL netcdf_put_var(ncid,lon_geo,lon_geo_meta,undefined)
 
-  ! lat
-  CALL netcdf_put_var(ncid,lat_geo,lat_geo_meta,undefined)
+   ! cruelev
+   IF(PRESENT(cruelev)) THEN
+     CALL netcdf_put_var(ncid,cruelev,cruelev_meta,undefined)
+   ENDIF
 
-  CALL close_netcdf_file(ncid)
+   ! lon
+   CALL netcdf_put_var(ncid,lon_geo,lon_geo_meta,undefined)
+
+   ! lat
+   CALL netcdf_put_var(ncid,lat_geo,lat_geo_meta,undefined)
+
+   CALL close_netcdf_file(ncid)
 
 
-  END SUBROUTINE write_netcdf_buffer_cru
+ END SUBROUTINE write_netcdf_buffer_cru
   !------------------------------------------------------------------
 
   SUBROUTINE write_netcdf_cosmo_grid_cru(netcdf_filename,  &
@@ -148,15 +165,16 @@ MODULE mo_cru_output_nc
     &                                     undef_int,   &
     &                                     lon_geo,     &
     &                                     lat_geo, &
-    &                                     crutemp)
+    &                                     crutemp, &
+    &                                     cruelev)
      
 
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_var_meta_data, ONLY: crutemp_meta, &
-      &                         def_crutemp_meta
+    USE mo_var_meta_data, ONLY: crutemp_meta, cruelev_meta, &
+      &                         def_crutemp_meta, def_cruelev_meta
 
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
@@ -184,7 +202,7 @@ MODULE mo_cru_output_nc
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
-
+    REAL(KIND=wp), OPTIONAL, INTENT(IN)  :: cruelev(:,:,:)  !< cru elevation (ie,je,ke)
     ! local variables
 
     INTEGER :: ndims  
@@ -227,6 +245,11 @@ MODULE mo_cru_output_nc
      ! define meta information for variable crutemp for netcdf output
      CALL def_crutemp_meta(dim_2d_cosmo,coordinates,grid_mapping)
      ! crutemp_meta
+
+    IF(PRESENT(cruelev)) THEN
+       CALL def_cruelev_meta(dim_2d_cosmo,coordinates,grid_mapping)
+       ! cruelev_meta
+     ENDIF
 
      ! define meta information for target field variables lon_geo, lat_geo 
      CALL def_com_target_fields_meta(dim_2d_cosmo,coordinates,grid_mapping)
@@ -272,6 +295,12 @@ MODULE mo_cru_output_nc
       CALL netcdf_put_var(ncid,crutemp(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
          &                crutemp_meta,undefined)
 
+     IF(PRESENT(cruelev)) THEN
+        !cruelev
+        CALL netcdf_put_var(ncid,cruelev(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
+             &                cruelev_meta,undefined)
+      ENDIF
+
       CALL close_netcdf_file(ncid)
 
   END SUBROUTINE write_netcdf_cosmo_grid_cru
@@ -284,14 +313,15 @@ MODULE mo_cru_output_nc
     &                                     undef_int,   &
     &                                     lon_geo,     &
     &                                     lat_geo, &
-    &                                     crutemp)
+    &                                     crutemp, &
+    &                                     cruelev)
   
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
 
-    USE mo_var_meta_data, ONLY: crutemp_meta, &
-      &                         def_crutemp_meta
+    USE mo_var_meta_data, ONLY: crutemp_meta, cruelev_meta, &
+      &                         def_crutemp_meta, def_cruelev_meta
 
     USE mo_var_meta_data, ONLY: lon_geo_meta, &
       &                         lat_geo_meta, &
@@ -313,7 +343,7 @@ MODULE mo_cru_output_nc
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
-
+  REAL(KIND=wp), OPTIONAL, INTENT(IN)  :: cruelev(:,:,:)  !< cru elevation , cruelev(ie,je,ke)
     ! local variables
 
     INTEGER :: n_1d_real = 0 !< number of 1D real variables
@@ -351,6 +381,11 @@ MODULE mo_cru_output_nc
     CALL def_crutemp_meta(dim_icon)
     ! crutemp_meta
 
+    IF(PRESENT(cruelev)) THEN
+       CALL def_cruelev_meta(dim_icon)
+       ! cruelev_meta
+     ENDIF
+
     ! define meta information for target field variables lon_geo, lat_geo 
     CALL def_com_target_fields_meta(dim_icon)
     ! lon_geo_meta and lat_geo_meta
@@ -386,6 +421,11 @@ MODULE mo_cru_output_nc
     ! crutemp
     CALL netcdf_put_var(ncid,crutemp(1:icon_grid%ncell,1,1),crutemp_meta,undefined)
 
+    !cruelev
+     IF(PRESENT(cruelev)) THEN
+        CALL netcdf_put_var(ncid,cruelev(1:icon_grid%ncell,1,1), cruelev_meta,undefined)
+      ENDIF
+
     CALL close_netcdf_file(ncid)
 
   END SUBROUTINE write_netcdf_icon_grid_cru
@@ -412,7 +452,7 @@ MODULE mo_cru_output_nc
     ! define global attributes
     
     global_attributes(1)%attname = 'title'
-    global_attributes(1)%attributetext='Soil type'
+    global_attributes(1)%attributetext='CRU Climatology'
     global_attributes(2)%attname = 'institution'
     global_attributes(2)%attributetext='DWD'
 
@@ -441,19 +481,23 @@ MODULE mo_cru_output_nc
   !-----------------------------------------------------------------------
   SUBROUTINE read_netcdf_buffer_cru(netcdf_filename,  &
     &                                     tg,         &
-    &                                     crutemp)
+    &                                     crutemp,    &
+   &                                      cruelev)
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: crutemp_meta, &
-    &                         def_crutemp_meta
+    &                         def_crutemp_meta, &
+    &                         cruelev_meta, &
+    &                         def_cruelev_meta
 
   USE mo_io_utilities, ONLY: netcdf_get_var
 
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   REAL(KIND=wp), INTENT(OUT)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+  REAL(KIND=wp), OPTIONAL, INTENT(OUT)  :: cruelev(:,:,:)  !< cru elevation , cruelev(ie,je,ke)
 
   ! local variables
   INTEGER :: errorcode !< error status variable
@@ -474,6 +518,12 @@ MODULE mo_cru_output_nc
 
   CALL netcdf_get_var(TRIM(netcdf_filename),crutemp_meta,crutemp)
   PRINT *,'crutemp read'
+
+  IF(PRESENT(cruelev)) THEN
+    CALL def_cruelev_meta(dim_3d_tg)
+    PRINT *,'read CRU elevation'
+    CALL netcdf_get_var(TRIM(netcdf_filename),cruelev_meta,cruelev)
+  ENDIF
 
 
 

@@ -12,6 +12,10 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2_0         2013/06/04 Anne Roches
+!   introduction of the topographical corrected radiation parameters
+! V2_0         2013/06/04 Martina Messmer
+!   renaming of all variables that contained a 'globe' in 'topo' 
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -33,7 +37,7 @@ MODULE mo_topo_output_nc
 
   USE mo_cosmo_grid,      ONLY: cosmo_grid, nborder
 
-  USE mo_topo_data,       ONLY: nhori
+  USE mo_topo_data,       ONLY: nhori, topography
 
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
@@ -201,7 +205,7 @@ MODULE mo_topo_output_nc
    PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lrad) THEN
-    CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+    CALL def_topo_meta(dim_3d_tg,topography,diminfohor=dim_4d_tg)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -209,7 +213,7 @@ MODULE mo_topo_output_nc
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_3d_tg)
+    CALL def_topo_meta(dim_3d_tg,topography)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -455,7 +459,7 @@ MODULE mo_topo_output_nc
 
   ! define meta information for various GLOBE data related variables for netcdf output
   IF(lrad) THEN
-    CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
+    CALL def_topo_meta(dim_2d_cosmo,topography,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -463,7 +467,7 @@ MODULE mo_topo_output_nc
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_2d_cosmo,coordinates=coordinates,grid_mapping=grid_mapping)
+    CALL def_topo_meta(dim_2d_cosmo,topography,coordinates=coordinates,grid_mapping=grid_mapping)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -699,7 +703,7 @@ PRINT *,'def_dimension_info_buffer'
 
 
   ! define meta information for various GLOBE data related variables for netcdf output
-  CALL def_topo_meta(dim_icon)
+  CALL def_topo_meta(dim_icon,topography)
 
   !  hh_topo_meta, fr_land_topo_meta, &
   !         stdh_topo_meta, theta_topo_meta, &
@@ -948,7 +952,7 @@ PRINT *,'def_dimension_info_buffer'
    PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lzrad) THEN
-    CALL def_topo_meta(dim_3d_tg,diminfohor=dim_4d_tg)
+    CALL def_topo_meta(dim_3d_tg,topography,diminfohor=dim_4d_tg)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -956,7 +960,7 @@ PRINT *,'def_dimension_info_buffer'
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_3d_tg)
+    CALL def_topo_meta(dim_3d_tg,topography)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -977,7 +981,7 @@ print *,"present vertex"
 
   ENDIF
 !roa
-print *,"netcdf_fn",trim(netcdf_filename)
+print *,"netcdf_",trim(netcdf_filename)
 
   CALL netcdf_get_var(TRIM(netcdf_filename),hh_topo_meta,hh_topo)
   PRINT *,'hh_topo read'

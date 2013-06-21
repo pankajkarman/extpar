@@ -31,6 +31,14 @@
 !  Adaptions for using special points and external land-sea mask 
 ! V1_12        2013-04-24 Frank Brenner
 !  bug fix regarding old file paths         
+! V2_0         2013-06-04 Martina Messmer
+!  introduce HWSD soil data set for external parameters (Juergen Helmert)
+!  introduce lradtopo parameters for external parameters (Anne Roches)
+!  add possibility to omit the SSO parameters (Martina Messmer)
+!  introduce a finer temperature climatology data set (CRU) for external
+!  parameters (CLM Community)
+!  adjusted consistency check for soiltype on ice grid elements for 
+!  Globcover 2009
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -314,8 +322,11 @@ USE mo_aot_target_fields, ONLY: allocate_aot_target_fields,&
     
 USE mo_aot_output_nc, ONLY: read_netcdf_buffer_aot
 
-USE mo_cru_target_fields, ONLY: allocate_cru_target_fields,&
-    &                              crutemp
+USE mo_cru_target_fields, ONLY: allocate_cru_target_fields,   &
+    &                              crutemp, crutemp2, cruelev,&
+    &                              i_t_cru_fine, i_t_cru_coarse
+
+USE mo_cru_data,  ONLY: read_namelists_extpar_t_clim
 
 USE mo_cru_output_nc, ONLY: read_netcdf_buffer_cru
 
@@ -429,7 +440,8 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   CHARACTER (len=filename_max) :: ndvi_buffer_cons_output  !< name for ndvi output file after consistency check
 
   ! temperature climatology
-  CHARACTER (len=filename_max) :: raw_data_t_clim_path        !< path to raw data
+  CHARACTER (len=filename_max) :: namelist_file_t_clim !< filename with namelists for for EXTPAR settings
+  CHARACTER (len=filename_max) :: raw_data_t_clim_path     !< path to raw data
   CHARACTER (len=filename_max) :: raw_data_t_clim_filename !< filename temperature climatology raw data
 
 
@@ -454,6 +466,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   INTEGER (KIND=i4)  :: itopo_type
   INTEGER (KIND=i4)  :: ntiles_column
   INTEGER (KIND=i4)  :: ntiles_row
+  INTEGER (KIND=i8)  :: raw_data_t_id
   INTEGER (KIND=i4)  :: isoil_data   
   LOGICAL            :: lsso_param
   LOGICAL            :: ldeep_soil
@@ -489,6 +502,9 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   INTEGER :: je !< counter
   INTEGER :: ke !< counter
 
+  INTEGER :: jj !< counter
+  INTEGER :: ii !< counter 
+
   INTEGER :: n
   INTEGER :: nloops
 
@@ -509,6 +525,10 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   INTEGER  :: ilookup_table_lu !< integer switch to choose a lookup table
   INTEGER  :: nclass_lu !< number of land use classes 
 
+! variables for the T_CLIM
+  LOGICAL ::  last=.FALSE. ! in TCL leave loop
+  LOGICAL ::  foundtcl=.FALSE. ! in TCL 
+  REAL(KIND=wp) :: nextd      !< next distance in T_CL search 
 
   ! variables for the ICON grid
   INTEGER :: first_dom                    !< index of first (global) model domain 
@@ -627,7 +647,16 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
   print*, 'isoil_data: ', isoil_data
   print*, 'ldeep_soil: ', ldeep_soil
-                                       
+
+  namelist_file_t_clim = 'INPUT_TCLIM'
+  CALL read_namelists_extpar_t_clim(namelist_file_t_clim,     &
+                                    raw_data_t_id,            &
+                                    raw_data_t_clim_path,     &
+                                    raw_data_t_clim_filename, &
+                                    t_clim_buffer_file,       &
+                                    t_clim_output_file) 
+   
+  print*, 'raw_data_t_id: ', raw_data_t_id                                        
   !--------------------------------------------------------------------------------------------------------
   ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
   ! for th target grid
@@ -942,7 +971,18 @@ END SELECT
    &                                     aot_tg)
 
 
-
+   PRINT *,'Read in cru data'
+   SELECT CASE(raw_data_t_id)
+   CASE(i_t_cru_fine)
+     CALL read_netcdf_buffer_cru(t_clim_buffer_file,&
+    &                                     tg,       &
+    &                                     crutemp,  &
+    &                                     cruelev)
+   CASE(i_t_cru_coarse)
+     CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
+    &                                     tg,        &
+    &                                     crutemp)
+   END SELECT
  
    CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
     &                                     tg,      &
@@ -958,7 +998,7 @@ END SELECT
     &                                     flake_tot_npixel)
 
 
-    IF (i_lsm_data == 2) THEN
+    IF (i_lsm_data == 2 .and. igrid_type == igrid_cosmo) THEN
     PRINT *,'Read in Land-Sea-Mask from file  ',land_sea_mask_file
     CALL read_netcdf_buffer_lsm(land_sea_mask_file,  &
    &                           tg, &
@@ -966,6 +1006,7 @@ END SELECT
     PRINT *,'Land-Sea-Mask file  ',land_sea_mask_file," is used for consistency tests."
     ELSE
     PRINT *,'External  Land-Sea-Mask is NOT used for consistency tests.'
+    PRINT *,'External Land-Sea-Mask is only tested for the COSMO grid.'
     END IF
 
 
@@ -1342,7 +1383,7 @@ END SELECT
     &                                  aluvd_source)
 
      path_alb_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alb_filename)
-     print *, path_alb_file
+     print *, TRIM(path_alb_file)
 
      nlon_reg = alb_raw_data_grid%nlon_reg
      nlat_reg = alb_raw_data_grid%nlat_reg
@@ -1419,7 +1460,130 @@ END SELECT
 !------------------------------------------------------------------------------------------
 !------------- NDVI data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!-------------TC_L Correction ------------------------------------------------------
+!------------------------------------------------------------------------------------------
+  !gs 
+  SELECT CASE(raw_data_t_id)
+  CASE(i_t_cru_fine)
 
+    PRINT*,'T_CL Correction' 
+    crutemp2 = crutemp
+    DO j=1,tg%je
+      DO i=1,tg%ie
+        last = .FALSE.
+        IF ( fr_land_lu(i,j,1) < 0.5) THEN
+          crutemp(i,j,1)  = -1.E20_wp
+        ELSE
+          IF ( crutemp(i,j,1) > 0.0 ) THEN
+            foundtcl = .TRUE.
+            !   PRINT*, 'CRUTEMP', i,j, crutemp(i,j,1)
+            !   PRINT*, 'ELEV DOMAIN', hh_topo(i,j,1)
+            !   PRINT*, 'ELEV CRU', cruelev(i,j,1)
+            
+            crutemp(i,j,1) = crutemp(i,j,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i,j,1) )   
+            !    PRINT*, 'CRUTEMP', crutemp(i,j,1)
+            
+          ELSE
+            ! PRINT*, 'TCL NOT DEFINED ',tg%ie, tg%je, i, j
+            ! 3x3 search      
+            foundtcl = .FALSE.
+            DO jj=-1,2
+              DO ii=-1,2
+                IF (j+jj > 0 .and.  j+jj < tg%je .and. i+ii > 0 .and. i+ii < tg%ie) THEN
+                  IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
+                    ! PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)                    
+                    crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
+                    foundtcl = .TRUE.
+                    last = .TRUE.
+                    exit       
+                  ENDIF
+                ENDIF   ! inside domain
+              ENDDO
+              IF  (last) THEN
+                exit
+              ENDIF
+            ENDDO
+            ! if still missing go along longitude
+            IF (.NOT. foundtcl) THEN
+              ii = 0
+              DO WHILE (.NOT. foundtcl .AND. ii .lt. 0) !tg%ie)
+                ii = ii + 1 
+                jj = 0
+                DO WHILE (jj < 1)                   
+                  !PRINT*, 'TCL STILL NOT DEFINED  ',i,j,  ' II: ',ii, 'JJ',jj,  crutemp2(i+ii,j+jj,1), crutemp2(402,160,1)
+                  IF (i+ii > 0 .and. i+ii < tg%ie .and. j+jj > 0 .and. j+jj < tg%je) THEN
+                    IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
+                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)                    
+                      crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
+                      foundtcl = .TRUE.
+                      jj = 999                    
+                    ENDIF
+                  ENDIF
+                  IF (i+ii > 0 .and. i+ii < tg%ie .and. j-jj > 0 .and. j-jj < tg%je) THEN
+                    IF ( crutemp2(i+ii,j-jj,1) > 0.0 ) THEN
+                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j-jj,1)
+                      crutemp(i,j,1) = crutemp2(i+ii,j-jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j-jj,1) )
+                      foundtcl = .TRUE.
+                      jj = 999
+                    ENDIF
+                  ENDIF
+                  IF (i-ii > 0 .and.  j-jj  > 0 .and. j-jj < tg%je ) THEN
+                    IF ( crutemp2(i-ii,j-jj,1) > 0.0 ) THEN
+                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i-ii,j-jj,1)                    
+                      crutemp(i,j,1) = crutemp2(i-ii,j-jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i-ii,j-jj,1) )
+                      foundtcl = .TRUE.
+                      jj = 999                  
+                    ENDIF
+                  ENDIF
+                  IF (i-ii > 0 .and.  j+jj  > 0 .and. j+jj < tg%je ) THEN
+                    IF ( crutemp2(i-ii,j+jj,1) > 0.0 ) THEN
+                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i-ii,j+jj,1)
+                      crutemp(i,j,1) = crutemp2(i-ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i-ii,j+jj,1) )
+                      foundtcl = .TRUE.
+                      jj = 999
+                    ENDIF
+                  ENDIF
+                  
+                  jj = jj + 1
+                ENDDO !while
+                
+              ENDDO   ! while
+            ENDIF
+
+
+            ! now we search for the nearest
+            nextd=300*200
+            DO jj=-300,300
+              DO ii=-200,200
+                IF (i+ii > 0 .and.  j+jj  > 0 .and. i+ii <  tg%ie .and. j+jj < tg%je ) THEN
+                  IF (crutemp2(i+ii,j+jj,1) > 0) THEN             
+                    !PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)  
+                    IF ( ((jj-0)**2+(ii-0)**2) < nextd) THEN                               
+                      nextd = ((jj-0)**2+(ii-0)**2) 
+                      !_br 04.06.12                                   crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )                         
+                      crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * &
+                           0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
+                      !PRINT*, nextd
+                      !PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1), nextd
+                      foundtcl = .TRUE.        
+                    ENDIF
+                  ENDIF
+                ENDIF
+              ENDDO
+            ENDDO
+              
+
+            IF ( .NOT. foundtcl) THEN
+              PRINT*, 'ERROR NO TEMPERATURE DATA FOR T_CL CORRECTION  AT'   
+              PRINT *,i,j
+              
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDDO
+    ENDDO
+  END SELECT
 !------------------------------------------------------------------------------------------
 !------------- Special Points        ------------------------------------------------------
 
@@ -1533,6 +1697,7 @@ SELECT CASE(igrid_type)
     &                                     tg,                            &
     &                                     isoil_data,                    &
     &                                     ldeep_soil,                    &
+    &                                     itopo_type,                    &
     &                                     lsso_param,                    &
     &                                     fill_value_real,               &
     &                                     fill_value_int,                &
@@ -1567,19 +1732,19 @@ SELECT CASE(igrid_type)
     &                                     alb_field_mom,                 &
     &                                     alnid_field_mom,               &
     &                                     aluvd_field_mom,               &
-!    &                                     fr_sand = fr_sand,             &
-!    &                                     fr_silt = fr_silt,             &
-!    &                                     fr_clay = fr_clay,             &
-!    &                                     fr_oc = fr_oc,                 &
-!    &                                     fr_bd = fr_bd,                 &
-!    &                                     fr_dm = fr_dm,                 &
-!    &                                     soiltype_deep = soiltype_deep, &
-!    &                                     fr_sand_deep = fr_sand_deep,   &
-!    &                                     fr_silt_deep = fr_silt_deep,   &
-!    &                                     fr_clay_deep = fr_clay_deep,   &
-!    &                                     fr_oc_deep = fr_oc_deep,       &
-!    &                                     fr_bd_deep = fr_bd_deep,       &
-!    &                                     fr_dm_deep = fr_dm_deep,       &
+    &                                     fr_sand = fr_sand,             &
+    &                                     fr_silt = fr_silt,             &
+    &                                     fr_clay = fr_clay,             &
+    &                                     fr_oc = fr_oc,                 &
+    &                                     fr_bd = fr_bd,                 &
+    &                                     fr_dm = fr_dm,                 &
+    &                                     soiltype_deep = soiltype_deep, &
+    &                                     fr_sand_deep = fr_sand_deep,   &
+    &                                     fr_silt_deep = fr_silt_deep,   &
+    &                                     fr_clay_deep = fr_clay_deep,   &
+    &                                     fr_oc_deep = fr_oc_deep,       &
+    &                                     fr_bd_deep = fr_bd_deep,       &
+    &                                     fr_dm_deep = fr_dm_deep,       &
     &                                     theta_topo=theta_topo,         &
     &                                     aniso_topo=theta_topo,         &
     &                                     slope_topo=theta_topo)
@@ -1597,6 +1762,7 @@ SELECT CASE(igrid_type)
      &                                     tg,                          &
      &                                     isoil_data,                  &
      &                                     ldeep_soil,                  &
+     &                                     itopo_type,                  &
      &                                     lsso_param,                  & 
      &                                     lradtopo,                    &  
      &                                     nhori,                       &
@@ -1662,6 +1828,7 @@ SELECT CASE(igrid_type)
      &                                     tg,                          &
      &                                     isoil_data,                  &
      &                                     ldeep_soil,                  &
+     &                                     itopo_type,                  &
      &                                     lsso_param,                  & 
      &                                     lradtopo,                    &  
      &                                     nhori,                       &
@@ -1724,6 +1891,7 @@ SELECT CASE(igrid_type)
       &                                     tg,                        &
       &                                     isoil_data,                &
       &                                     ldeep_soil,                &
+      &                                     itopo_type,                &
       &                                     lsso_param,                &
       &                                     lradtopo,                  &
       &                                     nhori,                     &
@@ -1778,6 +1946,7 @@ SELECT CASE(igrid_type)
             &                           tg,                          &
             &                           isoil_data,                  &
             &                           ldeep_soil,                  &
+            &                           itopo_type,                  &
             &                           lsso_param,                  &
             &                           fill_value_real,             &
             &                           fill_value_int,              &
@@ -1830,4 +1999,5 @@ END SELECT
         
 
 END PROGRAM extpar_consistency_check
+
 

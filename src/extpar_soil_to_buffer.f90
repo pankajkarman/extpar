@@ -14,6 +14,9 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2_0         2013/06/04 Martina Messmer
+!   introduction of the HWSD data sets (topsoil and subsoil) for the 
+!   external parameters (code for the topsoil obtained from Juergen Helmert)
 !
 ! Code Description:
 ! Language: Fortran 2003.
