@@ -129,6 +129,7 @@ USE mo_soil_routines, ONLY: get_soil_data, &
                             get_dimension_soil_data
 
 USE mo_soil_data, ONLY: allocate_raw_soil_fields,&
+                        define_soiltype,         &
                         dsmw_legend,             &
                         soil_texslo,             &
                         dsmw_soil_unit,          &
@@ -1079,11 +1080,18 @@ END SELECT
 !------------- soil data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
-     ! undef_soiltype   = 0 ! \TODO read undef_soiltype from netcdf file (_Fill_Value)
-     ! default_soiltype = 5 ! default soil type loam
-     ! soiltype_ice     = 1   !< soiltype for ice
-     ! soiltype_water   = 9   !< soiltype for water
+      !undef_soiltype   = 0 ! \TODO read undef_soiltype from netcdf file (_Fill_Value)
+      !default_soiltype = 5 ! default soil type loam
+      !soiltype_ice     = 1   !< soiltype for ice
+      !soiltype_water   = 9   !< soiltype for water
       PRINT *,'Soil data consistency check'
+
+      CALL define_soiltype(isoil_data, ldeep_soil, &
+                           undef_soiltype,         &
+                           default_soiltype,       &
+                           soiltype_ice,           &
+                           soiltype_water,         &
+                           soil_data)
 
       SELECT CASE (isoil_data)
       CASE(FAO_data)
@@ -1174,6 +1182,18 @@ END SELECT
      &                          fr_bd,         &
      &                          fr_dm)
       ENDIF
+
+      soiltype_water = 9
+
+      WHERE (fr_land_lu < 0.5)  ! set water soiltype for water grid elements
+        soiltype_fao = soiltype_water
+      ENDWHERE
+      IF (ldeep_soil) THEN
+        WHERE (fr_land_lu < 0.5)  ! set water soiltype for water grid elements 
+          soiltype_deep = soiltype_water
+        ENDWHERE
+      ENDIF
+      
 
     END SELECT
 

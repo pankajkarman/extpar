@@ -594,6 +594,7 @@ MODULE mo_agg_topo
 !$OMP END PARALLEL DO
    ENDIF ! ICON only
 
+!$OMP PARALLEL DO PRIVATE(i,ie,i_vert,point_lon)
    DO i=istartlon,iendlon
 
      ! call here the attribution of raw data pixel to target grid for different grid types
@@ -681,7 +682,7 @@ MODULE mo_agg_topo
        ENDIF
 
        ENDDO ! loop over one latitude circle of the raw data
-
+!$OMP END PARALLEL DO
 
        ! swap indices of the hh array for next data row
        j_new = j_n ! the new data will be written in the former "northern" array
