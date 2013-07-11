@@ -11,8 +11,8 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/s
 # path to working directory
 workdir=./                                                   # adjust the path setting!
 # path to raw data for external parameter
-data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path setting!
-data_dir2=/store/s83/messmerm/ncfiles/                       # adjust the path setting!
+data_dir=/store/s83/tsm/extpar/raw_data/raw_data_nc/         # adjust the path setting!
+
 # path to binaries
 progdir=../                                                  # adjust the path setting!
 
@@ -40,9 +40,9 @@ stf_output_filename='external_parameter_cira_cosmo1.stf'
 netcdf_output_filename='external_parameter_cira_cosmo1.nc'
 grib_sample='DWD_rotated_ll_7km_G_grib1'
 
-raw_data_alb='month_alb.nc'
-raw_data_alnid='month_alnid.nc'
-raw_data_aluvd='month_aluvd.nc'
+raw_data_alb='MODIS_month_alb.nc'
+raw_data_alnid='MODIS_month_alnid.nc'
+raw_data_aluvd='MODIS_month_aluvd.nc'
 buffer_alb='month_alb_buffer.nc'
 output_alb='month_alb_extpar_cosmo.nc'
 
@@ -50,15 +50,15 @@ raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
 
-raw_data_tclim_coarse='absolute_hadcrut3.nc'
-raw_data_tclim_fine='CRU_T2M_SURF_clim.nc'
+raw_data_tclim_coarse='CRU_T2M_SURF_clim_coarse.nc'
+raw_data_tclim_fine='CRU_T2M_SURF_clim_fine.nc'
 buffer_tclim='crutemp_clim_extpar_buffer.nc'
 output_tclim='crutemp_clim_extpar_cosmo.nc'
 
-raw_data_glc2000='glc2000_byte.nc'
+raw_data_glc2000='GLC2000_byte.nc'
 buffer_glc2000='extpar_landuse_buffer.nc'
 output_glc2000='extpar_landuse_cosmo.nc'
-raw_data_glcc='glcc_usgs_class_byte.nc'
+raw_data_glcc='GLCC_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
 output_glcc='glcc_landuse_cosmo.nc'
 
@@ -141,12 +141,12 @@ raw_data_deep_soil='HWSD30_100_texture_2.nc'
 buffer_soil='FAO_DSMW_buffer.nc'
 output_soil='FAO_DSMW_COSMO.nc'
 
-raw_landuse_table_HWSD='LU_TAB_HWSD_UF.data'
+raw_lookup_table_HWSD='LU_TAB_HWSD_UF.data'
 raw_HWSD_data='HWSD_DATA_COSMO.data'
 raw_HWSD_data_deep='HWSD_DATA_COSMO_S.data'
 raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
-raw_data_flake='lakedepth.nc'
+raw_data_flake='GLDB_lakedepth.nc'
 buffer_flake='flake_buffer.nc'
 output_flake='ext_par_flake_cosmo.nc'
 
@@ -253,8 +253,8 @@ cat > INPUT_ORO << EOF_oro
  lsso_param = .FALSE.,
  raw_data_orography_path='',
  ntiles_column = 1,
- ntiles_row = 5,
- topo_FILES = '${raw_data_aster_T14}' '${raw_data_aster_T17}' '${raw_data_aster_T20}' '${raw_data_aster_T23}' '${raw_data_aster_T26}'
+ ntiles_row = 4,
+ topo_FILES = 'ASTER_orig_T019.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T043.nc' 'ASTER_orig_T055.nc'
 /
 EOF_oro
 #--- topo_FILES = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'topo_FILES = '${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'  
@@ -306,7 +306,7 @@ cat > INPUT_SOIL << EOF_soil
 /
 &HWSD_index_files
  path_HWSD_index_files='',
- landuse_table_HWSD='${raw_landuse_table_HWSD}', 
+ landuse_table_HWSD='${raw_lookup_table_HWSD}', 
  HWSD_data='${raw_HWSD_data}',
  HWSD_data_deep='${raw_HWSD_data_deep}',
  HWSD_data_extpar='${raw_HWSD_data_extpar}'
@@ -353,17 +353,17 @@ ln -s ${data_dir}/${raw_data_aluvd}
 ln -s ${data_dir}/${raw_data_aot}
 
 ln -s ${data_dir}/${raw_data_tclim_coarse}
-ln -s ${data_dir2}/${raw_data_tclim_fine}
+ln -s ${data_dir}/${raw_data_tclim_fine}
 
 ln -s ${data_dir}/${raw_data_glc2000}
 ln -s ${data_dir}/${raw_data_glcc}
 
-ln -s ${data_dir2}/${raw_data_globcover_0}
-ln -s ${data_dir2}/${raw_data_globcover_1}
-ln -s ${data_dir2}/${raw_data_globcover_2}
-ln -s ${data_dir2}/${raw_data_globcover_3}
-ln -s ${data_dir2}/${raw_data_globcover_4}
-ln -s ${data_dir2}/${raw_data_globcover_5}
+ln -s ${data_dir}/${raw_data_globcover_0}
+ln -s ${data_dir}/${raw_data_globcover_1}
+ln -s ${data_dir}/${raw_data_globcover_2}
+ln -s ${data_dir}/${raw_data_globcover_3}
+ln -s ${data_dir}/${raw_data_globcover_4}
+ln -s ${data_dir}/${raw_data_globcover_5}
 
 
 ln -s ${data_dir}/${raw_data_globe_A10} 
@@ -383,60 +383,61 @@ ln -s ${data_dir}/${raw_data_globe_N10}
 ln -s ${data_dir}/${raw_data_globe_O10} 
 ln -s ${data_dir}/${raw_data_globe_P10}
 
-ln -s ${data_dir2}/${raw_data_aster_T01} 
-ln -s ${data_dir2}/${raw_data_aster_T02}
-ln -s ${data_dir2}/${raw_data_aster_T03} 
-ln -s ${data_dir2}/${raw_data_aster_T04} 
-ln -s ${data_dir2}/${raw_data_aster_T05}
-ln -s ${data_dir2}/${raw_data_aster_T06} 
-ln -s ${data_dir2}/${raw_data_aster_T07} 
-ln -s ${data_dir2}/${raw_data_aster_T08} 
-ln -s ${data_dir2}/${raw_data_aster_T09} 
-ln -s ${data_dir2}/${raw_data_aster_T10} 
-ln -s ${data_dir2}/${raw_data_aster_T11} 
-ln -s ${data_dir2}/${raw_data_aster_T12} 
-ln -s ${data_dir2}/${raw_data_aster_T13} 
-ln -s ${data_dir2}/${raw_data_aster_T14} 
-ln -s ${data_dir2}/${raw_data_aster_T15}
-ln -s ${data_dir2}/${raw_data_aster_T16} 
-ln -s ${data_dir2}/${raw_data_aster_T17} 
-ln -s ${data_dir2}/${raw_data_aster_T18} 
-ln -s ${data_dir2}/${raw_data_aster_T19} 
-ln -s ${data_dir2}/${raw_data_aster_T20} 
-ln -s ${data_dir2}/${raw_data_aster_T21} 
-ln -s ${data_dir2}/${raw_data_aster_T22} 
-ln -s ${data_dir2}/${raw_data_aster_T23} 
-ln -s ${data_dir2}/${raw_data_aster_T24} 
-ln -s ${data_dir2}/${raw_data_aster_T25}
-ln -s ${data_dir2}/${raw_data_aster_T26} 
-ln -s ${data_dir2}/${raw_data_aster_T27} 
-ln -s ${data_dir2}/${raw_data_aster_T28} 
-ln -s ${data_dir2}/${raw_data_aster_T29} 
-ln -s ${data_dir2}/${raw_data_aster_T30} 
-ln -s ${data_dir2}/${raw_data_aster_T31} 
-ln -s ${data_dir2}/${raw_data_aster_T32} 
-ln -s ${data_dir2}/${raw_data_aster_T33} 
-ln -s ${data_dir2}/${raw_data_aster_T34} 
-ln -s ${data_dir2}/${raw_data_aster_T35} 
-ln -s ${data_dir2}/${raw_data_aster_T36} 
-ln -s ${data_dir2}/topo.ASTER_orig_T006.nc 
-ln -s ${data_dir2}/topo.ASTER_orig_T007.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T018.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T019.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T030.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T031.nc 
-ln -s ${data_dir2}/topo.ASTER_orig_T042.nc
-ln -s ${data_dir2}/topo.ASTER_orig_T043.nc
+ln -s ${data_dir}/${raw_data_aster_T01} 
+ln -s ${data_dir}/${raw_data_aster_T02}
+ln -s ${data_dir}/${raw_data_aster_T03} 
+ln -s ${data_dir}/${raw_data_aster_T04} 
+ln -s ${data_dir}/${raw_data_aster_T05}
+ln -s ${data_dir}/${raw_data_aster_T06} 
+ln -s ${data_dir}/${raw_data_aster_T07} 
+ln -s ${data_dir}/${raw_data_aster_T08} 
+ln -s ${data_dir}/${raw_data_aster_T09} 
+ln -s ${data_dir}/${raw_data_aster_T10} 
+ln -s ${data_dir}/${raw_data_aster_T11} 
+ln -s ${data_dir}/${raw_data_aster_T12} 
+ln -s ${data_dir}/${raw_data_aster_T13} 
+ln -s ${data_dir}/${raw_data_aster_T14} 
+ln -s ${data_dir}/${raw_data_aster_T15}
+ln -s ${data_dir}/${raw_data_aster_T16} 
+ln -s ${data_dir}/${raw_data_aster_T17} 
+ln -s ${data_dir}/${raw_data_aster_T18} 
+ln -s ${data_dir}/${raw_data_aster_T19} 
+ln -s ${data_dir}/${raw_data_aster_T20} 
+ln -s ${data_dir}/${raw_data_aster_T21} 
+ln -s ${data_dir}/${raw_data_aster_T22} 
+ln -s ${data_dir}/${raw_data_aster_T23} 
+ln -s ${data_dir}/${raw_data_aster_T24} 
+ln -s ${data_dir}/${raw_data_aster_T25}
+ln -s ${data_dir}/${raw_data_aster_T26} 
+ln -s ${data_dir}/${raw_data_aster_T27} 
+ln -s ${data_dir}/${raw_data_aster_T28} 
+ln -s ${data_dir}/${raw_data_aster_T29} 
+ln -s ${data_dir}/${raw_data_aster_T30} 
+ln -s ${data_dir}/${raw_data_aster_T31} 
+ln -s ${data_dir}/${raw_data_aster_T32} 
+ln -s ${data_dir}/${raw_data_aster_T33} 
+ln -s ${data_dir}/${raw_data_aster_T34} 
+ln -s ${data_dir}/${raw_data_aster_T35} 
+ln -s ${data_dir}/${raw_data_aster_T36} 
+ln -s ${data_dir}/ASTER_orig_T006.nc 
+ln -s ${data_dir}/ASTER_orig_T007.nc
+ln -s ${data_dir}/ASTER_orig_T018.nc
+ln -s ${data_dir}/ASTER_orig_T019.nc
+ln -s ${data_dir}/ASTER_orig_T030.nc
+ln -s ${data_dir}/ASTER_orig_T031.nc 
+ln -s ${data_dir}/ASTER_orig_T042.nc
+ln -s ${data_dir}/ASTER_orig_T043.nc
+ln -s ${data_dir}/ASTER_orig_T055.nc
 
 ln -s ${data_dir}/${raw_data_ndvi}
 
-ln -s ${data_dir2}/${raw_data_soil_FAO}
-ln -s ${data_dir2}/${raw_data_soil_HWSD}
-ln -s ${data_dir2}/${raw_data_deep_soil}
+ln -s ${data_dir}/${raw_data_soil_FAO}
+ln -s ${data_dir}/${raw_data_soil_HWSD}
+ln -s ${data_dir}/${raw_data_deep_soil}
 
-ln -s ${data_dir2}/${raw_landuse_table_HWSD}
-ln -s ${data_dir2}/${raw_HWSD_data}
-ln -s ${data_dir2}/${raw_HWSD_data_deep}
+ln -s ${data_dir}/${raw_lookup_table_HWSD}
+ln -s ${data_dir}/${raw_HWSD_data}
+ln -s ${data_dir}/${raw_HWSD_data_deep}
 
 ln -s ${data_dir}/${raw_data_flake}
 
