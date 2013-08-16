@@ -880,7 +880,7 @@ END SUBROUTINE read_namelists_extpar_alb
             IF (igrid_type.eq.2) THEN !COSMO interpolation
 
             !albedo < 0.07 and no water point
-              IF ((alb_interpol(i,j,k,t).lt.0.07).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN 
+              IF (((alb_interpol(i,j,k,t).lt.0.07) .OR. alb_interpol(i,j,k,t).gt.1.0).AND.(fr_land_lu(i,j,k).ge.0.5)) THEN 
 
                       
                 !avoiding 'out of range' errors at the border

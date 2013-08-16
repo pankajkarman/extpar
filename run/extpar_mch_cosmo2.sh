@@ -12,6 +12,7 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/s
 workdir=./                                                   # adjust the path setting!
 # path to raw data for external parameter
 data_dir=/store/s83/tsm/extpar/raw_data/raw_data_nc/  # adjust the path setting!
+
 # path to binaries
 progdir=../                                                  # adjust the path setting!
 
@@ -222,9 +223,9 @@ EOF_tclim
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
    raw_data_lu_path='',
-   raw_data_lu_filename='${raw_data_globcover_0}' '${raw_data_globcover_1}' '${raw_data_globcover_2}' '${raw_data_globcover_3}' '${raw_data_globcover_4}' '${raw_data_globcover_5}',
-   i_landuse_data=1,
-   ilookup_table_lu=1
+   raw_data_lu_filename='${raw_data_glc2000}',
+   i_landuse_data=2,
+   ilookup_table_lu=2
 /
 &lu_io_extpar
    lu_buffer_file='${buffer_lu}',
@@ -253,19 +254,17 @@ cat > INPUT_ORO << EOF_oro
   orography_output_file='${output_topo}'
 /
 &orography_raw_data
- itopo_type = 2,
+ itopo_type = 1,
  lsso_param = .TRUE.,
  raw_data_orography_path='',
- ntiles_column = 2,
+ ntiles_column = 4,
  ntiles_row = 4,
- topo_files = 'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc ' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'
+ topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
 /
 EOF_oro
 #---
-#'${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
 # topo_FILES = '${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'
-# for COSMO-2 und 1 domain:) topo_FILES = '${raw_data_aster_T04}'  '${raw_data_aster_T05}' '${raw_data_aster_T07}'  '${raw_data_aster_T08}' '${raw_data_aster_T10}'  '${raw_data_aster_T11}' '${raw_data_aster_T13}'  '${raw_data_aster_T14}' '${raw_data_aster_T16}'  '${raw_data_aster_T17}' '${raw_data_aster_T19}'  '${raw_data_aster_T20}'
-#'topo.ASTER_orig_T006.nc' 'topo.ASTER_orig_T007.nc' 'topo.ASTER_orig_T018.nc' 'topo.ASTER_orig_T019.nc' 'topo.ASTER_orig_T030.nc' 'topo.ASTER_orig_T031.nc ' 'topo.ASTER_orig_T042.nc' 'topo.ASTER_orig_T043.nc'
+# Für COSMO-2 und 1 domain:) topo_FILES = '${raw_data_aster_T04}'  '${raw_data_aster_T05}' '${raw_data_aster_T07}'  '${raw_data_aster_T08}' '${raw_data_aster_T10}'  '${raw_data_aster_T11}' '${raw_data_aster_T13}'  '${raw_data_aster_T14}' '${raw_data_aster_T16}'  '${raw_data_aster_T17}' '${raw_data_aster_T19}'  '${raw_data_aster_T20}'
 cat > INPUT_OROSMOOTH << EOF_orosm
 &orography_smoothing
   lfilter_oro=.FALSE.,
@@ -283,6 +282,14 @@ cat > INPUT_OROSMOOTH << EOF_orosm
 /
 EOF_orosm
 #---
+cat > INPUT_SCALE_SEP << EOF_scale_sep
+&scale_separated_raw_data
+  lscale_separation = .TRUE.,
+  raw_data_scale_sep_path = '',
+  scale_sep_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
+/
+EOF_scale_sep
+#---
 cat > INPUT_NDVI << EOF_ndvi
 &ndvi_raw_data
   raw_data_ndvi_path='',
@@ -297,7 +304,7 @@ EOF_ndvi
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
  isoil_data = 2,
- ldeep_soil = .FALSE.,
+ ldeep_soil = .TRUE.,
  raw_data_soil_path='',
  raw_data_soil_filename='${raw_data_soil_HWSD}',
  raw_data_deep_soil_filename='${raw_data_deep_soil}'
@@ -308,7 +315,7 @@ cat > INPUT_SOIL << EOF_soil
 /
 &HWSD_index_files
  path_HWSD_index_files='',
- landuse_table_HWSD='${raw_lookup_table_HWSD}', 
+ lookup_table_HWSD='${raw_lookup_table_HWSD}', 
  HWSD_data='${raw_HWSD_data}',
  HWSD_data_deep='${raw_HWSD_data_deep}',
  HWSD_data_extpar='${raw_HWSD_data_extpar}'
@@ -433,7 +440,6 @@ ln -s -f ${data_dir}/ASTER_orig_T043.nc
 ln -s -f ${data_dir}/${raw_data_ndvi}
 
 ln -s -f ${data_dir}/${raw_data_soil_FAO}
-
 ln -s -f ${data_dir}/${raw_data_soil_HWSD}
 ln -s -f ${data_dir}/${raw_data_deep_soil}
 

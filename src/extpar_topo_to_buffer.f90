@@ -98,6 +98,7 @@ PROGRAM extpar_topo_to_buffer
   USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
 
   USE mo_topo_routines, ONLY: read_namelists_extpar_orography
+  USE mo_topo_routines, ONLY: read_namelists_extpar_scale_sep
 
   USE mo_topo_tg_fields, ONLY:  fr_land_topo,    &
     &                         hh_topo,            &
@@ -170,6 +171,7 @@ PROGRAM extpar_topo_to_buffer
   CHARACTER(len=filename_max) :: input_namelist_file
   CHARACTER (len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
   CHARACTER (len=filename_max) :: namelist_topo_data_input !< file with input namelist with GLOBE data information
+  CHARACTER (len=filename_max) :: namelist_scale_sep_data_input!< file with input namelist with scale separated data information
 !roa >
   CHARACTER (len=filename_max) :: namelist_oro_smooth       !< file with orography smoothing information (switches)
   CHARACTER (len=filename_max) :: namelist_lrad             !< file with opo information (switches)
@@ -177,13 +179,15 @@ PROGRAM extpar_topo_to_buffer
 
     
   CHARACTER (len=filename_max) :: raw_data_path        !< path to raw data
-  CHARACTER (LEN=24) :: topo_files(1:max_tiles)  !< filenames globe raw data
+  CHARACTER (LEN=filename_max) :: topo_files(1:max_tiles)  !< filenames globe raw data
 
   CHARACTER (len=filename_max) :: orography_buffer_file !< name for orography buffer file
   CHARACTER (len=filename_max) :: orography_output_file !< name for orography output file
 
   CHARACTER (len=filename_max) :: raw_data_orography_path        !< path to raw data
-      
+  CHARACTER (len=filename_max) :: raw_data_scale_sep_orography_path !< path to raw data
+  CHARACTER (LEN=filename_max) :: scale_sep_files(1:max_tiles)  !< filenames globe raw data
+    
   CHARACTER (len=filename_max) :: netcdf_out_filename      !< filename for netcdf file with GLOBE data on COSMO grid
 
   REAL (KIND=wp) :: point_lon_geo !< longitude of a point in geographical system
@@ -231,7 +235,8 @@ PROGRAM extpar_topo_to_buffer
  INTEGER (KIND=i4) :: itopo_type           !< use 1 for GLOBE data and 2 for ASTER data
  INTEGER (KIND=i4) :: ntiles_column        !< number of tile columns in total domain
  INTEGER (KIND=i4) :: ntiles_row           !< number of tile rows in total domain
- LOGICAL           ::lsso_param
+ LOGICAL           :: lsso_param
+ LOGICAL           :: lscale_separation
  !mes <
 
   !roa >
@@ -289,8 +294,18 @@ PROGRAM extpar_topo_to_buffer
     &                                  orography_buffer_file,     &
     &                                  orography_output_file)
 
+!< *mes
+  namelist_scale_sep_data_input = 'INPUT_SCALE_SEP'
+  CALL read_namelists_extpar_scale_sep(namelist_scale_sep_data_input,     &
+    &                                  raw_data_scale_sep_orography_path, &
+    &                                  scale_sep_files,                   &
+    &                                  lscale_separation) 
 
-
+  IF (lscale_separation.eq..TRUE. .and. itopo_type.eq.2) THEN
+    lscale_separation = .FALSE.
+    PRINT*, '*** Scale separation can only be used with GLOBE as raw topography ***'
+  ENDIF
+!> *mes>
                  
   CALL num_tiles(itopo_type,ntiles_column, ntiles_row,ntiles,topography)        
  ! gives back the number of tiles that are available 16 for GLOBE or 36 for ASTER
@@ -380,12 +395,16 @@ PROGRAM extpar_topo_to_buffer
   ! call the aggregation routine
   !--------------------------------------------------------------------------------------------------------
    IF (lsso_param) THEN
-     PRINT *,'CALL agg_topo_data_to_target_grid with SSO'
-     CALL agg_topo_data_to_target_grid(topo_tiles_grid,  &
+     IF (lscale_separation) THEN
+       PRINT *,'CALL agg_topo_data_to_target_grid with SSO'
+       CALL agg_topo_data_to_target_grid(topo_tiles_grid, &
        &                                topo_grid,        &
        &                                tg,               &
        &                                topo_files,       &
        &                                lsso_param,       &
+!< *mes
+       &                                lscale_separation,&
+!> *mes
 !roa>
        &                                lfilter_oro,      &
        &                                ilow_pass_oro,    &
@@ -398,15 +417,45 @@ PROGRAM extpar_topo_to_buffer
        &                                lxso_first,       &
        &                                rxso_mask,        & 
 !roa<
-       &                                hh_topo,         &
-       &                                stdh_topo,       &
-       &                                fr_land_topo,    &
+       &                                hh_topo,          &
+       &                                stdh_topo,        &
+       &                                fr_land_topo,     &
        &                                z0_topo,          &
        &                                no_raw_data_pixel,&
-       &                                theta_topo,&
-       &                                aniso_topo,&
+       &                                theta_topo,       & 
+       &                                aniso_topo,       &
+       &                                slope_topo,       &
+!< *mes
+       &                                scale_sep_files = scale_sep_files)
+!> *mes
+     ELSE
+       CALL agg_topo_data_to_target_grid(topo_tiles_grid, &
+       &                                topo_grid,        &
+       &                                tg,               &
+       &                                topo_files,       &
+       &                                lsso_param,       &
+       &                                lscale_separation,&
+!roa>
+       &                                lfilter_oro,      &
+       &                                ilow_pass_oro,    &
+       &                                numfilt_oro,      &
+       &                                eps_filter,       &
+       &                                ifill_valley,     &
+       &                                rfill_valley,     &
+       &                                ilow_pass_xso,    &
+       &                                numfilt_xso,      &
+       &                                lxso_first,       &
+       &                                rxso_mask,        & 
+!roa<
+       &                                hh_topo,          &
+       &                                stdh_topo,        &
+       &                                fr_land_topo,     &
+       &                                z0_topo,          &
+       &                                no_raw_data_pixel,&
+       &                                theta_topo,       & 
+       &                                aniso_topo,       &
        &                                slope_topo)
-
+     ENDIF
    ELSE
      PRINT *,'CALL agg_topo_data_to_target_grid without SSO'
      CALL agg_topo_data_to_target_grid(topo_tiles_grid,  &
@@ -414,6 +463,7 @@ PROGRAM extpar_topo_to_buffer
        &                                tg,               &
        &                                topo_files,       &
        &                                lsso_param,       &
+       &                                lscale_separation,&
 !roa>
        &                                lfilter_oro,      &
        &                                ilow_pass_oro,    &
@@ -535,6 +585,7 @@ PROGRAM extpar_topo_to_buffer
           &                                tg,            &
           &                                undefined,     &
           &                                undef_int,     &
+          &                                igrid_type,    &
           &                                lon_geo,       &
           &                                lat_geo,       &
           &                                fr_land_topo, &
@@ -552,6 +603,7 @@ PROGRAM extpar_topo_to_buffer
           &                                tg,            &
           &                                undefined,     &
           &                                undef_int,     &
+          &                                igrid_type,    &
           &                                lon_geo,       &
           &                                lat_geo,       &
           &                                fr_land_topo, &
@@ -571,6 +623,7 @@ PROGRAM extpar_topo_to_buffer
          &                                     tg,            &
          &                                     undefined,     &
          &                                     undef_int,     &
+         &                                     igrid_type,    &
          &                                     lon_geo,       &
          &                                     lat_geo,       &
          &                                     fr_land_topo, &
@@ -591,6 +644,7 @@ PROGRAM extpar_topo_to_buffer
          &                                     tg,            &
          &                                     undefined,     &
          &                                     undef_int,     &
+         &                                     igrid_type,    &
          &                                     lon_geo,       &
          &                                     lat_geo,       &
          &                                     fr_land_topo, &
@@ -613,6 +667,7 @@ PROGRAM extpar_topo_to_buffer
          &                                     tg,              &
          &                                     undefined,       &
          &                                     undef_int,       &
+         &                                     igrid_type,    &
          &                                     lon_geo,         &
          &                                     lat_geo,         &
          &                                     fr_land_topo,   &
@@ -631,6 +686,7 @@ PROGRAM extpar_topo_to_buffer
          &                                     tg,              &
          &                                     undefined,       &
          &                                     undef_int,       &
+         &                                     igrid_type,    &
          &                                     lon_geo,         &
          &                                     lat_geo,         &
          &                                     fr_land_topo,   &

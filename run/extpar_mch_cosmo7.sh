@@ -11,7 +11,7 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/s
 # path to working directory
 workdir=./                                                   # adjust the path setting!
 # path to raw data for external parameter
-data_dir=/store/s83/tsm/extpar/raw_data/raw_data_nc/         # adjust the path setting!
+data_dir=/store/s83/tsm/extpar/raw_data/raw_data_nc/  # adjust the path setting!
 # path to binaries
 progdir=../                                                  # adjust the path setting!
 
@@ -46,6 +46,7 @@ raw_data_aluvd='MODIS_month_aluvd.nc'
 
 buffer_alb='month_alb_buffer.nc'
 output_alb='month_alb_extpar_cosmo.nc'
+
 raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
@@ -244,6 +245,14 @@ cat > INPUT_RADTOPO << EOF_radtopo
 /
 EOF_radtopo
 #---
+cat > INPUT_SCALE_SEP << EOF_scale_sep
+&scale_separated_raw_data
+  lscale_separation = .FALSE.,
+  raw_data_scale_sep_path = '',
+  scale_sep_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
+/
+EOF_scale_sep
+#---
 cat > INPUT_NDVI << EOF_ndvi
 &ndvi_raw_data
   raw_data_ndvi_path='',
@@ -269,7 +278,7 @@ cat > INPUT_SOIL << EOF_soil
 /
 &HWSD_index_files
  path_HWSD_index_files='',
- landuse_table_HWSD='${raw_lookup_table_HWSD}', 
+ lookup_table_HWSD='${raw_lookup_table_HWSD}', 
  HWSD_data='${raw_HWSD_data}',
  HWSD_data_deep='${raw_HWSD_data_deep}',
  HWSD_data_extpar='${raw_HWSD_data_extpar}'

@@ -58,33 +58,39 @@ MODULE mo_agg_topo
  ! PUBLIC :: bilinear_interpol_topo_to_target_point
   CONTAINS
     !> aggregate GLOBE orography to target grid
-    SUBROUTINE agg_topo_data_to_target_grid(topo_tiles_grid,  &
-      &                                      topo_grid,        &
-      &                                      tg,               &
-      &                                      topo_files,       &
-      &                                      lsso_param,       &
+    SUBROUTINE agg_topo_data_to_target_grid(topo_tiles_grid,       &
+      &                                      topo_grid,            &
+      &                                      tg,                   &
+      &                                      topo_files,           &
+      &                                      lsso_param,           &
+!< *mes
+      &                                      lscale_separation,    &
+!> *mes
 !roa>
-      &                                      lfilter_oro,      &
-      &                                      ilow_pass_oro,    &
-      &                                      numfilt_oro,      &
-      &                                      eps_filter,       &
-      &                                      ifill_valley,     &
-      &                                      rfill_valley,     &
-      &                                      ilow_pass_xso,    &
-      &                                      numfilt_xso,      &
-      &                                      lxso_first,       &
-      &                                      rxso_mask,        & 
+      &                                      lfilter_oro,          &
+      &                                      ilow_pass_oro,        &
+      &                                      numfilt_oro,          &
+      &                                      eps_filter,           &
+      &                                      ifill_valley,         &
+      &                                      rfill_valley,         &
+      &                                      ilow_pass_xso,        &
+      &                                      numfilt_xso,          &
+      &                                      lxso_first,           &
+      &                                      rxso_mask,            & 
 !roa<   
-      &                                      hh_target,        &
-      &                                      stdh_target,      &
-      &                                      fr_land_topo,    &
-      &                                      z0_topo,          &
-      &                                      no_raw_data_pixel,&
-      &                                      theta_target,     &
-      &                                      aniso_target,     &
-      &                                      slope_target)
+      &                                      hh_target,            &
+      &                                      stdh_target,          &
+      &                                      fr_land_topo,         &
+      &                                      z0_topo,              &
+      &                                      no_raw_data_pixel,    &
+      &                                      theta_target,         &
+      &                                      aniso_target,         &
+      &                                      slope_target,         &
+!< *mes
+      &                                      scale_sep_files)
+!> *mes
 
-    USE mo_topo_data, ONLY : ntiles,   & !< there are 16/36 GLOBE/ASTER tiles 
+    USE mo_topo_data, ONLY : ntiles,   & !< there are 16/240 GLOBE/ASTER tiles 
                              max_tiles
       
     USE mo_topo_data, ONLY: nc_tot !< number of total GLOBE/ASTER columns un a latitude circle
@@ -159,8 +165,9 @@ MODULE mo_agg_topo
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
    TYPE(reg_lonlat_grid) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
-   CHARACTER (LEN=24), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe/aster raw data
+   CHARACTER (LEN=filename_max), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe/aster raw data
    LOGICAL, INTENT(IN) :: lsso_param
+   LOGICAL, INTENT(IN) :: lscale_separation
    !roa>
    LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
    INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
@@ -192,23 +199,32 @@ MODULE mo_agg_topo
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: aniso_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, anisotropie factor
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: slope_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, mean slope
+   CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: scale_sep_files(1:max_tiles)  !< filenames globe/aster raw scale separated data
+
 
    ! local variables
    REAL (KIND=wp)    :: lon_topo(1:nc_tot)   !< longitude coordinates of the GLOBE grid
    REAL (KIND=wp)    :: lat_topo(1:nr_tot)   !< latititude coordinates of the GLOBE grid
    INTEGER (KIND=i4) :: nc_tot_p1
    INTEGER  :: ncids_topo(1:ntiles)  
-!< ncid for the GLOBE/ASTER tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+!< ncid for the GLOBE/ASTER tiles, the netcdf files have to be opened by a previous call of open_netcdf_topo_tile
+   INTEGER  :: ncids_scale(1:ntiles)  
+!< ncid for the GLOBE/ASTER scale separated tiles, the netcdf files have to be opened by a previous call of open_netcdf_topo_tile
    INTEGER (KIND=i4) :: h_parallel(1:nc_tot)  !< one line with GLOBE/ASTER data
+   INTEGER (KIND=i4) :: h_parallel_scale(1:nc_tot)  !< one line with GLOBE/ASTER scale separated data
    INTEGER (KIND=i4) :: h_3rows(1:nc_tot,1:3) !< three rows with GLOBE/ASTER data
+   INTEGER (KIND=i4) :: h_3rows_scale(1:nc_tot,1:3) !< three rows with GLOBE/ASTER scale separated data
    INTEGER (KIND=i4) :: hh(0:nc_tot+1,1:3) !< topographic height for gradient calculations
-
+   INTEGER (KIND=i4) :: hh_scale(0:nc_tot+1,1:3) !< scale separated topographic height for gradient calculations
+   REAL(KIND=wp)     :: hh_target_scale(1:tg%ie,1:tg%je,1:tg%ke)
 
    REAL(KIND=wp)   :: dhdxdx(1:nc_tot)  !< x-gradient square for one latitude row
    REAL(KIND=wp)   :: dhdydy(1:nc_tot)  !< y-gradient square for one latitude row
    REAL(KIND=wp)   :: dhdxdy(1:nc_tot)  !< dxdy for one latitude row
    REAL(KIND=wp)   :: hh1_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of grid element
    REAL(KIND=wp)   :: hh2_target(1:tg%ie,1:tg%je,1:tg%ke)  !< square mean height of grid element
+   REAL(KIND=wp)   :: hh2_target_scale(1:tg%ie,1:tg%je,1:tg%ke)  !< square mean scale separated height of grid element
+   REAL(KIND=wp)   :: hh_sqr_diff(1:tg%ie,1:tg%je,1:tg%ke) !<squared difference between the filtered (scale separated) and original topography
 !roa >
    REAL(KIND=wp)   :: hsmooth(1:tg%ie,1:tg%je,1:tg%ke)  !< mean smoothed height of grid element
 !roa <
@@ -240,6 +256,9 @@ MODULE mo_agg_topo
    REAL(KIND=wp)  :: row_lat(1:3)    ! latitude of the row for the topographic height array hh
    REAL(KIND=wp)  :: lat0
    REAL(KIND=wp)  :: znorm, znfi2sum, zarg ! help variables for the estiamtion of the variance
+   REAL(KIND=wp)  :: znorm_z0, zarg_z0 ! help variables for the estiamtion of the variance   
+   REAL(KIND=wp)  :: stdh_z0(1:tg%ie,1:tg%je,1:tg%ke)
+!< standard deviation of subgrid scale orographic height
    REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
    REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
    REAL (KIND=wp) :: bound_west_cosmo  !< western  boundary for COSMO target domain
@@ -253,6 +272,7 @@ MODULE mo_agg_topo
    TYPE(reg_lonlat_grid) :: ta_grid 
 !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE/ASTER dataset)
    INTEGER (KIND=i4), ALLOCATABLE :: h_block(:,:) !< a block of GLOBE/ASTER altitude data
+   INTEGER (KIND=i4), ALLOCATABLE :: h_block_scale(:,:) !< a block of GLOBE/ASTER altitude scale separated data
    INTEGER :: block_row_start
    INTEGER :: block_row
    INTEGER :: errorcode !< error status variable
@@ -297,9 +317,18 @@ MODULE mo_agg_topo
    REAL (KIND=wp) :: z0_topography   !< rougness length according to Erdmann Heise Formula
 !mes >
 
-   CHARACTER(LEN=24) :: topo_file_1
+   CHARACTER(LEN=filename_max) :: topo_file_1
+!< *mes
+   CHARACTER(LEN=filename_max) :: scale_sep_file_1
+!< *mes
    nc_tot_p1 = nc_tot + 1
    topo_file_1 = topo_files(1)
+!< *mes
+   IF (lscale_separation) THEN
+     scale_sep_file_1 = scale_sep_files(1)
+   ENDIF
+!> *mes
+
 !mes <
 
    SELECT CASE(tg%igrid_type)
@@ -336,13 +365,20 @@ MODULE mo_agg_topo
    END SELECT
 
    ! initialize some variables
-   no_raw_data_pixel     = 0
+   no_raw_data_pixel = 0
    ndata      = 0
    z0_topo    = 0.0
    hh_target   = 0.0
    hh1_target  = 0.0
    hh2_target  = 0.0
-   stdh_target = 0.0 
+   stdh_target = 0.0
+!< *mes
+   IF (lscale_separation) THEN
+     hh_target_scale  = 0.0
+     hh2_target_scale = 0.0
+     stdh_z0          = 0.0
+   ENDIF
+!> *mes
    IF (lsso_param) THEN
    theta_target = 0.0
    aniso_target = 0.0
@@ -391,6 +427,15 @@ MODULE mo_agg_topo
    DO nt=1,ntiles
      CALL open_netcdf_TOPO_tile(topo_files(nt), ncids_topo(nt))
    ENDDO
+!< *mes
+   IF (lscale_separation) THEN
+     DO nt=1,ntiles
+       print*, 'scale_sep_files(nt): ', TRIM(scale_sep_files(nt))
+       CALL open_netcdf_TOPO_tile(scale_sep_files(nt), ncids_scale(nt))
+     ENDDO
+   ENDIF
+!> *mes
+
    mlat = 1
    block_row_start = mlat
 
@@ -405,11 +450,28 @@ MODULE mo_agg_topo
    ALLOCATE (h_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
     IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block')
 
-   CALL get_topo_data_block(topo_file_1,      &   !mes ><
+   CALL get_topo_data_block(topo_file_1,       &   !mes ><
       &                       ta_grid,         &
       &                       topo_tiles_grid, &
-      &                       ncids_topo,     &
+      &                       ncids_topo,      &
       &                       h_block)
+
+!< *mes
+   IF (lscale_separation) THEN
+        IF(ALLOCATED(h_block_scale)) THEN
+          DEALLOCATE(h_block_scale, STAT=errorcode)
+          IF(errorcode/=0) CALL abort_extpar('Cant deallocate the h_block_scale')
+        ENDIF
+        ALLOCATE (h_block_scale(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block_scale')
+
+        CALL get_topo_data_block(scale_sep_file_1,    &   !mes ><
+             &                       ta_grid,         &
+             &                       topo_tiles_grid, &
+             &                       ncids_scale,     &
+             &                       h_block_scale)
+      ENDIF
+!> *mes
 
    block_row = 0 
 
@@ -475,7 +537,22 @@ MODULE mo_agg_topo
         &                       topo_tiles_grid, &
         &                       ncids_topo,     &
         &                       h_block)
+!< *mes
+      IF (lscale_separation) THEN
+        IF(ALLOCATED(h_block_scale)) THEN
+          DEALLOCATE(h_block_scale, STAT=errorcode)
+          IF(errorcode/=0) CALL abort_extpar('Cant deallocate the h_block_scale')
+        ENDIF
+        ALLOCATE (h_block_scale(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg), STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant allocate h_block_scale')
+        CALL get_topo_data_block(scale_sep_file_1,    &            !mes ><
+             &                       ta_grid,         &
+             &                       topo_tiles_grid, &
+             &                       ncids_scale,     &
+             &                       h_block_scale)
+      ENDIF
    ENDIF
+!> *mes
 
    IF (mlat==1) THEN  !first row of topo data
      !CALL get_topo_data_parallel(mlat, ncids_topo, h_parallel)
@@ -486,6 +563,17 @@ MODULE mo_agg_topo
      hh(1:nc_tot,j_c) = h_parallel(1:nc_tot)  ! put data to "central row"
      hh(0,j_c)        = h_parallel(nc_tot) ! western wrap at -180/180 degree longitude
      hh(nc_tot_p1,j_c) = h_parallel(1)      ! eastern wrap at -180/180 degree longitude
+!< *mes
+     IF (lscale_separation) THEN
+       h_parallel_scale(1:nc_tot) = h_block_scale(1:nc_tot,block_row)
+       h_3rows_scale(1:nc_tot,j_c) = h_parallel_scale(1:nc_tot)  ! put data to "central row"
+       hh_scale(1:nc_tot,j_c) = h_parallel_scale(1:nc_tot)  ! put data to "central row"
+       hh_scale(0,j_c)        = h_parallel_scale(nc_tot) ! western wrap at -180/180 degree longitude
+       hh_scale(nc_tot_p1,j_c) = h_parallel_scale(1)      ! eastern wrap at -180/180 degree longitude
+     
+     ENDIF
+!> *mes
+
    ENDIF
    row_lat(j_s) = topo_grid%start_lat_reg + mlat * topo_grid%dlat_reg  !  ((mlat+1)-1)
 
@@ -513,6 +601,15 @@ MODULE mo_agg_topo
      hh(1:nc_tot,j_s) = h_parallel(1:nc_tot) ! put data to "southern row"
      hh(0,j_s)        = h_parallel(nc_tot) ! western wrap at -180/180 degree longitude
      hh(nc_tot_p1,j_s) = h_parallel(1)      ! eastern wrap at -180/180 degree longitude
+!< *mes
+     IF (lscale_separation) THEN
+       h_parallel_scale(1:nc_tot) = h_block_scale(1:nc_tot,block_row)
+       h_3rows_scale(1:nc_tot,j_s) = h_parallel_scale(1:nc_tot)
+       hh_scale(1:nc_tot,j_s) = h_parallel_scale(1:nc_tot)  ! put data to "central row"
+       hh_scale(0,j_s)        = h_parallel_scale(nc_tot) ! western wrap at -180/180 degree longitude
+       hh_scale(nc_tot_p1,j_s) = h_parallel_scale(1)      ! eastern wrap at -180/180 degree longitude
+     ENDIF
+!> *mes
    ENDIF
    dx      = dx0 * COS(row_lat(j_c) * deg2rad)  ! longitudinal distance between to GLOBE grid elemtens
    d2x = 2. * dx
@@ -532,9 +629,25 @@ MODULE mo_agg_topo
     WHERE (h_parallel == undef_topo)
      h_parallel = default_topo
    END WHERE
+!< *mes
+   IF (lscale_separation) THEN
+     WHERE (hh_scale == undef_topo)  
+       hh_scale = default_topo
+     END WHERE
+     WHERE (h_parallel_scale == undef_topo)
+       h_parallel_scale = default_topo
+     END WHERE
+   ENDIF
+!> *mes
 
    IF(lsso_param) THEN
-     CALL auxiliary_sso_parameter(d2x,d2y,j_n,j_c,j_s,hh,dhdxdx,dhdydy,dhdxdy)
+!< *mes
+     IF (lscale_separation) THEN
+       CALL auxiliary_sso_parameter(d2x,d2y,j_n,j_c,j_s,hh_scale,dhdxdx,dhdydy,dhdxdy)
+     ELSE
+!> *mes
+       CALL auxiliary_sso_parameter(d2x,d2y,j_n,j_c,j_s,hh,dhdxdx,dhdydy,dhdxdy)
+     ENDIF       
    ENDIF
 
    IF (tg%igrid_type == igrid_icon) THEN
@@ -657,7 +770,16 @@ MODULE mo_agg_topo
                ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
                hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
                hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
-
+!< *mes
+               IF (lscale_separation) THEN
+                 hh_target_scale(ie,je,ke)  = hh_target_scale(ie,je,ke) + &
+                      &                       h_3rows_scale(i,j_c)
+                 hh2_target_scale(ie,je,ke) = hh2_target_scale(ie,je,ke) + &
+                      &                      (h_3rows_scale(i,j_c) * h_3rows_scale(i,j_c)) 
+                 hh_sqr_diff(ie,je,ke) = hh_sqr_diff(ie,je,ke)+ &
+                     &                   (h_3rows(i,j_c) - h_3rows_scale(i,j_c))**2
+               ENDIF
+!> *mes
                IF(lsso_param) THEN
                  h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
                  h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
@@ -669,7 +791,16 @@ MODULE mo_agg_topo
                ndata(ie,je,ke)      = ndata(ie,je,ke) + 1
                hh_target(ie,je,ke)  = hh_target(ie,je,ke) + h_3rows(i,j_c)
                hh2_target(ie,je,ke) = hh2_target(ie,je,ke) + (h_3rows(i,j_c) * h_3rows(i,j_c))
-
+!< *mes
+               IF (lscale_separation) THEN
+                hh_target_scale(ie,je,ke)  = hh_target_scale(ie,je,ke) + &
+                     &                       h_3rows_scale(i,j_c)
+                hh2_target_scale(ie,je,ke) = hh2_target_scale(ie,je,ke) + &
+                     &                      (h_3rows_scale(i,j_c) * h_3rows_scale(i,j_c))
+                hh_sqr_diff(ie,je,ke) = hh_sqr_diff(ie,je,ke)+ &
+                     &                 (h_3rows(i,j_c) - h_3rows_scale(i,j_c))**2
+              ENDIF
+!> *mes
                IF(lsso_param) THEN
                  h11(ie,je,ke)        = h11(ie,je,ke) + dhdxdx(i)
                  h12(ie,je,ke)        = h12(ie,je,ke) + dhdxdy(i)
@@ -758,7 +889,7 @@ MODULE mo_agg_topo
      END SELECT
 
       hh1_target = hh_target ! save values of hh_target for computations of standard deviation
-
+      
       print *,'Average height'
       ! Average height
       DO ke=1, tg%ke
@@ -779,20 +910,20 @@ MODULE mo_agg_topo
       hsmooth = hh_target
 ! oro filt here
       IF (lfilter_oro) THEN
-         CALL do_orosmooth(tg,                                 &
-      &                                      hh_target,        &
-      &                                      fr_land_topo,    &
-      &                                      lfilter_oro,      &
-      &                                      ilow_pass_oro,    &
-      &                                      numfilt_oro,      &
-      &                                      eps_filter,       &
-      &                                      ifill_valley,     &
-      &                                      rfill_valley,     &
-      &                                      ilow_pass_xso,    &
-      &                                      numfilt_xso,      &
-      &                                      lxso_first,       &
-      &                                      rxso_mask,        &
-      &                                      hsmooth           )
+         CALL do_orosmooth(tg,               &
+      &                    hh_target,        &
+      &                    fr_land_topo,     &
+      &                    lfilter_oro,      &
+      &                    ilow_pass_oro,    &
+      &                    numfilt_oro,      &
+      &                    eps_filter,       &
+      &                    ifill_valley,     &
+      &                    rfill_valley,     &
+      &                    ilow_pass_xso,    &
+      &                    numfilt_xso,      &
+      &                    lxso_first,       &
+      &                    rxso_mask,        &
+      &                    hsmooth           )
       ENDIF
 !roa<
 
@@ -821,36 +952,55 @@ MODULE mo_agg_topo
       DO ie=1, tg%ie
 !roa>        
           ! estimation of variance
-         IF (lfilter_oro) THEN
-            IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
-               znorm = 1.0/(no_raw_data_pixel(ie,je,ke)-1)
-            ELSE
-               znorm = 0.0
-            ENDIF
+!< *mes
+
+        IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
+          znorm_z0 = 1.0/(no_raw_data_pixel(ie,je,ke)-1)
+          znorm    = 1.0/(no_raw_data_pixel(ie,je,ke)*(no_raw_data_pixel(ie,je,ke)-1))
+        ELSE
+          znorm_z0 = 0.0
+          znorm    = 0.0
+        ENDIF
+
+        IF (lscale_separation) THEN
+          zarg_z0 = znorm_z0 * hh_sqr_diff(ie,je,ke)
+          zarg_z0 = MAX(zarg_z0,0.0_wp) ! truncation errors may cause zarg_sso < 0.0
+          stdh_z0(ie,je,ke) = SQRT(zarg_z0)
+
+          IF (lfilter_oro) THEN
+            zarg = znorm_z0 * (no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2 - &
+                 & 2.0 * hsmooth(ie,je,ke) * hh_target_scale(ie,je,ke) +            &
+                 & hh2_target_scale(ie,je,ke))
+          ELSE
+            zarg = znorm * (hh1_target(ie,je,ke)* hh1_target(ie,je,ke) -  &
+                 & 2.0 * hh1_target(ie,je,ke) * hh_target_scale(ie,je,ke) + &
+                 & no_raw_data_pixel(ie,je,ke) * hh2_target_scale(ie,je,ke))
+          ENDIF
+!> *mes
+
+        ELSE
+          IF (lfilter_oro) THEN
              !!!!! standard deviation of height using oro filt !!!!!
-            zarg = znorm * (hh2_target(ie,je,ke) &
-                    -2 * hsmooth(ie,je,ke) * hh1_target(ie,je,ke)                   &
+            zarg = znorm_z0 * (hh2_target(ie,je,ke) &
+                    - 2.0 * hsmooth(ie,je,ke) * hh1_target(ie,je,ke)              &
                     + no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2)
-         ELSE
-            IF (no_raw_data_pixel(ie,je,ke) > 1) THEN
-               znorm = 1.0/(no_raw_data_pixel(ie,je,ke) * (no_raw_data_pixel(ie,je,ke)-1))
-            ELSE
-               znorm = 0.0
-            ENDIF
+          ELSE
             znfi2sum = no_raw_data_pixel(ie,je,ke) * hh2_target(ie,je,ke) 
             zarg     = ( znfi2sum - (hh1_target(ie,je,ke)*hh1_target(ie,je,ke))) * znorm
-         ENDIF
-            zarg = MAX(zarg,0.0_wp) ! truncation errors may cause zarg < 0.0
-            stdh_target(ie,je,ke) = SQRT(zarg)
+          ENDIF
+        ENDIF
+        zarg = MAX(zarg,0.0_wp) ! truncation errors may cause zarg < 0.0
+        stdh_target(ie,je,ke) = SQRT(zarg)
+        
 !roa<
 
       ENDDO
       ENDDO
       ENDDO
-
+      
       IF (lsso_param) THEN
 
-        CALL calculate_sso(tg,no_raw_data_pixel,   &
+        CALL calculate_sso(tg,no_raw_data_pixel,    &
         &                   h11,h12,h22,stdh_target,&
         &                   theta_target,           &
         &                   aniso_target,           &
@@ -878,7 +1028,11 @@ MODULE mo_agg_topo
        DO ke=1, tg%ke
        DO je=1, tg%je
        DO ie=1, tg%ie
-         z0_topography = factor*stdh_target(ie,je,ke)**2
+         IF (lscale_separation) THEN
+           z0_topography = factor*stdh_z0(ie,je,ke)**2
+         ELSE
+           z0_topography = factor*stdh_target(ie,je,ke)**2
+         ENDIF
          z0_topography = MIN(z0_topography,zhp-1.0_wp)
          z0_topo(ie,je,ke) = z0_topography
        ENDDO
@@ -958,6 +1112,11 @@ MODULE mo_agg_topo
        DO nt=1,ntiles
           CALL close_netcdf_TOPO_tile(ncids_topo(nt))
        ENDDO
+       IF (lscale_separation) THEN
+         DO nt=1,ntiles
+           CALL close_netcdf_TOPO_tile(ncids_scale(nt))
+         ENDDO
+       ENDIF
        PRINT *,'TOPO netcdf files closed'
        PRINT *,'Subroutine agg_topo_data_to_target_grid done'
        END SUBROUTINE agg_topo_data_to_target_grid
@@ -1002,7 +1161,7 @@ MODULE mo_agg_topo
        USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
           &                        calc_weight_bilinear_interpol, &
           &                        calc_value_bilinear_interpol
-       CHARACTER(LEN=24), INTENT(IN)     :: topo_files(1:max_tiles)
+       CHARACTER(len=filename_max), INTENT(IN)     :: topo_files(1:max_tiles)
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
        TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16/36 GLOBE/ASTER tiles
        INTEGER (KIND=i4), INTENT(IN)     :: ncids_topo(1:ntiles)  !< ncid for the topo tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
@@ -1044,7 +1203,7 @@ MODULE mo_agg_topo
        INTEGER (KIND=i4) :: undef_topo
        INTEGER (KIND=i4) :: default_topo
 !mes >
-       CHARACTER(LEN=24) :: topo_file_1   
+       CHARACTER(len=filename_max) :: topo_file_1   
 !mes >
        topo_file_1 = topo_files(1)
 
@@ -1155,4 +1314,5 @@ MODULE mo_agg_topo
 
 
 END MODULE mo_agg_topo
+
 

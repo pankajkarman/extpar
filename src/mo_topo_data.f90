@@ -240,7 +240,7 @@ CHARACTER(LEN=80) :: varname
    IMPLICIT NONE
    SAVE
    CHARACTER (len=filename_max),INTENT(IN) :: raw_data_orography_path
-   CHARACTER (len=24),INTENT(IN) :: topo_files(1:ntiles)
+   CHARACTER (len=filename_max),INTENT(IN) :: topo_files(1:ntiles)
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lon_min(1:ntiles) 
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lon_max(1:ntiles)
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lat_min(1:ntiles)
@@ -339,7 +339,7 @@ CHARACTER(LEN=80) :: varname
   SUBROUTINE get_fill_value(topo_file_1,undef_topo)
   IMPLICIT NONE
   SAVE
-  CHARACTER (LEN=24), INTENT(IN) :: topo_file_1     
+  CHARACTER (len=filename_max), INTENT(IN) :: topo_file_1     
   INTEGER, INTENT(OUT)           :: undef_topo
   INTEGER(KIND=i4)               :: ncid
 
@@ -364,7 +364,7 @@ CHARACTER(LEN=80) :: varname
   SUBROUTINE get_varname(topo_file_1,varname)
   IMPLICIT NONE
   SAVE
-  CHARACTER (LEN=24), INTENT(IN) :: topo_file_1     
+  CHARACTER (len=filename_max), INTENT(IN) :: topo_file_1     
   CHARACTER(LEN=*),INTENT(OUT)   :: varname
   INTEGER(KIND=i4)               :: ncid, type, ndims
   INTEGER(KIND=i4)               :: dimids(2)

@@ -33,8 +33,13 @@ MODULE mo_agg_soil
   USE mo_utilities_extpar, ONLY: abort_extpar
 
   USE mo_soil_data,       ONLY: dsmw_legend
-  USE mo_soil_data,       ONLY: default_soiltype, soiltype_ice, soiltype_water
-  USE mo_soil_data,       ONLY: FAO_data, HWSD_data, soil_data
+  USE mo_soil_data,       ONLY: default_soiltype, &
+    &                           soiltype_ice,     &
+    &                           soiltype_water,   &
+    &                           undef_soiltype,   &
+    &                           define_soiltype
+
+  USE mo_soil_data,       ONLY: FAO_data, HWSD_data, soil_data, deep_soil
 
   USE mo_grid_structures, ONLY: reg_lonlat_grid, &
     &                            rotated_lonlat_grid, &
@@ -193,6 +198,7 @@ MODULE mo_agg_soil
        INTEGER (KIND=i4) :: salt           ! < soil code for salt
        INTEGER (KIND=i4) :: histosols      ! < soil code for histosols
        INTEGER (KIND=i4) :: no_data_flag   ! < soil code for no data flag
+       INTEGER (KIND=i4) :: index_no_data_flag ! < index that stands for no data flag
        INTEGER (KIND=i4) :: dunes          ! < soil code for dunes
 
        REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
@@ -233,6 +239,12 @@ MODULE mo_agg_soil
 
        start_cell_id = 1
 
+      CALL define_soiltype(soil_data, deep_soil,  &
+                           undef_soiltype,         &
+                           default_soiltype,       &
+                           soiltype_ice,           &
+                           soiltype_water,         &
+                           soil_data)      
 
        SELECT CASE(tg%igrid_type)
          CASE(igrid_icon)  ! ICON GRID
@@ -308,6 +320,7 @@ MODULE mo_agg_soil
               salt = 134
               histosols = 69
               no_data_flag = 136
+              index_no_data_flag = -9999
               dunes = 131
             CASE(FAO_data)
               ocean = 0
@@ -317,6 +330,7 @@ MODULE mo_agg_soil
               salt = 9003
               histosols = 9004
               no_data_flag = 9009
+              index_no_data_flag = 9009
               dunes = 9005
             END SELECT
               
@@ -617,7 +631,12 @@ MODULE mo_agg_soil
 
                IF (I_texture(ie,je,ke) > dominant_part) then ! textured soil is dominant part in grid element
                  dominant_part = I_texture(ie,je,ke)
-                 texture(ie,je,ke) = Z_texture(ie,je,ke)! / float(I_texture(ie,je,ke))
+                 SELECT CASE (soil_data)
+                 CASE(HWSD_data)
+                   texture(ie,je,ke) = Z_texture(ie,je,ke)! / float(I_texture(ie,je,ke))
+                 CASE(FAO_data)
+                   texture(ie,je,ke) = Z_texture(ie,je,ke)/float(I_texture(ie,je,ke))
+                 ENDSELECT
                ENDIF
            !----------------------------------------------------------------------------------------------
 
@@ -769,14 +788,15 @@ MODULE mo_agg_soil
        INTEGER (KIND=i4) :: salt           ! < soil code for salt
        INTEGER (KIND=i4) :: histosols      ! < soil code for histosols
        INTEGER (KIND=i4) :: no_data_flag   ! < soil code for no data flag
+       INTEGER (KIND=i4) :: index_no_data_flag ! < index that stands for no data flag
        INTEGER (KIND=i4) :: dunes          ! < soil code for dunes
 
-       undefined_integer= NINT(undefined)
+       undefined_integer= NINT(undefined)      
        SELECT CASE(soil_data)
        CASE(FAO_data)
          texture = -99.           ! undefined flag
        CASE(HWSD_data)
-         texture = 0              ! undefined flag
+         texture = 0.0            ! undefined flag
        END SELECT
 
        zsum_tex = 0.0
@@ -802,17 +822,27 @@ MODULE mo_agg_soil
          salt = 134
          histosols = 69
          no_data_flag = 136
+         index_no_data_flag = -9999
          dunes = 131
        CASE(FAO_data)
          ocean = -9.
-         inland_water = -9000.
-         glacier_ice = -9001.
-         rock = -9002.
-         salt = -9003.
-         histosols = -9004.
-         no_data_flag = -9009.
+         inland_water = -9000
+         glacier_ice = -9001
+         rock = -9002
+         salt = -9003
+         histosols = -9004
+         no_data_flag = -9009
+         index_no_data_flag = 9009
          dunes = -9005.
        END SELECT
+
+       CALL define_soiltype(soil_data, deep_soil,  &
+                           undef_soiltype,         &
+                           default_soiltype,       &
+                           soiltype_ice,           &
+                           soiltype_water,         &
+                           soil_data)      
+
 
        ! loop over target grid
 
@@ -934,10 +964,8 @@ MODULE mo_agg_soil
                    ! zflat   = soil_texslo(soil_unit)%flat
                    ! zhilly  = soil_texslo(soil_unit)%hilly
                    ! zsteep  = soil_texslo(soil_unit)%steep
-                   ELSEIF(soil_code == 9009) THEN ! no data flag FAO
-                    texture(ie,je,ke) = no_data_flag
-                    slope(ie,je,ke) = 0.
-                   ELSEIF(soil_code == -9999) THEN ! no data flag HWSD
+
+                   ELSEIF(soil_code == index_no_data_flag) THEN ! no data flag FAO
                     texture(ie,je,ke) = no_data_flag
                     slope(ie,je,ke) = 0.
                    !---------------------------------------------------------------------------------------------- 
@@ -977,8 +1005,7 @@ MODULE mo_agg_soil
 
                  !----------------------------------------------------------------------------------------------
                  ENDIF dsmwcode
-
-
+ 
                    !----------------------------------------------------------------------------------------------
                   zsum_slope = zflat   + zhilly  + zsteep  ! area of soil unit with defined slope information
                  IF (zsum_slope > zundef) THEN ! well defined slope

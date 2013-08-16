@@ -34,8 +34,12 @@ MODULE mo_topo_output_nc
   USE mo_grid_structures, ONLY: rotated_lonlat_grid
   USE mo_grid_structures, ONLY: icosahedral_triangular_grid
   USE mo_grid_structures, ONLY: target_grid_def
+  USE mo_grid_structures, ONLY: igrid_icon
+  USE mo_grid_structures, ONLY: igrid_cosmo
+  USE mo_grid_structures, ONLY: igrid_gme
 
   USE mo_cosmo_grid,      ONLY: cosmo_grid, nborder
+  USE mo_icon_grid_data,  ONLY: ICON_grid
 
   USE mo_topo_data,       ONLY: nhori, topography
 
@@ -75,6 +79,7 @@ MODULE mo_topo_output_nc
      &                                  tg,            &
      &                                  undefined,     &
      &                                  undef_int,     &
+     &                                  igrid_type,    &
      &                                  lon_geo,       &
      &                                  lat_geo,       &
      &                                  fr_land_topo,  &
@@ -117,6 +122,7 @@ MODULE mo_topo_output_nc
    TYPE(target_grid_def)              :: tg !< structure with target grid description
    REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
+   INTEGER, INTENT(IN)                :: igrid_type
    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
@@ -252,23 +258,31 @@ MODULE mo_topo_output_nc
       &                       ncid=ncid)
 
   ! correct start and stop indices if needed
-  IF (lrad) THEN
-    istart = nborder + 1
-    jstart = nborder + 1
-    iend   = nborder + cosmo_grid%nlon_rot 
-    jend   = nborder + cosmo_grid%nlat_rot 
-  ELSE
+  SELECT CASE (igrid_type)
+  CASE(igrid_cosmo)
+    IF (lrad) THEN
+      istart = nborder + 1
+      jstart = nborder + 1
+      iend   = nborder + cosmo_grid%nlon_rot 
+      jend   = nborder + cosmo_grid%nlat_rot 
+    ELSE
+      istart = 1
+      jstart = 1
+      iend   = cosmo_grid%nlon_rot
+      jend   = cosmo_grid%nlat_rot      
+    ENDIF
+  CASE(igrid_icon)
     istart = 1
     jstart = 1
-    iend   = cosmo_grid%nlon_rot
-    jend   = cosmo_grid%nlat_rot      
-  ENDIF
+    iend   = icon_grid%ncell
+    jend   = 1
+  END SELECT
 
 
-  ! lon
-  CALL netcdf_put_var(ncid,lon_geo(istart:iend,jstart:jend,:),lon_geo_meta,undefined)
+    ! lon
+    CALL netcdf_put_var(ncid,lon_geo(istart:iend,jstart:jend,:),lon_geo_meta,undefined)
 
-  ! lat
+    ! lat
   CALL netcdf_put_var(ncid,lat_geo(istart:iend,jstart:jend,:),lat_geo_meta,undefined)
 
   ! hh_topo

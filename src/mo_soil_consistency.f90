@@ -75,12 +75,12 @@ CONTAINS
 
     ! HWSD idex files
     CHARACTER (len=filename_max) :: path_HWSD_index_files
-    CHARACTER (len=filename_max) :: landuse_table_HWSD   
+    CHARACTER (len=filename_max) :: lookup_table_HWSD   
     CHARACTER (len=filename_max) :: HWSD_data  
     CHARACTER (len=filename_max) :: HWSD_data_deep     
     CHARACTER (len=filename_max) :: HWSD_data_extpar 
 
-    CHARACTER (len=filename_max) :: path_landuse_table_HWSD
+    CHARACTER (len=filename_max) :: path_lookup_table_HWSD
     CHARACTER (len=filename_max) :: path_HWSD_data
     CHARACTER (len=filename_max) :: path_HWSD_data_deep
     CHARACTER (len=filename_max) :: path_HWSD_data_extpar
@@ -128,7 +128,7 @@ CONTAINS
 
       CALL read_namelists_extpar_HWSD_index(namelist_file,        &
                                             path_HWSD_index_files,&
-                                            landuse_table_HWSD,   &
+                                            lookup_table_HWSD,    &
                                             HWSD_data,            &
                                             HWSD_data_deep,       &
                                             HWSD_data_extpar)
@@ -136,9 +136,9 @@ CONTAINS
 ! TODO: read namelist!!! mes
 
       nuin = free_un()
-      path_landuse_table_HWSD = TRIM(path_HWSD_index_files)//TRIM(landuse_table_HWSD)
-      print*, 'path_landuse_table_HWSD: ', TRIM(path_landuse_table_HWSD)
-      open(nuin,file=TRIM(path_landuse_table_HWSD), status='old')
+      path_lookup_table_HWSD = TRIM(path_HWSD_index_files)//TRIM(lookup_table_HWSD)
+      print*, 'path_lookup_table_HWSD: ', TRIM(path_lookup_table_HWSD)
+      open(nuin,file=TRIM(path_lookup_table_HWSD), status='old')
       read(nuin,*) !header
 
       do i=1,n_soil
@@ -431,7 +431,7 @@ CONTAINS
 
     SUBROUTINE read_namelists_extpar_HWSD_index(namelist_file,        &
                                                 path_HWSD_index_files,&
-                                                landuse_table_HWSD,   &
+                                                lookup_table_HWSD,   &
                                                 HWSD_data,            &
                                                 HWSD_data_deep,       &
                                                 HWSD_data_extpar)
@@ -440,13 +440,13 @@ CONTAINS
 
       ! HWSD idex files
       CHARACTER (len=filename_max) :: path_HWSD_index_files
-      CHARACTER (len=filename_max) :: landuse_table_HWSD   
+      CHARACTER (len=filename_max) :: lookup_table_HWSD   
       CHARACTER (len=filename_max) :: HWSD_data   
       CHARACTER (len=filename_max) :: HWSD_data_deep    
       CHARACTER (len=filename_max) :: HWSD_data_extpar    
 
       !>Define the namelist group for soil raw data
-      NAMELIST /HWSD_index_files/ path_HWSD_index_files, landuse_table_HWSD, HWSD_data, HWSD_data_deep, HWSD_data_extpar
+      NAMELIST /HWSD_index_files/ path_HWSD_index_files, lookup_table_HWSD, HWSD_data, HWSD_data_deep, HWSD_data_extpar
 
       INTEGER           :: nuin !< unit number
       INTEGER (KIND=i4) :: ierr !< error flag

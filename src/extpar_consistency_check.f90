@@ -463,7 +463,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
   CHARACTER (len=filename_max) :: aot_buffer_cons_output  !< name for aot output file after consistency check
 
-  CHARACTER (LEN=24) :: topo_files(1:max_tiles)           !< filenames globe raw data
+  CHARACTER (len=filename_max) :: topo_files(1:max_tiles)           !< filenames globe raw data
   INTEGER (KIND=i4)  :: itopo_type
   INTEGER (KIND=i4)  :: ntiles_column
   INTEGER (KIND=i4)  :: ntiles_row
@@ -1433,7 +1433,6 @@ END SELECT
 
     CALL const_check_interpol_alb(aluvd_field_mom,fr_land_lu)
 
-
     CALL CPU_TIME(timeend)
     timediff = timeend - timestart
     PRINT *,'albedo data consistency check, WHERE, done in: ', timediff
@@ -1701,6 +1700,20 @@ i_sp,j_sp," lai_mx_lu    old  ",lai_mx_lu (i_sp,j_sp,k_sp),"new ",laimx_sp
                   END DO ! Special Points  loop
 
            END SELECT
+!------------------------------------------------------------------------------------------
+!------------- TOPO Data Consistency ------------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+           IF (lradtopo) THEN
+             
+             WHERE (skyview_topo .lt. 1.0 .AND. fr_land_lu .lt. 0.5)
+               skyview_topo = 1.0
+             ENDWHERE 
+             WHERE (skyview_topo .gt. 1.0)
+               skyview_topo = 1.0
+             ENDWHERE
+           END IF
+
 !------------------------------------------------------------------------------------------
 !------------- data output ----------------------------------------------------------------
 !------------------------------------------------------------------------------------------

@@ -84,6 +84,7 @@ PRIVATE
 
 PUBLIC :: read_topo_data_input_namelist,  &
           read_namelists_extpar_orography, &
+          read_namelists_extpar_scale_sep, &
           det_topo_tiles_grid,            &
           det_topo_grid,                  &
           get_topo_tile_nr,               &
@@ -119,7 +120,7 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
 
   
   CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_orography_path        !< path to raw data
-  CHARACTER (LEN=24), INTENT(OUT) :: topo_files(1:max_tiles)                     !< filenames globe raw data
+  CHARACTER (len=filename_max), INTENT(OUT) :: topo_files(1:max_tiles)                     !< filenames globe raw data
   INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_column     !< number of tile columns
   INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_row        !< number of tile rows
   INTEGER (KIND=i4), INTENT(OUT)  :: itopo_type
@@ -150,6 +151,46 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
 
 END SUBROUTINE read_namelists_extpar_orography
 !---------------------------------------------------------------------------
+!< *mes
+
+!> subroutine to read namelist for scale separated data settings for EXTPAR 
+SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
+    &                                      raw_data_scale_sep_path, &
+    &                                      scale_sep_files,         &
+    &                                      lscale_separation)
+
+  USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
+  USE mo_topo_data,        ONLY: max_tiles  
+
+  
+  CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
+  ! orography
+
+  
+  CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_scale_sep_path        !< path to raw data
+  CHARACTER (len=filename_max), INTENT(OUT) :: scale_sep_files(1:max_tiles)                     !< filenames globe raw data
+  LOGICAL, INTENT(OUT)            :: lscale_separation
+
+  INTEGER           :: nuin !< unit number
+  INTEGER (KIND=i4) :: ierr !< error flag
+  INTEGER :: i
+
+  !> namelist with information on scale separated data input
+! mes > include topo_type in namelist
+  NAMELIST /scale_separated_raw_data/ lscale_separation, raw_data_scale_sep_path, scale_sep_files
+! mes < 
+    
+
+   nuin = free_un()  ! function free_un returns free Fortran unit number
+   OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+   READ(nuin, NML=scale_separated_raw_data, IOSTAT=ierr)
+
+   CLOSE(nuin, IOSTAT=ierr)
+
+
+ END SUBROUTINE read_namelists_extpar_scale_sep
+!> *mes
+!-----------------------------------------------------------------------------
 
         !> read namelist with settings for GLOBE raw data grid
         !> or ASTER raw data grid                               !mes
@@ -161,7 +202,7 @@ END SUBROUTINE read_namelists_extpar_orography
          USE mo_topo_data, ONLY : ntiles    !< GLOBE raw data has 16 tiles, ASTER has 13
 
            CHARACTER (LEN=*), INTENT(IN)  :: input_namelist_file !< file with input namelist 
-           CHARACTER (LEN=32), INTENT(OUT) :: topo_files(1:ntiles)  !< filenames globe raw data
+           CHARACTER (LEN=filename_max), INTENT(OUT) :: topo_files(1:ntiles)  !< filenames globe raw data
            INTEGER :: nfiles                                   ! number of files 
 
            !>Define the namelist group
@@ -742,7 +783,7 @@ END SUBROUTINE read_namelists_extpar_orography
        USE mo_topo_data, ONLY : topo_aster
        USE mo_topo_data, ONLY : topo_gl
 
-       CHARACTER (LEN=24), INTENT(IN)     :: topo_file_1
+       CHARACTER (len=filename_max), INTENT(IN)     :: topo_file_1
        ! mes <
 
        TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
@@ -780,7 +821,7 @@ END SUBROUTINE read_namelists_extpar_orography
 ! mes >
        
        CALL get_varname(topo_file_1,varname)
-!       print*, TRIM(varname)
+       !print*, TRIM(varname)
 
 !       varname = 'altitude'  ! I know that in the GLOBE netcdf files the height data are stored in a variable "altitude"
 ! mes <
@@ -799,25 +840,17 @@ END SUBROUTINE read_namelists_extpar_orography
        !  allocate_raw_topo_fields(nrows,ncolumns)
        ! raw_topo_block
 
- !        print*, ta_grid%start_lat_reg
- !        print*, ta_grid%end_lat_reg
- !        print*, topo_tiles_grid%start_lat_reg
- !        print*, topo_tiles_grid%end_lat_reg
- !        print*, ta_grid%dlat_reg
- !        print*, topo_tiles_grid%dlat_reg
-
-       
+        
           DO k=1,ntiles
            IF ((topo_startrow(k)/=0).AND.(topo_startcolumn(k)/=0)) THEN
              nrows = topo_endrow(k) - topo_startrow(k) + 1
              ncolumns = topo_endcolumn(k) - topo_startcolumn(k) + 1
-   !          print*, k      
-   !          print*, topo_startrow(k)
-   !          print*, topo_endrow(k) 
-
-   !          print*, k      
-   !          print*, topo_startcolumn(k)
-   !          print*, topo_endcolumn(k)
+ !            print*, k      
+ !            print*, topo_startrow(k)
+ !            print*, topo_endrow(k) 
+ !            print*, k      
+ !            print*, topo_startcolumn(k)
+ !            print*, topo_endcolumn(k)
            
              ALLOCATE (raw_topo_block(1:ncolumns,1:nrows), STAT=errorcode)
              IF(errorcode/=0) CALL abort_extpar('Cant allocate the array raw_topo_block')
@@ -974,3 +1007,4 @@ END SUBROUTINE read_namelists_extpar_orography
 
 
 END MODULE mo_topo_routines
+
