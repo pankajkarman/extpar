@@ -14,6 +14,15 @@
 # define shell
 SHELL      := /bin/sh
 
+# directory definitions
+SRCDIR     := src
+OBJDIR     := obj
+BINDIR     := bin
+ifeq (0,${MAKELEVEL})
+  ROOT      := $(shell pwd)
+  VPATH     := .:$(ROOT)/$(SRCDIR)
+endif
+
 # define targets
 TARGETS    := \
   extpar_alb_to_buffer.exe \
@@ -25,14 +34,6 @@ TARGETS    := \
   extpar_ndvi_to_buffer.exe \
   extpar_soil_to_buffer.exe \
   extpar_topo_to_buffer.exe
-
-# directory definitions
-SRCDIR     := src
-OBJDIR     := obj
-ifeq (0,${MAKELEVEL})
-  ROOT      := $(shell pwd)
-  VPATH     := .:$(ROOT)/$(SRCDIR)
-endif
 
 # generate list of object files
 -include $(ROOT)/Objfiles
@@ -86,26 +87,26 @@ opt :
 	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 depend
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
-	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $(ROOT)/$$target ; \
+	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $$target ; \
    done
 
 debug :
 	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 depend
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
-	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $(ROOT)/$$target ; \
+	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $$target ; \
    done
                                                             
 clean :
-	-rm -f $(DEPF) $(DEPF).old $(OBJDIR)/*
+	-rm -f $(DEPF) $(DEPF).old $(OBJDIR)/* $(BINDIR)/*.exe
 
 ### Suffix Rules ###########################
 
 .SUFFIXES: .exe .o .mod .f90
 
-$(ROOT)/%.exe : $(notdir %.o) $(OBJ)
+%.exe : $(notdir %.o) $(OBJ)
 	@echo "linking $@"
-	@$(LD) $(LFLAGS) $(FFLAGS) $(INC) $(patsubst %.exe,%.o,$(notdir $@)) $(OBJ) $(LIB) -o $@
+	@$(LD) $(LFLAGS) $(FFLAGS) $(INC) $(patsubst %.exe,%.o,$(notdir $@)) $(OBJ) $(LIB) -o $(ROOT)/$(BINDIR)/$@
 
 %.o : %.f90
 	@echo "compiling $(patsubst %.o,%.f90,$(notdir $@))"

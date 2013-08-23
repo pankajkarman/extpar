@@ -3,60 +3,48 @@
 ulimit -s unlimited
 ulimit -c unlimited
 
-export GRIB_DEFINITION_PATH=/users/rochesa/work/oro_smooth/libs/TABLES_1.9.5/definitions.edzw:/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/share/definitions
 
-export GRIB_SAMPLES_PATH=/users/rochesa/work/oro_smooth/libs/grib_api1.9.5/share/samples
+# GRIB API resources; adjust the path setting!
+export GRIB_DEFINITION_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/definitions:/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/definitions
+
+export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/samples
+
+# NetCDF raw data for external parameter; adjust the path setting!
+data_dir=/store/s83/tsm/extpar/raw_data_nc/
+
+# Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
+sandboxdir=/store/s83/tsm/extpar/sandbox
 
 
-# path to working directory
-workdir=/scratch/rosa/rochesa/oro_smooth/extpar/orig # adjust the path setting!
-# path to raw data for external parameter
-data_dir=/users/rochesa/projs83/extpar/raw_data_netcdf  # adjust the path setting!
-# path to binaries
-progdir=/users/rochesa/work/oro_smooth/extpar/extpar_build  # adjust the path setting!
+# Names of executables
+binary_alb=extpar_alb_to_buffer.exe
+binary_lu=extpar_landuse_to_buffer.exe
+binary_topo=extpar_topo_to_buffer.exe
+binary_aot=extpar_aot_to_buffer.exe
+binary_tclim=extpar_cru_to_buffer.exe
+binary_ndvi=extpar_ndvi_to_buffer.exe
+binary_soil=extpar_soil_to_buffer.exe
+binary_flake=extpar_flake_to_buffer.exe
+
+binary_extpar_consistency_check=extpar_consistency_check.exe
 
 
-binary_lu=extpar_landuse_to_buffer
-binary_globe=extpar_globe_to_buffer
-binary_aot=extpar_aot_to_buffer
-binary_tclim=extpar_cru_to_buffer
-binary_ndvi=extpar_ndvi_to_buffer
-binary_soil=extpar_soil_to_buffer
-binary_flake=extpar_flake_to_buffer
+currentdir=`pwd`
+progdir=${currentdir}/../bin
 
-binary_extpar_consistency_check=extpar_consistency_check
-
-if [[ ! -d ${workdir} ]] ; then
-  mkdir -p ${workdir} 
+if [[ ! -d ${sandboxdir} ]] ; then
+  mkdir -p ${sandboxdir}
 fi
-cd ${workdir}
-pwd
+cd ${sandboxdir}
+echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
-# set target grid definition 
-cat > INPUT_grid_org << EOF_go
-&GRID_DEF 
- igrid_type = 2,
- domain_def_namelist='INPUT_COSMO_GRID'
-/ 
-EOF_go
 
 #---
-cat > INPUT_COSMO_GRID << EOF_grid
-&lmgrid
- pollon=-170.0, 
- pollat=43.0, 
- startlon_tot=-18.00, 
- startlat_tot=-18.00,
- dlon=0.06,
- dlat=0.06,
- ie_tot=601,
- je_tot=601,
-/
-EOF_grid
-#---
 
-grib_output_filename='external_parameter_cosmo_mch.g1'
-netcdf_output_filename='external_parameter_cosmo_mch.nc'
+grib_output_filename='external_parameter_cosmo_eu.g1'
+stf_output_filename='external_parameter_cosmo_eu.stf'
+netcdf_output_filename='external_parameter_cosmo_eu.nc'
+grib_sample='DWD_rotated_ll_7km_G_grib1'
 
 raw_data_aot='aerosol_optical_thickness.nc'
 buffer_aot='extpar_buffer_aot.nc'
@@ -72,6 +60,11 @@ output_glc2000='extpar_landuse_cosmo.nc'
 raw_data_glcc='glcc_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
 output_glcc='glcc_landuse_cosmo.nc'
+
+raw_data_globcover='GLOBCOVER_L4_200901_200912_V2.3_int16.nc'
+raw_data_globcover_gz='GLOBCOVER_L4_200901_200912_V2.3_int16.nc.gz'
+buffer_lu='extpar_landuse_buffer.nc'
+output_lu='extpar_landuse_cosmo.nc'
 
 raw_data_globe_A10='GLOBE_A10.nc'
 raw_data_globe_B10='GLOBE_B10.nc'
@@ -104,6 +97,28 @@ raw_data_flake='lakedepth.nc'
 buffer_flake='flake_buffer.nc'
 output_flake='ext_par_flake_cosmo.nc'
 
+# set target grid definition 
+cat > INPUT_grid_org << EOF_go
+&GRID_DEF 
+ igrid_type = 2,
+ domain_def_namelist='INPUT_COSMO_GRID'
+/ 
+EOF_go
+
+#---
+cat > INPUT_COSMO_GRID << EOF_grid
+&lmgrid
+ pollon=-170.0, 
+ pollat=40.0, 
+ startlon_tot=-30.125, 
+ startlat_tot=-24.125,
+ dlon=0.0625,
+ dlat=0.0625,
+ ie_tot=965,
+ je_tot=773,
+/
+EOF_grid
+#---
 # create input namelists 
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
@@ -129,14 +144,15 @@ cat > INPUT_TCLIM << EOF_tclim
 EOF_tclim
 #---
 cat > INPUT_LU << EOF_lu
-&glc2000_raw_data
-   raw_data_glc2000_path='',
-   raw_data_glc2000_filename='${raw_data_glc2000}',
-   ilookup_table_glc2000=3
+&lu_raw_data
+   raw_data_lu_path='',
+   raw_data_lu_filename='${raw_data_globcover}',
+   i_landuse_data=1,
+   ilookup_table_lu=1
 /
-&glc2000_io_extpar
-   glc2000_buffer_file='${buffer_glc2000}',
-   glc2000_output_file='${output_glc2000}'
+&lu_io_extpar
+   lu_buffer_file='${buffer_lu}',
+   lu_output_file='${output_lu}'
 /
 &glcc_raw_data
    raw_data_glcc_path='',
@@ -161,18 +177,18 @@ EOF_oro
 #---
 cat > INPUT_OROSMOOTH << EOF_orosm
 &orography_smoothing
-  lfilter_oro=.false.,
-  ilow_pass_oro=4,
-  numfilt_oro=1,
+  lfilter_oro=.FALSE.,
+!  ilow_pass_oro=4,
+!  numfilt_oro=1,
   !ilow_pass_xso=5,
-  ilow_pass_xso=2,
-  lxso_first=.FALSE.,
-  numfilt_xso=1,
+!  ilow_pass_xso=2,
+!  lxso_first=.FALSE.,
+!  numfilt_xso=1,
  ! rxso_mask=750.0,
-  rxso_mask=0.0,
-  eps_filter=0.1,
-  rfill_valley=0.0,
-  ifill_valley=1
+!  rxso_mask=0.0,
+!  eps_filter=0.1,
+!  rfill_valley=0.0,
+!  ifill_valley=1
 /
 EOF_orosm
 #---
@@ -212,16 +228,17 @@ EOF_flake
 # consistency check
 cat > INPUT_CHECK << EOF_check
 &extpar_consistency_check_io
-  grib_output_filename='${grib_output_filename}',
-  netcdf_output_filename='${netcdf_output_filename}',
-  orography_buffer_file='${buffer_globe}',
-  soil_buffer_file='${buffer_soil}',
-  glc2000_buffer_file='${buffer_glc2000}',
-  glcc_buffer_file='${buffer_glcc}',
-  flake_buffer_file='${buffer_flake}',
-  ndvi_buffer_file='${buffer_ndvi}',
-  t_clim_buffer_file='${buffer_tclim}',
-  aot_buffer_file='${buffer_aot}'
+  grib_output_filename="${grib_output_filename}",
+  grib_sample="${grib_sample}",
+  netcdf_output_filename="${netcdf_output_filename}",
+  orography_buffer_file="${buffer_globe}",
+  soil_buffer_file="${buffer_soil}",
+  lu_buffer_file="${buffer_lu}",
+  glcc_buffer_file="${buffer_glcc}",
+  flake_buffer_file="${buffer_flake}",
+  ndvi_buffer_file="${buffer_ndvi}",
+  t_clim_buffer_file="${buffer_tclim}",
+  aot_buffer_file="${buffer_aot}"
 /  
 EOF_check
 
@@ -232,6 +249,8 @@ ln -s ${data_dir}/${raw_data_tclim}
 
 ln -s ${data_dir}/${raw_data_glc2000}
 ln -s ${data_dir}/${raw_data_glcc}
+
+ln -s ${data_dir}/${raw_data_globcover}
 
 ln -s ${data_dir}/${raw_data_globe_A10} 
 ln -s ${data_dir}/${raw_data_globe_B10}
@@ -272,7 +291,7 @@ time ${progdir}/${binary_flake}
 time ${progdir}/${binary_extpar_consistency_check}
 
 ls
-echo 'External parameters for COSMO model generated'
+echo "\n>>>> External parameters for COSMO model generated <<<<\n"
 
 
 

@@ -3,34 +3,40 @@
 ulimit -s unlimited
 ulimit -c unlimited
 
-# adjust the path setting!
+
+# GRIB API resources; adjust the path setting!
 export GRIB_DEFINITION_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/definitions:/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/definitions
 
 export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/share/samples
 
-# path to working directory
-workdir=./                                                   # adjust the path setting!
-# path to raw data for external parameter
-data_dir=/store/s83/rochesa/projects/extpar/raw_data_netcdf  # adjust the path setting!
-data_dir2=/store/s83/messmerm/ncfiles/                       # adjust the path setting!
-# path to binaries
-progdir=../build                                             # adjust the path setting!
+# NetCDF raw data for external parameter; adjust the path setting!
+data_dir=/store/s83/tsm/extpar/raw_data_nc/
 
-binary_lu=extpar_landuse_to_buffer
-binary_globe=extpar_globe_to_buffer
-binary_aot=extpar_aot_to_buffer
-binary_tclim=extpar_cru_to_buffer
-binary_ndvi=extpar_ndvi_to_buffer
-binary_soil=extpar_soil_to_buffer
-binary_flake=extpar_flake_to_buffer
+# Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
+sandboxdir=/store/s83/tsm/extpar/sandbox
 
-binary_extpar_consistency_check=extpar_consistency_check
 
-if [[ ! -d ${workdir} ]] ; then
-  mkdir -p ${workdir} 
+# Names of executables
+binary_alb=extpar_alb_to_buffer.exe
+binary_lu=extpar_landuse_to_buffer.exe
+binary_topo=extpar_topo_to_buffer.exe
+binary_aot=extpar_aot_to_buffer.exe
+binary_tclim=extpar_cru_to_buffer.exe
+binary_ndvi=extpar_ndvi_to_buffer.exe
+binary_soil=extpar_soil_to_buffer.exe
+binary_flake=extpar_flake_to_buffer.exe
+
+binary_extpar_consistency_check=extpar_consistency_check.exe
+
+
+currentdir=`pwd`
+progdir=${currentdir}/../bin
+
+if [[ ! -d ${sandboxdir} ]] ; then
+  mkdir -p ${sandboxdir}
 fi
-cd ${workdir}
-pwd
+cd ${sandboxdir}
+echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
 
 #---
@@ -297,12 +303,12 @@ ln -s ${data_dir}/${raw_data_tclim}
 ln -s ${data_dir}/${raw_data_glc2000}
 ln -s ${data_dir}/${raw_data_glcc}
 
-ln -s ${data_dir2}/${raw_data_globcover_0}
-ln -s ${data_dir2}/${raw_data_globcover_1}
-ln -s ${data_dir2}/${raw_data_globcover_2}
-ln -s ${data_dir2}/${raw_data_globcover_3}
-ln -s ${data_dir2}/${raw_data_globcover_4}
-ln -s ${data_dir2}/${raw_data_globcover_5}
+ln -s ${data_dir}/${raw_data_globcover_0}
+ln -s ${data_dir}/${raw_data_globcover_1}
+ln -s ${data_dir}/${raw_data_globcover_2}
+ln -s ${data_dir}/${raw_data_globcover_3}
+ln -s ${data_dir}/${raw_data_globcover_4}
+ln -s ${data_dir}/${raw_data_globcover_5}
 
 
 ln -s ${data_dir}/${raw_data_globe_A10} 
@@ -322,42 +328,42 @@ ln -s ${data_dir}/${raw_data_globe_N10}
 ln -s ${data_dir}/${raw_data_globe_O10} 
 ln -s ${data_dir}/${raw_data_globe_P10}
 
-ln -s ${data_dir2}/${raw_data_aster_T01} 
-ln -s ${data_dir2}/${raw_data_aster_T02}
-ln -s ${data_dir2}/${raw_data_aster_T03} 
-ln -s ${data_dir2}/${raw_data_aster_T04} 
-ln -s ${data_dir2}/${raw_data_aster_T05}
-ln -s ${data_dir2}/${raw_data_aster_T06} 
-ln -s ${data_dir2}/${raw_data_aster_T07} 
-ln -s ${data_dir2}/${raw_data_aster_T08} 
-ln -s ${data_dir2}/${raw_data_aster_T09} 
-ln -s ${data_dir2}/${raw_data_aster_T10} 
-ln -s ${data_dir2}/${raw_data_aster_T11} 
-ln -s ${data_dir2}/${raw_data_aster_T12} 
-ln -s ${data_dir2}/${raw_data_aster_T13} 
-ln -s ${data_dir2}/${raw_data_aster_T14} 
-ln -s ${data_dir2}/${raw_data_aster_T15}
-ln -s ${data_dir2}/${raw_data_aster_T16} 
-ln -s ${data_dir2}/${raw_data_aster_T17} 
-ln -s ${data_dir2}/${raw_data_aster_T18} 
-ln -s ${data_dir2}/${raw_data_aster_T19} 
-ln -s ${data_dir2}/${raw_data_aster_T20} 
-ln -s ${data_dir2}/${raw_data_aster_T21} 
-ln -s ${data_dir2}/${raw_data_aster_T22} 
-ln -s ${data_dir2}/${raw_data_aster_T23} 
-ln -s ${data_dir2}/${raw_data_aster_T24} 
-ln -s ${data_dir2}/${raw_data_aster_T25}
-ln -s ${data_dir2}/${raw_data_aster_T26} 
-ln -s ${data_dir2}/${raw_data_aster_T27} 
-ln -s ${data_dir2}/${raw_data_aster_T28} 
-ln -s ${data_dir2}/${raw_data_aster_T29} 
-ln -s ${data_dir2}/${raw_data_aster_T30} 
-ln -s ${data_dir2}/${raw_data_aster_T31} 
-ln -s ${data_dir2}/${raw_data_aster_T32} 
-ln -s ${data_dir2}/${raw_data_aster_T33} 
-ln -s ${data_dir2}/${raw_data_aster_T34} 
-ln -s ${data_dir2}/${raw_data_aster_T35} 
-ln -s ${data_dir2}/${raw_data_aster_T36} 
+ln -s ${data_dir}/${raw_data_aster_T01} 
+ln -s ${data_dir}/${raw_data_aster_T02}
+ln -s ${data_dir}/${raw_data_aster_T03} 
+ln -s ${data_dir}/${raw_data_aster_T04} 
+ln -s ${data_dir}/${raw_data_aster_T05}
+ln -s ${data_dir}/${raw_data_aster_T06} 
+ln -s ${data_dir}/${raw_data_aster_T07} 
+ln -s ${data_dir}/${raw_data_aster_T08} 
+ln -s ${data_dir}/${raw_data_aster_T09} 
+ln -s ${data_dir}/${raw_data_aster_T10} 
+ln -s ${data_dir}/${raw_data_aster_T11} 
+ln -s ${data_dir}/${raw_data_aster_T12} 
+ln -s ${data_dir}/${raw_data_aster_T13} 
+ln -s ${data_dir}/${raw_data_aster_T14} 
+ln -s ${data_dir}/${raw_data_aster_T15}
+ln -s ${data_dir}/${raw_data_aster_T16} 
+ln -s ${data_dir}/${raw_data_aster_T17} 
+ln -s ${data_dir}/${raw_data_aster_T18} 
+ln -s ${data_dir}/${raw_data_aster_T19} 
+ln -s ${data_dir}/${raw_data_aster_T20} 
+ln -s ${data_dir}/${raw_data_aster_T21} 
+ln -s ${data_dir}/${raw_data_aster_T22} 
+ln -s ${data_dir}/${raw_data_aster_T23} 
+ln -s ${data_dir}/${raw_data_aster_T24} 
+ln -s ${data_dir}/${raw_data_aster_T25}
+ln -s ${data_dir}/${raw_data_aster_T26} 
+ln -s ${data_dir}/${raw_data_aster_T27} 
+ln -s ${data_dir}/${raw_data_aster_T28} 
+ln -s ${data_dir}/${raw_data_aster_T29} 
+ln -s ${data_dir}/${raw_data_aster_T30} 
+ln -s ${data_dir}/${raw_data_aster_T31} 
+ln -s ${data_dir}/${raw_data_aster_T32} 
+ln -s ${data_dir}/${raw_data_aster_T33} 
+ln -s ${data_dir}/${raw_data_aster_T34} 
+ln -s ${data_dir}/${raw_data_aster_T35} 
+ln -s ${data_dir}/${raw_data_aster_T36} 
 
 ln -s ${data_dir}/${raw_data_ndvi}
 
@@ -381,7 +387,7 @@ time ${progdir}/${binary_flake}
 time ${progdir}/${binary_extpar_consistency_check}
 
 ls
-echo 'External parameters for COSMO model generated'
+echo "\n>>>> External parameters for COSMO model generated <<<<\n"
 
 
 
