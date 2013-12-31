@@ -58,8 +58,8 @@ DBGL     =
 DBGI     = 
 
 # Grib API library
-LIB     += -L/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/lib -lgrib_api_f90 -lgrib_api
-INC     += -I/oprusers/osm/lib/libgrib_api_1.9.9.1_pgi12.2.0/include 
+LIB     += -L/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/lib -lgrib_api_f90 -lgrib_api
+INC     += -I/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/include 
 
 # NetCDF library
 LIB     += 
@@ -70,9 +70,9 @@ LIB     += -L/oprusers/osm/lib/libjasper_1.900.1_gnu/lib -ljasper
 INC     +=
 
 # PNG library
-LIB     += -L/users/rochesa/install/png/libpng-1.5.12/lib -lpng
+LIB     += -L/oprusers/osm/lib/libpng_1.5.12_pgi13.6.0/lib -lpng
 INC     += 
 
 # ZLIB library
-LIB     += -L/users/rochesa/install/zlib/zlib-1.2.7/lib/lib -lz
+LIB     += -L/oprusers/osm/lib/zlib_1.2.7_pgi13.6.0/lib -lz
 INC     +=

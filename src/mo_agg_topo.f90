@@ -963,27 +963,33 @@ MODULE mo_agg_topo
         ENDIF
 
         IF (lscale_separation) THEN
+          ! Standard deviation between filtred and un-filtred raw data
+          ! (used to compute z0 later on)
           zarg_z0 = znorm_z0 * hh_sqr_diff(ie,je,ke)
           zarg_z0 = MAX(zarg_z0,0.0_wp) ! truncation errors may cause zarg_sso < 0.0
           stdh_z0(ie,je,ke) = SQRT(zarg_z0)
 
+          ! Standard deviation between target grid and filtered raw data
+          ! (used to compute SSO parameters later on)
           IF (lfilter_oro) THEN
-            zarg = znorm_z0 * (no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2 - &
-                 & 2.0 * hsmooth(ie,je,ke) * hh_target_scale(ie,je,ke) +            &
-                 & hh2_target_scale(ie,je,ke))
+            zarg = znorm_z0 * (hh2_target_scale(ie,je,ke) -                &   
+                    2.0 * hsmooth(ie,je,ke) * hh_target_scale(ie,je,ke) +  &
+                    no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2     )
           ELSE
-            zarg = znorm * (hh1_target(ie,je,ke)* hh1_target(ie,je,ke) -  &
-                 & 2.0 * hh1_target(ie,je,ke) * hh_target_scale(ie,je,ke) + &
-                 & no_raw_data_pixel(ie,je,ke) * hh2_target_scale(ie,je,ke))
+            zarg = znorm_z0 * (hh2_target_scale(ie,je,ke) -                  &   
+                    2.0 * hh_target(ie,je,ke) * hh_target_scale(ie,je,ke) +  &
+                    no_raw_data_pixel(ie,je,ke) * hh_target(ie,je,ke)**2     )
           ENDIF
 !> *mes
 
         ELSE
+          ! Standard deviation between target grid and raw data
+          ! (used to compute both z0 and SSO parameters later on)
           IF (lfilter_oro) THEN
              !!!!! standard deviation of height using oro filt !!!!!
-            zarg = znorm_z0 * (hh2_target(ie,je,ke) &
-                    - 2.0 * hsmooth(ie,je,ke) * hh1_target(ie,je,ke)              &
-                    + no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2)
+            zarg = znorm_z0 * (hh2_target(ie,je,ke) -                   &
+                     2.0 * hsmooth(ie,je,ke) * hh1_target(ie,je,ke) +   &
+                     no_raw_data_pixel(ie,je,ke) * hsmooth(ie,je,ke)**2 )
           ELSE
             znfi2sum = no_raw_data_pixel(ie,je,ke) * hh2_target(ie,je,ke) 
             zarg     = ( znfi2sum - (hh1_target(ie,je,ke)*hh1_target(ie,je,ke))) * znorm
@@ -1023,7 +1029,6 @@ MODULE mo_agg_topo
        !---------------------------------------------------------------------------------
        ! Erdman Heise Formel
        !---------------------------------------------------------------------------------
-       zlnhp = ALOG(zhp)
        factor= alpha*ATAN(dnorm/zlnorm) !  alpha  = 1.E-05 [1/m] ,  zlnorm = 2250 [m]  
        DO ke=1, tg%ke
        DO je=1, tg%je

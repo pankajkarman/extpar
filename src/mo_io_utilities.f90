@@ -2201,7 +2201,7 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
   !> open netcdf-file and get netcdf unit file number ncid
   SUBROUTINE open_new_netcdf_file(netcdf_filename, dim_list, global_attributes, time, ncid)
     USE netcdf, ONLY: nf90_create 
-    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT
+    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT, NF90_64BIT_OFFSET
     USE netcdf, ONLY: nf90_def_dim
     USE netcdf, ONLY: nf90_def_var
     USE netcdf, ONLY: nf90_put_att
@@ -2218,6 +2218,7 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
     INTEGER :: ndims !< number of dimension
     INTEGER :: ng_att!< number of global attributes
     INTEGER, ALLOCATABLE :: dimids(:) !< list of netcdf dim ids
+    INTEGER :: call_mode 
     INTEGER :: dimsize
     INTEGER :: errorcode
     INTEGER :: n !< counter
@@ -2232,7 +2233,8 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
     INTEGER :: dimid_mlev
     INTEGER, ALLOCATABLE :: mlev(:)
 
-    CALL check_netcdf( nf90_create(TRIM(netcdf_filename),NF90_CLOBBER,ncid))
+    call_mode = OR(NF90_CLOBBER,NF90_64BIT_OFFSET)
+    CALL check_netcdf( nf90_create(TRIM(netcdf_filename),call_mode,ncid))
     ndims = SIZE(dim_list)
 
     dimid_time = -1
