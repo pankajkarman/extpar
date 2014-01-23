@@ -9,6 +9,8 @@
 !  change netcdf output:  time variable
 ! V1_4         2011/04/21 Hermann Asensio
 !  clean up
+! V2_0         2013/08/18 Daniel Luethi
+!  added support for alternative aerosol climatologies AEROCOM and MNACC-II
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -59,15 +61,16 @@ MODULE mo_aot_output_nc
   CONTAINS
 
   !> create a netcdf file for the AOT data in the buffer
-  SUBROUTINE write_netcdf_buffer_aot(netcdf_filename,  &
-   &                                     tg,         &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     ntype,           &
-   &                                     ntime,        &
-   &                                     aot_tg)
+  SUBROUTINE write_netcdf_buffer_aot(netcdf_filename,    &
+   &                                     tg,             &
+   &                                     undefined,      &
+   &                                     undef_int,      &
+   &                                     lon_geo,        &
+   &                                     lat_geo,        &
+   &                                     ntype,          &
+   &                                     ntime,          &
+   &                                     aot_tg,         &
+   &                                     iaot_type)
 
 
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
@@ -102,6 +105,7 @@ MODULE mo_aot_output_nc
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+  INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< ID of aeorosol raw data
 
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
@@ -129,7 +133,16 @@ MODULE mo_aot_output_nc
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_aot(global_attributes)
+  IF (iaot_type == 1 ) THEN
+     CALL set_global_att_aot(global_attributes)
+  ELSEIF(iaot_type == 2 ) THEN
+     CALL set_global_att_aot_aero(global_attributes)
+  ELSEIF(iaot_type == 3 ) THEN
+     CALL set_global_att_aot_macc(global_attributes)
+  ELSE
+     PRINT *, 'UNKNOWN AOT DATA OPTION: '
+     STOP 1
+  ENDIF
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg)
@@ -193,13 +206,14 @@ MODULE mo_aot_output_nc
   SUBROUTINE write_netcdf_cosmo_grid_aot(netcdf_filename,  &
    &                                     cosmo_grid,       &
    &                                     tg,               &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     ntype,           &
-   &                                     ntime,        &
-   &                                     aot_tg)
+   &                                     undefined,        &
+   &                                     undef_int,        &
+   &                                     lon_geo,          &
+   &                                     lat_geo,          &
+   &                                     ntype,            &
+   &                                     ntime,            &
+   &                                     aot_tg,           &
+   &                                     iaot_type)
 
 
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
@@ -251,6 +265,7 @@ MODULE mo_aot_output_nc
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+  INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< ID of aeorosol raw data
 
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
@@ -293,7 +308,16 @@ MODULE mo_aot_output_nc
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_aot(global_attributes)
+  IF (iaot_type == 1 ) THEN
+     CALL set_global_att_aot(global_attributes)
+  ELSEIF(iaot_type == 2 ) THEN
+     CALL set_global_att_aot_aero(global_attributes)
+  ELSEIF(iaot_type == 3 ) THEN
+     CALL set_global_att_aot_macc(global_attributes)
+  ELSE
+     PRINT *, 'UNKNOWN AOT DATA OPTION: '
+     STOP 1
+  ENDIF
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg)
@@ -385,13 +409,14 @@ MODULE mo_aot_output_nc
   SUBROUTINE write_netcdf_icon_grid_aot(netcdf_filename,  &
    &                                     icon_grid,       &
    &                                     tg,              &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
+   &                                     undefined,       &
+   &                                     undef_int,       &
+   &                                     lon_geo,         &
+   &                                     lat_geo,         &
    &                                     ntype,           &
-   &                                     ntime,        &
-   &                                     aot_tg)
+   &                                     ntime,           &
+   &                                     aot_tg,          &
+   &                                     iaot_type)
 
   USE mo_io_utilities, ONLY: netcdf_grid_mapping, &
     &                        netcdf_char_attributes, &
@@ -440,6 +465,7 @@ MODULE mo_aot_output_nc
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
   INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+  INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< ID of aeorosol raw data
 
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
 
@@ -479,7 +505,16 @@ MODULE mo_aot_output_nc
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_aot(global_attributes)
+  IF (iaot_type == 1 ) THEN
+     CALL set_global_att_aot(global_attributes)
+  ELSEIF(iaot_type == 2 ) THEN
+     CALL set_global_att_aot_aero(global_attributes)
+  ELSEIF(iaot_type == 3 ) THEN
+     CALL set_global_att_aot_macc(global_attributes)
+  ELSE
+     PRINT *, 'UNKNOWN AOT DATA OPTION: '
+     STOP 1
+  ENDIF
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg)
@@ -567,6 +602,7 @@ MODULE mo_aot_output_nc
 
 
   !> set global attributes for netcdf with aerosol optical thickness data
+  !global climatology from Ina Tegen (Tegen et al. 1997)
   SUBROUTINE set_global_att_aot(global_attributes)
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:5)
 
@@ -605,17 +641,104 @@ MODULE mo_aot_output_nc
     global_attributes(5)%attname = 'references'
     global_attributes(5)%attributetext='http://gacp.giss.nasa.gov/data_sets/transport/'
 
-  
-
-
   END SUBROUTINE set_global_att_aot
 !----------------------------------------------------------------------------
 
+!> set global attributes for netcdf with aerosol optical thickness data    AeroCom1
+!gs_21.03.12
+    SUBROUTINE set_global_att_aot_aero(global_attributes)
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:5)
+
+    !local variables
+    CHARACTER(len=10) :: ydate
+    CHARACTER(len=10) :: ytime
+    CHARACTER(len=2)  :: cc
+    CHARACTER(len=2)  :: yy
+    CHARACTER(len=2)  :: mm
+    CHARACTER(len=2)  :: dd
+    CHARACTER(len=2)  :: hh
+    CHARACTER(len=2)  :: minute
+
+    ! define global attributes
+   
+    global_attributes(1)%attname = 'title'
+    global_attributes(1)%attributetext='14 model median (AeroCom1): LO,LS,UL,SP,CT,MI,NF,OT,OG,IM,GM,GO,GI,GR'
+
+    global_attributes(2)%attname = 'institution'
+    global_attributes(2)%attributetext='MPI_MET'
+
+
+    global_attributes(3)%attname = 'source'
+    global_attributes(3)%attributetext='Global Aerosol Climatology Project'
+
+    CALL DATE_AND_TIME(ydate,ytime)
+    READ(ydate,'(4A2)') cc,yy,mm,dd
+    READ(ytime,'(2A2)') hh, minute
+
+    ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
+    ytime=TRIM(hh)//':'//TRIM(minute)
+
+    global_attributes(4)%attname = 'history'
+    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' aot_to_buffer'
+
+    global_attributes(5)%attname = 'references'
+    global_attributes(5)%attributetext='created by stefan_kinne in 2010_11'
+
+  END SUBROUTINE set_global_att_aot_aero
+
+!>
+!----------------------------------------------------------------------------
+
+!> set global attributes for netcdf with aerosol optical thickness data 
+!  from ECMWF-MACC II dataset
+
+    SUBROUTINE set_global_att_aot_macc(global_attributes)
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:5)
+
+    !local variables
+    CHARACTER(len=10) :: ydate
+    CHARACTER(len=10) :: ytime
+    CHARACTER(len=2)  :: cc
+    CHARACTER(len=2)  :: yy
+    CHARACTER(len=2)  :: mm
+    CHARACTER(len=2)  :: dd
+    CHARACTER(len=2)  :: hh
+    CHARACTER(len=2)  :: minute
+
+    ! define global attributes
+   
+    global_attributes(1)%attname = 'title'
+    global_attributes(1)%attributetext='monthly mean climatology of AOD compiled from MACC dataset 2003-2012'
+
+    global_attributes(2)%attname = 'institution'
+    global_attributes(2)%attributetext='ECMWF'
+
+
+    global_attributes(3)%attname = 'source'
+    global_attributes(3)%attributetext='Monitoring atmospheric composition and climate(MACC) project'
+
+    CALL DATE_AND_TIME(ydate,ytime)
+    READ(ydate,'(4A2)') cc,yy,mm,dd
+    READ(ytime,'(2A2)') hh, minute
+
+    ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
+    ytime=TRIM(hh)//':'//TRIM(minute)
+
+    global_attributes(4)%attname = 'history'
+    global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' aot_to_buffer'
+
+    global_attributes(5)%attname = 'references'
+    global_attributes(5)%attributetext='http://www.gmes-atmosphere.eu/'
+
+  END SUBROUTINE set_global_att_aot_macc
+
+!>
+!----------------------------------------------------------------------------
 !> read netcdf file for the AOT data in the buffer
-  SUBROUTINE read_netcdf_buffer_aot(netcdf_filename,  &
-   &                                     tg,         &
-   &                                     ntype,           &
-   &                                     ntime,        &
+  SUBROUTINE read_netcdf_buffer_aot(netcdf_filename,     &
+   &                                     tg,             &
+   &                                     ntype,          &
+   &                                     ntime,          &
    &                                     aot_tg)
 
   USE mo_grid_structures, ONLY: target_grid_def

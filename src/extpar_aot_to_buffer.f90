@@ -14,6 +14,8 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2_0         2013/08/08 Daniel Luethi
+!   Addition of 2 alternative Aerosol Climatologies
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -30,6 +32,7 @@
 !!   <li> SO4 </li>
 !!   <li> sea salt </li>
 !! </ul>
+!! iaot_type = 1
 !! from a global climatology from Ina Tegen (Tegen et al. 1997) to a target grid (COSMO/ICON). 
 !! The raw data and the describing paper are available at NASA/GISS at the Global Aerosol Climatology Project 
 !! (GACP http://gacp.giss.nasa.gov/data_sets/transport/). 
@@ -40,6 +43,31 @@
 !!  Contribution of different aerosol species to the global aerosol extinction optical thickness: 
 !!  Estimates from model results</a>.
 !! J. Geophys. Res., <b>102</b>, 23895-23915.
+!!
+!! iaot_type = 2 
+!! aerosol climatology from the AEROCOM project
+!! (http://aerocom.met.no/aerocomhome.html)
+!!
+!! Kinne, S., M. Schulz, C. Textor, S. Guibert, Y. Balkanski, S.E. Bauer, 
+!! T. Berntsen, T.F. Berglen, O. Boucher, M. Chin, W. Collins, F. Dentener, 
+!! T. Diehl, R. Easter, J. Feichter, D. Fillmore, S. Ghan, P. Ginoux, S. Gong, 
+!! A. Grini, J. Hendricks, M. Herzog, L. Horowitz, I. Isaksen, T. Iversen, 
+!! A. Kirkevåg, S. Kloster, D. Koch, J.E. Kristjansson, M. Krol, A. Lauer, 
+!! J.F. Lamarque, G. Lesins, X. Liu, U. Lohmann, V. Montanaro, G. Myhre, 
+!! J. Penner, G. Pitari, S. Reddy, Ø. Seland, P. Stier, T. Takemura, and X. Tie:
+!! An AeroCom initial assessment optical properties in aerosol component modules
+!! of global models, Atmos. Chem. Phys., 6, 1815-1834, 2006.
+!! 
+!! iaot_type = 3
+!! MACC-II dataset from ECMWF
+!! (http://www.gmes-atmosphere.eu/)
+!!
+!! Morcrette, J.-J., O. Boucher, L. Jones, D. Salmond, P. Bechtold, A. Beljaars,
+!! A. Benedetti, A. Bonet, J. W. Kaiser, M. Razinger, M. Schulz, S. Serrar,
+!! A. J. Simmons, M. Sofiev, M. Suttie, A. M. Tompkins, and A. Untch, 2009: 
+!! Aerosol analysis and forecast in the ECMWF Integrated Forecast System. 
+!! Part I: Forward modelling, J. Geophys. Res., 114D, D06206, 
+!! doi:10.1029/2008JD011235
 !!
 PROGRAM extpar_aot_to_buffer
 
@@ -120,6 +148,9 @@ PROGRAM extpar_aot_to_buffer
     &                      lat_aot, &
     &                      aot_data, &
     &                      aot_grid
+
+  USE mo_aot_data, ONLY : iaot_type
+
   USE mo_aot_target_fields, ONLY: allocate_aot_target_fields,&
     &                              aot_tg
   
@@ -189,6 +220,7 @@ PROGRAM extpar_aot_to_buffer
 
 
   CALL read_namelists_extpar_aerosol(input_namelist_file, &
+   &                                  iaot_type,    &
    &                                  raw_data_aot_path, &
    &                                  raw_data_aot_filename, &
    &                                  aot_buffer_file, &
@@ -250,31 +282,33 @@ PROGRAM extpar_aot_to_buffer
 
 
         CALL write_netcdf_icon_grid_aot(netcdf_filename,  &
-   &                                     icon_grid,         &
-   &                                     tg,               &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
+   &                                     icon_grid,       &
+   &                                     tg,              &
+   &                                     undefined,       &
+   &                                     undef_int,       &
+   &                                     lon_geo,         &
+   &                                     lat_geo,         &
    &                                     ntype,           &
-   &                                     ntime,        &
-   &                                     aot_tg)
+   &                                     ntime,           &
+   &                                     aot_tg,          &
+   &                                     iaot_type)
 
 
 
         CASE(igrid_cosmo) ! COSMO grid
         PRINT *,'write cosmo output to ',TRIM(aot_output_file)
 
-        CALL write_netcdf_cosmo_grid_aot(netcdf_filename,  &
-   &                                     cosmo_grid,       &
-   &                                     tg,               &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
+        CALL write_netcdf_cosmo_grid_aot(netcdf_filename, &
+   &                                     cosmo_grid,      &
+   &                                     tg,              &
+   &                                     undefined,       &
+   &                                     undef_int,       &
+   &                                     lon_geo,         &
+   &                                     lat_geo,         &
    &                                     ntype,           &
-   &                                     ntime,        &
-   &                                     aot_tg)
+   &                                     ntime,           &
+   &                                     aot_tg,          &
+   &                                     iaot_type)
 
 
         CASE(igrid_gme) ! GME grid   
@@ -287,16 +321,17 @@ PROGRAM extpar_aot_to_buffer
 
        netcdf_filename = TRIM(aot_buffer_file)
         print *,'write output to ', TRIM(netcdf_filename)
-       
-       CALL write_netcdf_buffer_aot(netcdf_filename, &
-   &                                     tg,         &
-   &                                     undefined,  &
-   &                                     undef_int,  &
-   &                                     lon_geo,    &
-   &                                     lat_geo,    &
-   &                                     ntype,      &
-   &                                     ntime,      &
-   &                                     aot_tg)
+
+       CALL write_netcdf_buffer_aot(netcdf_filename,      &
+   &                                     tg,              &
+   &                                     undefined,       &
+   &                                     undef_int,       &
+   &                                     lon_geo,         &
+   &                                     lat_geo,         &
+   &                                     ntype,           &
+   &                                     ntime,           &
+   &                                     aot_tg,          &
+   &                                     iaot_type)
 
        CALL deallocate_aot_data()
 

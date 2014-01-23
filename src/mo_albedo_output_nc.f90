@@ -68,7 +68,9 @@ MODULE mo_albedo_output_nc
    &                                     lat_geo, &
    &                                     alb_field_mom, &
    &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom)
+   &                                     aluvd_field_mom, &
+   &                                     alb_dry, &
+   &                                     alb_sat)
 
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
@@ -83,6 +85,8 @@ MODULE mo_albedo_output_nc
     USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
       &                         alnid_field_mom_meta, &
       &                         aluvd_field_mom_meta, &
+      &                         alb_dry_meta, &
+      &                         alb_sat_meta, &
       &                         def_alb_meta
 
 
@@ -93,9 +97,11 @@ MODULE mo_albedo_output_nc
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_dry(:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_sat(:,:,:)
 
     ! local variables
     ! local variables
@@ -171,9 +177,22 @@ MODULE mo_albedo_output_nc
 
  
     ! alb_field_mom
-    CALL netcdf_put_var(ncid,alb_field_mom,alb_field_mom_meta,undefined)
-    CALL netcdf_put_var(ncid,alnid_field_mom,alnid_field_mom_meta,undefined)
-    CALL netcdf_put_var(ncid,aluvd_field_mom,aluvd_field_mom_meta,undefined)
+    IF (PRESENT(alb_field_mom)) THEN
+      CALL netcdf_put_var(ncid,alb_field_mom,alb_field_mom_meta,undefined)
+    ENDIF
+    IF (PRESENT(alnid_field_mom)) THEN
+      CALL netcdf_put_var(ncid,alnid_field_mom,alnid_field_mom_meta,undefined)
+    ENDIF
+    IF (PRESENT(aluvd_field_mom)) THEN
+      CALL netcdf_put_var(ncid,aluvd_field_mom,aluvd_field_mom_meta,undefined)
+    ENDIF
+
+    IF (PRESENT(alb_dry)) THEN
+      CALL netcdf_put_var(ncid,alb_dry,alb_dry_meta,undefined)
+    ENDIF
+    IF (PRESENT(alb_sat)) THEN
+      CALL netcdf_put_var(ncid,alb_sat,alb_sat_meta,undefined)
+    ENDIF
 
 
     CALL close_netcdf_file(ncid)
@@ -195,7 +214,9 @@ MODULE mo_albedo_output_nc
    &                                     lat_geo, &
    &                                     alb_field_mom, &
    &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom)
+   &                                     aluvd_field_mom, &
+   &                                     alb_dry, &
+   &                                     alb_sat)
 
     
     USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
@@ -222,6 +243,8 @@ MODULE mo_albedo_output_nc
     USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
       &                         alnid_field_mom_meta, &
       &                         aluvd_field_mom_meta, &
+      &                         alb_dry_meta, &
+      &                         alb_sat_meta, &
       &                         def_alb_meta
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
@@ -232,9 +255,11 @@ MODULE mo_albedo_output_nc
     INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_dry(:,:,:)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_sat(:,:,:)
 
     ! local variables
      REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
@@ -330,22 +355,43 @@ MODULE mo_albedo_output_nc
     CALL netcdf_put_var(ncid,lat_rot(1:cosmo_grid%nlat_rot),rlat_meta,undefined)
 
     ! alb_field_mom
-    CALL netcdf_put_var(ncid,&
+    IF (PRESENT(alb_field_mom)) THEN
+      CALL netcdf_put_var(ncid,&
                        & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
                        & alb_field_mom_meta, &
                        & undefined)
+    ENDIF
 
     ! alnid_field_mom
-    CALL netcdf_put_var(ncid,&
+    IF (PRESENT(alnid_field_mom)) THEN
+      CALL netcdf_put_var(ncid,&
                        & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
                        & alnid_field_mom_meta, &
                        & undefined)
+    ENDIF
 
     ! aluvd_field_mom
-    CALL netcdf_put_var(ncid,&
+    IF (PRESENT(aluvd_field_mom)) THEN
+      CALL netcdf_put_var(ncid,&
                        & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
                        & aluvd_field_mom_meta, &
                        & undefined)
+    ENDIF
+
+    ! alb_dry
+    IF (PRESENT(alb_dry)) THEN
+      CALL netcdf_put_var(ncid,&
+                       & alb_dry(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
+                       & alb_dry_meta, &
+                       & undefined)
+    ENDIF
+
+    IF (PRESENT(alb_sat)) THEN
+      CALL netcdf_put_var(ncid,&
+                       & alb_sat(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
+                       & alb_sat_meta, &
+                       & undefined)
+    ENDIF
 
 
     !-----------------------------------------------------------------
@@ -519,6 +565,9 @@ MODULE mo_albedo_output_nc
    !-----------------------------------------------------------------------
   !> set global attributes for netcdf with albedo data
   SUBROUTINE set_global_att_alb(global_attributes)
+
+    USE mo_albedo_data, ONLY : ialb_type
+
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
 
     !local variables
@@ -532,14 +581,27 @@ MODULE mo_albedo_output_nc
     CHARACTER(len=2)  :: minute
 
     ! define global attributes
-    
-    global_attributes(1)%attname = 'title'
-    global_attributes(1)%attributetext='albedo data '
-    global_attributes(2)%attname = 'institution'
-    global_attributes(2)%attributetext='Deutscher Wetterdienst'
 
-    global_attributes(3)%attname = 'source'
-    global_attributes(3)%attributetext='NASA MODIS'
+    IF (ialb_type == 2) THEN
+      global_attributes(1)%attname = 'title'
+      global_attributes(1)%attributetext='soil albedo data '
+      global_attributes(2)%attname = 'institution'
+      global_attributes(2)%attributetext='ETH Zurich'
+      global_attributes(3)%attname = 'source'
+      global_attributes(3)%attributetext='CESM-CLM 4.0'
+      global_attributes(5)%attname = 'references'
+      global_attributes(5)%attributetext='https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/clm2/rawdata/mksrf_soilcol.081008.nc & JGR:Lawrence et al. (2007)'
+    ELSE    
+      global_attributes(1)%attname = 'title'
+      global_attributes(1)%attributetext='albedo data '
+      global_attributes(2)%attname = 'institution'
+      global_attributes(2)%attributetext='Deutscher Wetterdienst'
+      global_attributes(3)%attname = 'source'
+      global_attributes(3)%attributetext='NASA MODIS'
+      global_attributes(5)%attname = 'references'
+      global_attributes(5)%attributetext='http://www-modis.bu.edu/brdf/'
+    ENDIF
+
 
     CALL DATE_AND_TIME(ydate,ytime)
     READ(ydate,'(4A2)') cc,yy,mm,dd
@@ -550,9 +612,6 @@ MODULE mo_albedo_output_nc
 
     global_attributes(4)%attname = 'history'
     global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' alb_to_buffer'
-
-    global_attributes(5)%attname = 'references'
-    global_attributes(5)%attributetext='http://www-modis.bu.edu/brdf/'
 
     global_attributes(6)%attname = 'comment'
     global_attributes(6)%attributetext=''
@@ -566,7 +625,9 @@ MODULE mo_albedo_output_nc
    &                                     undef_int,   &
    &                                     alb_field_mom, &
    &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom)
+   &                                     aluvd_field_mom, &
+   &                                     alb_dry, &
+   &                                     alb_sat)
 
     USE mo_var_meta_data, ONLY: dim_3d_tg, &
       &                         def_dimension_info_buffer
@@ -580,6 +641,8 @@ MODULE mo_albedo_output_nc
     USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
       &                         alnid_field_mom_meta, &
       &                         aluvd_field_mom_meta, &
+      &                         alb_dry_meta, &
+      &                         alb_sat_meta, &
       &                         def_alb_meta
 
     USE mo_io_utilities, ONLY: netcdf_get_var
@@ -591,9 +654,11 @@ MODULE mo_albedo_output_nc
     INTEGER (KIND=i4), INTENT(OUT) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
     INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-    REAL (KIND=wp), INTENT(OUT) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
-    REAL (KIND=wp), INTENT(OUT) :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(OUT) :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
+    REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(OUT), OPTIONAL :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alb_dry(:,:,:)
+    REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alb_sat(:,:,:)
 
     ! local variables
     INTEGER :: ndims  
@@ -620,13 +685,29 @@ MODULE mo_albedo_output_nc
 
 !    netcdf_filename2 = '/e/gtmp/fbrenner/extpar/alb_buffer.nc'
     PRINT *,'CALL read netcdf data ALB'
-    print *, TRIM(netcdf_filename)
-    CALL netcdf_get_var(TRIM(netcdf_filename),alb_field_mom_meta,alb_field_mom)
-    PRINT *,'alb_field_mom read'
-    CALL netcdf_get_var(TRIM(netcdf_filename),alnid_field_mom_meta,alnid_field_mom)
-    PRINT *,'alnid_field_mom read'
-    CALL netcdf_get_var(TRIM(netcdf_filename),aluvd_field_mom_meta,aluvd_field_mom)
-    PRINT *,'aluvd_field_mom read'
+    PRINT *, TRIM(netcdf_filename)
+
+    IF (PRESENT(alb_field_mom)) THEN
+      CALL netcdf_get_var(TRIM(netcdf_filename),alb_field_mom_meta,alb_field_mom)
+      PRINT *,'alb_field_mom read'
+    ENDIF
+    IF (PRESENT(alnid_field_mom)) THEN
+      CALL netcdf_get_var(TRIM(netcdf_filename),alnid_field_mom_meta,alnid_field_mom)
+      PRINT *,'alnid_field_mom read'
+    ENDIF
+    IF (PRESENT(aluvd_field_mom)) THEN
+      CALL netcdf_get_var(TRIM(netcdf_filename),aluvd_field_mom_meta,aluvd_field_mom)
+      PRINT *,'aluvd_field_mom read'
+    ENDIF
+
+    IF (PRESENT(alb_dry)) THEN
+      CALL netcdf_get_var(TRIM(netcdf_filename),alb_dry_meta,alb_dry)
+      PRINT *,'alb_dry read'
+    ENDIF
+    IF (PRESENT(alb_sat)) THEN
+      CALL netcdf_get_var(TRIM(netcdf_filename),alb_sat_meta,alb_sat)
+      PRINT *,'alb_sat read'
+    ENDIF
 
 
    END SUBROUTINE read_netcdf_buffer_alb

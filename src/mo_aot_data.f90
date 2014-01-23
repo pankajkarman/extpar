@@ -88,6 +88,7 @@ PUBLIC :: allocate_aot_data, &
           aot_longname, &
           aot_shortname
 PUBLIC :: ntime_aot
+PUBLIC :: iaot_type
 
 
 
@@ -117,6 +118,8 @@ CHARACTER (len=20) :: aot_shortname(ntype_aot)= &   !< short name for aereosol t
                     &   'AER_SO4             ', &
                     &   'AER_SS              ' /)
 
+INTEGER (KIND=i4)            :: iaot_type = 1
+
 
 
 
@@ -128,6 +131,7 @@ CONTAINS
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for aerosol optical thickness data settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_aerosol(namelist_file, &
+                                         iaot_type,    &
                                          raw_data_aot_path, &
                                          raw_data_aot_filename, &
                                          aot_buffer_file, &
@@ -143,12 +147,13 @@ SUBROUTINE read_namelists_extpar_aerosol(namelist_file, &
 
 CHARACTER (len=filename_max) :: raw_data_aot_path        !< path to raw data
 CHARACTER (len=filename_max) :: raw_data_aot_filename !< filename temperature climatology raw data
+INTEGER (KIND=i4)            :: iaot_type  !< ID of dataset used
 
 CHARACTER (len=filename_max) :: aot_buffer_file !< name for aerosol buffer file
 CHARACTER (len=filename_max) :: aot_output_file !< name for aerosol output file
 
 !> namelist with filenames for aerosol optical thickness data input
-NAMELIST /aerosol_raw_data/ raw_data_aot_path, raw_data_aot_filename
+NAMELIST /aerosol_raw_data/ raw_data_aot_path, raw_data_aot_filename, iaot_type
 
 !> namelist with filenames for aerosol optical thickness data output
 NAMELIST /aerosol_io_extpar/ aot_buffer_file, aot_output_file

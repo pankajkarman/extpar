@@ -73,8 +73,12 @@ MODULE mo_soil_output_nc
 
   !----------------------------------------------------------------------------
   !> set global attributes for netcdf with soiltype data
-  SUBROUTINE set_global_att_soiltype(global_attributes)
+  SUBROUTINE set_global_att_soiltype(global_attributes,isoil_data)
+
+  USE mo_soil_data,       ONLY: FAO_data, HWSD_data, HWSD_map
+
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
+    INTEGER (KIND=i4), INTENT(IN):: isoil_data
 
     !local variables
     CHARACTER(len=10) :: ydate
@@ -96,7 +100,11 @@ MODULE mo_soil_output_nc
     global_attributes(2)%attributetext='DWD'
 
     global_attributes(3)%attname = 'source'
-    global_attributes(3)%attributetext='FAO Digital Soil Map of the World'
+    IF (isoil_data == FAO_data) THEN
+      global_attributes(3)%attributetext='FAO Digital Soil Map of the World'
+    ELSE
+      global_attributes(3)%attributetext='HWSD Digital Soil Map of the World'
+    ENDIF
 
     CALL DATE_AND_TIME(ydate,ytime)
     READ(ydate,'(4A2)') cc,yy,mm,dd
@@ -109,11 +117,19 @@ MODULE mo_soil_output_nc
     global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' soil_to_buffer'
 
     global_attributes(5)%attname = 'references'
-    global_attributes(5)%attributetext='FAO Digital Soil Map of the World'
+    IF (isoil_data == FAO_data) THEN
+      global_attributes(5)%attributetext='FAO Digital Soil Map of the World'
+    ELSE
+      global_attributes(5)%attributetext='HWSD Digital Soil Map of the World'
+    ENDIF
 
     global_attributes(6)%attname = 'comment'
-    global_attributes(6)%attributetext='1 ice, 2 rock, 3 sand, 4 sandy loam, 5 loam,&
+    IF (isoil_data /= HWSD_data) THEN
+      global_attributes(6)%attributetext='1 ice, 2 rock, 3 sand, 4 sandy loam, 5 loam,&
                                       & 6 loamy clay, 7 clay, 8 histosol(e.g. peat), 9 sea point'
+    ELSE
+      global_attributes(6)%attributetext='HWSD soil types'
+    ENDIF
 
   END SUBROUTINE set_global_att_soiltype
   !----------------------------------------------------------------------------
@@ -203,7 +219,7 @@ MODULE mo_soil_output_nc
     
    !-------------------------------------------------------------
    ! define global attributes
-   CALL set_global_att_soiltype(global_attributes)
+   CALL set_global_att_soiltype(global_attributes,isoil_data)
    !set up dimensions for buffer
    CALL  def_dimension_info_buffer(tg)
    ! dim_3d_tg
@@ -363,7 +379,7 @@ END SUBROUTINE write_netcdf_soil_icon_grid
     
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_soiltype(global_attributes)
+  CALL set_global_att_soiltype(global_attributes,isoil_data)
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg)
@@ -499,7 +515,7 @@ END SUBROUTINE write_netcdf_soil_icon_grid
 
   !-------------------------------------------------------------
   ! define global attributes
-  CALL set_global_att_soiltype(global_attributes)
+  CALL set_global_att_soiltype(global_attributes,isoil_data)
 
   !set up dimensions for buffer
   CALL  def_dimension_info_buffer(tg)

@@ -56,19 +56,12 @@ PUBLIC :: agg_alb_data_to_target_grid
          &                     alb_source, alb_field_mom_d)
 
        USE mo_albedo_data, ONLY: alb_raw_data_grid, &
-                               alb_field_row_mom, &
-                               alnid_field_row_mom, &
-                               aluvd_field_row_mom, &
                                alb_field_row, &
-                               alnid_field_row, &
-                               aluvd_field_row, &
                                lon_alb, &
                                lat_alb, &
                                ntime_alb
                                
-       USE mo_albedo_tg_fields, ONLY: alb_field, &
-                                      alnid_field, &
-                                      aluvd_field
+       USE mo_albedo_data, ONLY: ialb_type
 
        USE mo_albedo_routines, ONLY: open_netcdf_ALB_data, &
                                    close_netcdf_ALB_data, &
@@ -163,6 +156,7 @@ PUBLIC :: agg_alb_data_to_target_grid
 
     REAL (KIND=wp)   :: target_value
     REAL (KIND=wp)   :: lon_alt
+    REAL (KIND=wp), PARAMETER   :: undef_raw=-0.01_wp
 
 
     ! matrix to save search results
@@ -180,7 +174,6 @@ PUBLIC :: agg_alb_data_to_target_grid
 
 
 
-    alb_field = undefined ! set cosmo_alb_field to undefined value at the start
     alb_field_mom_d = undefined
     default_value = 0.07
     
@@ -252,7 +245,7 @@ PUBLIC :: agg_alb_data_to_target_grid
 
     ! read in albedo data row by row and assign albedo raw data pixel to COSMO grid
     ! start loop over albedo raw data
-    time_loop: DO time_index=1,12
+    time_loop: DO time_index=1,ntime_alb
     no_raw_data_pixel       = 0 ! set count to 0
     no_valid_raw_data_pixel = 0 ! set count to 0
     alb_sum = 0.  ! set sum to 0
@@ -339,7 +332,7 @@ PUBLIC :: agg_alb_data_to_target_grid
     DO i=1, tg%ie
 
      IF (no_valid_raw_data_pixel(i,j,k) /= 0) THEN 
-          alb_field(i,j,k) = alb_sum(i,j,k) / REAL(no_valid_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
+          alb_field_mom_d(i,j,k,time_index) = alb_sum(i,j,k) / REAL(no_valid_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
 !roa sorry but the next line is not correct! Please ask DWD to repair! I just do a quick fix... >
   !   ELSE IF (no_raw_data_pixel(ie,je,ke) == 0) THEN! bilinear interpolation
      ELSEIF (no_valid_raw_data_pixel(i,j,k) == 0) THEN
@@ -429,11 +422,54 @@ PUBLIC :: agg_alb_data_to_target_grid
          ! the weights are bwlon and bwlat
 
          ! catching some extreme values due to false weight factor calculation
-         IF (point_lon_geo.lt.0) THEN
+         IF ((ialb_type /= 2) .AND. (point_lon_geo.lt.0)) THEN
             lon_alt = 360. + point_lon_geo
             bwlon = (lon_alt - lon_alb(western_column))/(lon_alb(eastern_column) - &
   &                  lon_alb(western_column))
          ENDIF
+
+        IF (ialb_type == 2) THEN
+         IF ((alb_point_ne>undef_raw).OR.(alb_point_nw>undef_raw).OR. &
+            (alb_point_se>undef_raw).OR.(alb_point_sw>undef_raw)) THEN
+           IF (alb_point_ne < undef_raw) THEN
+             IF (alb_point_nw > undef_raw) THEN
+               alb_point_ne = alb_point_nw
+             ELSEIF (alb_point_se > undef_raw) THEN
+               alb_point_ne = alb_point_se
+             ELSE
+               alb_point_ne = alb_point_sw
+             ENDIF
+           ENDIF
+           IF (alb_point_nw < undef_raw) THEN
+             IF (alb_point_ne > undef_raw) THEN
+               alb_point_nw = alb_point_ne
+             ELSEIF (alb_point_sw > undef_raw) THEN
+               alb_point_nw = alb_point_sw
+             ELSE
+               alb_point_nw = alb_point_se
+             ENDIF
+           ENDIF
+           IF (alb_point_se < undef_raw) THEN
+             IF (alb_point_sw > undef_raw) THEN
+               alb_point_se = alb_point_sw
+             ELSEIF (alb_point_ne > undef_raw) THEN
+               alb_point_se = alb_point_ne
+             ELSE
+               alb_point_se = alb_point_nw
+             ENDIF
+           ENDIF
+           IF (alb_point_sw < undef_raw) THEN
+             IF (alb_point_se > undef_raw) THEN
+               alb_point_sw = alb_point_se
+             ELSEIF (alb_point_nw > undef_raw) THEN
+               alb_point_sw = alb_point_nw
+             ELSE
+               alb_point_sw = alb_point_ne
+             ENDIF
+           ENDIF
+         ENDIF
+        ENDIF
+
 
         ! perform the interpolation
         IF (alb_point_sw > 0.02 .AND. alb_point_se > 0.02 .AND. alb_point_ne > 0.02 .AND. alb_point_nw > 0.02) THEN
@@ -452,25 +488,21 @@ PUBLIC :: agg_alb_data_to_target_grid
 !           PRINT *, lon_alb(western_column),lon_alb(eastern_column)
 !           PRINT *, 'new value: ',target_value
 !         ENDIF
-         alb_field(i,j,k) = target_value
+         alb_field_mom_d(i,j,k,time_index) = target_value
 
        ELSE ! grid element outside target grid
-         alb_field(i,j,k) = default_value
+         alb_field_mom_d(i,j,k,time_index) = default_value
        ENDIF
 
      ELSE
-       alb_field(i,j,k) = -999. !assume missing value if no valid data point was present, will be fixed later in the cross check
+       alb_field_mom_d(i,j,k,time_index) = -999. !assume missing value if no valid data point was present, will be fixed later in the cross check
 
      ENDIF
 
-     ENDDO !i
-     ENDDO !j
-     ENDDO !k
+    ENDDO !i
+    ENDDO !j
+    ENDDO !k
 
-     print *,'alb_field determined'
-     print *,'time_index:', time_index
-
-    alb_field_mom_d(:,:,:,time_index) = alb_field(:,:,:)
 
     END DO time_loop
     CALL  close_netcdf_ALB_data(ncid_alb)

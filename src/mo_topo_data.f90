@@ -102,7 +102,7 @@ PUBLIC :: ntiles,                  &   ! number of tiles in GLOBE / ASTER
           get_varname,              &
           undef_topo,               &
           varname,                  &
-          topography,               &
+          itopo_type,               &
           topo_gl,                  &
           topo_aster,               &
           aster_lat_min,            &
@@ -129,7 +129,7 @@ INTEGER(KIND=i4) :: nc_tot
 INTEGER(KIND=i4) :: nr_tot  
 INTEGER(KIND=i4) :: nc_tile 
 INTEGER(KIND=i4) :: undef_topo
-INTEGER(KIND=i4) :: topography
+INTEGER(KIND=i4) :: itopo_type
 INTEGER(KIND=i4) :: ntiles_row
 INTEGER(KIND=i4) :: ntiles_column
 INTEGER(KIND=i4) :: nhori
@@ -164,21 +164,21 @@ CHARACTER(LEN=80) :: varname
   CONTAINS
 
 
-   SUBROUTINE num_tiles(topo,columns, rows,ntiles,topography) ! it gives the value of the number of tiles depending 
+   SUBROUTINE num_tiles(topo,columns, rows,ntiles,itopo_type) ! it gives the value of the number of tiles depending 
    IMPLICIT NONE
    SAVE
    INTEGER, INTENT(IN) :: topo
    INTEGER, INTENT(IN) :: columns
    INTEGER, INTENT(IN) :: rows
    INTEGER, INTENT(OUT):: ntiles           ! if the user chooses GLOBE or ASTER 
-   INTEGER, INTENT(OUT):: topography
+   INTEGER, INTENT(OUT):: itopo_type
 
 
    SELECT CASE (topo)
      CASE (topo_gl)                          ! User specifies topo = 1, which stands for GLOBE
-     topography = topo
+     itopo_type = topo
      CASE (topo_aster)                          ! User specifies topo = 2, which stands for ASTER
-     topography = topo
+     itopo_type = topo
    END SELECT
 
    ntiles_column = columns
@@ -254,7 +254,7 @@ CHARACTER(LEN=80) :: varname
    REAL(KIND=wp)       :: half_gridp                          ! distance of half a grid point as the grid point is centered on a GLOBE / ASTER pixel
   
 
-    SELECT CASE (topography)                                  ! Also topo could additionally be used for SELECT CASE (must first be read in)
+    SELECT CASE (itopo_type)                                  ! Also topo could additionally be used for SELECT CASE (must first be read in)
      CASE(topo_aster)                                         ! ASTER topography, as it has 36 tiles at the moment.
        PRINT*, 'ASTER is used as topography'
        half_gridp = 1./(3600.*2.)                             ! the resolution of the ASTER data is 1./3600. degrees as it is half a grid point it is additionally divided by 2 
@@ -284,7 +284,7 @@ CHARACTER(LEN=80) :: varname
      END DO
 
 
-    SELECT CASE(topography)
+    SELECT CASE(itopo_type)
      CASE(topo_aster) 
        aster_lat_min = MINVAL(tiles_lat_min)
        aster_lat_max = MAXVAL(tiles_lat_max)
@@ -304,7 +304,7 @@ CHARACTER(LEN=80) :: varname
      nc_tile = tiles_ncolumns(1)
     
   
-    SELECT CASE(topography)
+    SELECT CASE(itopo_type)
      CASE(topo_gl)       
        WHERE (tiles_lon_max.GT.(-1*half_gridp).AND.tiles_lon_max.LT.half_gridp) tiles_lon_max = 0.00000   ! There are probably some rounding problems, 
        WHERE (tiles_lat_max.GT.(-1*half_gridp).AND.tiles_lat_max.LT.half_gridp) tiles_lat_max = 0.00000   ! which are removed by this procedure.
@@ -343,7 +343,7 @@ CHARACTER(LEN=80) :: varname
   INTEGER, INTENT(OUT)           :: undef_topo
   INTEGER(KIND=i4)               :: ncid
 
-  SELECT CASE(topography)
+  SELECT CASE(itopo_type)
   
    CASE(topo_aster)
    CALL check_netcdf(nf90_open(path = topo_file_1, mode = nf90_nowrite, ncid = ncid))
@@ -369,7 +369,7 @@ CHARACTER(LEN=80) :: varname
   INTEGER(KIND=i4)               :: ncid, type, ndims
   INTEGER(KIND=i4)               :: dimids(2)
 
-  SELECT CASE(topography)
+  SELECT CASE(itopo_type)
   
    CASE(topo_aster)
    CALL check_netcdf(nf90_open(path = topo_file_1, mode = nf90_nowrite, ncid = ncid))

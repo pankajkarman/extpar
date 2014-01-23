@@ -59,11 +59,15 @@ PUBLIC :: fr_land_lu, &
   &        fr_ocean_lu, &
   &        lu_class_fraction,    &
   &        lu_class_npixel, &
-  &        lu_tot_npixel
+  &        lu_tot_npixel, &
+  &        z012_tot,      &
+  &        z012_lu,       &
+  &        lai12_lu,         &
+  &        plcov12_lu
 
 
 PUBLIC :: allocate_lu_target_fields, allocate_add_lu_fields
-PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc
+PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecoclimap
 
 PUBLIC :: fr_land, &
   &        ice, &
@@ -78,7 +82,11 @@ PUBLIC :: fr_land, &
   &        for_d,  &
   &        for_e, &
   &        emissivity, &
-  &        fr_ocean
+  &        fr_ocean, &
+  &        z012, &
+  &        z012tot, & 
+  &        lai12, &
+  &        plcov12
 
 PUBLIC :: allocate_lu_ds_target_fields
 
@@ -99,6 +107,10 @@ PUBLIC :: allocate_lu_ds_target_fields
        REAL (KIND=wp), ALLOCATABLE  :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to land use land use data
        REAL (KIND=wp), ALLOCATABLE  :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to land use land use data
        REAL (KIND=wp), ALLOCATABLE  :: emissivity_lu(:,:,:) !< longwave emissivity due to land use land use data
+       REAL(KIND=wp), ALLOCATABLE  :: z012_lu(:,:,:,:) !< z0 veget. ecoclomap
+       REAL(KIND=wp), ALLOCATABLE  :: z012_tot(:,:,:,:) !< z0 ecoclomap 
+       REAL(KIND=wp), ALLOCATABLE  :: lai12_lu(:,:,:,:) ! <  lai12 ecoclimap
+       REAL(KIND=wp), ALLOCATABLE  :: plcov12_lu(:,:,:,:) !<  plcov ecoclimap
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_ocean_lu(:,:,:) !< fraction ocean due to land use raw data
 
@@ -127,12 +139,17 @@ PUBLIC :: allocate_lu_ds_target_fields
        REAL (KIND=wp), ALLOCATABLE  :: emissivity(:,:,:,:) !< longwave emissivity due to land use data
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_ocean(:,:,:,:) !< fraction ocean due to land use raw data
+       REAL (KIND=wp), ALLOCATABLE  :: z012(:,:,:,:) !< z0 ecoclomap
+       REAL (KIND=wp), ALLOCATABLE  :: z012tot(:,:,:,:) !< z0 ecoclomap 
+       REAL (KIND=wp), ALLOCATABLE  :: lai12(:,:,:,:) ! <  lai12 ecoclimap
+       REAL (KIND=wp), ALLOCATABLE  :: plcov12(:,:,:,:) !<  plcov ecoclimap
 
 
 
        INTEGER, PARAMETER :: i_lu_globcover = 1 !< id for landuse data set Globcover 2009
        INTEGER, PARAMETER :: i_lu_glc2000   = 2 !< id for landuse data set GLC2000
        INTEGER, PARAMETER :: i_lu_glcc      = 3 !< id for landuse data set GLCC
+       INTEGER, PARAMETER :: i_lu_ecoclimap = 4 !< id for landuse data set ecoclimap
 
 CONTAINS
 
@@ -212,7 +229,24 @@ CONTAINS
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_ocean_lu')
     fr_ocean_lu = 0.0
 
+    ALLOCATE (lai12_lu(1:tg%ie,1:tg%je,1:tg%ke,1:12), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lai12_lu')
+    lai12_lu = 0.0
+
+    ALLOCATE (plcov12_lu(1:tg%ie,1:tg%je,1:tg%ke,1:12), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array plcov12_lu')
+    plcov12_lu = 0.0
+
+    ALLOCATE (z012_lu(1:tg%ie,1:tg%je,1:tg%ke,1:12), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array z012')
+    z012_lu = 0.0
+
+    ALLOCATE (z012_tot(1:tg%ie,1:tg%je,1:tg%ke,1:12), STAT=errorcode)
+        IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array z012_tot')
+    z012_tot = 0.0
+
   END SUBROUTINE allocate_lu_target_fields
+
 
   !> allocate additional land use target fields
   SUBROUTINE allocate_add_lu_fields(tg,nclass_lu)

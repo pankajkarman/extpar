@@ -35,6 +35,7 @@ TARGETS    := \
   extpar_soil_to_buffer.exe \
   extpar_topo_to_buffer.exe
 
+
 # generate list of object files
 -include $(ROOT)/Objfiles
 ifndef OBJ
@@ -83,22 +84,37 @@ depend :
 	@echo "generating dependencies"
 	@$(ROOT)/bin/sfmakedepend --case down --longpath $(INC) $(IGN) --file $(ROOT)/$(DEPF) $(ROOT)/$(SRCDIR)/*.f90
 
+info :
+	@echo "generating compile information"
+	@-rm -f $(ROOT)/.fconfig
+	@echo "Target           : $(TARGET)" > $(ROOT)/.fconfig
+	@echo "Compiler command : $(F90)" > $(ROOT)/.fconfig
+	@echo "Compiler version : "`$(F90) -V 2>/dev/null | grep pgf` >> $(ROOT)/.fconfig
+	@echo "Compiler includes: $(INC)" >> $(ROOT)/.fconfig
+	@echo "Compiler flags   : $(PFLAGS) $(FFLAGS1)" >> $(ROOT)/.fconfig
+	@echo "Linker command   : $(LD)" >> $(ROOT)/.fconfig
+	@echo "Linker version   : "`$(LD) -V 2>/dev/null | grep pgf` >> $(ROOT)/.fconfig
+	@echo "Linker flags     : $(LFLAGS) $(FFLAGS1)" >> $(ROOT)/.fconfig
+	@echo "Linker libraries : $(LIB)" >> $(ROOT)/.fconfig
+	@$(ROOT)/$(BINDIR)/gen_info.sh $(ROOT)/.fconfig $(ROOT)/$(SRCDIR)
+	@-rm -f $(ROOT)/.fconfig
+
 opt :
-	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 depend
+	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 depend info
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $$target ; \
    done
 
 debug :
-	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 depend
+	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 depend info
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $$target ; \
    done
                                                             
 clean :
-	-rm -f $(DEPF) $(DEPF).old $(OBJDIR)/* $(BINDIR)/*.exe
+	-rm -f $(DEPF) $(DEPF).old $(OBJDIR)/* $(BINDIR)/extpar_*.exe
 
 ### Suffix Rules ###########################
 

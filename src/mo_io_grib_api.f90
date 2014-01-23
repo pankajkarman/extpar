@@ -104,7 +104,7 @@ MODULE mo_io_grib_api
     MODULE PROCEDURE write_extpar_gme_int_field_grib
   END INTERFACE write_extpar_gme_field_grib
 
-
+  PUBLIC :: write_extpar_cosmo_real_1lev_grib
 
   CONTAINS
 
@@ -325,6 +325,10 @@ MODULE mo_io_grib_api
       ENDIF
     ENDIF
 
+    IF (TRIM(shortName)=='T_2M_CL') THEN
+      CALL grib_set(gribid,'bitmapPresent',1)
+    ENDIF
+
     IF ((centre == dwd_id_grib ).AND.(editionNumber == 1)) THEN
       ! put data and time of output generation to DWD local section to the grib
       CALL DATE_AND_TIME(ydate,ytime)
@@ -344,6 +348,60 @@ MODULE mo_io_grib_api
      CALL grib_set(gribid,'resolutionAndComponentFlags',0)
 
   END SUBROUTINE set_parameter_grib
+
+  !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
+  !! the file should have been previously opende, pass the outfile_id to this subroutine
+  SUBROUTINE write_extpar_cosmo_real_1lev_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime,ilev)
+    USE mo_grid_structures, ONLY: rotated_lonlat_grid
+
+    INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
+!roabug
+    CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+
+    TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
+    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1)
+!< field to write out to GRIB file with outfile_id
+    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate
+ !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+    INTEGER, INTENT(IN)  :: ilev  !<  level id of current field 
+
+
+    ! local variables
+    INTEGER :: gribid_in !< id of grib message (GRIB_API)
+    INTEGER :: gribid_dest !< id of grib message (GRIB_API)
+
+    REAL    :: ds(1:cosmo_grid%nlon_rot*cosmo_grid%nlat_rot) !< working array
+    INTEGER :: errorcode
+    INTEGER :: ind
+    INTEGER :: i,j
+
+    ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
+    CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))
+    CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
+    CALL grib_release(gribid_in) ! free memory of first message
+    CALL set_rotated_ll_grid_gds(gribid_dest,cosmo_grid) ! set gds values for rotated longitude latitude grid
+    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+
+    CALL grib_set(gribid_dest,'level',ilev,errorcode)
+
+    ind=0
+    DO i=1,cosmo_grid%nlon_rot
+    DO j=1,cosmo_grid%nlat_rot
+      ind=(j-1) * cosmo_grid%nlon_rot + i
+      ds(ind) = extpar_buffer(i,j,1)  ! put data to 1D array before putting it to the GRIB record
+    ENDDO
+    ENDDO
+
+    ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
+
+    CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
+    CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
+    CALL grib_release(gribid_dest) ! free memory of grib message
+
+  END  SUBROUTINE write_extpar_cosmo_real_1lev_grib
+
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine

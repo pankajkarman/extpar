@@ -56,7 +56,7 @@ MODULE mo_extpar_output_grib
   USE mo_aot_data, ONLY: ntype_aot, ntime_aot
   USE mo_albedo_data, ONLY: ntime_alb
 
-  USE mo_soil_data,   ONLY: soil_data, FAO_data, HWSD_data
+  USE mo_soil_data,   ONLY: HWSD_data
 
   USE grib_api 
   USE mo_io_grib_api
@@ -388,8 +388,10 @@ MODULE mo_extpar_output_grib
     DO mm=1,nhori
       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
       & horizon_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
-      CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime)
+      CALL write_extpar_cosmo_real_1lev_grib(outfile_id,TRIM(grib_sample),&
+      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime,mm)
+!      CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
+!      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime)
     ENDDO
   ENDIF
   IF (lrad) THEN
@@ -436,32 +438,32 @@ MODULE mo_extpar_output_grib
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_sand,HWSD_SAND_meta%shortName,dataDate,dataTime)
   ENDIF
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_silt,HWSD_SILT_meta%shortName,dataDate,dataTime)
   ENDIF
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_clay,HWSD_CLAY_meta%shortName,dataDate,dataTime)
   ENDIF
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_oc,HWSD_OC_meta%shortName,dataDate,dataTime)
   ENDIF
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_bd,HWSD_BD_meta%shortName,dataDate,dataTime)
   ENDIF
 
-  IF(soil_data == HWSD_data) THEN
+  IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
   & cosmo_grid,fr_dm,HWSD_DM_meta%shortName,dataDate,dataTime)
   ENDIF

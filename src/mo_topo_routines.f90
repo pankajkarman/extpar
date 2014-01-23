@@ -226,7 +226,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
         !> \author Hermann Asensio
        SUBROUTINE det_topo_tiles_grid(topo_tiles_grid)
          USE mo_topo_data, ONLY : ntiles , &    !< GLOBE raw data has 16 tiles and ASTER has 13
-                                topography,    &
+                                itopo_type,    &
                                 topo_aster,    &
                                 topo_gl,       &
                                 tiles_lon_min, &
@@ -278,7 +278,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        SUBROUTINE det_topo_grid(topo_grid)
          USE mo_topo_data, ONLY :  nc_tot,       &      
            &                        nr_tot,       &
-           &                        topography,   &      ! mes >
+           &                        itopo_type,   &      ! mes >
            &                        topo_aster,   &
            &                        topo_gl,      &
            &                        aster_lat_min,&
@@ -295,7 +295,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          REAL (KIND=wp) :: dlat
 
             !mes > as ASTER does not cover the whole globe until now different procedures must be chosen for ASTER and GLOBE
-            SELECT CASE(topography)
+            SELECT CASE(itopo_type)
             CASE(topo_aster)
 
              dlon = (aster_lon_max - aster_lon_min) / FLOAT(nc_tot)
@@ -435,7 +435,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          &                                     ta_end_je)
 
         USE mo_topo_data, ONLY : ntiles ,     &    !< GLOBE raw data has 16 tiles, ASTER has 36
-                                topography,    &
+                                itopo_type,    &
                                 topo_aster,    &
                                 topo_gl,       &
                                 tiles_lon_min, &
@@ -567,7 +567,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
 
        !mes > SELECT CASE as the two DEMs do not have the same amount of tiles.
-       SELECT CASE(topography)
+       SELECT CASE(itopo_type)
        CASE(topo_aster)
         m = 1
         n = 1
@@ -779,7 +779,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        USE mo_topo_data, ONLY : nc_tile    !< number of columns in a GLOBE tile
        ! mes >
        USE mo_topo_data, ONLY : get_varname   ! gets the variable name of the elevation 
-       USE mo_topo_data, ONLY : topography
+       USE mo_topo_data, ONLY : itopo_type
        USE mo_topo_data, ONLY : topo_aster
        USE mo_topo_data, ONLY : topo_gl
 

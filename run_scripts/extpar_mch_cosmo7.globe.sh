@@ -12,7 +12,7 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/share/
 data_dir=/store/s83/tsm/extpar/raw_data_nc/
 
 # Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
-sandboxdir=/store/s83/tsm/extpar/sandbox_c2
+sandboxdir=/store/s83/tsm/extpar/sandbox_c7_opr
 
 
 # Names of executables
@@ -50,9 +50,9 @@ echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
 #---
 
-grib_output_filename='external_parameter_mch_cosmo2.g1'
-stf_output_filename='external_parameter_mch_cosmo2.stf'
-netcdf_output_filename='external_parameter_mch_cosmo2.nc'
+grib_output_filename='external_parameter_mch_cosmo7.g1'
+stf_output_filename='external_parameter_mch_cosmo7.stf'
+netcdf_output_filename='external_parameter_mch_cosmo7.nc'
 grib_sample='rotated_ll_pl_grib1'
 
 raw_data_alb='MODIS_month_alb.nc'
@@ -164,7 +164,7 @@ buffer_topo='topography_buffer.nc'
 output_topo='topography_COSMO.nc'
 
 raw_data_ndvi='NDVI_1998_2003.nc'
-buffer_ndvi='NDVI_buffer.nc'
+buffer_ndvi='ndvi_buffer.nc'
 output_ndvi='ndvi_extpar_cosmo.nc'
 
 raw_data_soil_FAO='FAO_DSMW_DP.nc'
@@ -199,12 +199,12 @@ cat > INPUT_COSMO_GRID << EOF_grid
 &lmgrid
  pollon=-170.0, 
  pollat=43.0, 
- startlon_tot=-10.0, 
- startlat_tot=-7.0,
- dlon=0.02,
- dlat=0.02,
- ie_tot=851,
- je_tot=701,
+ startlon_tot=-18.0, 
+ startlat_tot=-12.9,
+ dlon=0.06,
+ dlat=0.06,
+ ie_tot=601,
+ je_tot=421,
 /
 EOF_grid
 #---
@@ -247,7 +247,7 @@ cat > INPUT_TCLIM << EOF_tclim
 &t_clim_raw_data
   raw_data_t_clim_path='',
   raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  raw_data_t_id = 1
+  it_cl_type = 1
 /  
 
 &t_clim_io_extpar
@@ -389,107 +389,7 @@ cat > INPUT_CHECK << EOF_check
 EOF_check
 
 # link raw data files to local workdir
-ln -s -f ${data_dir}/${raw_data_alb}
-ln -s -f ${data_dir}/${raw_data_alnid}
-ln -s -f ${data_dir}/${raw_data_aluvd}
-
-ln -s -f ${data_dir}/${raw_data_aot}
-
-ln -s -f ${data_dir}/${raw_data_tclim_coarse}
-ln -s -f ${data_dir}/${raw_data_tclim_fine}
-
-ln -s -f ${data_dir}/${raw_data_glc2000}
-ln -s -f ${data_dir}/${raw_data_glcc}
-
-ln -s -f ${data_dir}/${raw_data_globcover_0}
-ln -s -f ${data_dir}/${raw_data_globcover_1}
-ln -s -f ${data_dir}/${raw_data_globcover_2}
-ln -s -f ${data_dir}/${raw_data_globcover_3}
-ln -s -f ${data_dir}/${raw_data_globcover_4}
-ln -s -f ${data_dir}/${raw_data_globcover_5}
-
-ln -s -f ${data_dir}/${raw_data_globe_A10} 
-ln -s -f ${data_dir}/${raw_data_globe_B10}
-ln -s -f ${data_dir}/${raw_data_globe_C10} 
-ln -s -f ${data_dir}/${raw_data_globe_D10} 
-ln -s -f ${data_dir}/${raw_data_globe_E10}
-ln -s -f ${data_dir}/${raw_data_globe_F10} 
-ln -s -f ${data_dir}/${raw_data_globe_G10} 
-ln -s -f ${data_dir}/${raw_data_globe_H10} 
-ln -s -f ${data_dir}/${raw_data_globe_I10} 
-ln -s -f ${data_dir}/${raw_data_globe_J10} 
-ln -s -f ${data_dir}/${raw_data_globe_K10} 
-ln -s -f ${data_dir}/${raw_data_globe_L10} 
-ln -s -f ${data_dir}/${raw_data_globe_M10} 
-ln -s -f ${data_dir}/${raw_data_globe_N10} 
-ln -s -f ${data_dir}/${raw_data_globe_O10} 
-ln -s -f ${data_dir}/${raw_data_globe_P10}
-
-ln -s -f ${data_dir}/${raw_filt_globe_A10}
-ln -s -f ${data_dir}/${raw_filt_globe_B10}
-ln -s -f ${data_dir}/${raw_filt_globe_C10}
-ln -s -f ${data_dir}/${raw_filt_globe_D10}
-ln -s -f ${data_dir}/${raw_filt_globe_E10}
-ln -s -f ${data_dir}/${raw_filt_globe_F10}
-ln -s -f ${data_dir}/${raw_filt_globe_G10}
-ln -s -f ${data_dir}/${raw_filt_globe_H10}
-ln -s -f ${data_dir}/${raw_filt_globe_I10}
-ln -s -f ${data_dir}/${raw_filt_globe_J10}
-ln -s -f ${data_dir}/${raw_filt_globe_K10}
-ln -s -f ${data_dir}/${raw_filt_globe_L10}
-ln -s -f ${data_dir}/${raw_filt_globe_M10}
-ln -s -f ${data_dir}/${raw_filt_globe_N10}
-ln -s -f ${data_dir}/${raw_filt_globe_O10}
-ln -s -f ${data_dir}/${raw_filt_globe_P10}
-
-ln -s -f ${data_dir}/${raw_data_aster_T01}
-ln -s -f ${data_dir}/${raw_data_aster_T02}
-ln -s -f ${data_dir}/${raw_data_aster_T03}
-ln -s -f ${data_dir}/${raw_data_aster_T04}
-ln -s -f ${data_dir}/${raw_data_aster_T05}
-ln -s -f ${data_dir}/${raw_data_aster_T06}
-ln -s -f ${data_dir}/${raw_data_aster_T07}
-ln -s -f ${data_dir}/${raw_data_aster_T08}
-ln -s -f ${data_dir}/${raw_data_aster_T09}
-ln -s -f ${data_dir}/${raw_data_aster_T10}
-ln -s -f ${data_dir}/${raw_data_aster_T11}
-ln -s -f ${data_dir}/${raw_data_aster_T12}
-ln -s -f ${data_dir}/${raw_data_aster_T13}
-ln -s -f ${data_dir}/${raw_data_aster_T14}
-ln -s -f ${data_dir}/${raw_data_aster_T15}
-ln -s -f ${data_dir}/${raw_data_aster_T16}
-ln -s -f ${data_dir}/${raw_data_aster_T17}
-ln -s -f ${data_dir}/${raw_data_aster_T18}
-ln -s -f ${data_dir}/${raw_data_aster_T19}
-ln -s -f ${data_dir}/${raw_data_aster_T20}
-ln -s -f ${data_dir}/${raw_data_aster_T21}
-ln -s -f ${data_dir}/${raw_data_aster_T22}
-ln -s -f ${data_dir}/${raw_data_aster_T23}
-ln -s -f ${data_dir}/${raw_data_aster_T24}
-ln -s -f ${data_dir}/${raw_data_aster_T25}
-ln -s -f ${data_dir}/${raw_data_aster_T26}
-ln -s -f ${data_dir}/${raw_data_aster_T27}
-ln -s -f ${data_dir}/${raw_data_aster_T28}
-ln -s -f ${data_dir}/${raw_data_aster_T29}
-ln -s -f ${data_dir}/${raw_data_aster_T30}
-ln -s -f ${data_dir}/${raw_data_aster_T31}
-ln -s -f ${data_dir}/${raw_data_aster_T32}
-ln -s -f ${data_dir}/${raw_data_aster_T33}
-ln -s -f ${data_dir}/${raw_data_aster_T34}
-ln -s -f ${data_dir}/${raw_data_aster_T35}
-ln -s -f ${data_dir}/${raw_data_aster_T36}
-
-ln -s -f ${data_dir}/${raw_data_ndvi}
-
-ln -s -f ${data_dir}/${raw_data_soil_FAO}
-ln -s -f ${data_dir}/${raw_data_soil_HWSD}
-ln -s -f ${data_dir}/${raw_data_deep_soil}
-
-ln -s -f ${data_dir}/${raw_lookup_table_HWSD}
-ln -s -f ${data_dir}/${raw_HWSD_data}
-ln -s -f ${data_dir}/${raw_HWSD_data_deep}
-
-ln -s -f ${data_dir}/${raw_data_flake}
+ln -s -f ${data_dir}/*.nc .
 
 # run the programs
 # the next seven programs can run independent of each other

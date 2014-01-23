@@ -45,7 +45,7 @@ PUBLIC :: define_soiltype,               &
 
 PUBLIC :: undef_soiltype, default_soiltype, soiltype_ice, soiltype_water, no_data
 
-PUBLIC :: FAO_data, HWSD_data
+PUBLIC :: FAO_data, HWSD_data, HWSD_map
 PUBLIC :: soil_data
 PUBLIC :: deep_soil
 
@@ -97,6 +97,7 @@ INTEGER (KIND=i4) :: no_data          !< no data flag for FAO and HWSD
 
 INTEGER (KIND=i4), PARAMETER :: FAO_data = 1
 INTEGER (KIND=i4), PARAMETER :: HWSD_data = 2
+INTEGER (KIND=i4), PARAMETER :: HWSD_map = 3
 
 INTEGER(KIND=i4)  :: soil_data
 LOGICAL           :: deep_soil
@@ -123,7 +124,7 @@ CONTAINS
     deep_soil = ldeep_soil
 
     SELECT CASE(isoil_data)
-    CASE(FAO_data)
+    CASE(FAO_data, HWSD_map)
       undef_soiltype   = 0
       default_soiltype = 5     !< default soil type loam (5)
       soiltype_ice     = 1     !< soiltype for ice 

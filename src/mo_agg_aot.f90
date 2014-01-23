@@ -115,6 +115,8 @@ PUBLIC :: agg_aot_data_to_target_grid
 
       REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
       REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation
+      REAL (KIND=wp) :: bwlon2d(ntime,ntype)
+      REAL (KIND=wp) :: bwlat2d(ntime,ntype)
 
       REAL (KIND=wp) :: data_array_sw(ntime,ntype) !< data array values at south-western point
       REAL (KIND=wp) :: data_array_se(ntime,ntype) !< data array values at south-eastern point
@@ -180,8 +182,15 @@ PUBLIC :: agg_aot_data_to_target_grid
          data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)
 
          ! perform the interpolation
-         target_array_value = calc_value_bilinear_interpol(bwlon, bwlat, &
+         bwlon2d = bwlon
+         bwlat2d = bwlat
+         target_array_value = calc_value_bilinear_interpol(bwlon2d,bwlat2d, &
                                          data_array_sw, data_array_se, data_array_ne, data_array_nw)
+!          target_array_value = (1-bwlon) * (1-bwlat) * data_array_sw +  &
+!                              & bwlon    * (1-bwlat) * data_array_se +  &
+!                              & bwlon    *  bwlat    * data_array_ne +  &
+!                              &(1-bwlon) *  bwlat    * data_array_nw 
+ 
         ENDIF
        aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))
 

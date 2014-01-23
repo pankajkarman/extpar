@@ -92,6 +92,9 @@ PUBLIC :: get_dimension_globcover_data, &
   &       get_globcover_data_block,     &
   &       get_globcover_tile_block_indices
 
+PUBLIC :: get_dimension_ecoclimap_data, &
+  &       get_lonlat_ecoclimap_data
+
 CONTAINS
 
 !---------------------------------------------------------------------------
@@ -542,6 +545,21 @@ END SUBROUTINE read_namelists_extpar_land_use
        END SUBROUTINE get_dimension_globcover_data
 
        !----------------------------------------------------------------------------------------------------------------
+        SUBROUTINE get_dimension_ecoclimap_data(nlon_ecoclimap, &
+                                          nlat_ecoclimap)
+
+        INTEGER (KIND=i8), INTENT(OUT) :: nlon_ecoclimap !< number of grid elements in zonal direction for globcover data
+        INTEGER (KIND=i8), INTENT(OUT) :: nlat_ecoclimap !< number of grid elements in meridional direction for globcover data
+
+        !local variables
+	INTEGER, PARAMETER :: nx=43200
+        INTEGER, PARAMETER :: ny=21600
+
+        nlon_ecoclimap = nx
+        nlat_ecoclimap = ny
+
+       END SUBROUTINE get_dimension_ecoclimap_data
+
        !----------------------------------------------------------------------------------------------------------------
 
         !> get coordinates for globcover raw data
@@ -615,6 +633,52 @@ END SUBROUTINE read_namelists_extpar_land_use
         globcover_grid%nlat_reg      = nlat_globcover
 
        END SUBROUTINE get_lonlat_globcover_data
+
+        !----------------------------------------------------------------------------------------------------------------
+        !> get coordinates for ecoclimap raw data
+        SUBROUTINE get_lonlat_ecoclimap_data(nlon_ecoclimap, &
+           &                               nlat_ecoclimap, &
+           &                               lon_ecoclimap,  &
+           &                               lat_ecoclimap,  &
+           &                               ecoclimap_grid)
+
+       USE mo_grid_structures, ONLY: reg_lonlat_grid
+
+        INTEGER (KIND=i8), INTENT(IN) :: nlon_ecoclimap !< number of grid elements in zonal direction for ecoclimap data
+        INTEGER (KIND=i8), INTENT(IN) :: nlat_ecoclimap !< number of grid elements in meridional direction for ecoclimap data
+        REAL (KIND=wp), INTENT(OUT)    :: lon_ecoclimap(1:nlon_ecoclimap) !< longitude of ecoclimap raw data
+        REAL (KIND=wp), INTENT(OUT)    :: lat_ecoclimap(1:nlat_ecoclimap) !< latitude of ecoclimap raw data
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: ecoclimap_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+
+        !local variables
+        REAL, PARAMETER ::  xmin_glc = -179.995833335    ! area of glcover data: western longitude
+        REAL, PARAMETER ::  xmax_glc  = 179.995689334969 ! area of glcover data: eastern longitude
+        REAL, PARAMETER ::  ymax_glc  = 89.995761335     ! area of glcover data: northern latitude
+        REAL, PARAMETER ::  ymin_glc = -89.995833334    ! area of glcover data: southern latitude
+
+        REAL, PARAMETER :: dx_glc =    0.0083333333  ! grid element size of glcover data pixel in zonal direction
+        REAL, PARAMETER :: dy_glc =   -0.0083333333  ! grid element size of glcover data pixel in meridional directionon
+
+        INTEGER (KIND=i8) :: jx,jy
+           DO jx=1,nlon_ecoclimap
+              lon_ecoclimap(jx)  = xmin_glc + (jx-1)*dx_glc
+           ENDDO
+           DO jy=1,nlat_ecoclimap
+            lat_ecoclimap(jy) = ymax_glc + (jy-1)*dy_glc ! note negative increment!
+           ENDDO
+
+        ! define the values for the structure ecoclimap_grid
+
+        ecoclimap_grid%start_lon_reg = lon_ecoclimap(1)
+        ecoclimap_grid%end_lon_reg   = lon_ecoclimap(nlon_ecoclimap)
+        ecoclimap_grid%start_lat_reg = lat_ecoclimap(1)
+        ecoclimap_grid%end_lat_reg   = lat_ecoclimap(nlat_ecoclimap)
+        ecoclimap_grid%dlon_reg      = dx_glc ! (lon_ecoclimap(nlon_ecoclimap) - lon_ecoclimap(1)) / (nlon_ecoclimap - 1)
+        ecoclimap_grid%dlat_reg      = dy_glc ! (lat_ecoclimap(nlat_ecoclimap) - lat_ecoclimap(1)) / (nlat_ecoclimap - 1)
+        ecoclimap_grid%nlon_reg      = nlon_ecoclimap
+        ecoclimap_grid%nlat_reg      = nlat_ecoclimap
+
+       END SUBROUTINE get_lonlat_ecoclimap_data
 
         !----------------------------------------------------------------------------------------------------------------
        !----------------------------------------------------------------------------------------------------------------
@@ -961,6 +1025,43 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
        CALL check_netcdf( nf90_close( ncid))
 
        END SUBROUTINE get_row_globcover_data
+
+      !----------------------------------------------------------------------------------------------------------------
+       !> get one row of ecoclimap raw data
+        SUBROUTINE get_row_ecoclimap_data(path_ecoclimap_file, &
+                                          nlon_ecoclimap, &
+                                          data_row, &
+                                          ecoclimap_data_row)
+
+       USE mo_grid_structures, ONLY: reg_lonlat_grid
+
+        CHARACTER (LEN=filename_max), INTENT(IN) :: path_ecoclimap_file         !< filename with path for ecoclimap raw data
+        INTEGER , INTENT(IN) :: nlon_ecoclimap !< number of grid elements in zonal direction for ecoclimap data
+        INTEGER , INTENT(IN) :: data_row !< number or row for data to read in
+
+        INTEGER , INTENT(OUT) :: ecoclimap_data_row(1:nlon_ecoclimap)
+
+        !local variables
+        INTEGER :: ncid                             !< netcdf unit file number
+
+        CHARACTER (LEN=80) :: varname  !< name of variable
+        INTEGER :: varid               !< id of variable
+
+       ! open netcdf file
+        CALL check_netcdf( nf90_open(TRIM(path_ecoclimap_file),NF90_NOWRITE, ncid))
+
+        varname = 'landuse' ! I know that the ecoclimap data are stored in a variable called 'LANDUSE'
+
+         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+
+         CALL check_netcdf(nf90_get_var(ncid, varid,  ecoclimap_data_row,  &
+                       start=(/1,data_row/),count=(/nlon_ecoclimap,1/)))
+
+       ! close netcdf file
+
+       CALL check_netcdf( nf90_close( ncid))
+
+       END SUBROUTINE get_row_ecoclimap_data
 
       !----------------------------------------------------------------------------------------------------------------
 

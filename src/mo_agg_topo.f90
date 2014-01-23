@@ -97,7 +97,7 @@ MODULE mo_agg_topo
     USE mo_topo_data, ONLY: nr_tot !< total number of rows in GLOBE/ASTER data
 !mes >
     USE mo_topo_data, ONLY: get_fill_value   !< determines the _FillValue of either GLOBE or ASTER
-    USE mo_topo_data, ONLY: topography
+    USE mo_topo_data, ONLY: itopo_type
     USE mo_topo_data, ONLY: topo_gl
     USE mo_topo_data, ONLY: topo_aster
     USE mo_topo_sso,  ONLY: auxiliary_sso_parameter, &
@@ -355,7 +355,7 @@ MODULE mo_agg_topo
 ! mes <
    default_topo = 0
 
-   SELECT CASE(topography)
+   SELECT CASE(itopo_type)
     CASE(topo_aster)
       hh = default_topo
       h_3rows = default_topo
@@ -764,7 +764,7 @@ MODULE mo_agg_topo
            no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1
            !- summation of variables
 ! mes >
-           SELECT CASE(topography)
+           SELECT CASE(itopo_type)
             CASE(topo_aster)
              IF (h_3rows(i,j_c) /= default_topo) THEN       
                ndata(ie,je,ke)      = ndata(ie,je,ke) + 1

@@ -110,7 +110,7 @@ CONTAINS
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for t_clim data settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_t_clim(namelist_file,             &
-                                         raw_data_t_id,            &
+                                         it_cl_type,               &
                                          raw_data_t_clim_path,     &
                                          raw_data_t_clim_filename, &
                                          t_clim_buffer_file,       &
@@ -120,7 +120,7 @@ SUBROUTINE read_namelists_extpar_t_clim(namelist_file,             &
 
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
-  INTEGER (KIND=i8), INTENT(OUT) :: raw_data_t_id !< integer switch to choose a land use raw data set
+  INTEGER (KIND=i8), INTENT(OUT) :: it_cl_type !< integer switch to choose a land use raw data set
                                         !! 1 CRU fine (new), 2 CRU coarse (old)
   ! temperature climatology
   CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_path        !< path to raw data
@@ -130,7 +130,7 @@ SUBROUTINE read_namelists_extpar_t_clim(namelist_file,             &
   CHARACTER (len=filename_max), INTENT(OUT) :: t_clim_output_file !< name for temperature climatology output file
 
 !> namelist with filename for temperature climatlogy data output
-NAMELIST /t_clim_raw_data/ raw_data_t_clim_path, raw_data_t_clim_filename, raw_data_t_id
+NAMELIST /t_clim_raw_data/ raw_data_t_clim_path, raw_data_t_clim_filename, it_cl_type
 
 !> namelist with filename for temperature climatlogy data output
 NAMELIST /t_clim_io_extpar/ t_clim_buffer_file, t_clim_output_file
@@ -265,7 +265,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
    !> get all aot data and coordinates and grid description
    SUBROUTINE get_cru_grid_and_data(cru_filename,   &
-                                     raw_data_t_id, &
+                                     it_cl_type,    &
                                      nrows,         &
                                      ncolumns,      &
                                      ntime)
@@ -276,7 +276,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
    IMPLICIT NONE
    CHARACTER (LEN=*), INTENT(IN) :: cru_filename  !< filename aot raw data
-   INTEGER (KIND=i8), INTENT(IN) :: raw_data_t_id !< gives the data id (CRU fine (1) and CRU coarse (2))
+   INTEGER (KIND=i8), INTENT(IN) :: it_cl_type    !< gives the data id (CRU fine (1) and CRU coarse (2))
    INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
    INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
    INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
@@ -352,7 +352,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
 
   ENDDO variables
 
-  SELECT CASE(raw_data_t_id)
+  SELECT CASE(it_cl_type)
   CASE(i_t_cru_coarse)
     cru_raw_data = cru_raw_data * scale_factor
   END SELECT

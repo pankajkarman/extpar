@@ -58,6 +58,8 @@ MODULE mo_soil_tg_fields
   REAL(KIND=wp), ALLOCATABLE  :: fr_bd_deep(:,:,:) !< fraction bd due to HWSD
   REAL(KIND=wp), ALLOCATABLE  :: fr_dm_deep(:,:,:) !< dummy of HWSD
 
+  INTEGER :: size_ie, size_je, size_ke
+
   CONTAINS
 
 
@@ -100,35 +102,44 @@ MODULE mo_soil_tg_fields
     IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_dm')
     fr_dm = -1.0
 
+    ! The following arrays are only conditionally used
     IF (ldeep_soil) THEN
-      ALLOCATE (soiltype_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array soiltype_deep')
-      soiltype_deep = 3  ! default value for soiltype is 'sand' (3)
-
-      ALLOCATE (fr_sand_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_sand_deep')
-      fr_sand_deep = -1.0
-
-      ALLOCATE (fr_silt_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_silt_deep')
-      fr_silt_deep = -1.0
-
-      ALLOCATE (fr_clay_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_clay_deep')
-      fr_clay_deep = -1.0
-      
-      ALLOCATE (fr_oc_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_oc_deep')
-      fr_oc_deep = -1.0
-
-      ALLOCATE (fr_bd_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_bd_deep')
-      fr_bd_deep = -1.0
-
-      ALLOCATE (fr_dm_deep(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
-      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_dm_deep')
-      fr_dm_deep = -1.0
+      size_ie = tg%ie
+      size_je = tg%je
+      size_ke = tg%ke
+    ELSE
+      size_ie = 0
+      size_je = 0
+      size_ke = 0
     ENDIF
+
+    ALLOCATE (soiltype_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array soiltype_deep')
+    soiltype_deep = 3  ! default value for soiltype is 'sand' (3)
+
+    ALLOCATE (fr_sand_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_sand_deep')
+    fr_sand_deep = -1.0
+
+    ALLOCATE (fr_silt_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_silt_deep')
+    fr_silt_deep = -1.0
+
+    ALLOCATE (fr_clay_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_clay_deep')
+    fr_clay_deep = -1.0
+    
+    ALLOCATE (fr_oc_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_oc_deep')
+    fr_oc_deep = -1.0
+
+    ALLOCATE (fr_bd_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_bd_deep')
+    fr_bd_deep = -1.0
+
+    ALLOCATE (fr_dm_deep(1:size_ie,1:size_je,1:size_ke), STAT=errorcode)
+    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array fr_dm_deep')
+    fr_dm_deep = -1.0
 
   END SUBROUTINE allocate_soil_target_fields
 

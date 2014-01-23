@@ -8,6 +8,7 @@ mo_agg_flake.o \
 mo_agg_glc2000.o \
 mo_agg_glcc.o \
 mo_agg_globcover.o \
+mo_agg_ecoclimap.o \
 mo_agg_ndvi.o \
 mo_agg_soil.o \
 mo_agg_topo.o \
@@ -24,6 +25,9 @@ mo_cosmo_grid.o \
 mo_cru_data.o \
 mo_cru_output_nc.o \
 mo_cru_target_fields.o \
+mo_ecoclimap_data.o \
+mo_ecoclimap_lookup_tables.o \
+mo_ecoclimap_tg_fields.o \
 mo_exception.o \
 mo_extpar_output_grib.o \
 mo_extpar_output_nc.o \

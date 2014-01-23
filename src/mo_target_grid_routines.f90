@@ -93,10 +93,11 @@ MODULE mo_target_grid_routines
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
   INTEGER :: i,j,k !< counters
 
-  LOGICAL :: lzrad
+  LOGICAL :: lzrad, lonadj
 
   INTEGER(i8) :: i1,i2,ii,i1s,i1e,i2s,i2e
   REAL(wp)    :: d1,d2
+  REAL(wp), ALLOCATABLE :: auxlon(:,:)
 
   ! preparation
   !----------------------------------------------------------------------------------------------
@@ -239,6 +240,28 @@ MODULE mo_target_grid_routines
        CASE(igrid_cosmo) ! COSMO grid  
             
        CALL calculate_cosmo_target_coordinates(tg,cosmo_grid,lon_geo,lat_geo,lon_rot,lat_rot)
+       lonadj = .FALSE.
+       lonadj: DO i2=1,tg%je
+         DO i1=1,tg%ie - 1 
+           IF (lon_geo(i1,i2,1) > lon_geo(i1+1,i2,1)) THEN
+             lonadj=.TRUE.
+             EXIT lonadj
+           ENDIF
+         ENDDO
+       ENDDO lonadj
+       IF (lonadj) THEN
+         ALLOCATE ( auxlon(tg%ie,tg%je) )
+         auxlon(:,:) = lon_geo(:,:,1)
+         WHERE (auxlon < 0.) auxlon = auxlon + 360.
+         tg%minlon = MINVAL(auxlon)
+         tg%maxlon = MAXVAL(auxlon)
+         DEALLOCATE ( auxlon )
+       ELSE
+         tg%minlon = MINVAL(lon_geo)
+         tg%maxlon = MAXVAL(lon_geo)
+       ENDIF
+       tg%minlat = MINVAL(lat_geo)
+       tg%maxlat = MAXVAL(lat_geo)
 
        PRINT *,'Cosmo domain coordinates determined with calculate_cosmo_target_coordinates'
        CASE(igrid_gme) ! GME grid 

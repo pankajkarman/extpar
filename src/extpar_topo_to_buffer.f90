@@ -120,7 +120,7 @@ PROGRAM extpar_topo_to_buffer
 ! mes > -------------------------------------------------------------
   USE mo_topo_data,      ONLY:  topo_aster,        &
     &                           topo_gl,           &
-    &                           topography,        &    
+    &                           itopo_type,        &    
     &                           topo_tiles_grid,   &
     &                           topo_grid,         &
     &                           ntiles,            &
@@ -232,7 +232,6 @@ PROGRAM extpar_topo_to_buffer
   REAL :: timediff
 
  !mes > -------------------------
- INTEGER (KIND=i4) :: itopo_type           !< use 1 for GLOBE data and 2 for ASTER data
  INTEGER (KIND=i4) :: ntiles_column        !< number of tile columns in total domain
  INTEGER (KIND=i4) :: ntiles_row           !< number of tile rows in total domain
  LOGICAL           :: lsso_param
@@ -307,7 +306,7 @@ PROGRAM extpar_topo_to_buffer
   ENDIF
 !> *mes>
                  
-  CALL num_tiles(itopo_type,ntiles_column, ntiles_row,ntiles,topography)        
+  CALL num_tiles(itopo_type,ntiles_column, ntiles_row,ntiles,itopo_type)        
  ! gives back the number of tiles that are available 16 for GLOBE or 36 for ASTER
   
 !mes <
@@ -331,7 +330,7 @@ PROGRAM extpar_topo_to_buffer
 ! mes <
 
 !mes >
-  PRINT*,' topography :', itopo_type
+  PRINT*,' itopo_type :', itopo_type
 
   SELECT CASE (itopo_type)
   CASE (topo_aster)

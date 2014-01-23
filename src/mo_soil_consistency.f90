@@ -431,7 +431,7 @@ CONTAINS
 
     SUBROUTINE read_namelists_extpar_HWSD_index(namelist_file,        &
                                                 path_HWSD_index_files,&
-                                                lookup_table_HWSD,   &
+                                                lookup_table_HWSD,    &
                                                 HWSD_data,            &
                                                 HWSD_data_deep,       &
                                                 HWSD_data_extpar)

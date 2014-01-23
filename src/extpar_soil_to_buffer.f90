@@ -114,7 +114,7 @@ USE mo_soil_data, ONLY: allocate_raw_soil_fields, &
         lon_soil,           &
         lat_soil
 
-USE mo_soil_data, ONLY: FAO_data, HWSD_data, soil_data
+USE mo_soil_data, ONLY: FAO_data, HWSD_data, HWSD_map, soil_data
 
 USE   mo_soil_tg_fields, ONLY:  fr_land_soil
 USE   mo_soil_tg_fields, ONLY:  soiltype_fao, soiltype_deep
@@ -167,7 +167,9 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
 
       INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
-      INTEGER (KIND=i4) :: isoil_data  !< soil data, 1 for FAO raw data, 2 for HWSD raw data
+      INTEGER (KIND=i4) :: isoil_data  !< soil data, 1 for FAO raw data, 
+                                       !             2 for HWSD raw data,
+                                       !             3 for HWSD terra mapping
 
       INTEGER (KIND=i4) :: undef_soiltype
       INTEGER (KIND=i4) :: default_soiltype
@@ -285,7 +287,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
       SELECT CASE(isoil_data)
       CASE(FAO_data)
         print *,'FAO DSMW read from file ', TRIM(path_soil_file)
-      CASE(HWSD_data)
+      CASE(HWSD_data, HWSD_map)
         print *,'HWSD read from file ', TRIM(path_soil_file)
       END SELECT
 

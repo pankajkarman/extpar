@@ -127,6 +127,8 @@ PROGRAM extpar_landuse_to_buffer
  &                        allocate_raw_glcc_fields,&
  &                        deallocate_glcc_fields
 
+  USE mo_ecoclimap_data, ONLY: deallocate_ecoclimap_fields
+
   USE mo_glc2000_lookup_tables, ONLY: glc2000_legend
   USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
   USE mo_glc2000_lookup_tables, ONLY: i_gme_lookup_table,   &
@@ -185,11 +187,29 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
       &                         emissivity_glcc,    &
       &                         allocate_glcc_target_fields
 
+  USE mo_ecoclimap_tg_fields, ONLY: fr_land_ecoclimap , &
+      &        ecoclimap_class_fraction,    &
+      &        ecoclimap_class_npixel, &
+      &        ecoclimap_tot_npixel, &
+      &        ice_ecoclimap, &
+      &        z012_ecoclimap, &
+      &        z012tot_ecoclimap, & 
+      &        root_ecoclimap, &
+      &        plcov12_ecoclimap, &
+      &        lai12_ecoclimap, &
+      &        rs_min_ecoclimap, &
+      &        urban_ecoclimap,  &
+      &        for_d_ecoclimap,  &
+      &        for_e_ecoclimap, &
+      &        emissivity_ecoclimap, &
+      &        allocate_ecoclimap_target_fields
+
   USE mo_agg_glc2000, ONLY : agg_glc2000_data_to_target_grid
 
   USE mo_agg_glcc, ONLY : agg_glcc_data_to_target_grid
 
-  USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
+  USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc 
+  USE mo_lu_tg_fields, ONLY :  i_lu_ecoclimap
   USE mo_lu_tg_fields, ONLY: allocate_lu_target_fields, allocate_add_lu_fields
   USE mo_lu_tg_fields, ONLY: fr_land_lu,       &
   &                          ice_lu,           &
@@ -208,7 +228,10 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   &                          fr_ocean_lu,      &
   &                          lu_class_fraction,&
   &                          lu_class_npixel,  &
-  &                          lu_tot_npixel
+  &                          lu_tot_npixel,    &
+  &                          lai12_lu,         &
+  &                          plcov12_lu,       & 
+  &                          z012_lu
 
 
 
@@ -219,6 +242,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_glcc,     &   
     &                             write_netcdf_cosmo_grid_glcc, &
     &                             write_netcdf_icon_grid_glcc
+  USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_ecoclimap
   USE mo_landuse_output_nc, ONLY: write_netcdf_buffer_lu
            
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover
@@ -226,6 +250,10 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   USE mo_landuse_routines, ONLY: get_dimension_globcover_data, &
     &                            get_lonlat_globcover_data
+  USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap
+  USE mo_ecoclimap_lookup_tables, ONLY: init_ecoclimap_lookup_tables
+  USE mo_landuse_routines, ONLY: get_dimension_ecoclimap_data,       &
+    &                             get_lonlat_ecoclimap_data
 
   USE mo_globcover_data, ONLY: globcover_grid,                &
     &                          lon_globcover,                 &
@@ -243,7 +271,14 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                          fill_globcover_data,           &
     &                          deallocate_landuse_data
 
+ USE mo_ecoclimap_data, ONLY: ecoclimap_grid, &
+    &                         lon_ecoclimap,  &
+    &                         lat_ecoclimap,  &
+    &                         ntime_ecoclimap, &                     
+    &                         allocate_raw_ecoclimap_fields
+
  USE mo_agg_globcover, ONLY : agg_globcover_data_to_target_grid
+ USE mo_agg_ecoclimap, ONLY : agg_ecoclimap_data_to_target_grid
 
   IMPLICIT NONE
   
@@ -272,6 +307,8 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   CHARACTER (len=filename_max) :: glcc_buffer_file !< name for glcc buffer file
   CHARACTER (len=filename_max) :: glcc_output_file !< name for glcc output file
 
+  CHARACTER(len=filename_max) :: lu_dataset !< name of landuse data set
+
   INTEGER :: i,j,k !< counter
   INTEGER :: errorcode
 
@@ -288,6 +325,9 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
   INTEGER (KIND=i8) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
   INTEGER (KIND=i8) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
+
+  INTEGER (KIND=i8) :: nlon_ecoclimap !< number of grid elements in zonal direction for ecoclimap data
+  INTEGER (KIND=i8) :: nlat_ecoclimap !< number of grid elements in meridional direction for ecoclimap data
 
   INTEGER (KIND=i8) :: nlon_glc2000 !< number of grid elements in zonal direction for glc2000 data
   INTEGER (KIND=i8) :: nlat_glc2000 !< number of grid elements in meridional direction for glc2000 data
@@ -375,9 +415,11 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   glcc_file(1) = TRIM(raw_data_glcc_path) // TRIM(raw_data_glcc_filename)
   PRINT *,'glcc file: ', TRIM(glcc_file(1))
 
+
   SELECT CASE (i_landuse_data)
     CASE (i_lu_globcover)
       nclass_lu = nclass_globcover
+      lu_dataset = 'GLOBCOVER2009'
 
       CALL get_dimension_globcover_data(nlon_globcover, &
         &                                  nlat_globcover)
@@ -403,8 +445,26 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
       print*,'globcover_tiles_grid(1): ', globcover_tiles_grid(1)
 ! <mes
 
+    CASE (i_lu_ecoclimap)
+      nclass_lu = nclass_ecoclimap
+      lu_dataset = 'ECOCLIMAP'
+
+      CALL get_dimension_ecoclimap_data(nlon_ecoclimap, &
+        &                                  nlat_ecoclimap)
+      CALL allocate_raw_ecoclimap_fields(nlat_ecoclimap,nlon_ecoclimap)
+
+      CALL allocate_add_lu_fields(tg,nclass_ecoclimap)
+
+      CALL get_lonlat_ecoclimap_data( &
+        &                              nlon_ecoclimap, &
+        &                              nlat_ecoclimap, &
+        &                              lon_ecoclimap,  &
+        &                              lat_ecoclimap,  &
+        &                              ecoclimap_grid)
+
     CASE (i_lu_glc2000)
       nclass_lu = nclass_glc2000
+      lu_dataset = 'GLC2000'
 
       CALL get_dimension_glc2000_data(lu_file, &
         &                                  nlon_glc2000, &
@@ -425,6 +485,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
       ENDIF 
     CASE (i_lu_glcc)
       nclass_lu = nclass_glcc
+      lu_dataset = 'GLCC'
   END SELECT
 
   IF (l_use_glcc.OR.(i_landuse_data==i_lu_glcc)) THEN
@@ -447,7 +508,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   undefined = 0.0_wp
   PRINT *,'aggregate land use data to target grid'
  SELECT CASE (i_landuse_data)
-    CASE(i_lu_globcover)
+   CASE(i_lu_globcover)
 
     CALL agg_globcover_data_to_target_grid(lu_file,                &  
     &                                        ilookup_table_lu,     &
@@ -473,7 +534,27 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                        emissivity_lu    )
 
 
-    CASE(i_lu_glc2000)
+   CASE(i_lu_ecoclimap)
+
+    CALL agg_ecoclimap_data_to_target_grid(lu_file,ilookup_table_lu,undefined,       &
+    &                                        tg,                                         &
+    &                                        nclass_ecoclimap,                             &
+    &                                        lu_class_fraction, &
+    &                                        lu_class_npixel, &
+    &                                        lu_tot_npixel,   &
+    &                                        fr_land_lu ,     &
+    &                                        ice_lu,          &
+    &                                        z012_lu, &
+    &                                        root_lu, &
+    &                                        plcov12_lu, &
+    &                                        lai12_lu,   &
+    &                                        rs_min_lu, &
+    &                                        urban_lu,  &
+    &                                        for_d_lu,  &
+    &                                        for_e_lu, &
+    &                                        emissivity_lu    )
+
+   CASE(i_lu_glc2000)
 
     CALL agg_glc2000_data_to_target_grid(lu_file,ilookup_table_lu,undefined,       &
     &                                        tg,                                         &
@@ -552,7 +633,11 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
    print *, 'Land-use buffer filename: ',TRIM(netcdf_filename)
 
    
+ SELECT CASE (i_landuse_data)
+   CASE(i_lu_glc2000, i_lu_globcover)
+ 
    CALL write_netcdf_buffer_lu(TRIM(netcdf_filename),  &
+    &                          TRIM(lu_dataset), &
     &                                     tg,         &
     &                                     i_landuse_data, &
     &                                     ilookup_table_lu, &
@@ -605,12 +690,46 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                     emissivity_glcc)
    ENDIF
 
- SELECT CASE (i_landuse_data)
-    CASE(i_lu_globcover)
-      CALL deallocate_landuse_data()
+    CASE(i_lu_ecoclimap)
 
-    CASE(i_lu_glc2000)
-      CALL  deallocate_glc2000_fields()
+       netcdf_filename = TRIM(lu_buffer_file)
+
+       CALL write_netcdf_buffer_ecoclimap(TRIM(netcdf_filename),  &
+    &                                     tg,         &
+    &                                     i_landuse_data, &
+    &                                     ilookup_table_lu, &
+    &                                     nclass_lu, &
+    &                                     undefined, &
+    &                                     undef_int,   &
+    &                                     lon_geo,     &
+    &                                     lat_geo, &
+    &                                     fr_land_lu, &
+    &                                     lu_class_fraction,    &
+    &                                     lu_class_npixel, &
+    &                                     lu_tot_npixel, &
+    &                                     ice_lu, &
+    &                                     z012_lu, &
+    &                                     root_lu, &
+    &                                     plcov12_lu, &
+    &                                     lai12_lu, &
+    &                                     rs_min_lu, &
+    &                                     urban_lu,  &
+    &                                     for_d_lu,  &
+    &                                     for_e_lu, &
+    &                                     emissivity_lu)
+ 
+  END SELECT 
+
+
+   SELECT CASE (i_landuse_data)
+   CASE(i_lu_globcover)
+     CALL deallocate_landuse_data()
+
+   CASE(i_lu_ecoclimap)
+     CALL deallocate_ecoclimap_fields()
+
+   CASE(i_lu_glc2000)
+     CALL  deallocate_glc2000_fields()
 
    CASE(i_lu_glcc)
      CALL deallocate_glcc_fields()

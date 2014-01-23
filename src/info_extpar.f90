@@ -53,12 +53,12 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 ! of the binary.
 !
 ! Following declarations have to be defined just after checkout from the version control system:
-CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'V1_13'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2013-05-29 13:03:26'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '31'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '2013-05-31 08:01:30'
-CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = ''
+CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_2.0-rc'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'https://cosmo.cscs.ch/tools/extpar/trunk'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2013-08-23 13:54:24 +0200 (Fri, 23 Aug 2013)'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '4574:4576M'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '(missing)'
+CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = '(missing)'
 ! Following declarations have to be defined just before compiling:
 CHARACTER (LEN=*), PARAMETER :: INFO_CodeIsModified  = &
  '.true.'
@@ -90,7 +90,7 @@ CHARACTER (LEN=16) :: INFO_StartTime = ''
 !
 ! Currently there is no way to fill in the information with std-routines.
 ! Therefore they have to be filled by the user on calling info_define() or info_readnl().
-CHARACTER (LEN=80) :: INFO_BinaryName  = ''
+CHARACTER (LEN=80) :: INFO_BinaryName  = 'extpar'
 CHARACTER (LEN=80) :: INFO_RunMachine  = ''
 CHARACTER (LEN=80) :: INFO_Nodes       = ''
 CHARACTER (LEN=80) :: INFO_Domain      = ''

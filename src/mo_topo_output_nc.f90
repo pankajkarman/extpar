@@ -41,7 +41,7 @@ MODULE mo_topo_output_nc
   USE mo_cosmo_grid,      ONLY: cosmo_grid, nborder
   USE mo_icon_grid_data,  ONLY: ICON_grid
 
-  USE mo_topo_data,       ONLY: nhori, topography
+  USE mo_topo_data,       ONLY: nhori, itopo_type
 
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
@@ -211,7 +211,7 @@ MODULE mo_topo_output_nc
    PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lrad) THEN
-    CALL def_topo_meta(dim_3d_tg,topography,diminfohor=dim_4d_tg)
+    CALL def_topo_meta(dim_3d_tg,itopo_type,diminfohor=dim_4d_tg)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -219,7 +219,7 @@ MODULE mo_topo_output_nc
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_3d_tg,topography)
+    CALL def_topo_meta(dim_3d_tg,itopo_type)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -473,7 +473,7 @@ MODULE mo_topo_output_nc
 
   ! define meta information for various GLOBE data related variables for netcdf output
   IF(lrad) THEN
-    CALL def_topo_meta(dim_2d_cosmo,topography,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
+    CALL def_topo_meta(dim_2d_cosmo,itopo_type,coordinates=coordinates,grid_mapping=grid_mapping,diminfohor=dim_3d_cosmo)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -481,7 +481,7 @@ MODULE mo_topo_output_nc
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_2d_cosmo,topography,coordinates=coordinates,grid_mapping=grid_mapping)
+    CALL def_topo_meta(dim_2d_cosmo,itopo_type,coordinates=coordinates,grid_mapping=grid_mapping)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -717,7 +717,7 @@ PRINT *,'def_dimension_info_buffer'
 
 
   ! define meta information for various GLOBE data related variables for netcdf output
-  CALL def_topo_meta(dim_icon,topography)
+  CALL def_topo_meta(dim_icon,itopo_type)
 
   !  hh_topo_meta, fr_land_topo_meta, &
   !         stdh_topo_meta, theta_topo_meta, &
@@ -801,7 +801,7 @@ PRINT *,'def_dimension_info_buffer'
   !> set global attributes for netcdf with GLOBE data
   SUBROUTINE set_global_att_topo(global_attributes)
 
-    USE mo_topo_data, ONLY: topography,&
+    USE mo_topo_data, ONLY: itopo_type,&
                             topo_gl,   &
                             topo_aster
 
@@ -822,7 +822,7 @@ PRINT *,'def_dimension_info_buffer'
     ! define global attributes
     
     global_attributes(1)%attname = 'title'
-    SELECT CASE(topography)
+    SELECT CASE(itopo_type)
       CASE(topo_aster)
         global_attributes(1)%attributetext='ASTER data '
       CASE(topo_gl)
@@ -832,7 +832,7 @@ PRINT *,'def_dimension_info_buffer'
     global_attributes(2)%attributetext='Deutscher Wetterdienst'
 
     global_attributes(3)%attname = 'source'
-    SELECT CASE(topography)
+    SELECT CASE(itopo_type)
       CASE(topo_aster)
         global_attributes(3)%attributetext='ASTER,The Advanced Spaceborne Thermal Emission and Reflection Radiometer, 1 arc-second digital elevation model'
       CASE(topo_gl)
@@ -851,7 +851,7 @@ PRINT *,'def_dimension_info_buffer'
     global_attributes(4)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' topo_to_buffer'
 
     global_attributes(5)%attname = 'references'
-    SELECT CASE(topography)
+    SELECT CASE(itopo_type)
       CASE(topo_aster)
         global_attributes(5)%attributetext='http://www.jspacesystems.or.jp/ersdac/GDEM/E/4.html'
       CASE(topo_gl)
@@ -966,7 +966,7 @@ PRINT *,'def_dimension_info_buffer'
    PRINT *,'def_topo_meta'
   ! define meta information for various GLOBE data related variables for netcdf output
   IF (lzrad) THEN
-    CALL def_topo_meta(dim_3d_tg,topography,diminfohor=dim_4d_tg)
+    CALL def_topo_meta(dim_3d_tg,itopo_type,diminfohor=dim_4d_tg)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &
@@ -974,7 +974,7 @@ PRINT *,'def_dimension_info_buffer'
     !         slope_asp_topo_meta, slope_ang_topo_meta, 
     !         horizon_topo_meta, skyview_topo_meta
   ELSE
-    CALL def_topo_meta(dim_3d_tg,topography)
+    CALL def_topo_meta(dim_3d_tg,itopo_type)
     !  hh_topo_meta, fr_land_topo_meta, &
     !         stdh_topo_meta, theta_topo_meta, &
     !         aniso_topo_meta, slope_topo_meta, &

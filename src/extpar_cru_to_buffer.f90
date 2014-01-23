@@ -138,7 +138,7 @@ PROGRAM extpar_cru_to_buffer
   CHARACTER(len=filename_max) :: input_glc2000_namelist_file 
   CHARACTER(len=filename_max) :: glc2000_file
 
-  INTEGER (KIND=i8):: raw_data_t_id !< integer switch to choose a land use raw data set
+  INTEGER (KIND=i8):: it_cl_type !< integer switch to choose a land use raw data set
                                         !! 1 CRU (fine), 2 CRU (coarse)
 
   CHARACTER (len=filename_max) :: raw_data_t_clim_path        !< path to raw data
@@ -242,7 +242,7 @@ PROGRAM extpar_cru_to_buffer
 
   namelist_file = 'INPUT_TCLIM'
   CALL  read_namelists_extpar_t_clim(namelist_file, &
-                                         raw_data_t_id, &
+                                         it_cl_type, &
                                          raw_data_t_clim_path, &
                                          raw_data_t_clim_filename, &
                                          t_clim_buffer_file, &
@@ -268,7 +268,7 @@ PROGRAM extpar_cru_to_buffer
 
     ! read in aot raw data
     CALL get_cru_grid_and_data(filename,     &
-         &                     raw_data_t_id,&
+         &                     it_cl_type,   &
          &                     nrows,        &
          &                     ncolumns,     &
          &                     ntime)
@@ -290,7 +290,7 @@ PROGRAM extpar_cru_to_buffer
     cruelev  = undefined
 
     PRINT *,'agg_cru_data_to_target_grid'
-    CALL  agg_cru_data_to_target_grid(nrows,ncolumns,ntime,raw_data_t_id)
+    CALL  agg_cru_data_to_target_grid(nrows,ncolumns,ntime,it_cl_type)
 
     PRINT *,'aggregation done'
 
@@ -306,7 +306,7 @@ PROGRAM extpar_cru_to_buffer
         netcdf_filename = TRIM(t_clim_output_file)
         PRINT *,'write out ', TRIM(netcdf_filename)
 
-        SELECT CASE (raw_data_t_id)
+        SELECT CASE (it_cl_type)
         CASE(i_t_cru_coarse)
          
         CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
@@ -337,7 +337,7 @@ PROGRAM extpar_cru_to_buffer
          netcdf_filename = TRIM(t_clim_output_file)
          PRINT *,'write out ', TRIM(netcdf_filename)
 
-        SELECT CASE (raw_data_t_id)
+        SELECT CASE (it_cl_type)
         CASE(i_t_cru_coarse)
         CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
     &                                     cosmo_grid,       &
@@ -371,7 +371,7 @@ PROGRAM extpar_cru_to_buffer
     netcdf_filename = TRIM(t_clim_buffer_file)
     PRINT *,'write out ', TRIM(netcdf_filename)
 
-    SELECT CASE (raw_data_t_id)
+    SELECT CASE (it_cl_type)
     CASE(i_t_cru_coarse)
     CALL write_netcdf_buffer_cru(netcdf_filename,  &
    &                                     tg,         &

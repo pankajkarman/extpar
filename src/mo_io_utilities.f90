@@ -19,6 +19,8 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON 
+! V2_0         2013/08/08 Daniel Luethi
+!   added possibility to add name of data set to var_meta_info
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -103,7 +105,7 @@ MODULE mo_io_utilities
     CHARACTER (len=keylen_max):: grid_mapping !< netcdf attribute grid mapping
     CHARACTER (len=keylen_max):: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=keylen_max):: shortName    !< GRIB API shortName key 
-
+    CHARACTER (len=keylen_max):: data_set     !< name of source data set
   END TYPE var_meta_info
 
   INTEGER, PARAMETER :: vartype_int = 1
@@ -264,6 +266,13 @@ MODULE mo_io_utilities
                         &             TRIM('missing_value'), &
                         &             missing_value))
 
+     IF (TRIM(varinfo%data_set) /= "-") THEN
+        CALL check_netcdf( nf90_put_att(ncid, &
+                         &             varid, &
+                         &             TRIM('data_set'), &
+                         &             TRIM(varinfo%data_set)))
+     ENDIF
+
   END SUBROUTINE netcdf_put_att_int
 
   !> specific subroutine to put some standard attributes to an real type netcdf variable
@@ -327,6 +336,13 @@ MODULE mo_io_utilities
                         &             varid, &
                         &             TRIM('missing_value'), &
                         &             missing_value))
+
+     IF (TRIM(varinfo%data_set) /= "-") THEN
+        CALL check_netcdf( nf90_put_att(ncid, &
+                         &             varid, &
+                         &             TRIM('data_set'), &
+                         &             TRIM(varinfo%data_set)))
+     ENDIF
 
 
   END SUBROUTINE netcdf_put_att_real
@@ -702,7 +718,10 @@ MODULE mo_io_utilities
 
     ! put variable to netcdf file
 
-    CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
+   CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
+    DO n=1,size(var_real_4d,4)
+      CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d(:,:,:,n),start=(/1,1,1,n/)))
+    ENDDO
 
   END SUBROUTINE netcdf_put_real_4d
   !----------------------------------------------------------------------------------------
@@ -2201,7 +2220,8 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
   !> open netcdf-file and get netcdf unit file number ncid
   SUBROUTINE open_new_netcdf_file(netcdf_filename, dim_list, global_attributes, time, ncid)
     USE netcdf, ONLY: nf90_create 
-    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT, NF90_64BIT_OFFSET
+    USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT
+    USE netcdf, ONLY: NF90_64BIT_OFFSET
     USE netcdf, ONLY: nf90_def_dim
     USE netcdf, ONLY: nf90_def_var
     USE netcdf, ONLY: nf90_put_att
@@ -2218,7 +2238,7 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
     INTEGER :: ndims !< number of dimension
     INTEGER :: ng_att!< number of global attributes
     INTEGER, ALLOCATABLE :: dimids(:) !< list of netcdf dim ids
-    INTEGER :: call_mode 
+    INTEGER :: call_mode
     INTEGER :: dimsize
     INTEGER :: errorcode
     INTEGER :: n !< counter
