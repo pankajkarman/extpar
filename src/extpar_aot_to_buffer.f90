@@ -271,6 +271,22 @@ PROGRAM extpar_aot_to_buffer
     PRINT *,'call agg_aot_data_to_target_grid'
     CALL  agg_aot_data_to_target_grid(nrows,ncolumns,ntime,ntype)
 
+    !write out data to buffer
+
+    netcdf_filename = TRIM(aot_buffer_file)
+    PRINT *,'write output to ', TRIM(netcdf_filename)
+
+       CALL write_netcdf_buffer_aot(netcdf_filename,      &
+   &                                     tg,              &
+   &                                     undefined,       &
+   &                                     undef_int,       &
+   &                                     lon_geo,         &
+   &                                     lat_geo,         &
+   &                                     ntype,           &
+   &                                     ntime,           &
+   &                                     aot_tg,          &
+   &                                     iaot_type)
+
     !write out data
     netcdf_filename =  TRIM(aot_output_file)
     PRINT *,'tg%igrid_type: ', tg%igrid_type
@@ -313,31 +329,12 @@ PROGRAM extpar_aot_to_buffer
 
         CASE(igrid_gme) ! GME grid   
 
-       END SELECT
+    END SELECT
 
-        !write out data
-
-       print *,'write output to ',  TRIM(aot_buffer_file)
-
-       netcdf_filename = TRIM(aot_buffer_file)
-        print *,'write output to ', TRIM(netcdf_filename)
-
-       CALL write_netcdf_buffer_aot(netcdf_filename,      &
-   &                                     tg,              &
-   &                                     undefined,       &
-   &                                     undef_int,       &
-   &                                     lon_geo,         &
-   &                                     lat_geo,         &
-   &                                     ntype,           &
-   &                                     ntime,           &
-   &                                     aot_tg,          &
-   &                                     iaot_type)
-
-       CALL deallocate_aot_data()
+    CALL deallocate_aot_data()
 
 
-  PRINT *,'============= aot_to_buffer done ==============='
-
+    PRINT *,'============= extpar_aot_to_buffer done ==============='
   
 
 END PROGRAM extpar_aot_to_buffer

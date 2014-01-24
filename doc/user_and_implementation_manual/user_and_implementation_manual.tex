@@ -51,7 +51,7 @@ v2\_0 \\
 User and Implementation Guide} 
  
 \author{
-        Hermann Asensio / Martina Messmer
+        Hermann Asensio / Martina Messmer \\ (updated by Daniel L\"uthi)
         }  
 
 \date{\today}  
@@ -89,14 +89,18 @@ ASTER orography \newline (limited domain: 60\textdegree{N} - 60\textdegree{S})&M
 Globcover 2009 &ESA &10'' \tabularnewline\hline
 GLC2000 land use &JRC Ispra &30'' \tabularnewline\hline
 GLCC land use &USGS &30'' \tabularnewline\hline
+Ecoclimap 2 land use &Meteo France &30'' \tabularnewline\hline
 DSMW Digital Soil Map of the World  &FAO  &5' \tabularnewline\hline
 HWSD Harmonized World Soil Database & FAO/IIASA/ISRIC/ISSCAS/JRC& 30'' \tabularnewline\hline
 NDVI Climatotology, SEAWiFS &NASA/GSFC  &2.5' \tabularnewline\hline
 CRU near surface climatology &CRU University of East Anglia &0.5 degree \tabularnewline\hline
 Aerosol Optical thickness  &NASA/GISS &4x5 degree \tabularnewline
 & (Global Aerosol Climatology Project) & \tabularnewline\hline
+AeroCom Global AOD data &AeroCom Project &1 degree  \tabularnewline\hline
+MACC-II climatological AOD (2003-2012) &ECMWF &1.125 degree \tabularnewline\hline
 Global lake database (GLDB)  &DWD/RSHU/MeteoFrance  &30''\tabularnewline\hline
 MODIS albedo & NASA & 5' \tabularnewline\hline
+MODIS derived soil albedo values &Community Land Model 3.5 &30'  \tabularnewline\hline
 \bottomrule
 \caption{Input raw datasets}
 \label{input_raw_data}
@@ -154,27 +158,33 @@ deep soil fraction of organic carbon & SUB\_\-FR\_\-OC & \% & HWSD
 \tabularnewline \hline
 deep soil bulk density & SUB\_\-BULK\_\-DENS & $g cm^{-3}$  & HWSD
 \tabularnewline \hline
-fraction land cover  &FR\_\-LAND  & 1 &GLC2000/Globcover 
+fraction land cover  &FR\_\-LAND  & 1 &GLC2000/Globcover/ Ecoclimap 
 \tabularnewline \hline
-ground fraction covered by plants max (vegetation period) & PLCOV\_\-MX & 1 & GLC2000/Globcover
+ground fraction covered by plants max (vegetation period) & PLCOV\_\-MX & 1 & GLC2000/Globcover/ Ecoclimap
 \tabularnewline \hline
-ground fraction covered by plants min (vegetation period) & PLCOV\_\-MN & 1 & GLC2000/Globcover
+ground fraction covered by plants min (vegetation period) & PLCOV\_\-MN & 1 & GLC2000/Globcover/ EcoClimap
 \tabularnewline \hline
-ground fraction covered by artificial (urban) areas  &URBAN  &1  &GLC2000/Globcover  
+ground fraction covered by artificial (urban) areas  &URBAN  &1  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-ground fraction covered by evergreen forest  &FOR\_\-E  &1  &GLC2000/Globcover 
+ground fraction covered by evergreen forest  &FOR\_\-E  &1  &GLC2000/Globcover/ Ecoclimap 
 \tabularnewline \hline
-ground fraction covered by deciduous forest  &FOR\_\-D  &1  &GLC2000/Globcover  
+ground fraction covered by deciduous forest  &FOR\_\-D  &1  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-root depth  &ROOTDP  &$m$  &GLC2000/Globcover  
+root depth  &ROOTDP  &$m$  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-leaf area index max(vegetation period)  &LAI\_\-MX  &1  &GLC2000/Globcover  
+leaf area index max(vegetation period)  &LAI\_\-MX  &1  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-leaf area index min (vegetation period)  &LAI\_\-MN  &1  &GLC2000/Globcover  
+leaf area index min (vegetation period)  &LAI\_\-MN  &1  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-plant resistance  &PRS\_\-MIN  &$s m^{-1}$  &GLC2000/Globcover  
+plant resistance  &PRS\_\-MIN  &$s m^{-1}$  &GLC2000/Globcover/ Ecoclimap  
 \tabularnewline \hline
-long wave surface emissivity  &EMISS\_\-RAD  &1  &GLC2000/Globcover  
+long wave surface emissivity  &EMISS\_\-RAD  &1  &GLC2000/Globcover/ Ecoclimap  
+\tabularnewline \hline
+climatology of monthly leaf area index  &LAI12  &1  &Ecoclimap
+\tabularnewline \hline
+climatology of monthly fractional plant cover  &PLCOV12  &1  &Ecoclimap
+\tabularnewline \hline
+climatology of monthly roughness length (vegetation and orography)  &Z012  &m  &Ecoclimap
 \tabularnewline \hline
 (monthly) normalized differential vegetation index  &NDVI  &1  &SEAWIFS 
 \tabularnewline \hline
@@ -193,24 +203,28 @@ differential vegetation index  &NDVI\_\-RATIO  &1  &SEAWIFS
 \tabularnewline \hline
 (monthly) optical thickness from sea salt aerosol  &AER\_\-SS  &1  &GACP   
 \tabularnewline \hline
-Near surface temperature (climatological mean)  &T\_\-2M\_\-CL  &$ K $  &CRU  
+Near surface temperature (climatological mean)  &T\_\-CL  &$ K $  &CRU  
 \tabularnewline \hline
 Lake Depth  &DEPTH\_\-LK  &$ m $  & GLDB 
 \tabularnewline \hline
 Lake Fraction  &FR\_\-LAKE  &1  & GLDB 
 \tabularnewline \hline
-Albedo & ALB &\% & MODIS
+(monthly) albedo & ALB &\% & MODIS
 \tabularnewline \hline
-Near Infrared Albedo & ALNID &\% & MODIS
+(monthly) Near Infrared Albedo & ALNID &\% & MODIS
 \tabularnewline \hline
-Ultra Violett Albedo & ALUVD &\% & MODIS
+(monthly) Ultra Violett Albedo & ALUVD &\% & MODIS
+\tabularnewline\hline
+soil albedo for dry soils &ALB\_\-DRY &\% & Community Land Model 3.5
+\tabularnewline\hline
+soil albedo for saturated soils &ALB\_\-SAT &\% & Community Land Model 3.5
 \tabularnewline\hline
 \bottomrule
 \caption{Output external parameters}
 \label{extpar_output}
 \end{longtable}
 
-\clearpage
+%\clearpage
 
 \section{Software modules}\label{software_modules}
 The software EXTPAR is composed of nine autonomous programs. Eight programs are responsible for aggregating a raw data to the target grid, which is specified by the user. The ninth program, the consistency check, is performed in the end. The executables are called extpar\_$\ast$\_to\_buffer, whereas the star stands for aot (aerosol optical thickness), cru (temperature climatology of the Climate Research Unit (CRU)), landuse, topo, ndvi (normalized difference vegetation index), soil, flake (fraction lake) and albedo, respectively. In Fig. \ref{fig:EXTPAR_Figure} a schematic representation of EXTPAR is drawn. For the sake of clarity only the topography and land-use path is shown. The same can be applied for the other six raw data sets. For all these programs there exist namelists. Most of the namelist only contain the name and path of the raw data file and the name of the buffer file, which is later used for the consistency check, and the name of the output of the final external variables. This is true for the following namelists:
@@ -269,7 +283,7 @@ reads in the buffer-files, performes an automated consistency check and finally 
 \subsubsection{Short description of the subprogram \textit{extpar\_topo\_to\_buffer}}
 The program \textit{extpar\_topo\_to\_buffer} aggregates the orography of the GLOBE or the ASTER dataset to the target grid.
 \paragraph{Target grid definition}\ \par\medskip\noindent
-The first part of this program contains several routines that read the namelists defined in the run script (see chapter \ref{namelist_input_for_extpar} for more information on the run scripts). The first routine (init\_target\_grid) collects all the information needed to define the target grid with an integrated routine that gathers the variables given in the namelist 'INPUT\_grid\_oro'. The variable igrid\_type, which can either attain 1 ('ICON'), 2 ('COSMO') or 3 ('GME') is an integer switch to define the target grid. \par\medskip\noindent
+The first part of this program contains several routines that read the namelists defined in the run script (see chapter \ref{namelist_input_for_extpar} for more information on the run scripts). The first routine (init\_target\_grid) collects all the information needed to define the target grid with an integrated routine that gathers the variables given in the namelist 'INPUT\_grid\_org'. The variable igrid\_type, which can either attain 1 ('ICON'), 2 ('COSMO') or 3 ('GME') is an integer switch to define the target grid. \par\medskip\noindent
 Then a routine reads the namelist of the corresponding grid, which is either 'INPUT\_ICON\_GRID', 'INPUT\_COSMO\_GRID' or 'INPUT\_GME\_GRID' depending on the chosen grid type. In the run script there is only one of the three namelists contained and this must be manually changed by the user. These namelists contain among other variables the resolution of the grid, the user specified domain and the location of the center of the grid (for closer information about the namelists compare chapters \ref{namelist_input_for_extpar_grid_def_icon} - \ref{namelist_input_for_extpar_grid_def_gme}). This allows an exact definition of the target grid. \par\medskip\noindent
 \paragraph{Raw topography data}\ \par\medskip\noindent
 In a second step, the namelist 'INPUT\_RADTOPO' is read. It contains the information if the user desires the calculation ot the topographical corrected radiation parameters or not. Additionally the number of horizons is specified in the namelist. For the COSMO-7 and COSMO-2 setup 24 horizons are recommended. \textbf{Also the topographical corrected radiation can only be calculated, if the target grid is a COSMO grid}. If the switch is set to .TRUE. a border is added to the COSMO domain, as the computations need grid points beyond the edges of the normal domain. \par\medskip\noindent
@@ -317,7 +331,7 @@ This is followed by a call of the subroutine \textit{find\_rotated\_lonlat\_grid
  \pgfputat{\pgfxy(0.15,13)}{\pgfbox[left,top]{\textbf{a)}}}
  \pgfputat{\pgfxy(0.15,7.25)}{\pgfbox[left,top]{\textbf{b)}}}
  \end{pgfpicture}
-\caption{\label{fig:aggregation_figure} a) Illustration of the aggregation of the raw data to the target grid. The red circle indicates a target grid point, while the red green rectangle represents the part of the raw data that is aggregated on the target grid point. b) Showing the target grid on top of the raw data set, where only the green grid points of the raw data are used for the target grid.}	
+\caption{\label{fig:aggregation_figure} a) Illustration of the aggregation of the raw data to the target grid. The red circle indicates a target grid point, while the green rectangle represents the part of the raw data that is aggregated on the target grid point. b) Showing the target grid on top of the raw data set, where only the green grid points of the raw data are used for the target grid.}	
 \end{figure}
 The elevations of raw data pixels that belong to one target grid element are summed up, and the number of raw data pixels contributing to one target grid element is tracked. A summation of the raw data values for each target grid element is also performed for the squared elevation, which is later used for the standard deviation, and for the gradients calculated before, which are required for the computation of the subgrid scale orography parameters. The latter is only calculated if the SSO paramerers are desired. When making use of the scale separation the squared differences between the original and the 3 km filtered topography must be computed at every grid point. This is needed in order to calculate the roughness length specific standard deviation. After these calculations, the temporary rows are shifted to the north and the computation is repeated for the next center line. As soon as a band of 500 rows is finished a new one will be read in.\par\medskip\noindent
 Now that all auxiliary variables are available, all loops over the raw topography data are closed and a new one over all the grid points of the target grid is opened. \par\medskip\noindent
@@ -340,11 +354,11 @@ Finally netcdf files for the orography based external parameters are created, wh
 
 \subsection{extpar\_landuse\_to\_buffer}\label{extpar_landuse_to_buffer}
 \subsubsection{Short description of the subprogram \textit{extpar\_landuse\_to\_buffer}}
-The executable \textit{extpar\_landuse\_to\_buffer} aggregates the land use data to the target grid. Three different raw datasets can be processed: Globcover, GLC2000 and GLCC; as GLC2000 and Globcover do not include Antarctica, GLCC is taken for the missing areas.
+The executable \textit{extpar\_landuse\_to\_buffer} aggregates the land use data to the target grid. Four different raw datasets can be processed: Globcover, GLC2000, Ecoclimap-2 and GLCC; as GLC2000 and Globcover do not include Antarctica, GLCC data can be used for the missing areas.
 \paragraph{Target grid definition}\ \par\medskip\noindent
 The definition of the target grid is done by reading the namelist 'INPUT\_grid\_org'. This namelist contains the information about the grid type, which can either be ICON, COSMO or GME. With the information about the grid type, the namelist containing the grid definition can be read. The name of the namelist must be changed manually by the user, according to the chosen grid type. The namelist must either be 'INPUT\_ICON', 'INPUT\_COSMO' or 'INPUT\_GME'. For a more exact description of the target grid definition, read the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}. After specifying the grid definition the southern band of the target grid is defined. This information is important, as the two raw data sets GLC2000 and Globcover do not cover the region below 60 degrees south. If this region is desired by the user, the third data must be considered for the domain below the southern band. Additionally the target fields for the land use data are allocated. \par\medskip\noindent
 \paragraph{Raw landuse data} \ \par\medskip\noindent
-In a next step the namlist 'INPUT\_LU' is read. It contains an integer switch (\textit{i\_landuse\_data}) that gives the possibility to choose between the three different raw data sets e.g., 1 (Globcover), 2 (GLC2000) and 3 (GLCC). Furthermore the path and the filename of the desired raw data and of GLCC are specified there. The user must adjust the filename and path manually according to the chosen raw data in \textit{i\_landuse\_data}. In addition the name of the desired lookup table is read, which again can be chosen by the user using an integer switch \textit{ilookup\_table\_lu}. The lookup tables are described in more detail in table \ref{tab:look_up_table}. Finally also the names of the buffer files for the target landuse fields and for the target GLCC fields are specified. \par\medskip\noindent
+In a next step the namlist 'INPUT\_LU' is read. It contains an integer switch (\textit{i\_landuse\_data}) that gives the possibility to choose between the three different raw data sets e.g., 1 (Globcover), 2 (GLC2000), 3 (GLCC) and 4 (Ecoclimap). Furthermore the path and the filename of the desired raw data and of GLCC are specified there. The user must adjust the filename and path manually according to the chosen raw data in \textit{i\_landuse\_data}. In addition the name of the desired lookup table is read, which again can be chosen by the user using an integer switch \textit{ilookup\_table\_lu}. This switch has no effect if the Ecoclimap dataset is chosen. The lookup tables are described in more detail in table \ref{tab:look_up_table}. Finally also the names of the buffer files for the target landuse fields and for the target GLCC fields are specified. \par\medskip\noindent
 After having read the namelists, the number of tiles of the raw data set is defined. The number of tiles is set to 1 as default and must only be changed for the raw data Globcover. This data is composed of 6 tiles. The basic information of the Globcover tiles, such as the latitude and longitude edges and the resolution is allocated according to the number of tiles. Later these variables are filled with the respective information, read from the netcdf files directly. \par\medskip\noindent
 \textit{For the remaining procedures the three different raw land use data have their seperate routines, which are constructed identically.}  \par\medskip\noindent
 The allocation of the data is done using the number of grid points in the latitudinal and longitudinal direction. Furthermore the land-use target fields are allocated using the target grid for the dimension size and the number of land-use classes. The land-use classes differ for the three raw data sets and are described in more detail in table \ref{tab:land_use_classes}. \par\medskip\noindent
@@ -426,7 +440,8 @@ The allocation of the data is done using the number of grid points in the latitu
 & 21 & wooded tundra \tabularnewline
 & 22 & mixed tundra \tabularnewline
 & 23 & bare ground tundra \tabularnewline
-& 24 & snow or ice \tabularnewline
+& 24 & snow or ice \tabularnewline\hline
+\textbf{Ecoclimap 2 (218)} &  & types not shown here \tabularnewline
 \bottomrule
 \caption{Land-use classes for the different raw data sets.}
 \label{tab:land_use_classes}
@@ -448,6 +463,7 @@ GLC2000 & 1 & operational settings of GME & Ritter, 2007 \tabularnewline\hline
 GLCC & 1 & operational settings of GME & Ritter, 2007 \tabularnewline\hline
      & 2 & operational settings of COSMO & Heise, 2005 \tabularnewline\hline
      & 3 & experimental settings, analog to lookup tables of ECOCLIMAP & Asensio, 2010 \tabularnewline\hline
+Ecoclimap & n.a. & Ecoclimap lookup table & ecoclimap\_lookup.TAB \tabularnewline
 \bottomrule
 \caption{Names of the lookup tables and the different possible settings for each raw land-use data set.}
 \label{tab:look_up_table}
@@ -458,8 +474,8 @@ For GLC2000 and GLCC, the raw data is read in lines of a complete longitude goin
  Using the routine \textit{find\_nearest\_target\_grid\_element} each raw data pixel is assigned to a target grid point. A more precise description and a figure that describes the procedure can be found in paragraph \textit{'Aggregation of the raw topography to the target grid'} and in Fig. \ref{fig:aggregation_figure} in section \ref{extpar_topo_to_buffer}.\par\medskip\noindent
 As Globcover is composed of six tiles, the reading of the raw data must be performed in a different way than for the other two data sets. The reading of the data for Globcover is done in the same way as for the topography. Compare the paragraph \textit{'Aggregation of the raw topography to the target grid'} in section \ref{extpar_topo_to_buffer}. (As there is no need to calculate gradients for the land use, the corresponding variable, which contains three lines of raw data, is not used. \par\medskip\noindent
 The lookup table is then fed with the land use class, which gives a value for all the target fields listed in table \ref{tab:target_fields_lu}.\par\medskip
-\begin{longtable}{ll}
-\textbf{Variable long name} & \textbf{Variable short name}  \tabularnewline
+\begin{longtable}{lll}
+\textbf{Variable long name} & \textbf{Variable short name} &  \textbf{Remark} \tabularnewline
 \hline
 \endhead
 \hline
@@ -476,6 +492,9 @@ Fraction of evergreen forest & FOR\_E  \tabularnewline
 Longwave surface emissivity & EMISS\_RAD  \tabularnewline
 Root depth & ROOTDP  \tabularnewline
 Roughness length & Z0  \tabularnewline
+monthly leaf area index & LAI12 & only Ecoclimap \tabularnewline
+monthly plant cover & PLCOV12 & only Ecoclimap \tabularnewline
+monthly roughness length & Z012 & only Ecoclimap \tabularnewline
 \bottomrule
 \caption{The variables that are computed using the raw land-use data.}
 \label{tab:target_fields_lu}
@@ -488,7 +507,7 @@ The target fields are written to a netcdf buffer file, which can later be used f
 \subsubsection{Used namelist files and data in-/output:}
 \begin{itemize}
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_GME\_GRID, INPUT\_LU 
- \item data input:  glc2000\_byte.nc, glcc\_usgs\_class\_byte.nc, GLOBCOVER\_0\_16bit.nc, GLOBCOVER\_1\_16bit.nc, GLOBCOVER\_2\_16bit.nc, GLOBCOVER\_3\_16bit.nc, GLOBCOVER\_4\_16bit.nc, GLOBCOVER\_5\_16bit.nc             
+ \item data input:  glc2000\_byte.nc, glcc\_usgs\_class\_byte.nc, GLOBCOVER\_0\_16bit.nc, GLOBCOVER\_1\_16bit.nc, GLOBCOVER\_2\_16bit.nc, GLOBCOVER\_3\_16bit.nc, GLOBCOVER\_4\_16bit.nc, GLOBCOVER\_5\_16bit.nc, ecoclimap\_v2\_byte.nc             
  \item Output: extpar\_landuse\_buffer.nc, glcc\_landuse\_buffer.nc
 \end{itemize}
 
@@ -496,18 +515,31 @@ The target fields are written to a netcdf buffer file, which can later be used f
 \subsubsection{Short description of the subprogram \textit{extpar\_aot\_to\_buffer}}
 The executable \textit{extpar\_aot\_to\_buffer} aggregates aerosol optical thickness data to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw aerosol optical depth data}\ \par\medskip\noindent
-The namelist 'INPUT\_AOT' is kept very simple. It contains only the path and the name of the raw aerosol optical depth data. Additionally, also the filenames of the buffer and output files for the aggregated data is specified. \par\medskip\noindent
-In order to allocate the variables used to read the raw data, the dimensions of the raw data is defined. These dimensions include the number of rows and columns of the netcdf raw data file, the number of months, which is equal to twelf, as a whole year cycle is described, and the number of types of aerosols contained in the raw data file. The number is 5, as the raw data file contains the aerosol optical thickness information of black carbon, dust, organic matter, sulfate and sea salt. \footnote{The describing paper to the data is: Tegen, I., P. Hollrigl, M. Chin, I. Fung, D. Jacob, and J. Penner 1997. Contribution of different aerosol species to the global aerosol extinction optical thickness: Estimates from model results. J. Geophys. Res., 102, 23895-23915. \url{http://pubs.giss.nasa.gov/abstracts/1997/Tegen\_etal.html}}\par\medskip\noindent
-In a next step, the complete  raw data is read into a single variable; this is possible as the aerosol optical depth raw data has a very coarse resolution of $4\times5$ degrees. Also, the grid of the raw data is defined. Before the aggregation to the target grid can start, the target grid fields must be allocated, using the target grid, the number of months and aerosol types.\par\medskip\noindent
+The namelist 'INPUT\_AOT' is kept very simple. It contains only the path and the name of the raw aerosol optical depth data. The integer switch (\textit{iaot\_type}) informs extpar which of the 3 available datasets has been chosen: 1 (Tegen), 2 (AeroCom) or 3 (MACC-II). Additionally, also the filenames of the buffer and output files for the aggregated data is specified. \par\medskip\noindent
+In order to allocate the variables used to read the raw data, the dimensions of the raw data is defined. These dimensions include the number of rows and columns of the netcdf raw data file, the number of months, which is equal to 12, as a full yearly cycle is described, and the number of types of aerosols contained in the raw data file. This number is 5, as the raw data file contains the aerosol optical thickness information of black carbon, dust, organic matter, sulfate and sea salt. The 3 data-sets for which raw data is provided refer to Tegen\footnote{Tegen, I., P. Hollrigl, M. Chin, I. Fung, D. Jacob, and J. Penner 1997. Contribution of different aerosol species to the global aerosol extinction optical thickness: Estimates from model results. J. Geophys. Res., 102, 23895-23915. \url{http://pubs.giss.nasa.gov/abstracts/1997/Tegen\_etal.html}}, AeroCom\footnote{Kinne, S., M. Schulz, C. Textor, S. Guibert, Y. Balkanski, S.E. Bauer, T. Berntsen, T.F. Berglen, O. Boucher, M. Chin, W. Collins, F. Dentener, T. Diehl, R. Easter, J. Feichter, D. Fillmore, S. Ghan, P. Ginoux, S. Gong, A. Grini, J. Hendricks, M. Herzog, L. Horowitz, I. Isaksen, T. Iversen, A. Kirkevåg, S. Kloster, D. Koch, J.E. Kristjansson, M. Krol, A. Lauer, J.F. Lamarque, G. Lesins, X. Liu, U. Lohmann, V. Montanaro, G. Myhre, J. Penner, G. Pitari, S. Reddy, Ø. Seland, P. Stier, T. Takemura, and X. Tie: An AeroCom initial assessment optical properties in aerosol component modules of global models, Atmos. Chem. Phys., 6, 1815-1834, 2006. \url{http://aerocom.met.no/aerocomhome.html}} and MACC-II\footnote{Morcrette, J.-J., O. Boucher, L. Jones, D. Salmond, P. Bechtold, A. Beljaars, A. Benedetti, A. Bonet, J. W. Kaiser, M. Razinger, M. Schulz, S. Serrar, A. J. Simmons, M. Sofiev, M. Suttie, A. M. Tompkins, and A. Untch, 2009: Aerosol analysis and forecast in the ECMWF Integrated Forecast System. Part I: Forward modelling, J. Geophys. Res., 114D, D06206,doi:10.1029/2008JD011235 \url{http://www.gmes-atmosphere.eu/}}.\par\medskip\noindent
+In a next step, the complete raw data is read into a single variable; this is possible since the aerosol optical depth raw data is of rather coarse resolution (see table \ref{tab:aerosol}. Also, the grid of the raw data is defined. Before the aggregation to the target grid can start, the target grid fields must be allocated, using the target grid, the number of months and aerosol types.\par\medskip\noindent
+\begin{table}
+\centering
+\begin{tabular}{ll}
+\textbf{Raw data set} & \textbf{resolution} \\
+\hline
+Tegen & 4 x 5 degree  \\
+AeroCom & 1 x 1 degree  \\
+MACC-II & 1.125 x 1.125 degree  \\
+\hline
+\end{tabular}
+\caption{resolution of raw data-sets for aerosol optical depths.}
+\label{tab:aerosol}
+\end{table}
 \paragraph{Aggregation of the aerosol optical depth to the target field}\ \par\medskip\noindent
 As the resolution of the raw data set is so coarse, there is no need to go through the whole raw data set and find the corresponding target grid element. Here there is only one loop over the target grid. For every target grid element four surrounding raw data points are searched for. With these four points, a weight for the bilinear interpolation is computed. As the raw data grids of the 5 different aerosols are equal, the four sourrounding points are the same for all months and aerosol types. Four new arrays (SW, SE, NE, NW) are then defined, which contain the four neighbor values, for each month and each type. These can now be used, together with the previously calculated weights, to calculate the bilinear interpolation.\par\medskip\noindent
 Finally the data is saved in a netcdf buffer and an output file, and the allocated variables are deallocated.\par\medskip\noindent
 \subsubsection{Used namelist files and data in-/output:}
 \begin{itemize}
 \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_GME\_GRID, INPUT\_AOT
- \item data input: aerosol\_optical\_thickness.nc
+ \item data input: aerosol\_optical\_thickness.nc, aerocomm\_aod\_monthly.nc, \\ AOD\_MACC\_ClimMonthly\_Means\_2003-2012.nc
  \item Output: extpar\_buffer\_aot.nc
 \end{itemize}
 
@@ -515,9 +547,9 @@ Finally the data is saved in a netcdf buffer and an output file, and the allocat
 \subsubsection{Short description of the subprogram \textit{extpar\_cru\_to\_buffer}}
 The executable \textit{extpar\_cru\_to\_buffer} aggregates the temperature climatology of the Climate Research Unit (CRU) to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw temperature climatology data}\ \par\medskip\noindent
-The namelist 'INPUT\_TCLIM' gives the information of the path and the name of the raw temperature climatology data file. Additionally, the filenames for the buffer and output files are provided. There is also an integer switch (raw\_data\_t\_id), which allows to choose between a newer higher resolved data set (1) and the older coarser raw data set (2). The dimensions, such as the number of grid points in latitudinal and longitudinal direction and the number of months, are read from the netcdf file directly. These dimensions can immediately be used to allocate the raw temperature climatology data. The grid is specified and defined from the netcdf file. The last step before the aggregation can take place is to allocate the target fields. \par\medskip\noindent
+The namelist 'INPUT\_TCLIM' gives the information of the path and the name of the raw temperature climatology data file. Additionally, the filenames for the buffer and output files are provided. There is also an integer switch (it\_cl\_type), which allows to choose between a newer higher resolved data set (1) and the older coarser raw data set (2). The dimensions, such as the number of grid points in latitudinal and longitudinal direction and the number of months, are read from the netcdf file directly. These dimensions can immediately be used to allocate the raw temperature climatology data. The grid is specified and defined from the netcdf file. The last step before the aggregation can take place is to allocate the target fields. \par\medskip\noindent
 \paragraph{Aggregation of the temperature climatology to the target field}\ \par\medskip\noindent
 \textit{The following paragraphs describe computations on the raw data grid}\par\medskip\noindent
 The temperature climatology is treated pointwise and therefore a loop over the latitude and the longitude is started. The raw data set contains a two dimensional field for every months, but a yearly temperature climatology is required. Thus the CRU raw data is summed up and weighted with the days per month and then normalized by the days in a year. Also the temperature is transformed from Celsius to Kelvin as necessary. (This must be done only for the older version of the CRU temperature, as the new one is already provided in Kelvin.)\par\medskip\noindent
@@ -534,7 +566,7 @@ As the resolution of the raw data set is so coarse, there is no need to go throu
 \subsubsection{Short description of the subprogram \textit{extpar\_ndvi\_to\_buffer}}
 The executable \textit{extpar\_ndvi\_to\_buffer} aggregates NDVI data (Normalized Differential Vegetation Index) to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw NDVI data}\ \par\medskip\noindent
 For the aggregation of the normalized differential vegetation index the namelist is quite simple again. It contains the path and the filename of the raw data set, as well as the names of the buffer and output files for the consistency check.\par\medskip\noindent
 In order to be able to allocate the raw data, its dimensions must first be known. Therefore the number of grid points in x- and y-direction and the number of time in months are read from the netcdf file directly. Having these varibles the raw data fields can be allocated. Additionally, the target fields must be allocated, which is done using the target grid information and the number of months. The number of months is twelve, as a yearly cycle is calculated. Before the aggregation can start the grid of the raw data must be defined. Especially the start latitude and longitude as well as the resolution in both directions is needed. \par\medskip\noindent
@@ -555,21 +587,21 @@ Finally the data is saved in a netcdf buffer and an output file and the allocate
 \subsubsection{Short description of the subprogram \textit{extpar\_soil\_to\_buffer}}
 The executable \textit{extpar\_soil\_to\_buffer} aggregates soil data of the FAO Digital Soil Map of the World or of the Harmonized World Soil Data (HWSD) to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw soil data}\ \par\medskip\noindent
-The variables for the raw soil data are read from the namelist 'INPUT\_SOIL'. These variables are the path and the names of the raw data files and two switches to decide whether the FAO or the HWSD data should be used and if the sub soil is desired or not. The switch to choose between the two raw data sets is an integer, 1 standing for FAO and 2 for the HWSD data.\footnote{Release 5.0 of COSMO and 2.0 of INT2LM do not support HWSD data, as the representation of te soil associated with this new data set has changed and is based on the use of pedotransfer functions and on fraction of soil components (e.g. clay, silt, ...)} The switch to chose the roduction of subsoil information is a logical. Additionally, the names of the buffer files are specified. Be aware that a change of the integer switch from FAO to HWSD requires also the manual replacement of the raw data file  names in the namelist. \par\medskip\noindent
+The variables for the raw soil data are read from the namelist 'INPUT\_SOIL'. These variables are the path and the names of the raw data files and two switches to decide whether the FAO or the HWSD data should be used and if the deep soil data is desired or not. The integer switch \textit{isoil\_data} determines the raw data and processing used: 1 for FAO, 2 for the HWSD data-set\footnote{Release 5.0 of COSMO and 2.0 of INT2LM do not support HWSD data, as the representation of the soil associated with this new data set has changed and is based on the use of pedotransfer functions and on fraction of soil components (e.g. clay, silt, ...)} and 3 for the use of HWSD data with mapping to TERRA soil types. The switch to choose the production of deep soil information is a logical (only applicable to isoil\_data=2). Additionally, the names of the buffer files are specified. Be aware that a change of the integer switch from FAO to HWSD requires also the manual replacement of the raw data file  names in the namelist. \par\medskip\noindent
 After reading the namelist, a check is made on the production of subsoil characteristics. This is only supported for HWSD data, and a warning is issued in case of bad usage.\par\medskip\noindent
 The dimensions of the raw soil data are defined, which include the number of grid points in the latitudinal and longitudinal direction, as well as the number of soil data code of the raw data. These values are needed to allocate the soil data with the proper size. \par\medskip\noindent
 The mapping between raw data sets specific codes and some standard soil types is defined; this concerns the soil types 'undefined', 'default', 'ice' and 'water'. \par\medskip\noindent
 As the soil data is provided in one single file, all data can be read in one shot. The data that is read from the netcdf file are the texture and the slope of the soil data and the soil code. The aggregation of the data is done in a different way for the FAO and HWSD data, as these result in two completely different variables. Moreover, for HWSD data, to conserve memory, the topsoil data are allocated first and aggregated to the target grid, before the same is done for the subsoil. \par\medskip\noindent
-\paragraph{Aggregation of the FAO data to the target grid}\ \par\medskip\noindent
+\paragraph{Aggregation of the FAO and HWSD data with TERRA mapping to the target grid}\ \par\medskip\noindent
 \textit{The following paragraphs describe computations on the raw data grid.}\par\medskip\noindent
 The soil data is read using a loop over the latitude and the longitude. This results in a point-wise reading of the raw data. As soon as the point is read, its corresponding target grid element is defined. If the regular latitude/longitude grid point is not contained in the target grid, a new point is read. If however the point is inside the target grid, the aggregation can begin. \par\medskip\noindent
-The number of raw data pixels is increased by one, if a raw data point can be assigned to a target grid point. This number is later used to define the fraction land defined by the soil data. The corresponding soil unit is deduced from the raw data. If the soil unit is zero, this is an ocean pixel and the number of sea points is increased by one. If the soil code differs from zero, the number of land points is increased by one. The soil code is then associated to either a special or a normal soiltype. For all the special soiltypes such as ice, rock, salt, histosols, dunes and no data flags the respective texture (coarse, medium, fine) and the slope (flat, hilly, steep) are defined using a lookup table. All other soil units are described using the texture and slope available in the raw data. These values define the final texture variable 'texture'. Additionally, the slope is set to zero for sea points. \par\medskip\noindent
+The number of raw data pixels is increased by one, if a raw data point can be assigned to a target grid point. This number is later used to define the fraction land defined by the soil data. The corresponding soil unit is deduced from the raw data. If the soil unit is zero, this is an ocean pixel and the number of sea points is increased by one. If the soil code differs from zero, the number of land points is increased by one. The soil code is then associated to either a special or a normal soiltype. For all the special soiltypes such as ice, rock, salt, histosols, dunes and no data flags the respective texture (coarse, medium, fine) are defined using a lookup table. All other soil units are described using the texture available in the raw data. These values define the final texture variable 'texture'. \par\medskip\noindent
 \textit{The following paragraphs describe computations on the target grid.} \par\medskip\noindent
-In the following a loop is opened over the target grid points. First of all the fraction land is defined using the number of land pixels minus the number of inland water pixels, which is then averaged by the number of raw data pixels that were available for the target grid element. Then the slope of the target grid element is defined. This is done by calculating the average of the summed up slope using the number of points that contribute to a slope. Slopes of water points and undefined soiltypes are set to 0 and 1 (slope of 100\%), respectively. In a next step the texture for every target grid element is defined. For the special soiltypes (texture larger than 900) the corresponding number is associated. For the normal soiltypes (texture smaller than 900) the texture is calculated as average of the summed up texture. The resulting texture value is multiplied by 100 and converted into an integer number. This number is used to associate the final soiltype to every target grid element. The soiltypes are describe in more details in table \ref{tab:soil_types_FAO}. For target grid points that do not contain any raw data points, the nearest neighbor in the raw data is defined. If the target grid point is outside the raw data grid the slope is defined as zero and the texture as undefined.\par\medskip\newpage
+In the following a loop is opened over the target grid points. First of all the fraction land is defined using the number of land pixels minus the number of inland water pixels, which is then averaged by the number of raw data pixels that were available for the target grid element. In a next step the texture for every target grid element is defined. For the special soiltypes (texture larger than 900) the corresponding number is associated. For the normal soiltypes (texture smaller than 900) the texture is calculated as average of the summed up texture. The resulting texture value is multiplied by 100 and converted into an integer number. This number is used to associate the final soiltype to every target grid element. The soiltypes are describe in more details in table \ref{tab:soil_types_FAO}. For target grid points that do not contain any raw data points, the nearest neighbor in the raw data is defined. If the target grid point is outside the raw data grid the slope is defined as zero and the texture as undefined.\par\medskip\newpage
 \begin{longtable}{p{2.5cm}p{3.5cm}p{8cm}}
-\textbf{TERRA Code} & \textbf{Soiltype} & \textbf{raw data code}  \tabularnewline
+\textbf{TERRA Code} & \textbf{Soiltype} & \textbf{raw data code} \tabularnewline
 \hline
 \endhead
 \hline
@@ -618,7 +650,7 @@ The soiltypes and the fraction land, together with the undefined value, the lati
 \subsubsection{Short description of the subprogram \textit{extpar\_flake\_to\_buffer}}
 The executable \textit{extpar\_flake\_to\_buffer} aggregates lake depth data and lake fraction to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw lake data}\ \par\medskip\noindent
 As only the target grid dimensions are needed to allocate the target fields, this is done right after the definition of the target grid. Then the namelist 'INPUT\_FLAKE' is read to define the path and the filename of the raw lake data. Also the names of the buffer and the output file for the consistency check are given. Once more the dimensions of the raw data are needed to allocate the raw data correctly; these dimensions are deduced from the netcdf file directly and the raw data grid is defined.
 \paragraph{Aggregation of the lake data to the target grid}\ \par\medskip\noindent
@@ -636,26 +668,27 @@ The target fields are then written to a netcdf buffer and output file. Finally t
 
 \subsection{extpar\_albedo\_to\_buffer}\label{extpar_albedo_to_buffer}
 \subsubsection{Short description of the subprogram \textit{extpar\_albedo\_to\_buffer}}
-The executable \textit{extpar\_albedo\_to\_buffer} aggregates albedo data to the target grid.\par\medskip\noindent
+The executable \textit{extpar\_albedo\_to\_buffer} allows to aggregate to different kinds of albedo data to the target grid. The first kind is a climatology of monthly values of total albedo derived from MODIS satellite data for the 3 spectral bands visible, near infrared and ultraviolett. The second kind contains information for soil albedo only in dry and saturated conditions. It originates from the Community Land Model\footnote{https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/clm2/rawdata/mksrf\_soilcol.081008.nc \\ Lawrence, P. J. and T. N. Chase (2007). "Representing a new MODIS consistent land surface in the Community Land Model (CLM 3.0)." Journal of Geophysical Research-Biogeosciences 112(G1). \\Table 3.3 in: Oleson, K.W., D.M. Lawrence, G.B. Bonan, M.G. Flanner, E. Kluzek, P.J. Lawrence, S. Levis, S.C. Swenson, P.E. Thornton, A. Dai, M. Decker, R. Dickinson, J. Feddema, C.L. Heald, F. Hoffman, J.-F. Lamarque, N. Mahowald, G.-Y. Niu, T. Qian, J. Randerson, S. Running, K. Sakaguchi, A. Slater, R. Stockli, A. Wang, Z.-L. Yang, Xi. Zeng, and Xu. Zeng, 2010: Technical Description of version 4.0 of the Community Land Model (CLM). NCAR Technical Note NCAR/TN-478+STR, National Center for Atmospheric Research, Boulder, CO, 257 pp.}.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_oro'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw albedo data}\ \par\medskip\noindent
-The namelist 'INPUT\_ALB' defines the filenames and paths for the normal albedo, the near infrared albedo and the ultra violet albedo. Also the names for the buffer and the output file are given. Additionally, the variable names to extract from each netcdf file are specified.\par\medskip\noindent
+The namelist 'INPUT\_ALB' defines the filenames and paths for the normal albedo, the near infrared albedo and the ultra violet albedo. Also the names for the buffer and the output file are given. Additionally, the variable names to extract from each netcdf file are specified. The integer switch \textit{ialb\_type} determines which albedo fields are produced: 1 (MODIS monthly albedo) or 2 (only dry and saturated soil albedo).\par\medskip\noindent
 As the three data sets do all have the same grid, the dimension is only inquired once. This information allows to allocate all three raw albedo fields. The required information is read from one netcdf file (the start latitude and longitude and the resolution in both directions). All the target fields are also allocated at once, using the target grid and the number of months that need to be calculated, which is 12. \par\medskip\noindent
 \paragraph{Aggregation of the albedo raw data to the target grid} \ \par\medskip\noindent
 The aggregation of the data is done in the exact same way for the three data sets albedo, near infrared albedo and ultra violet albedo. The data is read from the netcdf file row-wise and than treated point-wise, as each raw data grid point is assigned to a target grid point. The association of a raw data point and a target grid element is done only for the first time step, as it stays the same for all the others. The albedo values of each raw data point that contributes to a target grid element are summed up, and the number of these raw data pixels is added up. At target points that are associated with at least one raw data point, the albedo is obtained by normalizing the previously computed sum with the number of associated raw data pixels. If there is no raw data pixel available a weighted bilinear interpolation is performed.\par\medskip\noindent
-As soon as the aggregation is done for all three data sets the target fields are written to the buffer and output netcdf file. The allocated memory is then deallocated.
+As soon as the aggregation is done for all three data sets the target fields are written to the buffer and output netcdf file. The allocated memory is then deallocated.\par\medskip\noindent
+Please note that the albedo values for the near-infrared and ultra-violett bands are present only in the netcdf-formatted output and not in GRIB1 formatted output. 
 \subsubsection{Used namelist files and data in-/output:}
 \begin{itemize}
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_GME\_GRID, INPUT\_ALB
- \item data input: month\_alb.nc, month\_alnid.nc, month\_aluvd.nc
+ \item data input: month\_alb.nc, month\_alnid.nc, month\_aluvd.nc, global\_soil\_albedo.nc
  \item Output: month\_alb\_buffer.nc
 \end{itemize}
 \subsection{extpar\_consistency\_check}\label{extpar_consistency_check}
 \subsubsection{Short description of the subprogram \textit{extpar\_consistency\_check}}
 The \textit{extpar\_consistency\_check} is performed after all raw data have been aggregated to the target grid to remove any inconsistencies that may appear among the different data and to derive additional information using multiple raw data sources.\par\medskip\noindent
 \paragraph{Reading of namelists}\ \par\medskip\noindent
-Before the grid is defined, the namelists 'INPUT\_RADTOPO', 'INPUT\_ORO' and 'INPUT\_SOIL' are read to obtain the settings of the different switches that are used (e.g. lradtopo, itopo\_type, lsso\_param, isoil\_data, ldeep\_soil). Then the namelist 'INPUT\_grid\_oro' is read to obtain the targed grid information and the grid type.\par\medskip\noindent
+Before the grid is defined, the namelists 'INPUT\_RADTOPO', 'INPUT\_ORO' and 'INPUT\_SOIL' are read to obtain the settings of the different switches that are used (e.g. lradtopo, itopo\_type, lsso\_param, isoil\_data, ldeep\_soil). Then the namelist 'INPUT\_grid\_org' is read to obtain the targed grid information and the grid type.\par\medskip\noindent
 In a next step the 'INPUT\_LU' is read by \textit{extpar\_consistency\_check} to check if the GLCC data set is required, which is the case if the target grid domain reaches more to the south than the chosen raw land-use data set. (Globcover and GLC\_2000 are not global.)\par\medskip\noindent
 An additional namelist that is used, is the 'INPUT\_CHECK', which defines all the buffer files. These files are read and all the variables needed for the final external parameters file are allocated.\par\medskip\noindent
 The first task after reading the namelists is to derive the correct land sea mask from the land use data. If the GLCC data must be used, the land sea mask below the southern band is deduced from GLCC.\par\medskip\noindent
@@ -672,7 +705,7 @@ The consistency check of the albedo data concerns land pixels that have a albedo
 \paragraph{Consistency check of NDVI data}\ \par\medskip\noindent
 The next consistency check is performed with the normalized difference vegetation index (NDVI). The NDVI values are set to undefined for water grid points. Additionally, values that are smaller than a predefined value are set to exactly this value.\par\medskip\noindent
 \paragraph{Consistency check of the temperature climatology}\ \par\medskip\noindent
-The consistency check of the temperature climatology contains a height correction and is only performed for the finer resolved temperature climatology (e.g. raw\_data\_t\_id = 1). The temperature is set to undefined for all the sea points. For land points that have a valid temperature, it is adjusted to the height. This is done by considering a constant temperature rate of 0.65 K per 100m ($\frac{dT}{dh} = -\frac{0.65 K}{100 m}$). \par\medskip\noindent
+The consistency check of the temperature climatology contains a height correction and is only performed for the finer resolved temperature climatology (e.g. it\_cl\_type = 1). The temperature is set to undefined for all the sea points. For land points that have a valid temperature, it is adjusted to the height. This is done by considering a constant temperature rate of 0.65 K per 100m ($\frac{dT}{dh} = -\frac{0.65 K}{100 m}$). \par\medskip\noindent
 Target points that do not contain temperature values larger than zero are filled with surrounding values. First a valid point is looked for in the surrounding $3\times3$ grid box. If still no valid point can be found, it is searched along the longitude, and if nothing else helps the nearest neighbor is tried.
 \paragraph{Definition of special points}\ \par\medskip\noindent
 Be aware that the definition of special points has only been tested for the COSMO grid and can only be used if the FAO raw soil type is used. At the moment there are three special points (1: Falkenberg, 2: Waldstation, 3: Lindenberg). At each of these points, values for soiltype\_sp, z0\_sp, rootdp\_sp, plcovmn\_sp, plcovmx\_sp, laimn\_sp, laimx\_sp can be explicitly set by the user. The coordinates of the special point are also user specified. If no special treatment at these points is desired the number\_special\_points must be set to zero (see table \ref{tab:number_special_points}). If no special treatment is desired at all, the integer switch i\_lsm\_treatment can be set to 1 instead of 2. \par\medskip\noindent
@@ -719,7 +752,7 @@ The EXTPAR software is subject to several limitations:
 \item The subsoil can only be used if the HWSD data is used for the topsoil. If the FAO and the HWSD data are combined a warning message is printed and the ldeep\_soil parameter is set to .FALSE.
 \item The special points are only tested for the COSMO grid. Also it is not possible to use these corrections if the soil raw data set is HWSD.
 \item The GME output is not supported anymore.
-\item The ICON output is not yet fully tested.
+\item The ICON output is only partly tested.
 \item The OpenMP implementation is not yet fully tested. 
 \end{itemize}
 \clearpage
@@ -771,6 +804,10 @@ INPUT\_GME\_GRID   & define target domain for GME grid    & runscript &  extpar\
  INPUT\_ORO & settings for orography data & runscript & extpar\_topo\_to\_buffer \\
 \hline
  INPUT\_OROSMOOTH & settings for orography smoothing & runscript & extpar\_topo\_to\_buffer \\
+\hline 
+ INPUT\_RADTOPO & settings for generating topographical shading fields & runscript & extpar\_topo\_to\_buffer \\
+\hline 
+ INPUT\_SCALE\_SEP & settings to control scale separation for SSO an Z0 calculation & runscript & extpar\_topo\_to\_buffer \\
 \hline 
  INPUT\_LU & settings for landuse data & runscript &  extpar\_landuse\_to\_buffer \\
 \hline 
@@ -1251,6 +1288,8 @@ glcc\_output\_file & character & &  & name for glcc output file \tabularnewline
 raw\_data\_aot\_path & character & &  & path to aerosol raw data \tabularnewline
 \hline 
 raw\_data\_aot\_filename & character & &  & filename of aerosol raw data \tabularnewline
+\hline 
+iaot\_type & integer &1 &  & index to specify AOD raw data set: 1:Tegen 2:AeroCom 3:MACC-II \tabularnewline
 \hline
 \bottomrule
 \end{longtable}
@@ -1286,7 +1325,7 @@ raw\_data\_t\_clim\_path & character & &  & path to T2m climatology data \tabula
 \hline 
 raw\_data\_aot\_filename & character & &  & filename of T2m climatology  data \tabularnewline
 \hline
-raw\_data\_t\_id & integer & & & switch to choose between the new and fine (1) and the old and coarse (2) raw data set. Note that the fine data set (1) is topographically corrected.\tabularnewline
+it\_cl\_type & integer & & & switch to choose between the new and fine (1) and the old and coarse (2) raw data set. Note that the fine data set (1) is topographically corrected.\tabularnewline
 \hline
 \bottomrule
 \end{longtable}
@@ -1352,7 +1391,7 @@ ndvi\_output\_file & character & &  & name for ndvi output file \tabularnewline
 \hline
 \endhead
 \hline
-isoil\_data & integer & & & switch to choos between the raw soil data, 1: FAO, 2: HWSD \tabularnewline
+isoil\_data & integer & & & switch to choose between the raw soil data, 1: FAO, 2: HWSD, 3:HWSD with terra mapping \tabularnewline
 \hline
 ldeep\_soil & logical & & & switch for the deep soil, can only be set to .TRUE. if the top and sub soil are deduced from the HWSD data \tabularnewline
 \hline
@@ -1453,6 +1492,9 @@ raw\_data\_alb\_path & character & & & path to raw albedo data
 \tabularnewline
 \hline
 raw\_data\_alb\_filename & character & & & filename of the raw albedo data
+\tabularnewline
+\hline
+ialb\_type & integer &1 & & switch to indicate albedo type 1:total albedo 2:soil albedo
 \tabularnewline
 \hline
 \bottomrule

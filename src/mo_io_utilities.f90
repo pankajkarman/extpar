@@ -718,7 +718,7 @@ MODULE mo_io_utilities
 
     ! put variable to netcdf file
 
-   CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
+!   CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
     DO n=1,size(var_real_4d,4)
       CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d(:,:,:,n),start=(/1,1,1,n/)))
     ENDDO
