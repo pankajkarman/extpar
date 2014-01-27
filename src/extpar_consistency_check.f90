@@ -627,6 +627,10 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 ! for albedo consistency check
   REAL (KIND=wp) :: albvis_min, albnir_min, albuv_min  
 
+! T_CL consistency check
+  INTEGER (KIND=i4) :: iml, imu, ipl, ipu, jml, jmu, jpl, jpu, ntclct, l
+  REAL    (KIND=wp) :: tclsum, elesum
+
 
   ! Print the default information to stdout:
   CALL info_define ('extpar_consistency_check')      ! Pre-define the program name as binary name
@@ -1627,7 +1631,7 @@ END SELECT
                 IF (j+jj > 0 .and.  j+jj < tg%je .and. i+ii > 0 .and. i+ii < tg%ie) THEN
                   IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
                     ! PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)                    
-                    crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
+                    crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i+ii,j+jj,1) - hh_topo(i,j,1) )
                     foundtcl = .TRUE.
                     last = .TRUE.
                     exit       
@@ -1640,77 +1644,77 @@ END SELECT
             ENDDO
             ! if still missing go along longitude
             IF (.NOT. foundtcl) THEN
-              ii = 0
-              DO WHILE (.NOT. foundtcl .AND. ii .lt. 0) !tg%ie)
-                ii = ii + 1 
-                jj = 0
-                DO WHILE (jj < 1)                   
-                  !PRINT*, 'TCL STILL NOT DEFINED  ',i,j,  ' II: ',ii, 'JJ',jj,  crutemp2(i+ii,j+jj,1), crutemp2(402,160,1)
-                  IF (i+ii > 0 .and. i+ii < tg%ie .and. j+jj > 0 .and. j+jj < tg%je) THEN
-                    IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
-                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)                    
-                      crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
-                      foundtcl = .TRUE.
-                      jj = 999                    
+              tclsum = 0._wp
+              elesum = 0._wp
+              ntclct = 0
+              l = 1
+              DO WHILE (.NOT. foundtcl .AND. l .le. (tg%ie / 6))
+                iml=MAX(1,i-3*l)
+                imu=i+2-3*l
+                ipl=i+3*l-2
+                ipu=MIN(tg%ie,i+3*l)
+                jml=MAX(1,j-l)
+                jmu=j-l
+                jpl=j+l
+                jpu=MIN(tg%je,j+l)
+                IF (jml == jmu) THEN
+                  DO ii=iml,ipu
+                    IF ( crutemp2(ii,jml,1) > 0.0 ) THEN
+                      tclsum = tclsum + crutemp2(ii,jml,1)
+                      elesum = elesum + cruelev(ii,jml,1)
+                      ntclct = ntclct + 1
                     ENDIF
-                  ENDIF
-                  IF (i+ii > 0 .and. i+ii < tg%ie .and. j-jj > 0 .and. j-jj < tg%je) THEN
-                    IF ( crutemp2(i+ii,j-jj,1) > 0.0 ) THEN
-                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j-jj,1)
-                      crutemp(i,j,1) = crutemp2(i+ii,j-jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j-jj,1) )
-                      foundtcl = .TRUE.
-                      jj = 999
-                    ENDIF
-                  ENDIF
-                  IF (i-ii > 0 .and.  j-jj  > 0 .and. j-jj < tg%je ) THEN
-                    IF ( crutemp2(i-ii,j-jj,1) > 0.0 ) THEN
-                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i-ii,j-jj,1)                    
-                      crutemp(i,j,1) = crutemp2(i-ii,j-jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i-ii,j-jj,1) )
-                      foundtcl = .TRUE.
-                      jj = 999                  
-                    ENDIF
-                  ENDIF
-                  IF (i-ii > 0 .and.  j+jj  > 0 .and. j+jj < tg%je ) THEN
-                    IF ( crutemp2(i-ii,j+jj,1) > 0.0 ) THEN
-                      PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i-ii,j+jj,1)
-                      crutemp(i,j,1) = crutemp2(i-ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i-ii,j+jj,1) )
-                      foundtcl = .TRUE.
-                      jj = 999
-                    ENDIF
-                  ENDIF
-                  
-                  jj = jj + 1
-                ENDDO !while
-                
-              ENDDO   ! while
-            ENDIF
-
-
-            ! now we search for the nearest
-            nextd=301*301*2
-            DO jj=-300,300
-              DO ii=-300,300
-                IF (i+ii > 0 .and.  j+jj  > 0 .and. i+ii <  tg%ie .and. j+jj < tg%je ) THEN
-                  IF (crutemp2(i+ii,j+jj,1) > 0) THEN             
-                    !PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1)  
-                    IF ( ((jj-0)**2+(ii-0)**2) < nextd) THEN                               
-                      nextd = ((jj-0)**2+(ii-0)**2) 
-                      !_br 04.06.12                                   crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )                         
-                      crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * &
-                           0.01*( cruelev(i,j,1) - hh_topo(i+ii,j+jj,1) )
-                      !PRINT*, nextd
-                      !PRINT*, 'FOUND TCL ', i, j, ii, jj, crutemp2(i+ii,j+jj,1), nextd
-                      foundtcl = .TRUE.        
-                    ENDIF
-                  ENDIF
+                  ENDDO
+                ELSE
+                  jml = jml - 1
                 ENDIF
-              ENDDO
-            ENDDO
-              
+                IF (jpl == jpu) THEN
+                  DO ii=iml,ipu
+                    IF ( crutemp2(ii,jpu,1) > 0.0 ) THEN
+                      tclsum = tclsum + crutemp2(ii,jpu,1)
+                      elesum = elesum + cruelev(ii,jpu,1)
+                      ntclct = ntclct + 1
+                    ENDIF
+                  ENDDO
+                ELSE
+                  jpu = jpu + 1
+                ENDIF
+                IF (iml .LE. imu) THEN
+                  DO jj = jml+1,jpu-1
+                    DO ii = iml,imu
+                      IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
+                        tclsum = tclsum + crutemp2(ii,jj,1)
+                        elesum = elesum + cruelev(ii,jj,1)
+                        ntclct = ntclct + 1
+                      ENDIF
+                    ENDDO
+                  ENDDO
+                ENDIF
+                IF (ipl .LE. ipu) THEN
+                  DO jj = jml+1,jpu-1
+                    DO ii = ipl,ipu
+                      IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
+                        tclsum = tclsum + crutemp2(ii,jj,1)
+                        elesum = elesum + cruelev(ii,jj,1)
+                        ntclct = ntclct + 1
+                      ENDIF
+                    ENDDO
+                  ENDDO
+                ENDIF
+                IF (ntclct > 0) THEN
+                  crutemp(i,j,1) = tclsum/REAL(ntclct,wp) + 0.0065 * (elesum/REAL(ntclct,wp) - hh_topo(i,j,1))
+                  foundtcl = .TRUE.
+                ELSE
+                  l = l + 1
+                ENDIF
+              ENDDO  ! while 
+            ENDIF    ! .not. foundtcl
 
             IF ( .NOT. foundtcl) THEN
+              
               PRINT*, 'ERROR NO TEMPERATURE DATA FOR T_CL CORRECTION  AT'   
               PRINT *,i,j
+              crutemp(i,j,1) = 288.15 - 0.0065 * hh_topo(i,j,1)
               
             ENDIF
           ENDIF
