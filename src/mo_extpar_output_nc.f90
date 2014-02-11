@@ -377,7 +377,7 @@ MODULE mo_extpar_output_nc
 
     !-------------------------------------------------------------
     ! define global attributes
-    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset)
+    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
     write(*,*) '----------------   NetCDF global_attributes ----------------------'
     DO n=1,nglob_atts
     write(*,*) global_attributes(n)
@@ -1148,7 +1148,7 @@ MODULE mo_extpar_output_nc
 
 
     ! define global attributes
-    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset)
+    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -1456,11 +1456,12 @@ MODULE mo_extpar_output_nc
   !----------------------------------------------------------------------- 
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with lu data
-  SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset)
+  SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
 
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
     CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
     CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
+    INTEGER,          INTENT(IN) :: isoil_data
 
     !local variables
     CHARACTER(len=10) :: ydate
@@ -1482,9 +1483,17 @@ MODULE mo_extpar_output_nc
     global_attributes(3)%attname = 'rawdata'
     SELECT CASE(itopo_type)
       CASE(topo_aster)
-        global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, ASTER, Lake Database'
+        IF (isoil_data >= HWSD_data) THEN
+          global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'
+        ELSE
+          global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, ASTER, Lake Database'
+        ENDIF
       CASE(topo_gl)
-        global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, GLOBE, Lake Database'
+        IF (isoil_data >= HWSD_data) THEN
+          global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'
+        ELSE
+          global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, GLOBE, Lake Database'
+        ENDIF
       END SELECT
     global_attributes(4)%attname = 'note'
     global_attributes(4)%attributetext='Landuse data look-up table: '//TRIM(name_lookup_table_lu)

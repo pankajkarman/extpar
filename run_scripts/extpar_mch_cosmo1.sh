@@ -12,7 +12,7 @@ export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/share/
 data_dir=/store/s83/tsm/extpar/raw_data_nc/
 
 # Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
-sandboxdir=/store/s83/tsm/extpar/sandbox_c1
+sandboxdir=/store/s83/tsm/extpar/sandbox_c1_newfil
 
 
 # Names of executables
@@ -297,13 +297,13 @@ EOF_oro
 cat > INPUT_OROSMOOTH << EOF_orosm
 &orography_smoothing
   lfilter_oro=.TRUE.,
-  ilow_pass_oro=4,
-  numfilt_oro=1,
+  ilow_pass_oro=1,
+  numfilt_oro=2,
   ilow_pass_xso=5,
   lxso_first=.FALSE.,
   numfilt_xso=1,
   rxso_mask=750.0,
-  eps_filter=0.1,
+  eps_filter=1.7,
   rfill_valley=0.0,
   ifill_valley=7
 /

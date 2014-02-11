@@ -193,9 +193,7 @@ SUBROUTINE read_namelists_extpar_orosmooth(namelist_file,        &
     SELECT CASE( ilow_pass_oro )
     CASE( 1 )
       ! Default Raymond filter
-      ! no eXtra smoothing possible:
-      ilow_pass_xso = 0
-    CASE( 4:6, 8 )
+    CASE( 3:6, 8 )
       ! Low-pass filter with predefined filter weights
       IF ( (numfilt_oro < 1) .OR. (numfilt_oro > 10) ) THEN
         PRINT *,' Warning  *** numfilt_oro has to be between  1 and 10 *** '
@@ -203,13 +201,13 @@ SUBROUTINE read_namelists_extpar_orosmooth(namelist_file,        &
         numfilt_oro = 1
       ENDIF
     CASE default
-      PRINT *,' Warning  *** ilow_pass_oro has to be  1, 4, 5, 6 or 8 *** '
+      PRINT *,' Warning  *** ilow_pass_oro has to be 1, 3, 4, 5, 6 or 8 *** '
       PRINT *,'          *** set ilow_pass_oro = 1 (default value)!   *** '
       ilow_pass_oro = 1
     END SELECT
     IF ( ilow_pass_xso >= ilow_pass_oro ) THEN
       SELECT CASE( ilow_pass_xso )
-      CASE( 4:6, 8 )
+      CASE( 3:6, 8 )
         ! Low-pass filter with predefined filter weights
         IF ( (numfilt_xso < 1) .OR. (numfilt_xso > 10) ) THEN
           PRINT *,' Warning  *** numfilt_xso has to be between  1 and 10 *** '
@@ -217,14 +215,14 @@ SUBROUTINE read_namelists_extpar_orosmooth(namelist_file,        &
           numfilt_xso = 1
         ENDIF
       CASE default
-        PRINT *,' Warning  *** ilow_pass_xso has to be   4, 5, 6 or 8 *** '
+        PRINT *,' Warning  *** ilow_pass_xso has to be 3, 4, 5, 6 or 8 *** '
         PRINT *,'          *** and to be  greater/equal ilow_pass_oro *** '
         PRINT *,'          *** set ilow_pass_xso = 0 (default value)! *** '
         ilow_pass_xso = 0
       END SELECT
     ELSE
       IF ( ilow_pass_xso /= 0 ) THEN
-        PRINT *,' Warning  *** ilow_pass_xso has to be   4, 5, 6 or 8 *** '
+        PRINT *,' Warning  *** ilow_pass_xso has to be 3, 4, 5, 6 or 8 *** '
         PRINT *,'          *** and to be  greater/equal ilow_pass_oro *** '
         PRINT *,'          *** set ilow_pass_xso = 0 (default value)! *** '
         ilow_pass_xso = 0
@@ -280,7 +278,7 @@ SUBROUTINE do_orosmooth   (tg,                                 &
    INTEGER(KIND=i8)             :: ndim, ie, je, ie_ext_hf, je_ext_hf, &
                                    ile, iri, jlo, jup
    INTEGER(KIND=i4)             :: hfwidth, hfw_m_nb, errorcode,       &
-                                   n, nfrl
+                                   n, nit, nfrl
    REAL(KIND=wp)                :: zdh_x1, zdh_x2, zdh_y1, zdh_y2,&
                                    zdh_max, zdh_xy1, zdh_xy2,     &
                                    zdh_xy3, zdh_xy4 
@@ -292,7 +290,7 @@ SUBROUTINE do_orosmooth   (tg,                                 &
                                    hfy_mask(:,:)
    LOGICAL                      :: ldhsurf_xy
 
-   REAL(KIND=wp),PARAMETER      :: zhmax_sea = 10.0
+   REAL(KIND=wp),PARAMETER      :: zhmax_sea = 1.0
  
 
   ALLOCATE( ff_filt(tg%ie,tg%je,tg%ke), STAT = errorcode )
@@ -311,63 +309,181 @@ SUBROUTINE do_orosmooth   (tg,                                 &
   !>> global Raymond filtering
   CASE( 1 )
 
-     !> filtering in x-direction
+    DO nit = 1, numfilt_oro
+     !> standard orography smoothing performed
+     !  before eXtra SmOothing of steep oro.
+     IF ( .NOT.lxso_first ) THEN
 
-     ! Set the dimension
-     ndim = tg%ie   
-     ! allocate the necessary fields for gaussian elimination
-     ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
-          a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode)
-     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
-     ! Set the above variables for the gaussian elimination
-     CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
-     ! Apply the filter for every line
-     DO je = 1, tg%je
-        xy_vec(:) = ff_filt(:,je,1)
-        CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
-             ndim, eps_filter)
-        ff_filt(:,je,1) = xy_vec(:)
-     ENDDO
-     ! Release memory
-     DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
-     IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
+        !> filtering in x-direction
+   
+        ! Set the dimension
+        ndim = tg%ie   
+        ! allocate the necessary fields for gaussian elimination
+        ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
+             a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode)
+        IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
+        ! Set the above variables for the gaussian elimination
+        CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
+        ! Apply the filter for every line
+        DO je = 1, tg%je
+           xy_vec(:) = ff_filt(:,je,1)
+           CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
+                ndim, eps_filter)
+           ff_filt(:,je,1) = xy_vec(:)
+        ENDDO
+        ! Release memory
+        DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
+   
+        !> filtering in y-direction
+   
+        ! Set the dimension
+        ndim = tg%je
+        ! allocate the necessary fields for gaussian elimination
+        ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
+             a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode) 
+        IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
+        ! Set the above variables for the gaussian elimination
+        CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
+        ! Apply the filter for every column
+        DO ie = 1, tg%ie
+           xy_vec(:) = ff_filt(ie,:,1)
+           CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
+                ndim, eps_filter)
+           ff_filt(ie,:,1) = xy_vec(:)
+        ENDDO
+        ! Release memory
+        DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
 
-     !> filtering in y-direction
+     ENDIF ! .NOT.lxso_first
 
-     ! Set the dimension
-     ndim = tg%je
-     ! allocate the necessary fields for gaussian elimination
-     ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
-          a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode) 
-     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
-     ! Set the above variables for the gaussian elimination
-     CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
-     ! Apply the filter for every column
-     DO ie = 1, tg%ie
-        xy_vec(:) = ff_filt(ie,:,1)
-        CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
-             ndim, eps_filter)
-        ff_filt(ie,:,1) = xy_vec(:)
-     ENDDO
-     ! Release memory
-     DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
-     IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
+     !> eXtra SmOothing of steep oro. 
+     ldhsurf_xy = .TRUE. !steepness of oro. in diago. dir. taken into account
+     IF ( ilow_pass_xso >= ilow_pass_oro ) THEN
+        IF ( rxso_mask > 0.0_ireals ) THEN           
+           ! set width of the stencil for the horizontal filter
+           SELECT CASE( ilow_pass_xso )
+           CASE( 3, 4, 6 )
+              hfwidth = 4
+           CASE( 5, 8 )
+              hfwidth = 6
+           END SELECT
+           hfw_m_nb = hfwidth 
+           ie_ext_hf = tg%ie + 2*hfw_m_nb
+           je_ext_hf = tg%je + 2*hfw_m_nb  
+           ALLOCATE( hfx_mask(ie_ext_hf,je_ext_hf),  &
+                     hfy_mask(ie_ext_hf,je_ext_hf),  &
+                     STAT = errorcode )
+           IF(errorcode/=0) CALL abort_extpar('Cant allocate hfx_mask, hfy_mask')
+
+           DO n = 1, numfilt_xso        
+              hfx_mask(:,:) = .FALSE.
+              hfy_mask(:,:) = .FALSE.
+              ! set mask for extra smoothing
+              DO je = 2, tg%je-1
+                 DO ie = 2, tg%ie-1         
+                    zdh_x1 = ABS( ff_filt(ie-1,je,1) - ff_filt(ie,je,1) )
+                    zdh_x2 = ABS( ff_filt(ie+1,je,1) - ff_filt(ie,je,1) )
+                    zdh_max = MAX( zdh_x1, zdh_x2 )
+                    IF ( zdh_max > rxso_mask ) THEN
+                       hfx_mask(ie+hfw_m_nb,je+hfw_m_nb) = .TRUE.
+                    ENDIF
+                    zdh_y1 = ABS( ff_filt(ie,je-1,1) - ff_filt(ie,je,1) )
+                    zdh_y2 = ABS( ff_filt(ie,je+1,1) - ff_filt(ie,je,1) )
+                    zdh_max = MAX( zdh_y1, zdh_y2 )
+                    IF ( zdh_max > rxso_mask ) THEN
+                       hfy_mask(ie+hfw_m_nb,je+hfw_m_nb) = .TRUE.
+                    ENDIF
+                    IF ( ldhsurf_xy ) THEN
+                       zdh_xy1 = ABS( ff_filt(ie-1,je-1,1) - ff_filt(ie,je,1) )
+                       zdh_xy2 = ABS( ff_filt(ie+1,je+1,1) - ff_filt(ie,je,1) )
+                       zdh_xy3 = ABS( ff_filt(ie-1,je+1,1) - ff_filt(ie,je,1) )
+                       zdh_xy4 = ABS( ff_filt(ie+1,je-1,1) - ff_filt(ie,je,1) )
+                       zdh_max = MAX( zdh_xy1, zdh_xy2, zdh_xy3, zdh_xy4 )
+                       IF ( zdh_max > SQRT(2.0_ireals)*rxso_mask ) THEN
+                          hfx_mask(ie+hfw_m_nb,je+hfw_m_nb) = .TRUE.
+                          hfy_mask(ie+hfw_m_nb,je+hfw_m_nb) = .TRUE.
+                       ENDIF
+                    ENDIF
+                    
+                 ENDDO
+              ENDDO
+              CALL hfilter_orography( ncutoff=ilow_pass_xso, lhf_mask=.TRUE.,&
+                                      hfx_mask=hfx_mask, hfy_mask=hfy_mask,  &
+                                      tg=tg, ie_ext_hf=ie_ext_hf,            &
+                                      je_ext_hf=je_ext_hf, hfw_m_nb=hfw_m_nb,&
+                                      hfwidth=hfwidth, field=ff_filt)  
+           ENDDO
+           
+           DEALLOCATE( hfx_mask, hfy_mask, STAT = errorcode )
+           IF(errorcode/=0) CALL abort_extpar('Cant deallocate hfx_mask, hfy_mask')
+           
+        ENDIF ! ilow_pass_xso >= ilow_pass_oro
+     ENDIF ! rxso_mask > 0.0_ireals
+
+     IF ( lxso_first ) THEN
+
+        !> filtering in x-direction
+   
+        ! Set the dimension
+        ndim = tg%ie   
+        ! allocate the necessary fields for gaussian elimination
+        ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
+             a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode)
+        IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
+        ! Set the above variables for the gaussian elimination
+        CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
+        ! Apply the filter for every line
+        DO je = 1, tg%je
+           xy_vec(:) = ff_filt(:,je,1)
+           CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
+                ndim, eps_filter)
+           ff_filt(:,je,1) = xy_vec(:)
+        ENDDO
+        ! Release memory
+        DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
+   
+        !> filtering in y-direction
+   
+        ! Set the dimension
+        ndim = tg%je
+        ! allocate the necessary fields for gaussian elimination
+        ALLOCATE (xy_vec(ndim), ci(ndim), cj(ndim), ck(ndim), cl(ndim), cm(ndim),&
+             a(ndim),  b(ndim),  c(ndim),  d(ndim),  e(ndim),  f(ndim),STAT=errorcode) 
+        IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate xy_vec, ci, and so on')
+        ! Set the above variables for the gaussian elimination
+        CALL set_gauss (a, b, c, d, e, f, ci, cj, ck, cl, cm, ndim, eps_filter)
+        ! Apply the filter for every column
+        DO ie = 1, tg%ie
+           xy_vec(:) = ff_filt(ie,:,1)
+           CALL low_pass_filter (xy_vec, a, b, c, d, e, f, ci, cj, ck, cl, cm,   &
+                ndim, eps_filter)
+           ff_filt(ie,:,1) = xy_vec(:)
+        ENDDO
+        ! Release memory
+        DEALLOCATE (xy_vec, ci, cj, ck, cl, cm, a, b, c, d, e, f,STAT=errorcode)
+        IF(errorcode/=0) CALL abort_extpar('Cant deallocate xy_vec, ci, and so on')
+
+     ENDIF ! lxso_first
+    ENDDO ! numfilt_oro
 
   !>> local filtering (weights by J. Foerstner, DWD)
-  CASE( 4:6, 8 )
+  CASE( 3:6, 8 )
      !> standard orography smoothing performed
      !  before eXtra SmOothing of steep oro.
      IF ( .NOT.lxso_first ) THEN
         ! set width of the stencil for the horizontal filter
         SELECT CASE( ilow_pass_oro )
-        CASE( 4, 6 )
+        CASE( 3, 4, 6 )
            hfwidth = 4
         CASE( 5, 8 )
            hfwidth = 6
         END SELECT
         hfw_m_nb = hfwidth 
-        ie_ext_hf = INT(tg%ie + 2*hfw_m_nb  ,i8)
-        je_ext_hf = INT(tg%je + 2*hfw_m_nb ,i8)
+        ie_ext_hf = INT(tg%ie + 2*hfw_m_nb,i8)
+        je_ext_hf = INT(tg%je + 2*hfw_m_nb,i8)
         DO n = 1, numfilt_oro
            CALL hfilter_orography( ncutoff=ilow_pass_oro, lhf_mask=.FALSE., &
                                    tg=tg, ie_ext_hf=ie_ext_hf,              &
@@ -382,7 +498,7 @@ SUBROUTINE do_orosmooth   (tg,                                 &
         IF ( rxso_mask > 0.0_ireals ) THEN           
            ! set width of the stencil for the horizontal filter
            SELECT CASE( ilow_pass_xso )
-           CASE( 4, 6 )
+           CASE( 3, 4, 6 )
               hfwidth = 4
            CASE( 5, 8 )
               hfwidth = 6
@@ -391,8 +507,8 @@ SUBROUTINE do_orosmooth   (tg,                                 &
            ie_ext_hf = tg%ie + 2*hfw_m_nb
            je_ext_hf = tg%je + 2*hfw_m_nb  
            ALLOCATE( hfx_mask(ie_ext_hf,je_ext_hf),  &
-                hfy_mask(ie_ext_hf,je_ext_hf),  &
-                STAT = errorcode )
+                     hfy_mask(ie_ext_hf,je_ext_hf),  &
+                     STAT = errorcode )
            IF(errorcode/=0) CALL abort_extpar('Cant allocate hfx_mask, hfy_mask')
 
            DO n = 1, numfilt_xso        
@@ -445,7 +561,7 @@ SUBROUTINE do_orosmooth   (tg,                                 &
      IF ( lxso_first ) THEN
         ! set width of the stencil for the horizontal filter
         SELECT CASE( ilow_pass_oro )
-        CASE( 4, 6 )
+        CASE( 3, 4, 6 )
            hfwidth = 4
         CASE( 5, 8 )
            hfwidth = 6
