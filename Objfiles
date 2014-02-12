@@ -29,7 +29,6 @@ mo_ecoclimap_data.o \
 mo_ecoclimap_lookup_tables.o \
 mo_ecoclimap_tg_fields.o \
 mo_exception.o \
-mo_extpar_output_grib.o \
 mo_extpar_output_nc.o \
 mo_flake_data.o \
 mo_flake_output_nc.o \
@@ -49,7 +48,6 @@ mo_grid_structures.o \
 mo_icon_domain.o \
 mo_icon_grid_data.o \
 mo_icon_grid_routines.o \
-mo_io_grib_api.o \
 mo_io_units.o \
 mo_io_utilities.o \
 mo_kind.o \
@@ -83,4 +81,9 @@ mo_topo_routines.o \
 mo_topo_sso.o \
 mo_topo_tg_fields.o \
 mo_utilities_extpar.o \
-mo_var_meta_data.o \
+mo_var_meta_data.o 
+
+GRIBOBJ := \
+mo_extpar_output_grib.o \
+mo_io_grib_api.o 
+

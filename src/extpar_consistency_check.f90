@@ -373,8 +373,10 @@ USE mo_lsm_output_nc, ONLY: read_netcdf_buffer_lsm
 USE mo_extpar_output_nc, ONLY: write_netcdf_icon_grid_extpar, &
   &                        write_netcdf_cosmo_grid_extpar
 
+#ifdef GRIBAPI
 USE mo_extpar_output_grib, ONLY: write_cosmo_grid_extpar_grib, &
   &                              write_gme_grid_extpar_grib
+#endif
 
 USE mo_math_constants, ONLY: deg2rad, rad2deg
 USE mo_physical_constants, ONLY: re ! av. radius of the earth [m]
@@ -1979,6 +1981,8 @@ SELECT CASE(igrid_type)
      &                                     slope_ang_topo=slope_ang_topo,&
      &                                     horizon_topo=horizon_topo,    &
      &                                     skyview_topo=skyview_topo)
+
+#ifdef GRIBAPI
      PRINT *,'write out ', TRIM(grib_output_filename)
      
      WHERE (crutemp < -1E19) crutemp = 9999
@@ -2040,9 +2044,12 @@ SELECT CASE(igrid_type)
       &                                     slope_ang_topo=slope_ang_topo,&
       &                                     horizon_topo=horizon_topo,    &
       &                                     skyview_topo=skyview_topo)
- 
+
+#endif 
   
-  CASE(igrid_gme) ! GME grid  
+  CASE(igrid_gme) ! GME grid
+
+#ifdef GRIBAPI  
      PRINT *,'write out ', TRIM(grib_output_filename)
 
        CALL  write_gme_grid_extpar_grib(TRIM(grib_output_filename),  &
@@ -2096,7 +2103,9 @@ SELECT CASE(igrid_type)
             &                           theta_topo=theta_topo,       &
             &                           aniso_topo=aniso_topo,       &
             &                           slope_topo= slope_topo)
-
+#else
+  PRINT *,'program compiled without GRIB support! GME output is not possible!'
+#endif
 
 END SELECT
 

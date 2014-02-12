@@ -58,8 +58,8 @@ DBGL     =
 DBGI     = 
 
 # Grib API library
-LIB     += -L/usr/local/ecmwf_tools/grib_api.1.11-pgi-13.2/lib -lgrib_api_f90 -lgrib_api 
-INC     += -I/usr/local/ecmwf_tools/grib_api.1.11-pgi-13.2/include 
+GRIBL    = -L/usr/local/ecmwf_tools/grib_api.1.11-pgi-13.2/lib -lgrib_api_f90 -lgrib_api 
+GRIBI    = -I/usr/local/ecmwf_tools/grib_api.1.11-pgi-13.2/include 
 
 # NetCDF library
 LIB     += -L${NETCDF}/lib -lnetcdff -lnetcdf 

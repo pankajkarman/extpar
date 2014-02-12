@@ -36,6 +36,12 @@ TARGETS    := \
   extpar_topo_to_buffer.exe
 
 
+# generate list of source files
+-include $(ROOT)/Srcfiles
+ifndef SRC
+  $(error Could not load Srcfiles file)
+endif
+
 # generate list of object files
 -include $(ROOT)/Objfiles
 ifndef OBJ
@@ -44,7 +50,7 @@ endif
 
 # dynamically generated dependency file
 DEPF       := .depend
-IGN        := 
+IGN        := --ignore netcdf --ignore grib_api
 
 # if machine is not defined, try to determine it
 ifndef MACH
@@ -71,8 +77,16 @@ ifdef OPT
   LIB     += $(OPTL)
   INC     += $(OPTI)
 endif
+ifdef GRIBAPI
+  LIB     += $(GRIBL)
+  INC     += -DGRIBAPI $(GRIBI)
+  OBJ     += $(GRIBOBJ)
+  SRC     += $(GRIBSRC)
+else
+  IGN     += --ignore mo_io_grib_api --ignore mo_extpar_output_grib
+endif
 
-export ROOT VPATH MACH VERBOSE DEBUG OPT
+export ROOT VPATH MACH VERBOSE DEBUG OPT GRIBAPI
 
 ### Phony targets ###########################
 
@@ -82,7 +96,8 @@ default : opt
 
 depend :
 	@echo "generating dependencies"
-	@$(ROOT)/bin/sfmakedepend --case down --longpath $(INC) $(IGN) --file $(ROOT)/$(DEPF) $(ROOT)/$(SRCDIR)/*.f90
+	@echo $(SRC)
+	@$(ROOT)/bin/sfmakedepend --case down --longpath $(INC) $(IGN) --file $(ROOT)/$(DEPF) $(SRC)
 
 info :
 	@echo "generating compile information"
@@ -100,17 +115,17 @@ info :
 	@-rm -f $(ROOT)/.fconfig
 
 opt :
-	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 depend info
+	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 GRIBAPI=1 depend info
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
-	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $$target ; \
+	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 GRIBAPI=1 $$target ; \
    done
 
 debug :
-	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 depend info
+	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 GRIBAPI=1 depend info
 	@for target in $(TARGETS) ; do \
      echo "generating target $$target" ; \
-	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $$target ; \
+	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 GRIBAPI=1 $$target ; \
    done
                                                             
 clean :
