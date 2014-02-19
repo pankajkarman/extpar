@@ -22,12 +22,12 @@ export GRIB_DEFINITION_PATH=${rootdir}/../grib_api_definitions
 export GRIB_SAMPLES_PATH=${rootdir}/../grib_sample
 
 # Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
-sandboxdir=/store/s83/tsm/extpar/sandbox_c7_globe
+sandboxdir=/store/s83/tsm/extpar/sandbox_c1_globe
 
 # Output file format and names; adjust!
 grib_sample='rotated_ll_pl_grib1'
-grib_output_filename='external_parameter_mch_cosmo7.g1'
-netcdf_output_filename='external_parameter_mch_cosmo7.nc'
+grib_output_filename='external_parameter_mch_cosmo1.g1'
+netcdf_output_filename='external_parameter_mch_cosmo1.nc'
 #---------------------------------------------------------------------------------------------------------
 
 
@@ -42,7 +42,6 @@ binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
 
 binary_consistency_check=extpar_consistency_check.exe
-
 
 # Prepare working directory
 if [[ ! -d ${sandboxdir} ]] ; then
@@ -203,12 +202,12 @@ cat > INPUT_COSMO_GRID << EOF_grid
 &lmgrid
  pollon=-170.0, 
  pollat=43.0, 
- startlon_tot=-18.0, 
- startlat_tot=-12.9,
- dlon=0.06,
- dlat=0.06,
- ie_tot=601,
- je_tot=421,
+ startlon_tot=-9.0, 
+ startlat_tot=-9.0,
+ dlon=0.01,
+ dlat=0.01,
+ ie_tot=1801,
+ je_tot=1801,
 /
 EOF_grid
 #---
@@ -265,7 +264,7 @@ cat > INPUT_LU << EOF_lu
    raw_data_lu_path='',
    raw_data_lu_filename='${raw_data_glc2000}',
    i_landuse_data=2,
-   ilookup_table_lu=2
+   ilookup_table_lu=2 
 /
 &lu_io_extpar
    lu_buffer_file='${buffer_lu}',
@@ -292,7 +291,7 @@ cat > INPUT_ORO << EOF_oro
  raw_data_orography_path='',
  ntiles_column = 4,
  ntiles_row = 4,
- topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
+ topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}'
 /
 EOF_oro
 #--- topo_FILES = '${raw_data_aster_T01}' '${raw_data_aster_T02}'  '${raw_data_aster_T03}'  '${raw_data_aster_T04}'  '${raw_data_aster_T05}'  '${raw_data_aster_T06}'  '${raw_data_aster_T07}'  '${raw_data_aster_T08}'  '${raw_data_aster_T09}'  '${raw_data_aster_T10}'  '${raw_data_aster_T11}'  '${raw_data_aster_T12}'  '${raw_data_aster_T13}'  '${raw_data_aster_T14}'  '${raw_data_aster_T15}'  '${raw_data_aster_T16}'  '${raw_data_aster_T17}'  '${raw_data_aster_T18}'  '${raw_data_aster_T19}'  '${raw_data_aster_T20}' '${raw_data_aster_T21}'  '${raw_data_aster_T22}'  '${raw_data_aster_T23}'  '${raw_data_aster_T24}'  '${raw_data_aster_T25}'  '${raw_data_aster_T26}'  '${raw_data_aster_T27}'  '${raw_data_aster_T28}'  '${raw_data_aster_T29}'  '${raw_data_aster_T30}'  '${raw_data_aster_T31}'  '${raw_data_aster_T32}'  '${raw_data_aster_T33}'  '${raw_data_aster_T34}'  '${raw_data_aster_T35}'  '${raw_data_aster_T36}'
@@ -322,7 +321,7 @@ EOF_radtopo
 #---
 cat > INPUT_SCALE_SEP << EOF_scale_sep
 &scale_separated_raw_data
-  lscale_separation = .TRUE.,
+  lscale_separation = .FALSE.,
   raw_data_scale_sep_path = '',
   scale_sep_files = '${raw_filt_globe_A10}' '${raw_filt_globe_B10}'  '${raw_filt_globe_C10}'  '${raw_filt_globe_D10}'  '${raw_filt_globe_E10}'  '${raw_filt_globe_F10}'  '${raw_filt_globe_G10}'  '${raw_filt_globe_H10}'  '${raw_filt_globe_I10}'  '${raw_filt_globe_J10}'  '${raw_filt_globe_K10}'  '${raw_filt_globe_L10}'  '${raw_filt_globe_M10}'  '${raw_filt_globe_N10}'  '${raw_filt_globe_O10}'  '${raw_filt_globe_P10}'
 /

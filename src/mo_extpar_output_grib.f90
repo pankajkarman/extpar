@@ -60,6 +60,11 @@ MODULE mo_extpar_output_grib
 
   USE grib_api 
   USE mo_io_grib_api
+  USE mo_var_meta_data, ONLY: aer_bc_meta
+  USE mo_var_meta_data, ONLY: aer_dust_meta
+  USE mo_var_meta_data, ONLY: aer_org_meta
+  USE mo_var_meta_data, ONLY: aer_so4_meta
+  USE mo_var_meta_data, ONLY: aer_ss_meta
 
 
 
@@ -274,6 +279,7 @@ MODULE mo_extpar_output_grib
   INTEGER (KIND=i8)  :: dataTime
   INTEGER :: mm ! month
   INTEGER :: ntype ! type of aerosol
+  TYPE(var_meta_info) :: field_meta
 
 
 
@@ -345,43 +351,43 @@ MODULE mo_extpar_output_grib
   PRINT *,'fr_land_lu_meta%shortName: ',fr_land_lu_meta%shortName
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_land_lu,fr_land_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_land_lu,fr_land_lu_meta,dataDate,dataTime)
 
   PRINT *,'hh_topo_meta%shortName: ',hh_topo_meta%shortName
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,hh_topo,hh_topo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,hh_topo,hh_topo_meta,dataDate,dataTime)
   
   ! output FIS as well
   PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,hh_topo*grav,hh_fis_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,hh_topo*grav,hh_fis_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,stdh_topo,stdh_topo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,stdh_topo,stdh_topo_meta,dataDate,dataTime)
   
   IF (lsso) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,theta_topo,theta_topo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,theta_topo,theta_topo_meta,dataDate,dataTime)
   ENDIF
 
   IF (lsso) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,aniso_topo,aniso_topo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,aniso_topo,aniso_topo_meta,dataDate,dataTime)
   ENDIF
 
   IF (lsso) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,slope_topo,slope_topo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,slope_topo,slope_topo_meta,dataDate,dataTime)
   ENDIF
 
   IF (lrad) THEN
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,slope_asp_topo,slope_asp_topo_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,slope_asp_topo,slope_asp_topo_meta,dataDate,dataTime)
   ENDIF
   IF (lrad) THEN
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,slope_ang_topo,slope_ang_topo_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,slope_ang_topo,slope_ang_topo_meta,dataDate,dataTime)
   ENDIF
 !ROATODO: check 4D
   IF (lrad) THEN
@@ -389,99 +395,99 @@ MODULE mo_extpar_output_grib
       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
       & horizon_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
       CALL write_extpar_cosmo_real_1lev_grib(outfile_id,TRIM(grib_sample),&
-      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime,mm)
+      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta,dataDate,dataTime,mm)
 !      CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
 !      & cosmo_grid,extpar_cosmo_buffer,horizon_topo_meta%shortName,dataDate,dataTime)
     ENDDO
   ENDIF
   IF (lrad) THEN
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,skyview_topo,skyview_topo_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,skyview_topo,skyview_topo_meta,dataDate,dataTime)
   ENDIF
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,plcov_mn_lu,plcov_mn_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,plcov_mx_lu,plcov_mx_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,plcov_mx_lu,plcov_mx_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-  & cosmo_grid,lai_mn_lu,lai_mn_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,lai_mn_lu,lai_mn_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,lai_mx_lu,lai_mx_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,lai_mx_lu,lai_mx_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-  & cosmo_grid,rs_min_lu,rs_min_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,rs_min_lu,rs_min_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-  & cosmo_grid,for_e_lu,for_e_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,for_e_lu,for_e_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-  & cosmo_grid,for_d_lu,for_d_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,for_d_lu,for_d_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-  & cosmo_grid,emissivity_lu,emissivity_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,emissivity_lu,emissivity_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,root_lu,root_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,root_lu,root_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,z0_lu,z0_lu_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,z0_lu,z0_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,lake_depth,lake_depth_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,lake_depth,lake_depth_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_lake,fr_lake_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_lake,fr_lake_meta,dataDate,dataTime)
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,soiltype_fao,soiltype_fao_meta,dataDate,dataTime)
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_sand,HWSD_SAND_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_sand,HWSD_SAND_meta,dataDate,dataTime)
   ENDIF
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_silt,HWSD_SILT_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_silt,HWSD_SILT_meta,dataDate,dataTime)
   ENDIF
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_clay,HWSD_CLAY_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_clay,HWSD_CLAY_meta,dataDate,dataTime)
   ENDIF
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_oc,HWSD_OC_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_oc,HWSD_OC_meta,dataDate,dataTime)
   ENDIF
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_bd,HWSD_BD_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_bd,HWSD_BD_meta,dataDate,dataTime)
   ENDIF
 
   IF(isoil_data == HWSD_data) THEN
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,fr_dm,HWSD_DM_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,fr_dm,HWSD_DM_meta,dataDate,dataTime)
   ENDIF
 
 
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,crutemp,crutemp_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,crutemp,crutemp_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,lon_geo,lon_geo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,lon_geo,lon_geo_meta,dataDate,dataTime)
   
   CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-  & cosmo_grid,lat_geo,lat_geo_meta%shortName,dataDate,dataTime)
+  & cosmo_grid,lat_geo,lat_geo_meta,dataDate,dataTime)
 
  ! urban_lu
  ! ndvi_max
  CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
- & cosmo_grid,ndvi_max,ndvi_max_meta%shortName,dataDate,dataTime)
+ & cosmo_grid,ndvi_max,ndvi_max_meta,dataDate,dataTime)
 
  ! ndvi_field_mom
  DO mm=1,12
@@ -490,7 +496,7 @@ MODULE mo_extpar_output_grib
     extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
   & ndvi_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,extpar_cosmo_buffer,ndvi_field_mom_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,extpar_cosmo_buffer,ndvi_field_mom_meta,dataDate,dataTime)
  ENDDO
 
  ! ndvi_ratio_mom
@@ -500,7 +506,7 @@ MODULE mo_extpar_output_grib
     extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
   & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm) 
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,extpar_cosmo_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,extpar_cosmo_buffer,ndvi_ratio_mom_meta,dataDate,dataTime)
  ENDDO
 
  DO mm=1,12
@@ -508,19 +514,31 @@ MODULE mo_extpar_output_grib
     extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
   & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,mm)
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample),&
-    & cosmo_grid,extpar_cosmo_buffer,alb_field_mom_meta%shortName,dataDate,dataTime)
+    & cosmo_grid,extpar_cosmo_buffer,alb_field_mom_meta,dataDate,dataTime)
  ENDDO 
 
  ! aot_tg
 
  DO ntype=1,ntype_aot
+   SELECT CASE ( ntype )
+   CASE ( 1 )
+     field_meta = aer_bc_meta
+   CASE ( 2 )
+     field_meta = aer_dust_meta
+   CASE ( 3 )
+     field_meta = aer_org_meta
+   CASE ( 4 )
+     field_meta = aer_so4_meta
+   CASE ( 5 )
+     field_meta = aer_ss_meta
+   END SELECT
    DO mm=1,12
    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
     CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
     extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
   & aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,ntype,mm)
     CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-    & cosmo_grid,extpar_cosmo_buffer,aot_type_shortname(ntype),dataDate,dataTime)
+    & cosmo_grid,extpar_cosmo_buffer,field_meta,dataDate,dataTime)
    ENDDO
  ENDDO
  ! ice_lu
@@ -693,6 +711,7 @@ MODULE mo_extpar_output_grib
   INTEGER (KIND=i8)  :: dataTime
   INTEGER :: mm ! month
   INTEGER :: ntype ! type of aerosol
+  TYPE(var_meta_info) :: field_meta
 
   REAL (KIND=wp) :: real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd)
 
@@ -763,88 +782,88 @@ MODULE mo_extpar_output_grib
   PRINT *,'fr_land_lu_meta%shortName: ',fr_land_lu_meta%shortName
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,fr_land_lu,TRIM(fr_land_lu_meta%shortName),dataDate,dataTime)
+  & gme_grid,fr_land_lu,fr_land_lu_meta,dataDate,dataTime)
 
   PRINT *,'hh_topo_meta%shortName: ',hh_topo_meta%shortName
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,hh_topo,hh_topo_meta%shortName,dataDate,dataTime)
+  & gme_grid,hh_topo,hh_topo_meta,dataDate,dataTime)
   ! output FIS as well
   PRINT *,'hh_fis_meta%shortName: ',hh_fis_meta%shortName
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,hh_topo*grav,hh_fis_meta%shortName,dataDate,dataTime)
+  & gme_grid,hh_topo*grav,hh_fis_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,stdh_topo,stdh_topo_meta%shortName,dataDate,dataTime)
+  & gme_grid,stdh_topo,stdh_topo_meta,dataDate,dataTime)
   
   IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,theta_topo,theta_topo_meta%shortName,dataDate,dataTime)
+  & gme_grid,theta_topo,theta_topo_meta,dataDate,dataTime)
   ENDIF
 
   IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,aniso_topo,aniso_topo_meta%shortName,dataDate,dataTime)
+  & gme_grid,aniso_topo,aniso_topo_meta,dataDate,dataTime)
   ENDIF
 
   IF (lsso) THEN
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,slope_topo,slope_topo_meta%shortName,dataDate,dataTime)
+  & gme_grid,slope_topo,slope_topo_meta,dataDate,dataTime)
   ENDIF
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,plcov_mn_lu,plcov_mn_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,plcov_mn_lu,plcov_mn_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,plcov_mx_lu,plcov_mx_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,plcov_mx_lu,plcov_mx_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,lai_mn_lu,lai_mn_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,lai_mn_lu,lai_mn_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,lai_mx_lu,lai_mx_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,lai_mx_lu,lai_mx_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,rs_min_lu,rs_min_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,rs_min_lu,rs_min_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,for_e_lu,for_e_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,for_e_lu,for_e_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,for_d_lu,for_d_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,for_d_lu,for_d_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,emissivity_lu,emissivity_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,emissivity_lu,emissivity_lu_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,root_lu,root_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,root_lu,root_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,z0_lu,z0_lu_meta%shortName,dataDate,dataTime)
+  & gme_grid,z0_lu,z0_lu_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,lake_depth,lake_depth_meta%shortName,dataDate,dataTime)
+  & gme_grid,lake_depth,lake_depth_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,fr_lake,fr_lake_meta%shortName,dataDate,dataTime)
+  & gme_grid,fr_lake,fr_lake_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,soiltype_fao,soiltype_fao_meta%shortName,dataDate,dataTime)
+  & gme_grid,soiltype_fao,soiltype_fao_meta,dataDate,dataTime)
 
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,crutemp,crutemp_meta%shortName,dataDate,dataTime)
+  & gme_grid,crutemp,crutemp_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-  & gme_grid,lon_geo,lon_geo_meta%shortName,dataDate,dataTime)
+  & gme_grid,lon_geo,lon_geo_meta,dataDate,dataTime)
   
   CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-  & gme_grid,lat_geo,lat_geo_meta%shortName,dataDate,dataTime)
+  & gme_grid,lat_geo,lat_geo_meta,dataDate,dataTime)
 
 
  ! urban_lu
  ! ndvi_max
  CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
- & gme_grid,ndvi_max,ndvi_max_meta%shortName,dataDate,dataTime)
+ & gme_grid,ndvi_max,ndvi_max_meta,dataDate,dataTime)
  ! ndvi_field_mom
  
  DO mm=1,12
@@ -853,7 +872,7 @@ MODULE mo_extpar_output_grib
     real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
   & ndvi_field_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm)
     CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-    & gme_grid,real_buffer,ndvi_field_mom_meta%shortName,dataDate,dataTime)
+    & gme_grid,real_buffer,ndvi_field_mom_meta,dataDate,dataTime)
  ENDDO
  ! ndvi_ratio_mom
  DO mm=1,12
@@ -862,7 +881,7 @@ MODULE mo_extpar_output_grib
     real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
   & ndvi_ratio_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm) 
     CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-    & gme_grid,real_buffer,ndvi_ratio_mom_meta%shortName,dataDate,dataTime)
+    & gme_grid,real_buffer,ndvi_ratio_mom_meta,dataDate,dataTime)
  ENDDO
 
  ! alb_field_mom
@@ -871,19 +890,31 @@ MODULE mo_extpar_output_grib
     real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
   & alb_field_mom(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,mm)
     CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample),&
-    & gme_grid,real_buffer,alb_field_mom_meta%shortName,dataDate,dataTime)
+    & gme_grid,real_buffer,alb_field_mom_meta,dataDate,dataTime)
  ENDDO
 
  ! aot_tg
 
  DO ntype=1,ntype_aot
+   SELECT CASE ( ntype )
+   CASE ( 1 )
+     field_meta = aer_bc_meta
+   CASE ( 2 )
+     field_meta = aer_dust_meta
+   CASE ( 3 )
+     field_meta = aer_org_meta
+   CASE ( 4 )
+     field_meta = aer_so4_meta
+   CASE ( 5 )
+     field_meta = aer_ss_meta
+   END SELECT
    DO mm=1,12
    ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
     CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
     real_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) = &
   & aot_tg(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd,ntype,mm)
     CALL write_extpar_gme_field_grib(outfile_id,TRIM(grib_sample), &
-    & gme_grid,real_buffer,aot_type_shortname(ntype),dataDate,dataTime)
+    & gme_grid,real_buffer,field_meta,dataDate,dataTime)
    ENDDO
  ENDDO
  ! ice_lu

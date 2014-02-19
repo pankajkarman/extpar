@@ -33,6 +33,7 @@ MODULE mo_io_grib_api
   USE mo_kind, ONLY: i4
 
   USE mo_io_units, ONLY: filename_max
+  USE mo_io_utilities, ONLY: var_meta_info
 
 
 
@@ -68,9 +69,6 @@ MODULE mo_io_grib_api
   CHARACTER (LEN=keylen_max) :: shortName !< short name of the parameter
   INTEGER                    :: centre !< Identification of originating/generating centre,
   INTEGER, PARAMETER :: dwd_id_grib =78   !< the number 78 is for DWD, Offenbach
-!roa mch>
-  INTEGER, PARAMETER :: mch_id_grib=215
-!roa mch<
 
 
   ! keys for represenation of data values
@@ -234,10 +232,10 @@ MODULE mo_io_grib_api
 
   !> set product defintion for a GRIB message with GRIB_API
   !! the grib message should have been previously defined, pass the gribid to this subroutine
-  SUBROUTINE set_parameter_grib(gribid,shortName,dataDate,dataTime)
+  SUBROUTINE set_parameter_grib(gribid,field_meta,dataDate,dataTime)
 
     INTEGER, INTENT(IN)   :: gribid !< id of grib message (GRIB_API)
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName 
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=i8), INTENT(IN)  :: dataDate  
 !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
@@ -258,74 +256,45 @@ MODULE mo_io_grib_api
     INTEGER  :: hh
     INTEGER  :: minute
 
-!roa mch>
-!    CALL grib_get(gribid,'centre',centre,errorcode)
-     centre=mch_id_grib
-!roa mch<
+    ! Get GRIB edition number and originating center
+    ! (these values are taken from specified GRIB sample)
+    CALL grib_get(gribid,'centre',centre,errorcode)
     CALL grib_get(gribid,'editionNumber',editionNumber,errorcode)
 
 
+!    PRINT *,'HA debug: shortName: ',TRIM(field_meta%shortName)
+    CALL grib_set(gribid,'shortName',TRIM(field_meta%shortName),errorcode) 
+    ! this is an "edition independent" setting of the parameter values 
+    ! in the product defintion section, the GRIB1 or GRIB2 entries are 
+    ! taken from the data of the *.def files in $GRIB_DEFINITION_PATH/grib1 
+    ! or $GRIB_DEFINITION_PATH/grib1
     ! define precision for the GRIB
-    bitsPerValue=16
-    CALL grib_set(gribid,"bitsPerValue", bitsPerValue)
 
-
-     ! set stepType for GRIB1 and GRIB2, as the GRIB sample may not have the correct value
-     ! set timeRangeIndicator for GRIB1 explicit
-     ! the dataDate values are conventions for external parameter fields 
-     ! \TODO maybe in GRIB2 these settings have to be improved
-    CALL grib_set(gribid,"stepType","instant")
-    IF (editionNumber == 1) THEN
-      CALL  grib_set(gribid,"timeRangeIndicator",0) ! GRIB1 setting
-    ENDIF
-    IF ((dataDate >= 11110111).AND.(dataDate <= 11111211)) THEN
-!      CALL grib_set(gribid,"stepType","avg")
-      IF (editionNumber == 1) THEN
-        CALL  grib_set(gribid,"timeRangeIndicator",3) ! GRIB1 setting
+    ! set stepType for GRIB1 and GRIB2, as the GRIB sample may not have the correct value
+    ! the dataDate values are conventions for external parameter fields 
+    ! \TODO maybe in GRIB2 these settings have to be improved
+    IF ( editionNumber == 1 ) THEN
+      IF ( ANY(field_meta%stepType == (/'min','max'/)) ) THEN
+        ! ... GRIB 1 does not support 'min' and 'max' ==> use generic time range instead
+        !     (the GRIB API is setting the value 2 in this case, but also changes the
+        !      originating centre, which is not acceptable)
+        CALL grib_set(gribid,"timeRangeIndicator",2)
       ELSE
-!        print *,'FB, debug, mo_io_grib_api grib_set stepType=avg'
-        CALL grib_set(gribid,"stepType","avg")
+        CALL grib_set(gribid,"stepType",TRIM(field_meta%stepType))
       ENDIF
+    ELSE
+      CALL grib_set(gribid,"stepType",TRIM(field_meta%stepType))
     ENDIF
 
     CALL grib_set(gribid,'dataDate ',dataDate)
     CALL grib_set(gribid,'dataTime ',dataTime)
 
+    bitsPerValue=16
+    CALL grib_set(gribid,"bitsPerValue", bitsPerValue)
 
-!    PRINT *,'HA debug: shortName: ',TRIM(shortName)
-    CALL grib_set(gribid,'shortName',TRIM(shortName),errorcode) 
-    ! this is an "edition independent" setting of the parameter values 
-    ! in the product defintion section, the GRIB1 or GRIB2 entries are 
-    ! taken from the data of the *.def files in $GRIB_DEFINITION_PATH/grib1 
-    ! or $GRIB_DEFINITION_PATH/grib1
-    
-    IF (editionNumber == 1) THEN
-      IF (TRIM(shortName)=='DEPTH_LK') THEN
-        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
-        CALL grib_set(gribid,"indicatorOfParameter", 96)  ! element
-        CALL grib_set(gribid,"table2Version", 201)        ! table
-      ENDIF
-      IF (TRIM(shortName)=='FR_LAKE') THEN
-        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
-        CALL grib_set(gribid,"indicatorOfParameter", 55)  ! element
-        CALL grib_set(gribid,"table2Version", 202)        ! table
-      ENDIF
-    ELSEIF (editionNumber == 2) THEN
-      IF (TRIM(shortName)=='DEPTH_LK') THEN
-        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
-        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
-        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
-        CALL grib_set(gribid,"parameterNumber",0)   ! parameterNumber 'water depth'
-      ENDIF
-      IF (TRIM(shortName)=='FR_LAKE') THEN
-        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
-        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
-        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
-        CALL grib_set(gribid,"parameterNumber",2)   ! parameterNumber 'water fraction'
-      ENDIF
-    ENDIF
+    CALL grib_set(gribid,'resolutionAndComponentFlags',0)
 
-    IF (TRIM(shortName)=='T_2M_CL') THEN
+    IF (TRIM(field_meta%shortName)=='T_2M_CL') THEN
       CALL grib_set(gribid,'bitmapPresent',1)
     ENDIF
 
@@ -345,13 +314,11 @@ MODULE mo_io_grib_api
       CALL grib_set(gribid,'localDecodeDateMinute ',minute)
     ENDIF
 
-     CALL grib_set(gribid,'resolutionAndComponentFlags',0)
-
   END SUBROUTINE set_parameter_grib
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_cosmo_real_1lev_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime,ilev)
+  SUBROUTINE write_extpar_cosmo_real_1lev_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,field_meta,dataDate,dataTime,ilev)
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
@@ -361,7 +328,7 @@ MODULE mo_io_grib_api
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1)
 !< field to write out to GRIB file with outfile_id
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=8), INTENT(IN)  :: dataDate
  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
@@ -369,6 +336,7 @@ MODULE mo_io_grib_api
 
 
     ! local variables
+    INTEGER :: scanning_mode
     INTEGER :: gribid_in !< id of grib message (GRIB_API)
     INTEGER :: gribid_dest !< id of grib message (GRIB_API)
 
@@ -382,9 +350,14 @@ MODULE mo_io_grib_api
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
     CALL set_rotated_ll_grid_gds(gribid_dest,cosmo_grid) ! set gds values for rotated longitude latitude grid
-    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+    CALL set_parameter_grib(gribid_dest,field_meta,dataDate,dataTime) ! set parameter values for gthe GRIB
 
     CALL grib_set(gribid_dest,'level',ilev,errorcode)
+
+    ! scanning mode is (+i ,+j)
+    scanning_mode = 0
+    scanning_mode = IBCLR(scanning_mode,7)  ! ... +i
+    scanning_mode = IBSET(scanning_mode,6)  ! ... +j
 
     ind=0
     DO i=1,cosmo_grid%nlon_rot
@@ -396,6 +369,7 @@ MODULE mo_io_grib_api
 
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
 
+    CALL grib_set(gribid_dest,'scanningMode',scanning_mode,errorcode) ! put data to GRIB message
     CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
     CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
     CALL grib_release(gribid_dest) ! free memory of grib message
@@ -405,7 +379,7 @@ MODULE mo_io_grib_api
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_cosmo_real_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_cosmo_real_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,field_meta,dataDate,dataTime)
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
@@ -415,13 +389,14 @@ MODULE mo_io_grib_api
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1)
 !< field to write out to GRIB file with outfile_id
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=8), INTENT(IN)  :: dataDate 
  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
 
     ! local variables
+    INTEGER :: scanning_mode
     INTEGER :: gribid_in !< id of grib message (GRIB_API)
     INTEGER :: gribid_dest !< id of grib message (GRIB_API)
 
@@ -435,7 +410,12 @@ MODULE mo_io_grib_api
     CALL grib_clone(gribid_in, gribid_dest, errorcode) ! copy the grib message to a new one
     CALL grib_release(gribid_in) ! free memory of first message
     CALL set_rotated_ll_grid_gds(gribid_dest,cosmo_grid) ! set gds values for rotated longitude latitude grid
-    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+    CALL set_parameter_grib(gribid_dest,field_meta,dataDate,dataTime) ! set parameter values for gthe GRIB
+
+    ! scanning mode is (+i ,+j)
+    scanning_mode = 0
+    scanning_mode = IBCLR(scanning_mode,7)  ! ... +i
+    scanning_mode = IBSET(scanning_mode,6)  ! ... +j
 
     ind=0
     DO i=1,cosmo_grid%nlon_rot
@@ -447,6 +427,7 @@ MODULE mo_io_grib_api
 
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
 
+    CALL grib_set(gribid_dest,'scanningMode',scanning_mode,errorcode) ! put data to GRIB message
     CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
     CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
     CALL grib_release(gribid_dest) ! free memory of grib message
@@ -456,7 +437,7 @@ MODULE mo_io_grib_api
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_cosmo_int_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_cosmo_int_field_grib(outfile_id,grib_sample,cosmo_grid,extpar_buffer,field_meta,dataDate,dataTime)
     USE mo_grid_structures, ONLY: rotated_lonlat_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
@@ -466,7 +447,7 @@ MODULE mo_io_grib_api
     TYPE(rotated_lonlat_grid), INTENT(IN)  :: cosmo_grid !< structure which contains the definition of the COSMO grid
     INTEGER(KIND=i4), INTENT(IN)             :: extpar_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) 
 !< field to write out to GRIB file with outfile_id
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=8), INTENT(IN)  :: dataDate  
 !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
@@ -474,6 +455,7 @@ MODULE mo_io_grib_api
 
 
     ! local variables
+    INTEGER :: scanning_mode
     INTEGER :: gribid_in !< id of grib message (GRIB_API)
     INTEGER :: gribid_dest !< id of grib message (GRIB_API)
 
@@ -488,8 +470,12 @@ MODULE mo_io_grib_api
     CALL grib_release(gribid_in) ! free memory of first message
 
     CALL set_rotated_ll_grid_gds(gribid_dest,cosmo_grid) ! set gds values for rotated longitude latitude grid
-    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+    CALL set_parameter_grib(gribid_dest,field_meta,dataDate,dataTime) ! set parameter values for gthe GRIB
 
+    ! scanning mode is (+i ,+j)
+    scanning_mode = 0
+    scanning_mode = IBCLR(scanning_mode,7)  ! ... +i
+    scanning_mode = IBSET(scanning_mode,6)  ! ... +j
 
     ind=0
     DO i=1,cosmo_grid%nlon_rot
@@ -502,6 +488,7 @@ MODULE mo_io_grib_api
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
 
 
+    CALL grib_set(gribid_dest,'scanningMode',scanning_mode,errorcode) ! put data to GRIB message
     CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
     CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
     CALL grib_release(gribid_dest) ! free memory of grib message
@@ -512,7 +499,7 @@ MODULE mo_io_grib_api
   
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_gme_real_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_gme_real_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,field_meta,dataDate,dataTime)
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
@@ -521,7 +508,7 @@ MODULE mo_io_grib_api
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
 !< field to write out to GRIB file with outfile_id
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=8), INTENT(IN)  :: dataDate  
 !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
@@ -546,7 +533,7 @@ MODULE mo_io_grib_api
 
     ! set GME resulution and typ number
     CALL set_gme_grid_def(gribid_dest, gme_grid)
-    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+    CALL set_parameter_grib(gribid_dest,field_meta,dataDate,dataTime) ! set parameter values for gthe GRIB
 
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
     ind=0
@@ -570,7 +557,7 @@ MODULE mo_io_grib_api
 
   !> write field from EXTPAR to a GRIB file for a COSMO field (rotated lon lat grid)
   !! the file should have been previously opende, pass the outfile_id to this subroutine
-  SUBROUTINE write_extpar_gme_int_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,shortName,dataDate,dataTime)
+  SUBROUTINE write_extpar_gme_int_field_grib(outfile_id,grib_sample,gme_grid,extpar_buffer,field_meta,dataDate,dataTime)
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
@@ -579,7 +566,7 @@ MODULE mo_io_grib_api
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
 !< field to write out to GRIB file with outfile_id
-    CHARACTER (LEN=keylen_max), INTENT(IN) :: shortName !< shortName parameter of the field
+    TYPE(var_meta_info), INTENT(IN)        :: field_meta !< field meta data
     INTEGER (KIND=8), INTENT(IN)  :: dataDate  
 !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
@@ -601,7 +588,7 @@ MODULE mo_io_grib_api
 
     ! set GME resulution and typ number
     CALL set_gme_grid_def(gribid_dest, gme_grid)
-    CALL set_parameter_grib(gribid_dest,shortName,dataDate,dataTime) ! set parameter values for gthe GRIB
+    CALL set_parameter_grib(gribid_dest,field_meta,dataDate,dataTime) ! set parameter values for gthe GRIB
 
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
     ind=0

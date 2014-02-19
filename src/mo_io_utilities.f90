@@ -105,6 +105,7 @@ MODULE mo_io_utilities
     CHARACTER (len=keylen_max):: grid_mapping !< netcdf attribute grid mapping
     CHARACTER (len=keylen_max):: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=keylen_max):: shortName    !< GRIB API shortName key 
+    CHARACTER (len=10):: stepType  !< GRIB API type of temporal information (edition independant)
     CHARACTER (len=keylen_max):: data_set     !< name of source data set
   END TYPE var_meta_info
 

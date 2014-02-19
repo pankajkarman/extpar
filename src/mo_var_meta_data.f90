@@ -374,6 +374,7 @@ MODULE mo_var_meta_data
     rlon_meta%standard_name = "grid longitude" 
     rlon_meta%long_name =  "longitude in rotated pole grid"
     rlon_meta%shortName = c_undef
+    rlon_meta%stepType = 'instant'
     rlon_meta%units =  "degrees"
     rlon_meta%grid_mapping = c_undef
     rlon_meta%coordinates = c_undef
@@ -388,6 +389,7 @@ MODULE mo_var_meta_data
     rlat_meta%standard_name = "grid latitude" 
     rlat_meta%long_name =  "latitude in rotated pole grid"
     rlat_meta%shortName = c_undef
+    rlat_meta%stepType = 'instant'
     rlat_meta%units =  "degrees"
     rlat_meta%grid_mapping = c_undef
     rlat_meta%coordinates = c_undef
@@ -412,6 +414,7 @@ MODULE mo_var_meta_data
       nhori_meta%standard_name = "number_of_sectors" 
       nhori_meta%long_name =  "number of sectors"
       nhori_meta%shortName = c_undef
+      nhori_meta%stepType = 'instant'
       nhori_meta%units =  "-"
       nhori_meta%grid_mapping = c_undef
       nhori_meta%coordinates = c_undef
@@ -458,6 +461,7 @@ MODULE mo_var_meta_data
     clon_meta%standard_name = "grid longitude" 
     clon_meta%long_name =  "longitude of icon grid cell centre"
     clon_meta%shortName = c_undef
+    clon_meta%stepType = 'instant'
     clon_meta%units =  "radians"
     clon_meta%grid_mapping = c_undef
     clon_meta%coordinates = c_undef
@@ -472,6 +476,7 @@ MODULE mo_var_meta_data
     clat_meta%standard_name = "grid latitude" 
     clat_meta%long_name =  "latitude of icon grid cell centre"
     clat_meta%shortName = c_undef
+    clat_meta%stepType = 'instant'
     clat_meta%units =  "radians"
     clat_meta%grid_mapping = c_undef
     clat_meta%coordinates = c_undef
@@ -486,6 +491,7 @@ MODULE mo_var_meta_data
     clon_vertices_meta%standard_name = "vertices longitude" 
     clon_vertices_meta%long_name =  "longitude of icon grid cell vertices"
     clon_vertices_meta%shortName = c_undef
+    clon_vertices_meta%stepType = 'instant'
     clon_vertices_meta%units =  "radians"
     clon_vertices_meta%grid_mapping = c_undef
     clon_vertices_meta%coordinates = c_undef
@@ -500,6 +506,7 @@ MODULE mo_var_meta_data
     clat_vertices_meta%standard_name = "vertices latitude" 
     clat_vertices_meta%long_name =  "latitude of icon grid cell vertices"
     clat_vertices_meta%shortName = c_undef
+    clat_vertices_meta%stepType = 'instant'
     clat_vertices_meta%units =  "radians"
     clat_vertices_meta%grid_mapping = c_undef
     clat_vertices_meta%coordinates = c_undef
@@ -534,6 +541,7 @@ MODULE mo_var_meta_data
     crutemp_meta%standard_name = 'soil_temperature'
     crutemp_meta%long_name = 'CRU near surface temperature climatology'
     crutemp_meta%shortName = 'T_2M_CL'
+    crutemp_meta%stepType = 'avg'
     crutemp_meta%units = 'K'
     crutemp_meta%grid_mapping = gridmp
     crutemp_meta%coordinates = coord
@@ -566,6 +574,7 @@ MODULE mo_var_meta_data
     cruelev_meta%standard_name = 'surface_altitude'
     cruelev_meta%long_name = 'CRU grid elevation'
     cruelev_meta%shortName = 'T_2M_CL'
+    cruelev_meta%stepType = 'instant'
     cruelev_meta%units = 'm'
     cruelev_meta%grid_mapping = gridmp
     cruelev_meta%coordinates = coord
@@ -610,6 +619,7 @@ MODULE mo_var_meta_data
       fr_land_soil_meta%data_set = 'HWSD Digital Soil Map of the World'
     END SELECT
     fr_land_soil_meta%shortName = 'FR_LAND'
+    fr_land_soil_meta%stepType = 'instant'
     fr_land_soil_meta%units = c_undef
     fr_land_soil_meta%grid_mapping = gridmp
     fr_land_soil_meta%coordinates = coord
@@ -629,6 +639,7 @@ MODULE mo_var_meta_data
       soiltype_fao_meta%data_set = 'HWSD Digital Soil Map of the World'
     END SELECT
     soiltype_fao_meta%shortName = 'SOILTYP'
+    soiltype_fao_meta%stepType = 'instant'
     soiltype_fao_meta%units = c_undef
     soiltype_fao_meta%grid_mapping = gridmp
     soiltype_fao_meta%coordinates = coord
@@ -640,6 +651,7 @@ MODULE mo_var_meta_data
     soiltype_deep_meta%standard_name = 'subsoil_type'
     soiltype_deep_meta%long_name = 'deep soil type derived from HWSD Digital Soil Map of the World'
     soiltype_deep_meta%shortName = 'SUBSOILTYP'
+    soiltype_deep_meta%stepType = 'instant'
     soiltype_deep_meta%units = c_undef
     soiltype_deep_meta%grid_mapping = gridmp
     soiltype_deep_meta%coordinates = coord
@@ -653,6 +665,7 @@ MODULE mo_var_meta_data
       HWSD_SAND_meta%standard_name = 'sand_frac'
       HWSD_SAND_meta%long_name = 'fraction of sand for soil index'
       HWSD_SAND_meta%shortName = 'ru-103d'
+      HWSD_SAND_meta%stepType = 'instant'
       HWSD_SAND_meta%units = c_undef
       HWSD_SAND_meta%grid_mapping = gridmp
       HWSD_SAND_meta%coordinates = coord
@@ -665,6 +678,7 @@ MODULE mo_var_meta_data
       HWSD_SILT_meta%standard_name = 'silt_frac'
       HWSD_SILT_meta%long_name = 'fraction of silt for soil index'
       HWSD_SILT_meta%shortName = 'ru-103w'
+      HWSD_SILT_meta%stepType = 'instant'
       HWSD_SILT_meta%units = c_undef
       HWSD_SILT_meta%grid_mapping = gridmp
       HWSD_SILT_meta%coordinates = coord
@@ -677,6 +691,7 @@ MODULE mo_var_meta_data
       HWSD_CLAY_meta%standard_name = 'clay_frac'
       HWSD_CLAY_meta%long_name = 'fraction of clay for soil index'
       HWSD_CLAY_meta%shortName = 'sr-90d'
+      HWSD_CLAY_meta%stepType = 'instant'
       HWSD_CLAY_meta%units = c_undef
       HWSD_CLAY_meta%grid_mapping = gridmp
       HWSD_CLAY_meta%coordinates = coord
@@ -689,6 +704,7 @@ MODULE mo_var_meta_data
       HWSD_OC_meta%standard_name = 'oc_frac'
       HWSD_OC_meta%long_name = 'fraction of oc for soil index'
       HWSD_OC_meta%shortName = 'sr-90w'
+      HWSD_OC_meta%stepType = 'instant'
       HWSD_OC_meta%units = c_undef
       HWSD_OC_meta%grid_mapping = gridmp
       HWSD_OC_meta%coordinates = coord
@@ -701,6 +717,7 @@ MODULE mo_var_meta_data
       HWSD_BD_meta%standard_name = 'bd_dens'
       HWSD_BD_meta%long_name = 'bulk density for soil index'
       HWSD_BD_meta%shortName = 'i-131ad'
+      HWSD_BD_meta%stepType = 'instant'
       HWSD_BD_meta%units = c_undef
       HWSD_BD_meta%grid_mapping = gridmp
       HWSD_BD_meta%coordinates = coord
@@ -713,6 +730,7 @@ MODULE mo_var_meta_data
       HWSD_DM_meta%standard_name = 'bd_dens'
       HWSD_DM_meta%long_name = 'bulk density for soil index'
       HWSD_DM_meta%shortName = 'i-131aw'
+      HWSD_DM_meta%stepType = 'instant'
       HWSD_DM_meta%units = c_undef
       HWSD_DM_meta%grid_mapping = gridmp
       HWSD_DM_meta%coordinates = coord
@@ -725,6 +743,7 @@ MODULE mo_var_meta_data
       HWSD_SAND_DEEP_meta%standard_name = 'sand_frac'
       HWSD_SAND_DEEP_meta%long_name = 'fraction of sand for deep soil index'
       HWSD_SAND_DEEP_meta%shortName = 'ru-103d'
+      HWSD_SAND_DEEP_meta%stepType = 'instant'
       HWSD_SAND_DEEP_meta%units = c_undef
       HWSD_SAND_DEEP_meta%grid_mapping = gridmp
       HWSD_SAND_DEEP_meta%coordinates = coord
@@ -737,6 +756,7 @@ MODULE mo_var_meta_data
       HWSD_SILT_DEEP_meta%standard_name = 'silt_frac'
       HWSD_SILT_DEEP_meta%long_name = 'fraction of silt for deep soil index'
       HWSD_SILT_DEEP_meta%shortName = 'ru-103w'
+      HWSD_SILT_DEEP_meta%stepType = 'instant'
       HWSD_SILT_DEEP_meta%units = c_undef
       HWSD_SILT_DEEP_meta%grid_mapping = gridmp
       HWSD_SILT_DEEP_meta%coordinates = coord
@@ -749,6 +769,7 @@ MODULE mo_var_meta_data
       HWSD_CLAY_DEEP_meta%standard_name = 'clay_frac'
       HWSD_CLAY_DEEP_meta%long_name = 'fraction of clay for deep soil index'
       HWSD_CLAY_DEEP_meta%shortName = 'sr-90d'
+      HWSD_CLAY_DEEP_meta%stepType = 'instant'
       HWSD_CLAY_DEEP_meta%units = c_undef
       HWSD_CLAY_DEEP_meta%grid_mapping = gridmp
       HWSD_CLAY_DEEP_meta%coordinates = coord
@@ -761,6 +782,7 @@ MODULE mo_var_meta_data
       HWSD_OC_DEEP_meta%standard_name = 'oc_frac'
       HWSD_OC_DEEP_meta%long_name = 'fraction of oc for deep soil index'
       HWSD_OC_DEEP_meta%shortName = 'sr-90w'
+      HWSD_OC_DEEP_meta%stepType = 'instant'
       HWSD_OC_DEEP_meta%units = c_undef
       HWSD_OC_DEEP_meta%grid_mapping = gridmp
       HWSD_OC_DEEP_meta%coordinates = coord
@@ -773,6 +795,7 @@ MODULE mo_var_meta_data
       HWSD_BD_DEEP_meta%standard_name = 'bd_dens'
       HWSD_BD_DEEP_meta%long_name = 'bulk density for deep soil index'
       HWSD_BD_DEEP_meta%shortName = 'i-131ad'
+      HWSD_BD_DEEP_meta%stepType = 'instant'
       HWSD_BD_DEEP_meta%units = c_undef
       HWSD_BD_DEEP_meta%grid_mapping = gridmp
       HWSD_BD_DEEP_meta%coordinates = coord
@@ -785,6 +808,7 @@ MODULE mo_var_meta_data
       HWSD_DM_DEEP_meta%standard_name = 'bd_dens'
       HWSD_DM_DEEP_meta%long_name = 'bulk density for deep soil index'
       HWSD_DM_DEEP_meta%shortName = 'i-131aw'
+      HWSD_DM_DEEP_meta%stepType = 'instant'
       HWSD_DM_DEEP_meta%units = c_undef
       HWSD_DM_DEEP_meta%grid_mapping = gridmp
       HWSD_DM_DEEP_meta%coordinates = coord
@@ -853,6 +877,7 @@ MODULE mo_var_meta_data
     alb_field_mom_meta%grid_mapping = gridmp
     alb_field_mom_meta%coordinates = coord
     alb_field_mom_meta%data_set = 'MODIS'
+    alb_field_mom_meta%stepType = 'avg'
 
     alnid_field_mom_meta%varname = 'ALNID'
     alnid_field_mom_meta%n_dim = n_dim + 1
@@ -865,6 +890,7 @@ MODULE mo_var_meta_data
     alnid_field_mom_meta%grid_mapping = gridmp
     alnid_field_mom_meta%coordinates = coord
     alnid_field_mom_meta%data_set = 'MODIS'
+    alnid_field_mom_meta%stepType = 'avg'
 
     aluvd_field_mom_meta%varname = 'ALUVD'
     aluvd_field_mom_meta%n_dim = n_dim + 1
@@ -877,6 +903,7 @@ MODULE mo_var_meta_data
     aluvd_field_mom_meta%grid_mapping = gridmp
     aluvd_field_mom_meta%coordinates = coord
     aluvd_field_mom_meta%data_set = 'MODIS'
+    aluvd_field_mom_meta%stepType = 'avg'
 
     alb_interpol_meta%varname = 'ALB_I'
     alb_interpol_meta%n_dim = n_dim + 1
@@ -992,6 +1019,7 @@ MODULE mo_var_meta_data
     ndvi_max_meta%standard_name = 'normalized_difference_vegetation_index'
     ndvi_max_meta%long_name = 'NDVI yearly maximum for climatology 1998-2003'
     ndvi_max_meta%shortName = 'NDVI_MAX'
+    ndvi_max_meta%stepType = 'max'
     ndvi_max_meta%units = c_undef
     ndvi_max_meta%grid_mapping = gridmp
     ndvi_max_meta%coordinates = coord
@@ -1004,6 +1032,7 @@ MODULE mo_var_meta_data
     ndvi_field_mom_meta%standard_name = 'normalized_difference_vegetation_index'
     ndvi_field_mom_meta%long_name = 'monthly mean NDVI climatology 1998-2003'
     ndvi_field_mom_meta%shortName = 'NDVI'
+    ndvi_field_mom_meta%stepType = 'avg'
     ndvi_field_mom_meta%units = c_undef
     ndvi_field_mom_meta%grid_mapping = gridmp
     ndvi_field_mom_meta%coordinates = coord
@@ -1016,6 +1045,7 @@ MODULE mo_var_meta_data
     ndvi_ratio_mom_meta%standard_name = 'normalized_difference_vegetation_index'
     ndvi_ratio_mom_meta%long_name = '(monthly) proportion of actual value/maximum normalized differential vegetation index'
     ndvi_ratio_mom_meta%shortName = 'NDVI_MRAT'
+    ndvi_ratio_mom_meta%stepType = 'avg'
     ndvi_ratio_mom_meta%units = c_undef
     ndvi_ratio_mom_meta%grid_mapping = gridmp
     ndvi_ratio_mom_meta%coordinates = coord
@@ -1129,6 +1159,7 @@ MODULE mo_var_meta_data
     aot_tg_meta%standard_name = 'aot'
     aot_tg_meta%long_name = 'aerosol optical thickness'
     aot_tg_meta%shortName = 'AOT'
+    aot_tg_meta%stepType = 'avg'
     aot_tg_meta%units = c_undef
     aot_tg_meta%grid_mapping = gridmp
     aot_tg_meta%coordinates = coord
@@ -1147,6 +1178,7 @@ MODULE mo_var_meta_data
     aer_bc_meta%standard_name = 'atmosphere_absorption_optical_thickness_due_to_black_carbon_ambient_aerosol'
     aer_bc_meta%long_name = 'aerosol optical thickness of black carbon'
     aer_bc_meta%shortName = 'AER_BC12'
+    aer_bc_meta%stepType = 'avg'
     aer_bc_meta%units = c_undef
     aer_bc_meta%grid_mapping = gridmp
     aer_bc_meta%coordinates = coord
@@ -1159,6 +1191,7 @@ MODULE mo_var_meta_data
     aer_dust_meta%standard_name = 'aot dust'
     aer_dust_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_dust_ambient_aerosol'
     aer_dust_meta%shortName = 'AER_DUST12'
+    aer_dust_meta%stepType = 'avg'
     aer_dust_meta%units = c_undef
     aer_dust_meta%grid_mapping = gridmp
     aer_dust_meta%coordinates = coord
@@ -1171,6 +1204,7 @@ MODULE mo_var_meta_data
     aer_org_meta%standard_name = 'aot org'
     aer_org_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_particulate_organic_matter_ambient_aerosol'
     aer_org_meta%shortName = 'AER_ORG12'
+    aer_org_meta%stepType = 'avg'
     aer_org_meta%units = c_undef
     aer_org_meta%grid_mapping = gridmp
     aer_org_meta%coordinates = coord
@@ -1183,6 +1217,7 @@ MODULE mo_var_meta_data
     aer_so4_meta%standard_name = 'aot so4'
     aer_so4_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_sulfate_ambient_aerosol'
     aer_so4_meta%shortName = 'AER_SO412'
+    aer_so4_meta%stepType = 'avg'
     aer_so4_meta%units = c_undef
     aer_so4_meta%grid_mapping = gridmp
     aer_so4_meta%coordinates = coord
@@ -1195,6 +1230,7 @@ MODULE mo_var_meta_data
     aer_ss_meta%standard_name = 'aot ss'
     aer_ss_meta%long_name = 'atmosphere_absorption_optical_thickness_due_to_seasalt_ambient_aerosol'
     aer_ss_meta%shortName = 'AER_SS12'
+    aer_ss_meta%stepType = 'avg'
     aer_ss_meta%units = c_undef
     aer_ss_meta%grid_mapping = gridmp
     aer_ss_meta%coordinates = coord
@@ -1231,6 +1267,7 @@ MODULE mo_var_meta_data
     lon_geo_meta%standard_name = 'longitude'
     lon_geo_meta%long_name = 'geographical longitude'
     lon_geo_meta%shortName = 'rlon'
+    lon_geo_meta%stepType = 'instant'
     lon_geo_meta%units =  'degrees_east'
     lon_geo_meta%grid_mapping = c_undef
     lon_geo_meta%coordinates = c_undef
@@ -1244,6 +1281,7 @@ MODULE mo_var_meta_data
     lat_geo_meta%standard_name = 'latitude'
     lat_geo_meta%long_name = 'geographical latitude'
     lat_geo_meta%shortName = 'rlat'
+    lat_geo_meta%stepType = 'instant'
     lat_geo_meta%units =  'degrees_north'
     lat_geo_meta%grid_mapping = c_undef
     lat_geo_meta%coordinates = c_undef
@@ -1257,6 +1295,7 @@ MODULE mo_var_meta_data
     no_raw_data_pixel_meta%standard_name = 'number pixels'
     no_raw_data_pixel_meta%long_name = 'number of raw data pixel in target grid element'
     no_raw_data_pixel_meta%shortName = c_undef
+    no_raw_data_pixel_meta%stepType = 'instant'
     no_raw_data_pixel_meta%units = c_undef
     no_raw_data_pixel_meta%grid_mapping = gridmp
     no_raw_data_pixel_meta%coordinates = coord
@@ -1324,6 +1363,7 @@ MODULE mo_var_meta_data
     fr_land_glc2000_meta%standard_name = 'fr_land'
     fr_land_glc2000_meta%long_name = 'Fraction land due to GLC2000 Data'
     fr_land_glc2000_meta%shortName = 'FR_LAND'
+    fr_land_glc2000_meta%stepType = 'instant'
     fr_land_glc2000_meta%units =  c_undef
     fr_land_glc2000_meta%grid_mapping = gridmp
     fr_land_glc2000_meta%coordinates = coord
@@ -1338,6 +1378,7 @@ MODULE mo_var_meta_data
     glc2000_tot_npixel_meta%standard_name = 'npixel'
     glc2000_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
     glc2000_tot_npixel_meta%shortName = c_undef
+    glc2000_tot_npixel_meta%stepType = 'instant'
     glc2000_tot_npixel_meta%units = c_undef
     glc2000_tot_npixel_meta%grid_mapping = gridmp
     glc2000_tot_npixel_meta%coordinates = coord
@@ -1352,6 +1393,7 @@ MODULE mo_var_meta_data
     glc2000_class_fraction_meta%standard_name = 'Landuse class fraction'
     glc2000_class_fraction_meta%long_name = 'Fraction of GLC2000 land use classes in target grid element'
     glc2000_class_fraction_meta%shortName = c_undef
+    glc2000_class_fraction_meta%stepType = 'instant'
     glc2000_class_fraction_meta%units =  c_undef
     glc2000_class_fraction_meta%grid_mapping = gridmp
     glc2000_class_fraction_meta%coordinates = coord
@@ -1365,6 +1407,7 @@ MODULE mo_var_meta_data
     glc2000_class_npixel_meta%standard_name = 'npixel landuse class'
     glc2000_class_npixel_meta%long_name = 'number of pixels of GLC2000 land use classes in target grid element'
     glc2000_class_npixel_meta%shortName = c_undef
+    glc2000_class_npixel_meta%stepType = 'instant'
     glc2000_class_npixel_meta%units = c_undef
     glc2000_class_npixel_meta%grid_mapping = gridmp
     glc2000_class_npixel_meta%coordinates = coord
@@ -1378,6 +1421,7 @@ MODULE mo_var_meta_data
     ice_glc2000_meta%standard_name = 'Ice fraction'
     ice_glc2000_meta%long_name = 'Ice fraction due to GLC2000 Data'
     ice_glc2000_meta%shortName = c_undef
+    ice_glc2000_meta%stepType = 'instant'
     ice_glc2000_meta%units =  c_undef
     ice_glc2000_meta%grid_mapping = gridmp
     ice_glc2000_meta%coordinates = coord
@@ -1391,6 +1435,7 @@ MODULE mo_var_meta_data
     z0_glc2000_meta%standard_name = 'Z0 vegetation'
     z0_glc2000_meta%long_name =  'Roughness length z0 due to GLC2000 land use data'
     z0_glc2000_meta%shortName = 'Z0_LU'
+    z0_glc2000_meta%stepType = 'instant'
     z0_glc2000_meta%units = 'm'
     z0_glc2000_meta%grid_mapping = gridmp
     z0_glc2000_meta%coordinates = coord
@@ -1404,6 +1449,7 @@ MODULE mo_var_meta_data
     root_glc2000_meta%standard_name = 'ROOT'
     root_glc2000_meta%long_name = 'Root depth due to GLC2000 land use data'
     root_glc2000_meta%shortName = 'ROOTDP'
+    root_glc2000_meta%stepType = 'instant'
     root_glc2000_meta%units =  'm'
     root_glc2000_meta%grid_mapping = gridmp
     root_glc2000_meta%coordinates = coord
@@ -1417,6 +1463,7 @@ MODULE mo_var_meta_data
     plcov_mx_glc2000_meta%standard_name = 'Plant cover maximum'
     plcov_mx_glc2000_meta%long_name = 'Plant cover maximum due to GLC2000 land use data'
     plcov_mx_glc2000_meta%shortName = 'PLCOV_MX'
+    plcov_mx_glc2000_meta%stepType = 'max'
     plcov_mx_glc2000_meta%units =  c_undef
     plcov_mx_glc2000_meta%grid_mapping = gridmp
     plcov_mx_glc2000_meta%coordinates = coord
@@ -1431,6 +1478,7 @@ MODULE mo_var_meta_data
     plcov_mn_glc2000_meta%standard_name = 'Plant cover minimum'
     plcov_mn_glc2000_meta%long_name = 'Plant cover minimum due to GLC2000 land use data'
     plcov_mn_glc2000_meta%shortName = 'PLCOV_MN'
+    plcov_mn_glc2000_meta%stepType = 'min'
     plcov_mn_glc2000_meta%units =  c_undef
     plcov_mn_glc2000_meta%grid_mapping = gridmp
     plcov_mn_glc2000_meta%coordinates = coord
@@ -1444,6 +1492,7 @@ MODULE mo_var_meta_data
     lai_mx_glc2000_meta%standard_name = 'LAI max'
     lai_mx_glc2000_meta%long_name = 'Leaf Area Index Maximum'
     lai_mx_glc2000_meta%shortName = 'LAI_MX'
+    lai_mx_glc2000_meta%stepType = 'max'
     lai_mx_glc2000_meta%units =  c_undef
     lai_mx_glc2000_meta%grid_mapping = gridmp
     lai_mx_glc2000_meta%coordinates = coord
@@ -1458,6 +1507,7 @@ MODULE mo_var_meta_data
     lai_mn_glc2000_meta%standard_name = 'LAI Minimum'
     lai_mn_glc2000_meta%long_name = 'Leaf Area Minimum'
     lai_mn_glc2000_meta%shortName = 'LAI_MN'
+    lai_mn_glc2000_meta%stepType = 'min'
     lai_mn_glc2000_meta%units =  c_undef
     lai_mn_glc2000_meta%grid_mapping = gridmp
     lai_mn_glc2000_meta%coordinates = coord
@@ -1471,7 +1521,8 @@ MODULE mo_var_meta_data
     rs_min_glc2000_meta%vartype = vartype_real !REAL variable
     rs_min_glc2000_meta%standard_name = 'RSMIN'
     rs_min_glc2000_meta%long_name = 'Minimal stomata resistence'
-    rs_min_glc2000_meta%shortName = 'prs_min'
+    rs_min_glc2000_meta%shortName = 'RSMIN'
+    rs_min_glc2000_meta%stepType = 'instant'
     rs_min_glc2000_meta%units =  's/m'
     rs_min_glc2000_meta%grid_mapping =gridmp
     rs_min_glc2000_meta%coordinates = coord
@@ -1485,6 +1536,7 @@ MODULE mo_var_meta_data
     urban_glc2000_meta%standard_name = 'URBAN'
     urban_glc2000_meta%long_name = 'Urban land use fraction'
     urban_glc2000_meta%shortName = 'URBAN'
+    urban_glc2000_meta%stepType = 'instant'
     urban_glc2000_meta%units =  c_undef
     urban_glc2000_meta%grid_mapping = gridmp
     urban_glc2000_meta%coordinates = coord
@@ -1499,6 +1551,7 @@ MODULE mo_var_meta_data
     for_d_glc2000_meta%standard_name = 'FOREST_D'
     for_d_glc2000_meta%long_name = 'Fraction of deciduous forest'
     for_d_glc2000_meta%shortName = 'FOR_D'
+    for_d_glc2000_meta%stepType = 'instant'
     for_d_glc2000_meta%units = '1'
     for_d_glc2000_meta%grid_mapping = gridmp
     for_d_glc2000_meta%coordinates = coord
@@ -1513,6 +1566,7 @@ MODULE mo_var_meta_data
     for_e_glc2000_meta%standard_name = 'FOREST_E'
     for_e_glc2000_meta%long_name = 'Fraction of evergreen forest'
     for_e_glc2000_meta%shortName =  'FOR_E'
+    for_e_glc2000_meta%stepType = 'instant'
     for_e_glc2000_meta%units =  '1'
     for_e_glc2000_meta%grid_mapping = gridmp
     for_e_glc2000_meta%coordinates = coord
@@ -1527,6 +1581,7 @@ MODULE mo_var_meta_data
     emissivity_glc2000_meta%standard_name = 'EMIS_RAD'
     emissivity_glc2000_meta%long_name = 'longwave surface emissivity'
     emissivity_glc2000_meta%shortName = 'EMIS_RAD'
+    emissivity_glc2000_meta%stepType = 'instant'
     emissivity_glc2000_meta%units =  '1'
     emissivity_glc2000_meta%grid_mapping = gridmp
     emissivity_glc2000_meta%coordinates = coord
@@ -1595,6 +1650,7 @@ MODULE mo_var_meta_data
     fr_land_glcc_meta%standard_name = 'fr_land'
     fr_land_glcc_meta%long_name = 'Fraction land due to GLCC Data'
     fr_land_glcc_meta%shortName = 'FR_LAND'
+    fr_land_glcc_meta%stepType = 'instant'
     fr_land_glcc_meta%units =  c_undef
     fr_land_glcc_meta%grid_mapping = gridmp
     fr_land_glcc_meta%coordinates = coord
@@ -1609,6 +1665,7 @@ MODULE mo_var_meta_data
     glcc_tot_npixel_meta%standard_name = 'npixel'
     glcc_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
     glcc_tot_npixel_meta%shortName = c_undef
+    glcc_tot_npixel_meta%stepType = 'instant'
     glcc_tot_npixel_meta%units = c_undef
     glcc_tot_npixel_meta%grid_mapping = gridmp
     glcc_tot_npixel_meta%coordinates = coord
@@ -1623,6 +1680,7 @@ MODULE mo_var_meta_data
     glcc_class_fraction_meta%standard_name = 'Landuse class fraction'
     glcc_class_fraction_meta%long_name = 'Fraction of GLCC land use classes in target grid element'
     glcc_class_fraction_meta%shortName = c_undef
+    glcc_class_fraction_meta%stepType = 'instant'
     glcc_class_fraction_meta%units =  c_undef
     glcc_class_fraction_meta%grid_mapping = gridmp
     glcc_class_fraction_meta%coordinates = coord
@@ -1636,6 +1694,7 @@ MODULE mo_var_meta_data
     glcc_class_npixel_meta%standard_name = 'npixel landuse class'
     glcc_class_npixel_meta%long_name = 'number of pixels of GLCC land use classes in target grid element'
     glcc_class_npixel_meta%shortName = c_undef
+    glcc_class_npixel_meta%stepType = 'instant'
     glcc_class_npixel_meta%units = c_undef
     glcc_class_npixel_meta%grid_mapping = gridmp
     glcc_class_npixel_meta%coordinates = coord
@@ -1649,6 +1708,7 @@ MODULE mo_var_meta_data
     ice_glcc_meta%standard_name = 'Ice fraction'
     ice_glcc_meta%long_name = 'Ice fraction due to GLCC Data'
     ice_glcc_meta%shortName = c_undef
+    ice_glcc_meta%stepType = 'instant'
     ice_glcc_meta%units =  '1'
     ice_glcc_meta%grid_mapping = gridmp
     ice_glcc_meta%coordinates = coord
@@ -1662,6 +1722,7 @@ MODULE mo_var_meta_data
     z0_glcc_meta%standard_name = 'Z0 vegetation'
     z0_glcc_meta%long_name =  'Roughness length z0 due to GLCC land use data'
     z0_glcc_meta%shortName = 'Z0_LU'
+    z0_glcc_meta%stepType = 'instant'
     z0_glcc_meta%units = 'm'
     z0_glcc_meta%grid_mapping = gridmp
     z0_glcc_meta%coordinates = coord
@@ -1675,6 +1736,7 @@ MODULE mo_var_meta_data
     root_glcc_meta%standard_name = 'ROOT'
     root_glcc_meta%long_name = 'Root depth due to GLCC land use data'
     root_glcc_meta%shortName = 'ROOTDP'
+    root_glcc_meta%stepType = 'instant'
     root_glcc_meta%units =  'm'
     root_glcc_meta%grid_mapping = gridmp
     root_glcc_meta%coordinates = coord
@@ -1688,6 +1750,7 @@ MODULE mo_var_meta_data
     plcov_mx_glcc_meta%standard_name = 'Plant cover maximum'
     plcov_mx_glcc_meta%long_name = 'Plant cover maximum due to GLCC land use data'
     plcov_mx_glcc_meta%shortName = 'PLCOV_MX'
+    plcov_mx_glcc_meta%stepType = 'max'
     plcov_mx_glcc_meta%units =  '1'
     plcov_mx_glcc_meta%grid_mapping = gridmp
     plcov_mx_glcc_meta%coordinates = coord
@@ -1702,6 +1765,7 @@ MODULE mo_var_meta_data
     plcov_mn_glcc_meta%standard_name = 'Plant cover minimum'
     plcov_mn_glcc_meta%long_name = 'Plant cover minimum due to GLCC land use data'
     plcov_mn_glcc_meta%shortName = 'PLCOV_MN'
+    plcov_mn_glcc_meta%stepType = 'min'
     plcov_mn_glcc_meta%units =  '1'
     plcov_mn_glcc_meta%grid_mapping = gridmp
     plcov_mn_glcc_meta%coordinates = coord
@@ -1715,6 +1779,7 @@ MODULE mo_var_meta_data
     lai_mx_glcc_meta%standard_name = 'LAI max'
     lai_mx_glcc_meta%long_name = 'Leaf Area Index Maximum'
     lai_mx_glcc_meta%shortName = 'LAI_MX'
+    lai_mx_glcc_meta%stepType = 'max'
     lai_mx_glcc_meta%units =  c_undef
     lai_mx_glcc_meta%grid_mapping = gridmp
     lai_mx_glcc_meta%coordinates = coord
@@ -1729,6 +1794,7 @@ MODULE mo_var_meta_data
     lai_mn_glcc_meta%standard_name = 'LAI Minimum'
     lai_mn_glcc_meta%long_name = 'Leaf Area Minimum'
     lai_mn_glcc_meta%shortName = 'LAI_MN'
+    lai_mn_glcc_meta%stepType = 'min'
     lai_mn_glcc_meta%units =  c_undef
     lai_mn_glcc_meta%grid_mapping = gridmp
     lai_mn_glcc_meta%coordinates = coord
@@ -1742,7 +1808,8 @@ MODULE mo_var_meta_data
     rs_min_glcc_meta%vartype = vartype_real !REAL variable
     rs_min_glcc_meta%standard_name = 'RSMIN'
     rs_min_glcc_meta%long_name = 'Minimal stomata resistence'
-    rs_min_glcc_meta%shortName = 'prs_min'
+    rs_min_glcc_meta%shortName = 'RSMIN'
+    rs_min_glcc_meta%stepType = 'instant'
     rs_min_glcc_meta%units =  's/m'
     rs_min_glcc_meta%grid_mapping = gridmp
     rs_min_glcc_meta%coordinates = coord
@@ -1756,6 +1823,7 @@ MODULE mo_var_meta_data
     urban_glcc_meta%standard_name = 'URBAN'
     urban_glcc_meta%long_name = 'Urban land use fraction'
     urban_glcc_meta%shortName = 'URBAN'
+    urban_glcc_meta%stepType = 'instant'
     urban_glcc_meta%units =  '1'
     urban_glcc_meta%grid_mapping = gridmp
     urban_glcc_meta%coordinates = coord
@@ -1770,6 +1838,7 @@ MODULE mo_var_meta_data
     for_d_glcc_meta%standard_name = 'FOREST_D'
     for_d_glcc_meta%long_name = 'Fraction of deciduous forest'
     for_d_glcc_meta%shortName = 'FOR_D'
+    for_d_glcc_meta%stepType = 'instant'
     for_d_glcc_meta%units =  '1'
     for_d_glcc_meta%grid_mapping = gridmp
     for_d_glcc_meta%coordinates = coord
@@ -1784,7 +1853,7 @@ MODULE mo_var_meta_data
     for_e_glcc_meta%standard_name = 'FOREST_E'
     for_e_glcc_meta%long_name = 'Fraction of evergreen forest'
     for_e_glcc_meta%shortName =  'FOR_E'
-
+    for_e_glcc_meta%stepType = 'instant'
     for_e_glcc_meta%units =  '1'
     for_e_glcc_meta%grid_mapping = gridmp
     for_e_glcc_meta%coordinates = coord
@@ -1799,6 +1868,7 @@ MODULE mo_var_meta_data
     emissivity_glcc_meta%standard_name = 'EMIS_RAD'
     emissivity_glcc_meta%long_name = 'longwave surface emissivity'
     emissivity_glcc_meta%shortName = 'EMIS_RAD'
+    emissivity_glcc_meta%stepType = 'instant'
     emissivity_glcc_meta%units =  '1'
     emissivity_glcc_meta%grid_mapping = gridmp
     emissivity_glcc_meta%coordinates = coord
@@ -1870,6 +1940,7 @@ MODULE mo_var_meta_data
     fr_land_lu_meta%standard_name = 'land_area_fraction'
     fr_land_lu_meta%long_name = 'Fraction land'
     fr_land_lu_meta%shortName = 'FR_LAND'
+    fr_land_lu_meta%stepType = 'instant'
     fr_land_lu_meta%units =  c_undef
     fr_land_lu_meta%grid_mapping = gridmp
     fr_land_lu_meta%coordinates = coord
@@ -1885,6 +1956,7 @@ MODULE mo_var_meta_data
     lu_tot_npixel_meta%standard_name = 'npixel'
     lu_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
     lu_tot_npixel_meta%shortName = c_undef
+    lu_tot_npixel_meta%stepType = 'instant'
     lu_tot_npixel_meta%units = c_undef
     lu_tot_npixel_meta%grid_mapping = gridmp
     lu_tot_npixel_meta%coordinates = coord
@@ -1904,6 +1976,7 @@ MODULE mo_var_meta_data
       lu_class_fraction_meta%long_name = ''
     ENDIF
     lu_class_fraction_meta%shortName = c_undef
+    lu_class_fraction_meta%stepType = 'instant'
     lu_class_fraction_meta%units =  c_undef
     lu_class_fraction_meta%grid_mapping = gridmp
     lu_class_fraction_meta%coordinates = coord
@@ -1922,6 +1995,7 @@ MODULE mo_var_meta_data
       lu_class_fraction_meta%long_name = ''
     ENDIF
     lu_class_npixel_meta%shortName = c_undef
+    lu_class_npixel_meta%stepType = 'instant'
     lu_class_npixel_meta%units = c_undef
     lu_class_npixel_meta%grid_mapping = gridmp
     lu_class_npixel_meta%coordinates = coord
@@ -1939,6 +2013,7 @@ MODULE mo_var_meta_data
       ice_lu_meta%long_name = ''
     ENDIF
     ice_lu_meta%shortName = c_undef
+    ice_lu_meta%stepType = 'instant'
     ice_lu_meta%units =  c_undef
     ice_lu_meta%grid_mapping = gridmp
     ice_lu_meta%coordinates = coord
@@ -1952,6 +2027,7 @@ MODULE mo_var_meta_data
     z0_lu_meta%standard_name = 'surface_roughness_length'
     z0_lu_meta%long_name = 'Roughness length'
     z0_lu_meta%shortName = 'Z0'
+    z0_lu_meta%stepType = 'instant'
     z0_lu_meta%units =  c_undef
     z0_lu_meta%grid_mapping = gridmp
     z0_lu_meta%coordinates = coord
@@ -1965,6 +2041,7 @@ MODULE mo_var_meta_data
     root_lu_meta%standard_name = 'root_depth'
     root_lu_meta%long_name = 'Root depth'
     root_lu_meta%shortName = 'ROOTDP'
+    root_lu_meta%stepType = 'instant'
     root_lu_meta%units =  'm'
     root_lu_meta%grid_mapping = gridmp
     root_lu_meta%coordinates = coord
@@ -1982,6 +2059,7 @@ MODULE mo_var_meta_data
       plcov_mx_lu_meta%long_name = ''
     ENDIF
     plcov_mx_lu_meta%shortName = 'PLCOV_MX'
+    plcov_mx_lu_meta%stepType = 'max'
     plcov_mx_lu_meta%units =  c_undef
     plcov_mx_lu_meta%grid_mapping = gridmp
     plcov_mx_lu_meta%coordinates = coord
@@ -2000,6 +2078,7 @@ MODULE mo_var_meta_data
       plcov_mn_lu_meta%long_name = ''
     ENDIF
     plcov_mn_lu_meta%shortName = 'PLCOV_MN'
+    plcov_mn_lu_meta%stepType = 'min'
     plcov_mn_lu_meta%units =  c_undef
     plcov_mn_lu_meta%grid_mapping = gridmp
     plcov_mn_lu_meta%coordinates = coord
@@ -2013,6 +2092,7 @@ MODULE mo_var_meta_data
     lai_mx_lu_meta%standard_name = 'leaf_area_index_vegetation_period'
     lai_mx_lu_meta%long_name = 'Leaf Area Index Maximum'
     lai_mx_lu_meta%shortName = 'LAI_MX'
+    lai_mx_lu_meta%stepType = 'max'
     lai_mx_lu_meta%units =  c_undef
     lai_mx_lu_meta%grid_mapping = gridmp
     lai_mx_lu_meta%coordinates = coord
@@ -2027,6 +2107,7 @@ MODULE mo_var_meta_data
     lai_mn_lu_meta%standard_name = 'leaf_area_index_resting_period'
     lai_mn_lu_meta%long_name = 'Leaf Area Minimum'
     lai_mn_lu_meta%shortName = 'LAI_MN'
+    lai_mn_lu_meta%stepType = 'min'
     lai_mn_lu_meta%units =  c_undef
     lai_mn_lu_meta%grid_mapping =gridmp
     lai_mn_lu_meta%coordinates = coord
@@ -2040,7 +2121,8 @@ MODULE mo_var_meta_data
     rs_min_lu_meta%vartype = vartype_real !REAL variable
     rs_min_lu_meta%standard_name = 'RSMIN'
     rs_min_lu_meta%long_name = 'Minimal stomata resistence'
-    rs_min_lu_meta%shortName = 'prs_min'
+    rs_min_lu_meta%shortName = 'RSMIN'
+    rs_min_lu_meta%stepType = 'instant'
     rs_min_lu_meta%units =  's/m'
     rs_min_lu_meta%grid_mapping = gridmp
     rs_min_lu_meta%coordinates = coord
@@ -2054,6 +2136,7 @@ MODULE mo_var_meta_data
     urban_lu_meta%standard_name = 'fraction_of_urban_areas'
     urban_lu_meta%long_name = 'urban area fraction'
     urban_lu_meta%shortName = 'URBAN'
+    urban_lu_meta%stepType = 'instant'
     urban_lu_meta%units =  c_undef
     urban_lu_meta%grid_mapping = gridmp
     urban_lu_meta%coordinates = coord
@@ -2068,6 +2151,7 @@ MODULE mo_var_meta_data
     for_d_lu_meta%standard_name = 'fraction_of_deciduous_forest_cover'
     for_d_lu_meta%long_name = 'Fraction of deciduous forest'
     for_d_lu_meta%shortName = 'FOR_D'
+    for_d_lu_meta%stepType = 'instant'
     for_d_lu_meta%units =  c_undef
     for_d_lu_meta%grid_mapping = gridmp
     for_d_lu_meta%coordinates = coord
@@ -2082,6 +2166,7 @@ MODULE mo_var_meta_data
     for_e_lu_meta%standard_name = 'fraction_of_evergreen_forest_cover'
     for_e_lu_meta%long_name = 'Fraction of evergreen forest'
     for_e_lu_meta%shortName = 'FOR_E' 
+    for_e_lu_meta%stepType = 'instant'
     for_e_lu_meta%units =  c_undef
     for_e_lu_meta%grid_mapping = gridmp
     for_e_lu_meta%coordinates = coord
@@ -2096,6 +2181,7 @@ MODULE mo_var_meta_data
     emissivity_lu_meta%standard_name = 'EMIS_RAD'
     emissivity_lu_meta%long_name = 'longwave surface emissivity'
     emissivity_lu_meta%shortName = 'EMIS_RAD'
+    emissivity_lu_meta%stepType = 'instant'
     emissivity_lu_meta%units =  c_undef
     emissivity_lu_meta%grid_mapping = gridmp
     emissivity_lu_meta%coordinates = coord
@@ -2109,6 +2195,7 @@ MODULE mo_var_meta_data
     fr_ocean_lu_meta%standard_name = 'fr_ocean'
     fr_ocean_lu_meta%long_name = 'Fraction ocean'
     fr_ocean_lu_meta%shortName = 'FR_OCEAN'
+    fr_ocean_lu_meta%stepType = 'instant'
     fr_ocean_lu_meta%units =  c_undef
     fr_ocean_lu_meta%grid_mapping = gridmp
     fr_ocean_lu_meta%coordinates = coord
@@ -2213,6 +2300,7 @@ MODULE mo_var_meta_data
     fr_land_lu_meta%standard_name = 'land_area_fraction'
     fr_land_lu_meta%long_name = 'Fraction land'
     fr_land_lu_meta%shortName = 'FR_LAND'
+    fr_land_lu_meta%stepType = 'instant'
     fr_land_lu_meta%units =  '1'
     fr_land_lu_meta%grid_mapping = gridmp
     fr_land_lu_meta%coordinates = coord
@@ -2227,6 +2315,7 @@ MODULE mo_var_meta_data
     lu_tot_npixel_meta%standard_name = c_undef
     lu_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
     lu_tot_npixel_meta%shortName = c_undef
+    lu_tot_npixel_meta%stepType = 'instant'
     lu_tot_npixel_meta%units = '1'
     lu_tot_npixel_meta%grid_mapping = gridmp
     lu_tot_npixel_meta%coordinates = coord
@@ -2241,6 +2330,7 @@ MODULE mo_var_meta_data
     lu_class_fraction_meta%standard_name = c_undef
     lu_class_fraction_meta%long_name = 'Fraction of land use classes in target grid element'
     lu_class_fraction_meta%shortName = c_undef
+    lu_class_fraction_meta%stepType = 'instant'
     lu_class_fraction_meta%units =  '1'
     lu_class_fraction_meta%grid_mapping = gridmp
     lu_class_fraction_meta%coordinates = coord
@@ -2254,6 +2344,7 @@ MODULE mo_var_meta_data
     lu_class_npixel_meta%standard_name = c_undef
     lu_class_npixel_meta%long_name = 'number of pixels of land use classes in target grid element'
     lu_class_npixel_meta%shortName = c_undef
+    lu_class_npixel_meta%stepType = 'instant'
     lu_class_npixel_meta%units = '1'
     lu_class_npixel_meta%grid_mapping = gridmp
     lu_class_npixel_meta%coordinates = coord
@@ -2267,6 +2358,7 @@ MODULE mo_var_meta_data
     ice_lu_meta%standard_name = 'land_ice_area_fraction'
     ice_lu_meta%long_name = 'Ice fraction'
     ice_lu_meta%shortName = c_undef
+    ice_lu_meta%stepType = 'instant'
     ice_lu_meta%units =  '1'
     ice_lu_meta%grid_mapping = gridmp
     ice_lu_meta%coordinates = coord
@@ -2280,6 +2372,7 @@ MODULE mo_var_meta_data
     z012_tot_meta%standard_name = 'monthly surface_roughness_length '
     z012_tot_meta%long_name = 'Monthly roughness length'
     z012_tot_meta%shortName = 'Z0_VEG'
+    z012_tot_meta%stepType = 'avg'
     z012_tot_meta%units =  'm'
     z012_tot_meta%grid_mapping = gridmp
     z012_tot_meta%coordinates = coord
@@ -2294,6 +2387,7 @@ MODULE mo_var_meta_data
     z012_lu_meta%standard_name = 'monthly surface_roughness_length due to vegetation'
     z012_lu_meta%long_name = 'Monthly roughness length due to vegetation'
     z012_lu_meta%shortName = 'Z0_VEG'
+    z012_lu_meta%stepType = 'avg'
     z012_lu_meta%units =  'm'
     z012_lu_meta%grid_mapping = gridmp
     z012_lu_meta%coordinates = coord
@@ -2307,6 +2401,7 @@ MODULE mo_var_meta_data
     root_lu_meta%standard_name = 'root_depth'
     root_lu_meta%long_name = 'Root depth'
     root_lu_meta%shortName = 'ROOTDP'
+    root_lu_meta%stepType = 'instant'
     root_lu_meta%units =  'm'
     root_lu_meta%grid_mapping = gridmp
     root_lu_meta%coordinates = coord
@@ -2320,6 +2415,7 @@ MODULE mo_var_meta_data
     plcov12_lu_meta%standard_name = 'monthly vegetation_area_fraction'
     plcov12_lu_meta%long_name = 'monthly plant cover'
     plcov12_lu_meta%shortName = 'PLCOV12'
+    plcov12_lu_meta%stepType = 'avg'
     plcov12_lu_meta%units =  '1'
     plcov12_lu_meta%grid_mapping = gridmp
     plcov12_lu_meta%coordinates = coord
@@ -2333,6 +2429,7 @@ MODULE mo_var_meta_data
     lai12_lu_meta%standard_name = 'monthly leaf_area_index'
     lai12_lu_meta%long_name = 'Monthly Leaf Area Index'
     lai12_lu_meta%shortName = 'LAI12'
+    lai12_lu_meta%stepType = 'avg'
     lai12_lu_meta%units =  '1'
     lai12_lu_meta%grid_mapping =gridmp
     lai12_lu_meta%coordinates = coord
@@ -2346,6 +2443,7 @@ MODULE mo_var_meta_data
     rs_min_lu_meta%standard_name = c_undef
     rs_min_lu_meta%long_name = c_undef
     rs_min_lu_meta%shortName = 'prs_min'
+    rs_min_lu_meta%stepType = 'instant'
     rs_min_lu_meta%units =  's/m'
     rs_min_lu_meta%grid_mapping = gridmp
     rs_min_lu_meta%coordinates = coord
@@ -2359,6 +2457,7 @@ MODULE mo_var_meta_data
     urban_lu_meta%standard_name = c_undef
     urban_lu_meta%long_name = 'urban area fraction'
     urban_lu_meta%shortName = 'URBAN'
+    urban_lu_meta%stepType = 'instant'
     urban_lu_meta%units =  '1'
     urban_lu_meta%grid_mapping = gridmp
     urban_lu_meta%coordinates = coord
@@ -2373,6 +2472,7 @@ MODULE mo_var_meta_data
     for_d_lu_meta%standard_name = c_undef
     for_d_lu_meta%long_name = 'Fraction of deciduous forest'
     for_d_lu_meta%shortName = 'FOR_D'
+    for_d_lu_meta%stepType = 'instant'
     for_d_lu_meta%units =  '1'
     for_d_lu_meta%grid_mapping = gridmp
     for_d_lu_meta%coordinates = coord
@@ -2387,6 +2487,7 @@ MODULE mo_var_meta_data
     for_e_lu_meta%standard_name = c_undef
     for_e_lu_meta%long_name = 'Fraction of evergreen forest'
     for_e_lu_meta%shortName = 'FOR_E' 
+    for_e_lu_meta%stepType = 'instant'
     for_e_lu_meta%units =  '1'
     for_e_lu_meta%grid_mapping = gridmp
     for_e_lu_meta%coordinates = coord
@@ -2401,6 +2502,7 @@ MODULE mo_var_meta_data
     emissivity_lu_meta%standard_name = 'EMIS_RAD'
     emissivity_lu_meta%long_name = 'longwave surface emissivity'
     emissivity_lu_meta%shortName = 'EMIS_RAD'
+    emissivity_lu_meta%stepType = 'instant'
     emissivity_lu_meta%units =  c_undef
     emissivity_lu_meta%grid_mapping = gridmp
     emissivity_lu_meta%coordinates = coord
@@ -2414,6 +2516,7 @@ MODULE mo_var_meta_data
     fr_ocean_lu_meta%standard_name = 'sea_area_fraction'
     fr_ocean_lu_meta%long_name = 'Fraction ocean'
     fr_ocean_lu_meta%shortName = 'FR_OCEAN'
+    fr_ocean_lu_meta%stepType = 'instant'
     fr_ocean_lu_meta%units =  '1'
     fr_ocean_lu_meta%grid_mapping = gridmp
     fr_ocean_lu_meta%coordinates = coord
@@ -2450,6 +2553,7 @@ MODULE mo_var_meta_data
     lake_depth_meta%standard_name = 'lake_depth'
     lake_depth_meta%long_name = 'Lake depth'
     lake_depth_meta%shortName = 'DEPTH_LK'
+    lake_depth_meta%stepType = 'instant'
     lake_depth_meta%units = 'm'
     lake_depth_meta%grid_mapping = gridmp
     lake_depth_meta%coordinates = coord
@@ -2463,6 +2567,7 @@ MODULE mo_var_meta_data
     fr_lake_meta%standard_name = 'fraction_lake'
     fr_lake_meta%long_name = 'fraction lake'
     fr_lake_meta%shortName = 'FR_LAKE'
+    fr_lake_meta%stepType = 'instant'
     fr_lake_meta%units = '1'
     fr_lake_meta%grid_mapping = gridmp
     fr_lake_meta%coordinates = coord
@@ -2476,6 +2581,7 @@ MODULE mo_var_meta_data
     flake_tot_npixel_meta%standard_name = 'npixel'
     flake_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
     flake_tot_npixel_meta%shortName = c_undef
+    flake_tot_npixel_meta%stepType = 'instant'
     flake_tot_npixel_meta%units = c_undef
     flake_tot_npixel_meta%grid_mapping = gridmp
     flake_tot_npixel_meta%coordinates = coord
@@ -2516,6 +2622,7 @@ MODULE mo_var_meta_data
     fr_land_mask_meta%standard_name = 'land_area_fraction'
     fr_land_mask_meta%long_name = 'Fraction land'
     fr_land_mask_meta%shortName = 'FR_LAND'
+    fr_land_mask_meta%stepType = 'instant'
     fr_land_mask_meta%units =  c_undef
     fr_land_mask_meta%grid_mapping = gridmp
     fr_land_mask_meta%coordinates = coord
@@ -2571,6 +2678,7 @@ MODULE mo_var_meta_data
     hh_topo_meta%standard_name = 'surface_height'
     hh_topo_meta%long_name = 'geometric height of the earths surface above sea level'
     hh_topo_meta%shortName = 'HSURF'
+    hh_topo_meta%stepType = 'instant'
     hh_topo_meta%units = 'm'
     hh_topo_meta%grid_mapping = gridmp
     hh_topo_meta%coordinates = coord
@@ -2583,6 +2691,7 @@ MODULE mo_var_meta_data
     hh_fis_meta%standard_name = 'FIS'
     hh_fis_meta%long_name = 'Geopotential (S)'
     hh_fis_meta%shortName = 'FIS'
+    hh_fis_meta%stepType = 'instant'
     hh_fis_meta%units = 'm**2 s**-2'
     hh_fis_meta%grid_mapping = gridmp
     hh_fis_meta%coordinates = coord
@@ -2597,6 +2706,7 @@ MODULE mo_var_meta_data
     stdh_topo_meta%standard_name = 'standard deviation of height'
     stdh_topo_meta%long_name = 'standard deviation of subgrid scale orography'
     stdh_topo_meta%shortName = 'SSO_STDH'
+    stdh_topo_meta%stepType = 'instant'
     stdh_topo_meta%units = 'm'
     stdh_topo_meta%grid_mapping = gridmp
     stdh_topo_meta%coordinates = coord
@@ -2609,6 +2719,7 @@ MODULE mo_var_meta_data
     theta_topo_meta%standard_name = 'angle of principal axis'
     theta_topo_meta%long_name = 'Angle of sub-gridscale orography'
     theta_topo_meta%shortName = 'SSO_THETA'
+    theta_topo_meta%stepType = 'instant'
     theta_topo_meta%units = 'rad'
     theta_topo_meta%grid_mapping = gridmp
     theta_topo_meta%coordinates = coord
@@ -2621,6 +2732,7 @@ MODULE mo_var_meta_data
     aniso_topo_meta%standard_name = 'anisotropy factor'
     aniso_topo_meta%long_name = 'anisotropy of sub-gridscale orography'
     aniso_topo_meta%shortName = 'SSO_GAMMA'
+    aniso_topo_meta%stepType = 'instant'
     aniso_topo_meta%units =  c_undef
     aniso_topo_meta%grid_mapping = gridmp
     aniso_topo_meta%coordinates = coord
@@ -2633,6 +2745,7 @@ MODULE mo_var_meta_data
     slope_topo_meta%standard_name = 'slope of terrain'
     slope_topo_meta%long_name = 'Slope of sub-gridscale orography'
     slope_topo_meta%shortName = 'SSO_SIGMA'
+    slope_topo_meta%stepType = 'instant'
     slope_topo_meta%units = c_undef
     slope_topo_meta%grid_mapping = gridmp
     slope_topo_meta%coordinates = coord
@@ -2650,6 +2763,7 @@ MODULE mo_var_meta_data
         fr_land_topo_meta%long_name = 'fraction land due to GLOBE data'
       END SELECT
     fr_land_topo_meta%shortName = 'FR_LAND'
+    fr_land_topo_meta%stepType = 'instant'
     fr_land_topo_meta%units =  c_undef
     fr_land_topo_meta%grid_mapping = gridmp
     fr_land_topo_meta%coordinates = coord
@@ -2663,6 +2777,7 @@ MODULE mo_var_meta_data
     z0_topo_meta%standard_name = 'Z0'
     z0_topo_meta%long_name = 'Roughness length'
     z0_topo_meta%shortName = 'Z0'
+    z0_topo_meta%stepType = 'instant'
     z0_topo_meta%units =  c_undef
     z0_topo_meta%grid_mapping = gridmp
     z0_topo_meta%coordinates = coord
@@ -2675,7 +2790,8 @@ MODULE mo_var_meta_data
     slope_asp_topo_meta%vartype = vartype_real !REAL variable
     slope_asp_topo_meta%standard_name = 'SLO_ASP'
     slope_asp_topo_meta%long_name = 'slope aspect - topography'
-    slope_asp_topo_meta%shortName = 'slope_aspect'
+    slope_asp_topo_meta%shortName = 'SLO_ASP'
+    slope_asp_topo_meta%stepType = 'instant'
     slope_asp_topo_meta%units = 'rad'
     slope_asp_topo_meta%grid_mapping = gridmp
     slope_asp_topo_meta%coordinates = coord
@@ -2687,7 +2803,8 @@ MODULE mo_var_meta_data
     slope_ang_topo_meta%vartype = vartype_real !REAL variable
     slope_ang_topo_meta%standard_name = 'SLO_ANG'
     slope_ang_topo_meta%long_name = 'slope angle - topography'
-    slope_ang_topo_meta%shortName = 'slope_angle'
+    slope_ang_topo_meta%shortName = 'SLO_ANG'
+    slope_ang_topo_meta%stepType = 'instant'
     slope_ang_topo_meta%units = 'rad'
     slope_ang_topo_meta%grid_mapping = gridmp
     slope_ang_topo_meta%coordinates = coord
@@ -2701,7 +2818,8 @@ MODULE mo_var_meta_data
       horizon_topo_meta%vartype = vartype_real !REAL variable
       horizon_topo_meta%standard_name = 'HORIZON'
       horizon_topo_meta%long_name = 'horizon angle - topography'
-      horizon_topo_meta%shortName = 'horizon_angle'
+      horizon_topo_meta%shortName = 'HORIZON'
+      horizon_topo_meta%stepType = 'instant'
       horizon_topo_meta%units = 'deg'
       horizon_topo_meta%grid_mapping = gridmp
       horizon_topo_meta%coordinates = coordhor
@@ -2714,7 +2832,8 @@ MODULE mo_var_meta_data
     skyview_topo_meta%vartype = vartype_real !REAL variable
     skyview_topo_meta%standard_name = 'SKYVIEW'
     skyview_topo_meta%long_name = 'sky-view factor'
-    skyview_topo_meta%shortName = 'skyview'
+    skyview_topo_meta%shortName = 'SKYVIEW'
+    skyview_topo_meta%stepType = 'instant'
     skyview_topo_meta%units = '-'
     skyview_topo_meta%grid_mapping = gridmp
     skyview_topo_meta%coordinates = coord
@@ -2744,6 +2863,7 @@ MODULE mo_var_meta_data
     hh_vert_meta%standard_name = 'HSURF_v'
     hh_vert_meta%long_name = 'topographic height at cell vertices'
     hh_vert_meta%shortName = 'HSURF'
+    hh_vert_meta%stepType = 'instant'
     hh_vert_meta%units = 'm'
     hh_vert_meta%grid_mapping = c_undef
     hh_vert_meta%coordinates = c_undef
@@ -2756,6 +2876,7 @@ MODULE mo_var_meta_data
     npixel_vert_meta%standard_name = 'npixel'
     npixel_vert_meta%long_name = 'number of raw data pixel'
     npixel_vert_meta%shortName = c_undef
+    npixel_vert_meta%stepType = 'instant'
     npixel_vert_meta%units = c_undef
     npixel_vert_meta%grid_mapping = c_undef
     npixel_vert_meta%coordinates = c_undef

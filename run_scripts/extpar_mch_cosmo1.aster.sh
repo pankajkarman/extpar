@@ -4,15 +4,31 @@ ulimit -s unlimited
 ulimit -c unlimited
 
 
-# GRIB API resources; adjust the path setting!
-export GRIB_DEFINITION_PATH=/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/share/grib_api/definitions
-export GRIB_SAMPLES_PATH=/oprusers/osm/lib/libgrib_api_1.11.0.1_pgi13.6.0/share/grib_api/samples
+# Variables which are automatically set
+currentdir=`pwd`
+rootdir=${currentdir}/..
+progdir=${rootdir}/bin
+scriptpath=$0
+scriptname=${scriptpath##*/}
+logfile=${scriptname%.*}_`date +%Y%m%d%H%M%S`.log
 
+
+#---------------------------------------------------------------------------------------------------------
 # NetCDF raw data for external parameter; adjust the path setting!
 data_dir=/store/s83/tsm/extpar/raw_data_nc/
 
+# GRIB API resources; adjust the path setting!
+export GRIB_DEFINITION_PATH=${rootdir}/../grib_api_definitions
+export GRIB_SAMPLES_PATH=${rootdir}/../grib_sample
+
 # Sandbox; adjust the path setting (make sure you have enough disk place at that location)!
-sandboxdir=/store/s83/tsm/extpar/sandbox_c1_newfil
+sandboxdir=/store/s83/tsm/extpar/sandbox_c1_aster
+
+# Output file format and names; adjust!
+grib_sample='rotated_ll_pl_grib1'
+grib_output_filename='external_parameter_mch_cosmo1.g1'
+netcdf_output_filename='external_parameter_mch_cosmo1.nc'
+#---------------------------------------------------------------------------------------------------------
 
 
 # Names of executables
@@ -26,14 +42,6 @@ binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
 
 binary_consistency_check=extpar_consistency_check.exe
-
-
-# Variables which are automatically set
-currentdir=`pwd`
-progdir=${currentdir}/../bin
-scriptpath=$0
-scriptname=${scriptpath##*/}
-logfile=${scriptname%.*}_`date +%Y%m%d%H%M%S`.log
 
 # Prepare working directory
 if [[ ! -d ${sandboxdir} ]] ; then
@@ -49,11 +57,6 @@ echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
 
 #---
-
-grib_output_filename='external_parameter_mch_cosmo1.g1'
-stf_output_filename='external_parameter_mch_cosmo1.stf'
-netcdf_output_filename='external_parameter_mch_cosmo1.nc'
-grib_sample='rotated_ll_pl_grib1'
 
 raw_data_alb='MODIS_month_alb.nc'
 raw_data_alnid='MODIS_month_alnid.nc'
