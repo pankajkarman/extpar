@@ -866,7 +866,7 @@ MODULE mo_var_meta_data
       dim_alb_tg(4)%dimsize = ntime
     END SELECT
 
-    alb_field_mom_meta%varname = 'ALB'
+    alb_field_mom_meta%varname = 'ALB_DIF12'
     alb_field_mom_meta%n_dim = n_dim + 1
     alb_field_mom_meta%diminfo => dim_alb_tg
     alb_field_mom_meta%vartype = vartype_real !REAL variable
@@ -2493,7 +2493,6 @@ MODULE mo_var_meta_data
     for_e_lu_meta%coordinates = coord
     for_e_lu_meta%data_set = 'ECOCLIMAP'
 
-
     ! emissivity_lu_meta
     emissivity_lu_meta%varname = 'EMIS_RAD'
     emissivity_lu_meta%n_dim = n_dim
@@ -2508,7 +2507,7 @@ MODULE mo_var_meta_data
     emissivity_lu_meta%coordinates = coord
     emissivity_lu_meta%data_set = 'ECOCLIMAP'
 
-    ! fr_ocean_lu_meta
+   ! fr_ocean_lu_meta
     fr_ocean_lu_meta%varname = 'FR_OCEAN'
     fr_ocean_lu_meta%n_dim = n_dim
     fr_ocean_lu_meta%diminfo => diminfo
@@ -2521,6 +2520,79 @@ MODULE mo_var_meta_data
     fr_ocean_lu_meta%grid_mapping = gridmp
     fr_ocean_lu_meta%coordinates = coord
     fr_ocean_lu_meta%data_set = 'ECOCLIMAP'
+
+    ! plcov_mx_lu_meta
+    plcov_mx_lu_meta%varname = 'PLCOV_MX'
+    plcov_mx_lu_meta%n_dim = n_dim
+    plcov_mx_lu_meta%diminfo => diminfo
+    plcov_mx_lu_meta%vartype = vartype_real !REAL variable
+    plcov_mx_lu_meta%long_name = 'vegetation_area_fraction_vegetation_period'
+    plcov_mx_lu_meta%standard_name = c_undef
+    plcov_mx_lu_meta%shortName = 'PLCOV_MX'
+    plcov_mx_lu_meta%stepType = 'max'
+    plcov_mx_lu_meta%units =  c_undef
+    plcov_mx_lu_meta%grid_mapping = gridmp
+    plcov_mx_lu_meta%coordinates = coord
+    plcov_mx_lu_meta%data_set = 'ECOCLIMAP'
+
+
+    ! plcov_mn_lu_meta
+    plcov_mn_lu_meta%varname = 'PLCOV_MN'
+    plcov_mn_lu_meta%n_dim = n_dim
+    plcov_mn_lu_meta%diminfo => diminfo
+    plcov_mn_lu_meta%vartype = vartype_real !REAL variable
+    plcov_mn_lu_meta%standard_name = c_undef
+    plcov_mn_lu_meta%long_name = 'vegetation_area_fraction_resting_period'
+    plcov_mn_lu_meta%shortName = 'PLCOV_MN'
+    plcov_mn_lu_meta%stepType = 'min'
+    plcov_mn_lu_meta%units =  c_undef
+    plcov_mn_lu_meta%grid_mapping = gridmp
+    plcov_mn_lu_meta%coordinates = coord
+    plcov_mn_lu_meta%data_set = 'ECOCLIMAP'
+
+    ! lai_mx_lu_meta
+    lai_mx_lu_meta%varname = 'LAI_MX'
+    lai_mx_lu_meta%n_dim = n_dim
+    lai_mx_lu_meta%diminfo => diminfo
+    lai_mx_lu_meta%vartype = vartype_real !REAL variable
+    lai_mx_lu_meta%standard_name = 'leaf_area_index_vegetation_period'
+    lai_mx_lu_meta%long_name = 'Leaf Area Index Maximum'
+    lai_mx_lu_meta%shortName = 'LAI_MX'
+    lai_mx_lu_meta%stepType = 'max'
+    lai_mx_lu_meta%units =  c_undef
+    lai_mx_lu_meta%grid_mapping = gridmp
+    lai_mx_lu_meta%coordinates = coord
+    lai_mx_lu_meta%data_set = 'ECOCLIMAP'
+
+
+    ! lai_mn_lu_meta
+    lai_mn_lu_meta%varname = 'LAI_MN'
+    lai_mn_lu_meta%n_dim = n_dim
+    lai_mn_lu_meta%diminfo => diminfo
+    lai_mn_lu_meta%vartype = vartype_real !REAL variable
+    lai_mn_lu_meta%standard_name = 'leaf_area_index_resting_period'
+    lai_mn_lu_meta%long_name = 'Leaf Area Minimum'
+    lai_mn_lu_meta%shortName = 'LAI_MN'
+    lai_mn_lu_meta%stepType = 'min'
+    lai_mn_lu_meta%units =  c_undef
+    lai_mn_lu_meta%grid_mapping =gridmp
+    lai_mn_lu_meta%coordinates = coord
+    lai_mn_lu_meta%data_set = 'ECOCLIMAP'
+
+    ! z0_lu_meta
+    z0_lu_meta%varname = 'Z0'
+    z0_lu_meta%n_dim = n_dim
+    z0_lu_meta%diminfo => diminfo
+    z0_lu_meta%vartype = vartype_real !REAL variable
+    z0_lu_meta%standard_name = 'surface_roughness_length'
+    z0_lu_meta%long_name = 'Roughness length'
+    z0_lu_meta%shortName = 'Z0'
+    z0_lu_meta%stepType = 'instant'
+    z0_lu_meta%units =  c_undef
+    z0_lu_meta%grid_mapping = gridmp
+    z0_lu_meta%coordinates = coord
+    z0_lu_meta%data_set = 'ECOCLIMAP'
+
 
   END SUBROUTINE def_ecoclimap_fields_meta
 

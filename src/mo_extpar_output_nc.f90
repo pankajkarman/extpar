@@ -528,7 +528,6 @@ MODULE mo_extpar_output_nc
     CALL netcdf_put_var(ncid,var_real_2d,ice_lu_meta,undefined)
 
     IF (i_landuse_data .eq. 4) THEN
-      PRINT *,'def_ecoclimap_meta', ntime_ecoclimap
       CALL netcdf_put_var(ncid,                                  &
       & plcov12_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ecoclimap), &
       & plcov12_lu_meta,undefined)

@@ -63,22 +63,6 @@ CONTAINS
 
   SUBROUTINE deallocate_ecoclimap_fields()
 
-    USE mo_ecoclimap_tg_fields, ONLY : fr_land_ecoclimap, &
-                                       ecoclimap_class_fraction,    &
-                                       ecoclimap_class_npixel, &
-                                       ecoclimap_tot_npixel, &
-                                       ice_ecoclimap, &
-                                       z012_ecoclimap, &
-                                       z012tot_ecoclimap, &
-                                       root_ecoclimap, &
-                                       plcov12_ecoclimap, &
-                                       lai12_ecoclimap, &
-                                       rs_min_ecoclimap, &
-                                       urban_ecoclimap,  &
-                                       for_d_ecoclimap,  &
-                                       for_e_ecoclimap, &
-                                       emissivity_ecoclimap
-
     IMPLICIT NONE
 
     INTEGER :: errorcode
@@ -87,36 +71,6 @@ CONTAINS
     IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lat_ecoclimap')
     DEALLOCATE (lon_ecoclimap, STAT = errorcode)
     IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lon_ecoclimap')
-    DEALLOCATE (fr_land_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array fr_land_ecoclimap')
-    DEALLOCATE (ecoclimap_tot_npixel, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array ecoclimap_tot_npixel')
-    DEALLOCATE (ecoclimap_class_fraction, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array ecoclimap_class_fraction')
-    DEALLOCATE (ecoclimap_class_npixel, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array ecoclimap_class_npixel')
-    DEALLOCATE (ice_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array ice_ecoclimap')
-    DEALLOCATE (z012_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array z012_ecoclimap')
-    DEALLOCATE (z012tot_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array z012tot_ecoclimap')
-    DEALLOCATE (root_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array root_ecoclimap')
-    DEALLOCATE (plcov12_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array plcov12_ecoclimap')
-    DEALLOCATE (lai12_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lai12_ecoclimap')
-    DEALLOCATE (rs_min_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array rs_min_ecoclimap')
-    DEALLOCATE (urban_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array urban_ecoclimap')
-    DEALLOCATE (for_e_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array for_e_ecoclimap')
-    DEALLOCATE (for_d_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array for_d_ecoclimap')
-    DEALLOCATE (emissivity_ecoclimap, STAT = errorcode)
-    IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the array emissivity_ecoclimap')
 
   END SUBROUTINE deallocate_ecoclimap_fields
   

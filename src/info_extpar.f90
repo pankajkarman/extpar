@@ -54,9 +54,9 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 !
 ! Following declarations have to be defined just after checkout from the version control system:
 CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_2.0-rc'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = '(missing)'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '(missing)'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '(missing)'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'https://cosmo.cscs.ch/tools/extpar/trunk'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2014-02-19 14:02:43 +0100 (Wed, 19 Feb 2014)'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '5373M'
 CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '(missing)'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = '(missing)'
 ! Following declarations have to be defined just before compiling:

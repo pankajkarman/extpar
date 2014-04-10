@@ -180,22 +180,6 @@ USE mo_glc2000_tg_fields, ONLY:  fr_land_glc2000, &
     &      for_e_glc2000, &
     &      emissivity_glc2000
 
-USE mo_ecoclimap_tg_fields, ONLY: fr_land_ecoclimap, &
-    &      ecoclimap_class_fraction,    &
-    &      ecoclimap_class_npixel, &
-    &      ecoclimap_tot_npixel, &
-    &      ice_ecoclimap, &
-    &      z012_ecoclimap, &
-    &      z012tot_ecoclimap, &
-    &      root_ecoclimap, &
-    &      plcov12_ecoclimap, &
-    &      lai12_ecoclimap, &
-    &      rs_min_ecoclimap, &
-    &      urban_ecoclimap,  &
-    &      for_d_ecoclimap,  &
-    &      for_e_ecoclimap, &
-    &      emissivity_ecoclimap
-
 USE mo_glcc_lookup_tables, ONLY: nclass_glcc
 USE mo_glcc_lookup_tables, ONLY: init_glcc_lookup_tables
 USE mo_glcc_lookup_tables, ONLY: glcc_legend

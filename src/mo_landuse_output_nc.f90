@@ -476,9 +476,9 @@ END SUBROUTINE write_netcdf_buffer_lu
   CALL netcdf_put_var(ncid,lu_class_npixel,lu_class_npixel_meta,undefined_i)
   !-----------------------------------------------------------------
 
-
   CALL close_netcdf_file(ncid)
 
+  PRINT *,'ECOCLIMAP: wrote all data fields'
 
 END SUBROUTINE write_netcdf_buffer_ecoclimap
 

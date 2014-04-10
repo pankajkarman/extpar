@@ -187,23 +187,6 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
       &                         emissivity_glcc,    &
       &                         allocate_glcc_target_fields
 
-  USE mo_ecoclimap_tg_fields, ONLY: fr_land_ecoclimap , &
-      &        ecoclimap_class_fraction,    &
-      &        ecoclimap_class_npixel, &
-      &        ecoclimap_tot_npixel, &
-      &        ice_ecoclimap, &
-      &        z012_ecoclimap, &
-      &        z012tot_ecoclimap, & 
-      &        root_ecoclimap, &
-      &        plcov12_ecoclimap, &
-      &        lai12_ecoclimap, &
-      &        rs_min_ecoclimap, &
-      &        urban_ecoclimap,  &
-      &        for_d_ecoclimap,  &
-      &        for_e_ecoclimap, &
-      &        emissivity_ecoclimap, &
-      &        allocate_ecoclimap_target_fields
-
   USE mo_agg_glc2000, ONLY : agg_glc2000_data_to_target_grid
 
   USE mo_agg_glcc, ONLY : agg_glcc_data_to_target_grid
