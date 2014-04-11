@@ -224,9 +224,9 @@ SUBROUTINE compute_lradtopo(nhori,tg,hh_topo,slope_asp,slope_ang,horizon,skyview
 !> distance matrix for all points within one sector 
 !        (distance from the sector center)
   DO j = 1, nsec
-    rdy = FLOAT(j-nborder-1)
+    rdy = REAL(j-nborder-1) !_br 04.04.14
     DO i = 1, nsec
-      rdx = FLOAT(i-nborder-1)
+      rdx = REAL(i-nborder-1) !_br 04.04.14
       dist(i,j) = SQRT(rdx*rdx + rdy*rdy)
     ENDDO
   ENDDO
@@ -383,7 +383,7 @@ SUBROUTINE comp_horiz( h_hres, dhres, dhdx, dhdy, nhori, nx, ny, hor, rot_ang )
 
 !> allocations
   ALLOCATE( pcr(2,ngp), rcr(2,ngp), xcart(ngp), ycart(ngp), dh(ngp), dn(ngp), rates(ngp), STAT=nzstat )
-  IF ( nzstat /= 0_i8 ) STOP
+  IF ( nzstat /= 0_i8 ) STOP 21  !_br 08.04.14
 
 !> radius for polar coordinates
   DO k = 1, ngp
@@ -434,7 +434,7 @@ SUBROUTINE comp_horiz( h_hres, dhres, dhdx, dhdy, nhori, nx, ny, hor, rot_ang )
 
 !> cleanup
   DEALLOCATE( pcr, rcr, xcart, ycart, dh, dn, rates, STAT=nzstat )
-  IF ( nzstat /= 0_i8 ) STOP
+  IF ( nzstat /= 0_i8 ) STOP 22 !_br 08.04.14
 
 
 END SUBROUTINE comp_horiz
@@ -471,8 +471,8 @@ SUBROUTINE compute_skyview( slope_ang, slope_asp, horizon, nhori, skyview )
     i, i0, k, ip
 
   REAL(KIND=wp)                                    :: &
-    sffront,                 & !
-    sfback,                  & !
+!    sffront,                 & !  !_br 21.02.14  defined twice
+!    sfback,                  & !  !_br 21.02.14  defined twice
     rslope_ang,              & ! slope angle [rad]
     rdeghor,                 & ! number of radians per sector [rad]
     cosa, cosah, sinah,      & ! cosine, half cosine, half sine of the slope angle resp. [-] 
@@ -556,14 +556,14 @@ SUBROUTINE compute_skyview( slope_ang, slope_asp, horizon, nhori, skyview )
             PRINT*, '!! SLG TOO HIGH    !!','slope_ang: ', slope_ang, ' slope_asp: ', slope_asp, ' horizon: ', horizon
             PRINT*, 'slg:  ', slg, ' sl(ip): ', sl(ip), ' sl(i): ', sl(i), ' hop(i): ', hop(i), ' hpl(i): ', hpl(i)
             PRINT*,  ' hpl(ip): ', hpl(ip), ' i:  ',i, ' ip: ', ip
-            STOP
+            STOP 23 !_br 08.04.14
           ENDIF
           ! SLG too low
           IF ((slg < sl(i)) .AND. (slg < sl(i)-zepsilon)) THEN 
             PRINT*, '!! SLG TOO LOW !!','slope_ang: ', slope_ang, ' slope_asp: ', slope_asp, ' horizon: ', horizon
             PRINT*, 'slg:  ', slg, ' sl(ip): ', sl(ip), ' sl(i): ', sl(i), ' hop(i): ', hop(i), ' hpl(i): ', hpl(i)
             PRINT*,  ' hpl(ip): ', hpl(ip), ' i:  ',i, ' ip: ', ip
-            STOP
+            STOP 24 !_br 08.04.14
           ENDIF
           ! SLG in tolerance zone -> clipped to lower limit
           IF ( (slg > sl(ip)) .AND. (slg < sl(ip)+zepsilon) ) THEN 
@@ -594,14 +594,14 @@ SUBROUTINE compute_skyview( slope_ang, slope_asp, horizon, nhori, skyview )
             PRINT*, '!! slg TOO HIGH    !!','slope_ang: ', slope_ang, ' slope_asp: ', slope_asp, ' horizon: ', horizon
             PRINT*, 'slg:  ', slg, ' sl(ip): ', sl(ip), ' sl(i): ', sl(i), ' hop(i): ', hop(i), ' hpl(i): ', hpl(i)
             PRINT*,  ' hpl(ip): ', hpl(ip), ' i:  ',i, ' ip: ', ip
-            STOP
+            STOP 25 !_br 08.04.14
           ENDIF
           ! slg too low
           IF ( (slg < sl(i)) .AND. (slg < sl(i)-zepsilon) ) THEN 
             PRINT*, '!! slg TOO LOW !!','slope_ang: ', slope_ang, ' slope_asp: ', slope_asp, ' horizon: ', horizon
             PRINT*, 'slg:  ', slg, ' sl(ip): ', sl(ip), ' sl(i): ', sl(i), ' hop(i): ', hop(i), ' hpl(i): ', hpl(i)
             PRINT*,  ' hpl(ip): ', hpl(ip), ' i:  ',i, ' ip: ', ip
-            STOP
+            STOP 26 !_br 08.04.14
           ENDIF
           ! slg in tolerance zone -> clipped to lower limit
           IF ( (slg > sl(ip)) .AND. (slg < sl(ip)+zepsilon) ) THEN 
@@ -627,7 +627,8 @@ SUBROUTINE compute_skyview( slope_ang, slope_asp, horizon, nhori, skyview )
   ELSE
     IF ( slope_ang == 90.0_wp ) THEN 
       skyview = 0.5_wp * pi
-      skyview = skyview + sffront( 0.0_wp, sinah, hop(nhori-1), sl(0), 0.0_wp )
+!      skyview = skyview + sffront( 0.0_wp, sinah, hop(nhori-1), sl(0), 0.0_wp )!_br 21.02.14 sl field starts at index 1
+      skyview = skyview + sffront( 0.0_wp, sinah, hop(nhori-1), sl(1), 0.0_wp ) !_br 21.02.14
       i = 1
       DO WHILE ( sl(i+1) < pi )
         ip = i + 1
@@ -646,7 +647,8 @@ END SUBROUTINE compute_skyview
 FUNCTION atan22( psi, cosalfa )
 
   REAL (KIND=wp),INTENT(IN) :: psi, cosalfa
-  REAL (KIND=wp),INTENT(OUT):: atan22
+!  REAL (KIND=wp),INTENT(OUT):: atan22 !_br 21.02.14
+  REAL (KIND=wp):: atan22 !_br 21.02.14 function should not have an INTENT attribute
   REAL (KIND=wp) :: pih, pi3h, x
 
   IF( cosalfa == 0.0_wp ) THEN 
@@ -695,7 +697,7 @@ END FUNCTION sffront
 
     REAL(KIND=wp),INTENT(IN):: c, s, hpip, hpi, so, su
     REAL(KIND=wp)           :: sfback
-    REAL(KIND=wp)           :: atan22
+!    REAL(KIND=wp)           :: atan22 !_br 21.02.14 defined twice
 
     sfback = s * ( hpip * COS(so) - hpi * COS(su) ) 
     sfback = sfback + 0.5_wp * ( atan22(so,c) - atan22(su,c) ) 

@@ -141,7 +141,7 @@ MODULE mo_aot_output_nc
      CALL set_global_att_aot_macc(global_attributes)
   ELSE
      PRINT *, 'UNKNOWN AOT DATA OPTION: '
-     STOP 1
+     STOP 11 !_br 08.04.14 changed number for better distinguishing
   ENDIF
 
   !set up dimensions for buffer
@@ -316,7 +316,7 @@ MODULE mo_aot_output_nc
      CALL set_global_att_aot_macc(global_attributes)
   ELSE
      PRINT *, 'UNKNOWN AOT DATA OPTION: '
-     STOP 1
+     STOP 12  !_br 08.04.14 changed number for better distinguishing 
   ENDIF
 
   !set up dimensions for buffer
@@ -513,7 +513,7 @@ MODULE mo_aot_output_nc
      CALL set_global_att_aot_macc(global_attributes)
   ELSE
      PRINT *, 'UNKNOWN AOT DATA OPTION: '
-     STOP 1
+     STOP 13 !_br 08.04.14 changed number for better distinguishing
   ENDIF
 
   !set up dimensions for buffer

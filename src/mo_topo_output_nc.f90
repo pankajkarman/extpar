@@ -834,7 +834,8 @@ PRINT *,'def_dimension_info_buffer'
     global_attributes(3)%attname = 'source'
     SELECT CASE(itopo_type)
       CASE(topo_aster)
-        global_attributes(3)%attributetext='ASTER,The Advanced Spaceborne Thermal Emission and Reflection Radiometer, 1 arc-second digital elevation model'
+        global_attributes(3)%attributetext='ASTER,The Advanced Spaceborne Thermal Emission '// & !_br 21.02.14 splitted too long line
+        & 'and Reflection Radiometer, 1 arc-second digital elevation model' !_br 21.02.14
       CASE(topo_gl)
         global_attributes(3)%attributetext='GLOBE, Global Land One-km Base Elevation'
       END SELECT

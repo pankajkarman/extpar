@@ -214,6 +214,8 @@ USE mo_glc2000_lookup_tables, ONLY: ilookup_table_glc2000, &
   &                                 name_lookup_table_glc2000
 USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
 
+USE mo_globcover_data,   ONLY: max_tiles_lu  !_br 21.02.14 including definition of max_tiles_lu
+
 USE mo_globcover_lookup_tables, ONLY: nclass_globcover
 
 USE mo_globcover_lookup_tables, ONLY: get_name_globcover_lookup_tables
@@ -412,7 +414,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   ! land use
 
   CHARACTER (len=filename_max) :: raw_data_lu_path        !< path to raw data
-  CHARACTER (len=filename_max) :: raw_data_lu_filename !< filename glc2000 raw data
+  CHARACTER (len=filename_max) :: raw_data_lu_filename(1:max_tiles_lu) !< filename glc2000 raw data !_br 21.02.14
   CHARACTER(len=filename_max) :: name_lookup_table_lu !< name for look up table
   CHARACTER(len=filename_max) :: lu_dataset !< name of landuse data set
 
@@ -655,7 +657,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
                                          soil_buffer_file_consistent,&
                                          soil_output_file_consistent)
 
-  IF (ldeep_soil.eq..TRUE. .and. isoil_data /= HWSD_data) THEN
+  IF (ldeep_soil.eqv..TRUE. .and. isoil_data /= HWSD_data) THEN  !_br 21.02.14 replaced eq by eqv
     ldeep_soil = .FALSE.
     print*, '********* you can only use the deep soil if HWSD data is used *********'
     print*, '********* ldeep_soil is set to FALSE *********'

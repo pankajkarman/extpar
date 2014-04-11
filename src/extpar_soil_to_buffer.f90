@@ -228,7 +228,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
        
       
       
-      IF (ldeep_soil.eq..TRUE. .and. isoil_data /= HWSD_data) THEN
+      IF (ldeep_soil.eqv..TRUE. .and. isoil_data /= HWSD_data) THEN !_br 21.02.14 replace eq by eqv
         ldeep_soil = .FALSE.
         print*, '********* you can only use the deep soil if HWSD data is used *********'
         print*, '********* ldeep_soil is set to FALSE *********'

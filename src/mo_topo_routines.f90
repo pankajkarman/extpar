@@ -200,9 +200,11 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
          USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
          USE mo_topo_data, ONLY : ntiles    !< GLOBE raw data has 16 tiles, ASTER has 13
+         USE mo_topo_data,        ONLY: max_tiles  !_br 04.04.14
 
            CHARACTER (LEN=*), INTENT(IN)  :: input_namelist_file !< file with input namelist 
-           CHARACTER (LEN=filename_max), INTENT(OUT) :: topo_files(1:ntiles)  !< filenames globe raw data
+!_br 04.04.14           CHARACTER (LEN=filename_max), INTENT(OUT) :: topo_files(1:ntiles)  !< filenames globe raw data
+           CHARACTER (LEN=filename_max), INTENT(OUT) :: topo_files(1:max_tiles)  !< filenames globe raw data
            INTEGER :: nfiles                                   ! number of files 
 
            !>Define the namelist group

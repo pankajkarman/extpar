@@ -415,7 +415,8 @@ END SUBROUTINE read_namelists_extpar_soil
         
         variables_deep: DO varid_deep=1,nVars_deep
           !print *,'variable loop, varid ',varid
-          CALL check_netcdf(nf90_inquire_variable(ncid_deep,varid_deep,varname_deep,xtype_deep, ndim_deep, var_dimids_deep, nAtts_deep))
+          CALL check_netcdf(nf90_inquire_variable(ncid_deep,varid_deep,varname_deep,xtype_deep, & !_br 21.02.14 splitted too long line
+                            ndim_deep, var_dimids_deep, nAtts_deep))       !_br 21.02.14
 
           getvar_deep: SELECT CASE(TRIM(varname_deep))
             

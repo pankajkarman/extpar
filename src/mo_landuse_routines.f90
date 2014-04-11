@@ -605,8 +605,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         xmax_glc = MAXVAL(lu_tiles_lon_max)
         ymax_glc = MAXVAL(lu_tiles_lat_max)
         ymin_glc = MINVAL(lu_tiles_lat_min)
-        dx_glc   = (xmax_glc - xmin_glc)/ FLOAT(nlon_globcover)
-        dy_glc   = -1.0 * (ymax_glc - ymin_glc) / FLOAT(nlat_globcover)
+        dx_glc   = (xmax_glc - xmin_glc)/ REAL(nlon_globcover) !_br 04.04.14
+        dy_glc   = -1.0 * (ymax_glc - ymin_glc) / REAL(nlat_globcover) !_br 04.04.14
 
 ! <mes
 
@@ -701,8 +701,8 @@ END SUBROUTINE read_namelists_extpar_land_use
 
           DO k = 1,ntiles_globcover
 
-            dlon = (lu_tiles_lon_max(k) - lu_tiles_lon_min(k)) / FLOAT(lu_tiles_ncolumns(k))
-            dlat = -1. * (lu_tiles_lat_max(k) - lu_tiles_lat_min(k)) / FLOAT(lu_tiles_nrows(k))   ! latitude from north to south, negative increment
+            dlon = (lu_tiles_lon_max(k) - lu_tiles_lon_min(k)) / REAL(lu_tiles_ncolumns(k)) !_br 04.04.14
+            dlat = -1. * (lu_tiles_lat_max(k) - lu_tiles_lat_min(k)) / REAL(lu_tiles_nrows(k))   ! latitude from north to south, negative increment !_br 04.04.14
 
             globcover_tiles_grid(k)%start_lon_reg = lu_tiles_lon_min(k) + 0.5*dlon
             globcover_tiles_grid(k)%end_lon_reg = lu_tiles_lon_max(k) - 0.5*dlon 

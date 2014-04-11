@@ -67,9 +67,9 @@ CONTAINS
 
     INTEGER :: errorcode
 
-    DEALLOCATE (lat_ecoclimap, STAT = errorcode)
+    IF (ALLOCATED(lat_ecoclimap)) DEALLOCATE (lat_ecoclimap, STAT = errorcode)
     IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lat_ecoclimap')
-    DEALLOCATE (lon_ecoclimap, STAT = errorcode)
+    IF (ALLOCATED(lon_ecoclimap)) DEALLOCATE (lon_ecoclimap, STAT = errorcode)
     IF (errorcode.NE.0) CALL abort_extpar('Cant deallocate the vector lon_ecoclimap')
 
   END SUBROUTINE deallocate_ecoclimap_fields

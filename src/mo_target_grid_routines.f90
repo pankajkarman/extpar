@@ -241,14 +241,14 @@ MODULE mo_target_grid_routines
             
        CALL calculate_cosmo_target_coordinates(tg,cosmo_grid,lon_geo,lat_geo,lon_rot,lat_rot)
        lonadj = .FALSE.
-       lonadj: DO i2=1,tg%je
+       lonadjLoop: DO i2=1,tg%je  !_br 21.02.14 changed lonadj to lonadjLoop because of name conflict
          DO i1=1,tg%ie - 1 
            IF (lon_geo(i1,i2,1) > lon_geo(i1+1,i2,1)) THEN
              lonadj=.TRUE.
-             EXIT lonadj
+             EXIT lonadjLoop  !_br 21.02.14
            ENDIF
          ENDDO
-       ENDDO lonadj
+       ENDDO lonadjLoop  !_br 21.02.14
        IF (lonadj) THEN
          ALLOCATE ( auxlon(tg%ie,tg%je) )
          auxlon(:,:) = lon_geo(:,:,1)

@@ -470,7 +470,8 @@ MODULE mo_agg_ecoclimap
                  plcov12_ecoclimap(ie,je,ke,k) = plcov12_ecoclimap(ie,je,ke,k) + apix * p12(k)
                  lai12_ecoclimap(ie,je,ke,k)   = lai12_ecoclimap(ie,je,ke,k) + apix * p12(k) * plai12(k)
             END DO
-            emissivity_ecoclimap(ie,je,ke) =  emissivity_ecoclimap(ie,je,ke) + apix * SUM(pemissivity12(1:ntime_ecoclimap))/REAL(ntime_ecoclimap,wp)
+            emissivity_ecoclimap(ie,je,ke) =  emissivity_ecoclimap(ie,je,ke) + apix * &   !_br 21.02.14 splitted too long line
+                            SUM(pemissivity12(1:ntime_ecoclimap))/REAL(ntime_ecoclimap,wp) !_br 21.02.14
             rs_min_ecoclimap(ie,je,ke) = rs_min_ecoclimap(ie,je,ke) + apix * p12(1) * prs_min
             for_d_ecoclimap(ie,je,ke) = for_d_ecoclimap(ie,je,ke) + apix * p12(1) * pfor_d
             for_e_ecoclimap(ie,je,ke) = for_e_ecoclimap(ie,je,ke) + apix * p12(1) * pfor_e

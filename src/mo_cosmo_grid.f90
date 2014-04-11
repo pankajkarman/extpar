@@ -131,8 +131,8 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       INTEGER (KIND=i8) :: ierr !< error flag
       INTEGER                  :: nuin !< unit number
 
-      REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_ireals ! Earth circumference at equator [m]
-      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_ireals ! Radius used for horizon calculation [m]
+      REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_wp ! Earth circumference at equator [m] !_br 21.02.14 ireals to wp
+      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_wp ! Radius used for horizon calculation [m]  !_br 21.02.14 ireals to wp
                                                                      ! (M. Buzzi's recommendation: 40-50 km)
       INTEGER(KIND=i8), PARAMETER :: securi      = 4                 ! Minimum number of points required for horizon computation
 

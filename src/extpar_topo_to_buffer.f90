@@ -199,11 +199,19 @@ PROGRAM extpar_topo_to_buffer
   INTEGER (KIND=i4) :: index_tile   !< index for dummy test
   TYPE(geographical_coordinates) :: DWD_location !< geographical coordinates of DWD for dummy test
   
-  INTEGER (KIND=i4) :: topo_startrow(1:ntiles)    !< startrow indeces for each GLOBE tile
-  INTEGER (KIND=i4) :: topo_endrow(1:ntiles)      !< endrow indeces for each GLOBE tile
-  INTEGER (KIND=i4) :: topo_startcolumn(1:ntiles)  !< starcolumn indeces for each GLOBE tile
+!_br 21.02.14 begin (some compilers do not like variable dimensions)
+!  INTEGER (KIND=i4) :: topo_startrow(1:ntiles)    !< startrow indeces for each GLOBE tile
+!  INTEGER (KIND=i4) :: topo_endrow(1:ntiles)      !< endrow indeces for each GLOBE tile
+!  INTEGER (KIND=i4) :: topo_startcolumn(1:ntiles)  !< starcolumn indeces for each GLOBE tile
 
-  INTEGER (KIND=i4) :: topo_endcolumn(1:ntiles)   !< endcolumn indeces for each GLOBE tile
+!  INTEGER (KIND=i4) :: topo_endcolumn(1:ntiles)   !< endcolumn indeces for each GLOBE tile
+
+  INTEGER (KIND=i4), ALLOCATABLE :: topo_startrow(:)    !< startrow indeces for each GLOBE tile
+  INTEGER (KIND=i4), ALLOCATABLE :: topo_endrow(:)      !< endrow indeces for each GLOBE tile
+  INTEGER (KIND=i4), ALLOCATABLE :: topo_startcolumn(:)  !< starcolumn indeces for each GLOBE tile
+  INTEGER (KIND=i4), ALLOCATABLE :: topo_endcolumn(:)   !< endcolumn indeces for each GLOBE tile
+!_br 21.02.14 end
+
   TYPE(geographical_coordinates) :: ur   !< upper right point for test block
   TYPE(geographical_coordinates) :: ll   !< lower left point for test block
 
@@ -257,6 +265,9 @@ PROGRAM extpar_topo_to_buffer
 !roa <
 
 
+  ALLOCATE (topo_startrow(1:ntiles), topo_endrow(1:ntiles),topo_startcolumn(1:ntiles),topo_endcolumn(1:ntiles))  !_br 21.02.14
+!_br 21.02.14 for clean programming this should be deallocated somewhere
+
  ! Print the default information to stdout:
   CALL info_define ('topo_to_buffer')      ! Pre-define the program name as binary name
   CALL info_print ()                     ! Print the information to stdout
@@ -300,7 +311,7 @@ PROGRAM extpar_topo_to_buffer
     &                                  scale_sep_files,                   &
     &                                  lscale_separation) 
 
-  IF (lscale_separation.eq..TRUE. .and. itopo_type.eq.2) THEN
+  IF (lscale_separation.eqv..TRUE. .and. itopo_type.eq.2) THEN   !_br 21.02.14 replaced eq by eqv
     lscale_separation = .FALSE.
     PRINT*, '*** Scale separation can only be used with GLOBE as raw topography ***'
   ENDIF

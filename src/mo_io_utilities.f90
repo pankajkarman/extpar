@@ -2254,7 +2254,7 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
     INTEGER :: dimid_mlev
     INTEGER, ALLOCATABLE :: mlev(:)
 
-    call_mode = OR(NF90_CLOBBER,NF90_64BIT_OFFSET)
+    call_mode = NF90_CLOBBER + NF90_64BIT_OFFSET
     CALL check_netcdf( nf90_create(TRIM(netcdf_filename),call_mode,ncid))
     ndims = SIZE(dim_list)
 

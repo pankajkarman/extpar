@@ -398,7 +398,6 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
   glcc_file(1) = TRIM(raw_data_glcc_path) // TRIM(raw_data_glcc_filename)
   PRINT *,'glcc file: ', TRIM(glcc_file(1))
 
-
   SELECT CASE (i_landuse_data)
     CASE (i_lu_globcover)
       nclass_lu = nclass_globcover
@@ -469,6 +468,12 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     CASE (i_lu_glcc)
       nclass_lu = nclass_glcc
       lu_dataset = 'GLCC'
+!_br 17.03.14
+    CASE DEFAULT
+      PRINT*, 'ERROR: in extpar_landuse_to_buffer'
+      PRINT*, 'ERROR: Invalid land use class ',i_landuse_data
+      STOP 51
+!_br 17.03.14 end
   END SELECT
 
   IF (l_use_glcc.OR.(i_landuse_data==i_lu_glcc)) THEN

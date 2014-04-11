@@ -590,7 +590,8 @@ MODULE mo_albedo_output_nc
       global_attributes(3)%attname = 'source'
       global_attributes(3)%attributetext='CESM-CLM 4.0'
       global_attributes(5)%attname = 'references'
-      global_attributes(5)%attributetext='https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/inputdata/lnd/clm2/rawdata/mksrf_soilcol.081008.nc & JGR:Lawrence et al. (2007)'
+      global_attributes(5)%attributetext='https://svn-ccsm-inputdata.cgd.ucar.edu/trunk/'// & !_br 21.02.14 spitted too long line
+           'inputdata/lnd/clm2/rawdata/mksrf_soilcol.081008.nc & JGR:Lawrence et al. (2007)'  !_br 21.02.14
     ELSE    
       global_attributes(1)%attname = 'title'
       global_attributes(1)%attributetext='albedo data '
