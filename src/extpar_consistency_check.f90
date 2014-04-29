@@ -602,6 +602,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   REAL (KIND=wp) :: point_lat       !< latitude coordinate in geographical system of input point
   REAL (KIND=wp) :: lon_geo_w,lon_geo_e,lat_geo_n,lat_geo_s
   INTEGER (KIND=i4) :: i_miss,errorcode,ncid_alb,time_index
+  INTEGER (KIND=i4) :: ntiles_globcover
   INTEGER (KIND=i4) :: point_reg_lon_index          !< longitude index of point for regular lon-lat grid
   INTEGER (KIND=i4) :: point_reg_lat_index          !< latitude index of point for regular lon-lat grid
   INTEGER (KIND=i4) :: nlon_reg !< number of columns
@@ -725,9 +726,11 @@ END SELECT
     &                                 i_landuse_data, &
     &                                 raw_data_lu_path, &
     &                                 raw_data_lu_filename, &
+    &                                 ntiles_globcover, &
     &                                 ilookup_table_lu, &
     &                                 lu_buffer_file, &
     &                                 lu_output_file)
+
    SELECT CASE (i_landuse_data)
      CASE (i_lu_ecoclimap)
        lu_dataset = 'ECOCLIMAP'

@@ -351,6 +351,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                 i_landuse_data,         &
     &                                 raw_data_lu_path,       &
     &                                 raw_data_lu_filename,   &
+    &                                 ntiles_globcover,       &
     &                                 ilookup_table_lu,       &
     &                                 lu_buffer_file,         &
     &                                 lu_output_file,         &
@@ -374,10 +375,27 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
                           lu_tiles_lat_min, &
                           lu_tiles_lat_max, &
                           nc_tiles_lu)
-      print*, 'lon_min: ', lu_tiles_lon_min
-      print*, 'lon_max: ', lu_tiles_lon_max
-      print*, 'lat_min: ', lu_tiles_lat_min
-      print*, 'lat_max: ', lu_tiles_lat_max
+
+      PRINT *, 'GLOBCOVER TILES, LON, LAT (MIN,MAX): ' 
+      DO i = 1,ntiles_globcover
+        WRITE(*,998)  i, lu_tiles_lon_min(i), lu_tiles_lon_max(i), &
+                     lu_tiles_lat_min(i), lu_tiles_lat_max(i) 
+998     FORMAT(I1,1X,4(F9.4,1X))      
+      ENDDO
+
+      PRINT *, 'MODEL DOMAIN, LON, LAT (MIN,MAX): ' 
+      WRITE(*,999)  MINVAL(lon_geo), MAXVAL(lon_geo), &
+                    MINVAL(lat_geo), MAXVAL(lat_geo)
+999   FORMAT(4(F9.4,1X)) 
+
+      DO i = 1,ntiles_globcover
+        IF (lu_tiles_lon_min(i) < MINVAL(lon_geo).AND. &
+            lu_tiles_lon_max(i) > MAXVAL(lon_geo).AND. &
+            lu_tiles_lat_min(i) < MINVAL(lat_geo).AND. &
+            lu_tiles_lat_max(i) > MAXVAL(lat_geo)) THEN
+          PRINT *,'MODEL DOMAIN COVERED BY GLOBCOVER TILE ',i
+        ENDIF
+      ENDDO
 
     END SELECT
 

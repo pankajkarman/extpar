@@ -428,7 +428,22 @@ MODULE mo_io_grib_api
     ! ds = RESHAPE(extpar_buffer,(/ SIZE(ds) /))
 
     CALL grib_set(gribid_dest,'scanningMode',scanning_mode,errorcode) ! put data to GRIB message
-    CALL grib_set(gribid_dest,'values',ds,errorcode) ! put data to GRIB message
+
+    IF (TRIM(field_meta%shortName)=='T_2M_CL') THEN
+      WRITE(0,*) 'Producing BITMAP for ', TRIM(field_meta%shortName)
+
+      rmiss= -999._wp !mo_agg_cru.f90:    target_value = -999.
+      CALL grib_set(gribid_dest, 'missingValue',rmiss)
+      CALL grib_set(gribid_dest,'packingType','grid_simple')
+      CALL grib_set(gribid_dest,"bitmapPresent",1)       ! apply bitmap
+      WHERE (ds < 0._wp) 
+        ds=rmiss
+      ENDWHERE
+      CALL grib_set(gribid_dest,'values',ds,errorcode)  ! set the values (the bitmap will be automatically built)
+    ELSE
+      CALL grib_set(gribid_dest,'values',ds,errorcode) ! put other data to GRIB message
+    END IF
+    
     CALL grib_write(gribid_dest,outfile_id,errorcode) ! write out GRIB message to file
     CALL grib_release(gribid_dest) ! free memory of grib message
 

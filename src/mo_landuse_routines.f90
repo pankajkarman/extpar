@@ -103,6 +103,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
                                          i_landuse_data,            &
                                          raw_data_lu_path,          &
                                          raw_data_lu_filename,      &
+                                         ntiles_globcover,          &
                                          ilookup_table_lu,          &
                                          lu_buffer_file,            &
                                          lu_output_file,            &
@@ -130,6 +131,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
   CHARACTER (len=filename_max), INTENT(OUT) :: lu_buffer_file !< name for landuse buffer file
   CHARACTER (len=filename_max), INTENT(OUT) :: lu_output_file !< name for landuse output file
 
+  INTEGER, INTENT(OUT) :: ntiles_globcover
 !--
   CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_path_opt        !< path to raw data
   CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_filename_opt !< filename glc2000 raw data
@@ -147,7 +149,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
   CHARACTER (len=filename_max) :: glcc_output_file    !< name for glcc output file
 
   !> namelist with land use data input
-  NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu
+  NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu, ntiles_globcover
   !> namelist with filenames for land use data output
   NAMELIST /lu_io_extpar/ lu_buffer_file, lu_output_file
 
@@ -532,6 +534,10 @@ END SUBROUTINE read_namelists_extpar_land_use
         SUBROUTINE get_dimension_globcover_data(nlon_globcover, &
                                           nlat_globcover)
 
+        USE mo_globcover_data,   ONLY: max_tiles_lu,     &
+                                       ntiles_globcover, &
+                                       len_lu_lon, len_lu_lat
+
         INTEGER (KIND=i8), INTENT(OUT) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
         INTEGER (KIND=i8), INTENT(OUT) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
 
@@ -539,8 +545,13 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER, PARAMETER :: nx=129600
         INTEGER, PARAMETER :: ny=55800
 
-        nlon_globcover = nx
-        nlat_globcover = ny
+        IF(ntiles_globcover == 1) THEN
+          nlon_globcover = len_lu_lon
+          nlat_globcover = len_lu_lat
+        ELSE
+          nlon_globcover = nx
+          nlat_globcover = ny
+        END IF
 
        END SUBROUTINE get_dimension_globcover_data
 
@@ -729,7 +740,7 @@ END SUBROUTINE read_namelists_extpar_land_use
           INTEGER, INTENT(IN) :: start_globcover_row         ! number of the start row of band 
           TYPE(reg_lonlat_grid), INTENT(OUT):: ta_grid       ! structure with definition of the target area grid.
 
-          INTEGER(KIND=i4):: nrows = 5000              ! number of rows, set to 1000 as default
+          INTEGER(KIND=i4):: nrows = 5000              ! number of rows, set to 5000 as default
           ! band from east to west for the whole globe, like the complete globcover grid
 
           ta_grid%dlon_reg = globcover_grid%dlon_reg

@@ -77,6 +77,8 @@ PUBLIC :: globcover_grid,                &
           allocate_raw_globcover_fields, &
 ! >mes
           ntiles_globcover,              &   ! number of tiles in GLOBCOVER
+          len_lu_lon,                    &   ! Number of columns in land-use dataset
+          len_lu_lat,                    &   ! Number of rows in land-use dataset
           max_tiles_lu,                  &   ! maximal possible number of tiles that can be read
           nc_tiles_lu,                   &   ! total number of columns in one GLOBCOVER tile
           lu_tiles_lon_min,              &   ! starting longitude of every GLOBCOVER tile
@@ -100,7 +102,9 @@ TYPE(reg_lonlat_grid), ALLOCATABLE  :: globcover_tiles_grid(:)
 
 INTEGER(KIND=i4), ALLOCATABLE :: lu_tiles_ncolumns(:)
 INTEGER(KIND=i4), ALLOCATABLE :: lu_tiles_nrows(:)
-INTEGER(KIND=i4), PARAMETER   :: ntiles_globcover = 6   ! number of GLOBCOVER tiles
+INTEGER(KIND=i4)              :: ntiles_globcover = 6  ! number of GLOBCOVER tiles
+INTEGER(KIND=i4)              :: len_lu_lon
+INTEGER(KIND=i4)              :: len_lu_lat
 INTEGER, PARAMETER            :: max_tiles_lu = 1000
 INTEGER(KIND=i4)              :: nc_tiles_lu
 
@@ -197,7 +201,7 @@ CONTAINS
    REAL(KIND=wp)       :: half_gridp                          ! distance of half a grid point as the grid point is centered on a GLOBCOVER pixel
     
    half_gridp = 0.001388888889
-   print*, half_gridp
+!   print*, half_gridp
 
      DO i = 1,ntiles_globcover
        CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
@@ -216,6 +220,11 @@ CONTAINS
        lu_tiles_lon_max(i) = lu_tiles_lon_max(i) + half_gridp !< added, as the GLOBCOVER data
        lu_tiles_lat_min(i) = lu_tiles_lat_min(i) - half_gridp !< is located at the pixel center
        lu_tiles_lat_max(i) = lu_tiles_lat_max(i) + half_gridp
+
+       len_lu_lon=lu_tiles_ncolumns(i)
+       len_lu_lat=lu_tiles_nrows(i)
+
+       print*, 'GLOBCOVER TILE ',ntiles_globcover,': NLON,NLAT ',len_lu_lon,len_lu_lat
 
      ENDDO
 
