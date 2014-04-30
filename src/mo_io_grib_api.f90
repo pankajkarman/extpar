@@ -404,6 +404,7 @@ MODULE mo_io_grib_api
     INTEGER :: errorcode
     INTEGER :: ind
     INTEGER :: i,j
+    REAL (KIND=wp) :: rmiss
 
     ! create a new grib message from sample, (sample to be found in $GRIB_SAMPLES_PATH)
     CALL grib_new_from_samples(gribid_in, TRIM(grib_sample))

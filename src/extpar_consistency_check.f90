@@ -340,8 +340,9 @@ USE mo_cru_data,  ONLY: read_namelists_extpar_t_clim
 
 USE mo_cru_output_nc, ONLY: read_netcdf_buffer_cru
 
-USE mo_aot_data, ONLY: ntype_aot, ntime_aot
+USE mo_aot_data, ONLY: ntype_aot, ntime_aot, iaot_type
 
+USE mo_aot_data, ONLY: read_namelists_extpar_aerosol
 
 USE mo_flake_tg_fields, ONLY: fr_lake, &
   &       lake_depth,    &
@@ -696,6 +697,17 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
     &                                  aluvd_source)
 
 !  print*, 'ialb_type: ', ialb_type
+
+  !--------------------------------------------------------------
+  ! get namelist for aerosol fields
+  !--------------------------------------------------------------
+  namelist_file = 'INPUT_AOT'
+  CALL read_namelists_extpar_aerosol(namelist_file, &
+   &                                  iaot_type,    &
+   &                                  raw_data_aot_path, &
+   &                                  raw_data_aot_filename, &
+   &                                  aot_buffer_file, &
+   &                                  aot_output_file)
 
   !--------------------------------------------------------------------------------------------------------
   ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
