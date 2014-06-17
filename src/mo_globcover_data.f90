@@ -77,6 +77,8 @@ PUBLIC :: globcover_grid,                &
           allocate_raw_globcover_fields, &
 ! >mes
           ntiles_globcover,              &   ! number of tiles in GLOBCOVER
+          ncolumn_tiles,                 &   ! number of columns in tile matrix
+          nrow_tiles,                    &   ! number of rows in tile matrix
           len_lu_lon,                    &   ! Number of columns in land-use dataset
           len_lu_lat,                    &   ! Number of rows in land-use dataset
           max_tiles_lu,                  &   ! maximal possible number of tiles that can be read
@@ -103,6 +105,8 @@ TYPE(reg_lonlat_grid), ALLOCATABLE  :: globcover_tiles_grid(:)
 INTEGER(KIND=i4), ALLOCATABLE :: lu_tiles_ncolumns(:)
 INTEGER(KIND=i4), ALLOCATABLE :: lu_tiles_nrows(:)
 INTEGER(KIND=i4)              :: ntiles_globcover = 6  ! number of GLOBCOVER tiles
+INTEGER(KIND=i4)              :: ncolumn_tiles = 3  ! number of used tiles E-W
+INTEGER(KIND=i4)              :: nrow_tiles = 2     ! number of used tiles N-S
 INTEGER(KIND=i4)              :: len_lu_lon
 INTEGER(KIND=i4)              :: len_lu_lat
 INTEGER, PARAMETER            :: max_tiles_lu = 1000

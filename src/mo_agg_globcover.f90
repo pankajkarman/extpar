@@ -28,6 +28,7 @@ MODULE mo_agg_globcover
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
+  USE mo_kind, ONLY: ishort
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
@@ -196,14 +197,14 @@ MODULE mo_agg_globcover
 !< area weight of all raw data pixels in target grid
      REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_globcover) 
 !< area for each land use class grid  in target grid element (for a area weight)
-     REAL (KIND=wp), ALLOCATABLE:: lu_block(:,:)  ! a block of GLOBCOVER land use data
+     INTEGER (KIND=ishort), ALLOCATABLE:: lu_block(:,:)  ! a block of GLOBCOVER land use data
 
      REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
      REAL (KIND=wp)    :: apix      !< area of a raw data pixel
      REAL (KIND=wp)    :: apix_e      !< area of a raw data pixel at equator
 
-     INTEGER :: globcover_data_row(globcover_grid%nlon_reg)
-     INTEGER :: globcover_data_pixel(1:1,1:1)
+     INTEGER (KIND=ishort) :: globcover_data_row(globcover_grid%nlon_reg)
+     INTEGER (KIND=ishort) :: globcover_data_pixel(1:1,1:1)
      INTEGER :: lu  ! land use class
      INTEGER :: nclass ! index in array of globcover tables
      INTEGER :: ncid_globcover(1:ntiles_globcover)            !< netcdf unit file number
@@ -384,7 +385,7 @@ MODULE mo_agg_globcover
      print*, 'Start loop over GLOBCOVER rows'
      globcover_rows: DO mlat = 1,globcover_grid%nlat_reg
 
-         IF (MOD(mlat,500)==0) PRINT *, 'GLOBCOVER row:', mlat
+         IF (MOD(mlat,500)==0) PRINT *, 'GLOBCOVER row:', mlat, lat_globcover(mlat)
          block_row= block_row + 1
          IF(block_row > ta_grid%nlat_reg) THEN ! read in new block
            block_row_start = mlat

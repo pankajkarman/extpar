@@ -351,7 +351,6 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                 i_landuse_data,         &
     &                                 raw_data_lu_path,       &
     &                                 raw_data_lu_filename,   &
-    &                                 ntiles_globcover,       &
     &                                 ilookup_table_lu,       &
     &                                 lu_buffer_file,         &
     &                                 lu_output_file,         &
