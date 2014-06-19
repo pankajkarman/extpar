@@ -809,7 +809,7 @@ MODULE mo_extpar_output_nc
                        & alb_sat_meta, &
                        & undef_alb_bs)
 
-    ELSE
+    ELSE IF (ialb_type == 1) THEN
     !-----------------------------------------------------------------
     ! alb_field_mom
       CALL netcdf_put_var(ncid,&
@@ -829,6 +829,14 @@ MODULE mo_extpar_output_nc
       CALL netcdf_put_var(ncid,&
                        & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
                        & aluvd_field_mom_meta, &
+                       & undefined)
+
+    ELSE IF (ialb_type == 3) THEN
+    !-----------------------------------------------------------------
+    ! alb_field_mom
+      CALL netcdf_put_var(ncid,&
+                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alb_field_mom_meta, &
                        & undefined)
     ENDIF
 

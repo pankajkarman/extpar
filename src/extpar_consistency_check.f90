@@ -933,7 +933,7 @@ END SELECT
      &                           undef_int,   &
      &                           alb_dry=alb_dry, &
      &                           alb_sat=alb_sat)
-  ELSE
+  ELSE IF (ialb_type == 1) THEN
     CALL read_netcdf_buffer_alb(alb_buffer_file,  &
      &                           tg, &
      &                           ntime_alb, &
@@ -942,6 +942,13 @@ END SELECT
      &                           alb_field_mom, &
      &                           alnid_field_mom, &
      &                           aluvd_field_mom)
+  ELSE IF (ialb_type == 3) THEN
+    CALL read_netcdf_buffer_alb(alb_buffer_file,  &
+     &                           tg, &
+     &                           ntime_alb, &
+     &                           undefined, &
+     &                           undef_int,   &
+     &                           alb_field_mom)
   ENDIF
 
 

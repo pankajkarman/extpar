@@ -306,12 +306,14 @@ PROGRAM extpar_albedo_to_buffer
     CALL agg_alb_data_to_target_grid(tg,undefined, path_alb_file, &
          &                     alb_source,alb_field_mom)
     PRINT *,'aggregation month_albedo done'
-    CALL agg_alb_data_to_target_grid(tg,undefined, path_alnid_file, &
-         &                     alnid_source,alnid_field_mom)
-    PRINT *,'aggregation month_alnid done'
-    CALL agg_alb_data_to_target_grid(tg,undefined, path_aluvd_file, &
-         &                     aluvd_source,aluvd_field_mom)
-    PRINT *,'aggregation month_aluvd done'
+    IF (ialb_type == 1) THEN
+      CALL agg_alb_data_to_target_grid(tg,undefined, path_alnid_file, &
+           &                     alnid_source,alnid_field_mom)
+      PRINT *,'aggregation month_alnid done'
+      CALL agg_alb_data_to_target_grid(tg,undefined, path_aluvd_file, &
+           &                     aluvd_source,aluvd_field_mom)
+      PRINT *,'aggregation month_aluvd done'
+    ENDIF
   ENDIF
 
   !write out data
@@ -319,67 +321,14 @@ PROGRAM extpar_albedo_to_buffer
 !  filename = 'alb_extpar_icon.nc'
 
   PRINT *,' ======= Checking maximal albedo values  ========='
-  PRINT *, MAXVAL(alb_field_mom), MAXVAL(alnid_field_mom), MAXVAL(aluvd_field_mom)
+  IF (ialb_type == 1) THEN
+    PRINT *, MAXVAL(alb_field_mom), MAXVAL(alnid_field_mom), MAXVAL(aluvd_field_mom)
+  ELSE IF (ialb_type == 2) THEN
+    PRINT *, MAXVAL(alb_sat), MAXVAL(alb_dry)
+  ELSE IF (ialb_type == 3) THEN
+    PRINT *, MAXVAL(alb_field_mom)
+  ENDIF
 
-  SELECT CASE(igrid_type)
-
-    CASE(igrid_icon) ! ICON GRID
-
-      netcdf_filename = TRIM(alb_output_file)
- !     netcdf_filename = filename
-      undefined = -500.
-      undef_int = -500
-
-      PRINT *,'write out ', TRIM(netcdf_filename)
-
-      CALL write_netcdf_icon_grid_alb(netcdf_filename,  &
-   &                                     icon_grid,         &
-   &                                     tg,         &
-   &                                     ntime_alb, &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     alb_field_mom, &
-   &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom)
-
-    CASE(igrid_cosmo) ! COSMO grid
-    
-      netcdf_filename = TRIM(alb_output_file)
-      undefined = -999.
-      undef_int = -500
-
-      PRINT *,'write out ', TRIM(netcdf_filename)
-
-
-      IF (ialb_type == 2) THEN
-        CALL write_netcdf_cosmo_grid_alb(netcdf_filename,  &
-        &                                cosmo_grid,         &
-        &                                tg,         &
-        &                                ntime_alb, &
-        &                                undefined, &
-        &                                undef_int,   &
-        &                                lon_geo,     &
-        &                                lat_geo, &
-        &                                alb_dry=alb_dry, &
-        &                                alb_sat=alb_sat)
-      ELSE
-        CALL write_netcdf_cosmo_grid_alb(netcdf_filename,  &
-        &                                cosmo_grid,         &
-        &                                tg,         &
-        &                                ntime_alb, &
-        &                                undefined, &
-        &                                undef_int,   &
-        &                                lon_geo,     &
-        &                                lat_geo, &
-        &                                alb_field_mom=alb_field_mom, &
-        &                                alnid_field_mom=alnid_field_mom, &
-        &                                aluvd_field_mom=aluvd_field_mom)
-      ENDIF
-    CASE(igrid_gme) ! GME grid   
-
-  END SELECT
 
   netcdf_filename = TRIM(alb_buffer_file)
 !  netcdf_filename = 'alb_buffer.nc'
@@ -398,7 +347,7 @@ PROGRAM extpar_albedo_to_buffer
     &                            lat_geo, &
     &                            alb_dry=alb_dry, &
     &                            alb_sat=alb_sat)
-  ELSE
+  ELSE IF (ialb_type == 1) THEN
     CALL write_netcdf_buffer_alb(netcdf_filename,  &
     &                            tg,         &
     &                            ntime_alb, &
@@ -409,6 +358,15 @@ PROGRAM extpar_albedo_to_buffer
     &                            alb_field_mom=alb_field_mom, &
     &                            alnid_field_mom=alnid_field_mom, &
     &                            aluvd_field_mom=aluvd_field_mom)
+  ELSE IF (ialb_type == 3) THEN
+    CALL write_netcdf_buffer_alb(netcdf_filename,  &
+    &                            tg,         &
+    &                            ntime_alb, &
+    &                            undefined, &
+    &                            undef_int,   &
+    &                            lon_geo,     &
+    &                            lat_geo, &
+    &                            alb_field_mom=alb_field_mom)
   ENDIF
 
 

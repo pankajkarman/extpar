@@ -147,7 +147,11 @@ SUBROUTINE read_namelists_extpar_alb(namelist_file, &
   OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 
   READ(nuin, NML=alb_raw_data, IOSTAT=ierr)
-  IF (ialb_type /= 2) THEN
+  IF ((ialb_type < 1).OR.(ialb_type > 3)) THEN
+    PRINT *,'ERROR: ialb_type must be in the range 1-3. It is now:',ialb_type
+    CALL abort_extpar('ialb_type is out of range')
+  ENDIF
+  IF ((ialb_type /= 2).AND.(ialb_type /= 3)) THEN
     READ(nuin, NML=alnid_raw_data, IOSTAT=ierr)
     READ(nuin, NML=aluvd_raw_data, IOSTAT=ierr)
   ENDIF

@@ -210,6 +210,8 @@ MODULE mo_agg_globcover
      INTEGER :: ncid_globcover(1:ntiles_globcover)            !< netcdf unit file number
      CHARACTER (LEN=80) :: varname  !< name of variable
      INTEGER :: varid_globcover               !< id of variable
+     INTEGER :: varid_gc(1:ntiles_globcover)
+     LOGICAL :: l_opn_gc_file(1:ntiles_globcover)
      INTEGER :: nlon
      INTEGER :: block_row_start
      INTEGER :: block_row
@@ -690,6 +692,8 @@ MODULE mo_agg_globcover
     ENDDO
     ENDDO
 
+    l_opn_gc_file = .FALSE.
+
     DO ke=1, tg%ke
     DO je=1, tg%je
     DO ie=1, tg%ie
@@ -711,11 +715,15 @@ MODULE mo_agg_globcover
         i_col = i_lu
         j_row = j_lu
 
-        CALL check_netcdf(nf90_open(TRIM(globcover_file(tile)),NF90_NOWRITE, ncid_globcover(tile)))
-        CALL check_netcdf(nf90_inq_varid(ncid_globcover(tile), TRIM(varname), varid_globcover))        
-        CALL check_netcdf(nf90_get_var(ncid_globcover(tile), varid_globcover,  globcover_data_pixel,  &
+        IF (.NOT. l_opn_gc_file(tile)) THEN
+          CALL check_netcdf(nf90_open(TRIM(globcover_file(tile)),NF90_NOWRITE, ncid_globcover(tile)))
+          CALL check_netcdf(nf90_inq_varid(ncid_globcover(tile), TRIM(varname), varid_gc(tile)))
+          l_opn_gc_file(tile) = .TRUE.
+        ENDIF
+        
+        CALL check_netcdf(nf90_get_var(ncid_globcover(tile), varid_gc(tile),  &
+          &               globcover_data_pixel,  &
           &               start=(/ i_col,j_row /),count=(/ 1,1 /)))
-        CALL check_netcdf(nf90_close(ncid_globcover(tile)))
 
         lu = globcover_data_pixel(1,1)
 
@@ -798,6 +806,12 @@ MODULE mo_agg_globcover
       ENDIF ! nearest neighbour search
    ENDDO
    ENDDO
+   ENDDO
+
+   DO tile=1,ntiles_globcover
+     IF (l_opn_gc_file(tile)) THEN
+       CALL check_netcdf(nf90_close(ncid_globcover(tile)))
+     ENDIF
    ENDDO
 
 
