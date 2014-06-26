@@ -672,7 +672,7 @@ The executable \textit{extpar\_albedo\_to\_buffer} allows to aggregate to differ
 \paragraph{Target grid definition} \ \par\medskip\noindent
 The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw albedo data}\ \par\medskip\noindent
-The namelist 'INPUT\_ALB' defines the filenames and paths for the normal albedo, the near infrared albedo and the ultra violet albedo. Also the names for the buffer and the output file are given. Additionally, the variable names to extract from each netcdf file are specified. The integer switch \textit{ialb\_type} determines which albedo fields are produced: 1 (MODIS monthly albedo) or 2 (only dry and saturated soil albedo).\par\medskip\noindent
+The namelist 'INPUT\_ALB' defines the filenames and paths for the normal albedo, the near infrared albedo and the ultra violet albedo. Also the names for the buffer and the output file are given. Additionally, the variable names to extract from each netcdf file are specified. The integer switch \textit{ialb\_type} determines which albedo fields are produced: 1 (MODIS monthly albedo), 2 (only dry and saturated soil albedo) or 3 (only visible band of monthly MODIS data).\par\medskip\noindent
 As the three data sets do all have the same grid, the dimension is only inquired once. This information allows to allocate all three raw albedo fields. The required information is read from one netcdf file (the start latitude and longitude and the resolution in both directions). All the target fields are also allocated at once, using the target grid and the number of months that need to be calculated, which is 12. \par\medskip\noindent
 \paragraph{Aggregation of the albedo raw data to the target grid} \ \par\medskip\noindent
 The aggregation of the data is done in the exact same way for the three data sets albedo, near infrared albedo and ultra violet albedo. The data is read from the netcdf file row-wise and than treated point-wise, as each raw data grid point is assigned to a target grid point. The association of a raw data point and a target grid element is done only for the first time step, as it stays the same for all the others. The albedo values of each raw data point that contributes to a target grid element are summed up, and the number of these raw data pixels is added up. At target points that are associated with at least one raw data point, the albedo is obtained by normalizing the previously computed sum with the number of associated raw data pixels. If there is no raw data pixel available a weighted bilinear interpolation is performed.\par\medskip\noindent
@@ -1495,7 +1495,7 @@ raw\_data\_alb\_path & character & & & path to raw albedo data
 raw\_data\_alb\_filename & character & & & filename of the raw albedo data
 \tabularnewline
 \hline
-ialb\_type & integer &1 & & switch to indicate albedo type 1:total albedo 2:soil albedo
+ialb\_type & integer &1 & & switch to indicate albedo type 1:total albedo 2:soil albedo 3:as 1 without NI and UV fields
 \tabularnewline
 \hline
 \bottomrule
