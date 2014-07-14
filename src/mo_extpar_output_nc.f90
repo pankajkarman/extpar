@@ -812,30 +812,34 @@ MODULE mo_extpar_output_nc
     ELSE IF (ialb_type == 1) THEN
     !-----------------------------------------------------------------
     ! alb_field_mom
+      alb_field_mom_meta%units = '1'
       CALL netcdf_put_var(ncid,&
-                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb)/100., &
                        & alb_field_mom_meta, &
                        & undefined)
 
     !-----------------------------------------------------------------
     ! alnid_field_mom
+      alnid_field_mom_meta%units = '1'
       CALL netcdf_put_var(ncid,&
-                       & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb)/100., &
                        & alnid_field_mom_meta, &
                        & undefined)
 
     !-----------------------------------------------------------------
     ! aluvd_field_mom
+      aluvd_field_mom_meta%units = '1'
       CALL netcdf_put_var(ncid,&
-                       & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb)/100., &
                        & aluvd_field_mom_meta, &
                        & undefined)
 
     ELSE IF (ialb_type == 3) THEN
     !-----------------------------------------------------------------
     ! alb_field_mom
+      alb_field_mom_meta%units = '1'
       CALL netcdf_put_var(ncid,&
-                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb), &
+                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_alb)/100., &
                        & alb_field_mom_meta, &
                        & undefined)
     ENDIF

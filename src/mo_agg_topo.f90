@@ -520,8 +520,8 @@ MODULE mo_agg_topo
    !-----------------------------------------------------------------------------
    IF (MOD(mlat,100)==0) PRINT *, 'TOPO row:', mlat
    block_row= block_row + 1
-   IF(block_row > ta_grid%nlat_reg) THEN ! read in new block
-     block_row_start = mlat
+   IF((block_row > ta_grid%nlat_reg).AND.(mlat<nr_tot)) THEN ! read in new block
+     block_row_start = mlat + 1
      block_row = 1
      CALL det_band_gd(topo_grid,block_row_start, ta_grid)
      PRINT *,'next call of det_band_gd'
@@ -573,7 +573,7 @@ MODULE mo_agg_topo
      
      ENDIF
 !> *mes
-
+     block_row = block_row + 1
    ENDIF
    row_lat(j_s) = topo_grid%start_lat_reg + mlat * topo_grid%dlat_reg  !  ((mlat+1)-1)
 
@@ -585,15 +585,6 @@ MODULE mo_agg_topo
    ELSE IF (tg%igrid_type == igrid_icon) THEN
      IF (row_lat(j_s) > tg%maxlat .OR. row_lat(j_s) < tg%minlat) lskip = .TRUE.
    ENDIF ! grid type
-
-   IF (lskip) THEN
-     ! swap indices of the hh array for next data row before skipping the loop
-     j_new = j_n ! the new data will be written in the former "northern" array
-     j_n = j_c   ! the "center" row will become "northern" row
-     j_c = j_s   ! the "southern" row will become "center" row
-     j_s = j_new ! the new data will be written in the "southern" row
-     CYCLE topo_rows
-   ENDIF
 
    IF(mlat /= nr_tot) THEN !  read raw data south of "central" row except when you are at the most southern raw data line
      h_parallel(1:nc_tot) = h_block(1:nc_tot,block_row)
@@ -611,11 +602,25 @@ MODULE mo_agg_topo
      ENDIF
 !> *mes
    ENDIF
+
+   IF (lskip) THEN
+     ! swap indices of the hh array for next data row before skipping the loop
+     j_new = j_n ! the new data will be written in the former "northern" array
+     j_n = j_c   ! the "center" row will become "northern" row
+     j_c = j_s   ! the "southern" row will become "center" row
+     j_s = j_new ! the new data will be written in the "southern" row
+     CYCLE topo_rows
+   ENDIF
+
    dx      = dx0 * COS(row_lat(j_c) * deg2rad)  ! longitudinal distance between to GLOBE grid elemtens
    d2x = 2. * dx
    d2y = 2. * dy
    IF (mlat==1) THEN ! most northern row of raw data
-     j_n = j_c  ! put the index of "northern row" to the same index as "central row"
+!     j_n = j_c  ! put the index of "northern row" to the same index as "central row"
+     hh(:,j_n) = hh(:,j_c)
+     IF (lscale_separation) THEN
+       hh_scale(:,j_n) = hh_scale(:,j_c)
+     ENDIF
      d2y = dy   ! adjust d2y in this case too
    ELSEIF (mlat==nr_tot) THEN ! most southern row of raw data
      j_s = j_c  ! put the index of "southern row" to the same index as "central row"

@@ -189,8 +189,8 @@ REAL (KIND=wp)                   ::        &
   zsinpol, zcospol, zphis, zrlas, zarg, zgam
 
 REAL (KIND=wp), PARAMETER        ::        &
-  zrpi18 = 57.2957795_wp,                  &
-  zpir18 = 0.0174532925_wp
+  zrpi18 = 57.29577951308232_wp,                  & !
+  zpir18 = 0.017453292519943295_wp
 
 !------------------------------------------------------------------------------
 
@@ -251,8 +251,8 @@ REAL (KIND=wp)                       ::    &
   zsinpol, zcospol, zlampol, zphi, zrla, zarg1, zarg2, zrla1
 
 REAL (KIND=wp), PARAMETER            ::    &
-  zrpi18 = 57.2957795_wp,                  & !
-  zpir18 = 0.0174532925_wp
+  zrpi18 = 57.29577951308232_wp,                  & !
+  zpir18 = 0.017453292519943295_wp
 
 !------------------------------------------------------------------------------
 
@@ -322,8 +322,8 @@ REAL (KIND=wp)                   ::        &
   zsinpol, zcospol, zlampol, zphis, zrlas, zarg1, zarg2, zgam
 
 REAL (KIND=wp), PARAMETER        ::        &
-  zrpi18 = 57.2957795_wp,                  & !
-  zpir18 = 0.0174532925_wp
+  zrpi18 = 57.29577951308232_wp,                  & !
+  zpir18 = 0.017453292519943295_wp
 
 !------------------------------------------------------------------------------
 
@@ -402,8 +402,8 @@ REAL (KIND=wp)                       ::    &
   zsinpol, zcospol, zlampol, zphi, zrla, zarg1, zarg2, zrla1
 
 REAL (KIND=wp), PARAMETER            ::    &
-  zrpi18 = 57.2957795_wp,                  & !
-  zpir18 = 0.0174532925_wp
+  zrpi18 = 57.29577951308232_wp,                  & !
+  zpir18 = 0.017453292519943295_wp
 
 !------------------------------------------------------------------------------
 
