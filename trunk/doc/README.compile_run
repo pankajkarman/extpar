@@ -1,0 +1,82 @@
+=============================================================
+EXTPAR: how to compile and run
+
+Anne Roches, C2SM
+June 4, 2013
+
+=============================================================
+
+
+
+A) Libraries
+=============
+
+EXTPAR needs the following libraries:
+- NetCDF
+- GRIB API
+- JASPER
+- PNG
+- Z LIB
+Be sure that these libraries are installed on your system
+or install them yourself by following the installation
+instructions provided with the libraries.
+
+***On the CSCS machines***
+NetCDF is already installed on the CSCS machines (module load netcdf).
+The other required libraries are installed already under the users
+osm and rochesa (for PGI compiler).
+
+In case you need to install the libraries, please refer to the documentation of these
+libraries.
+It is usually not to complicated. 
+In order to install the GRIB_API and JASPER for instance, basically you can just do as follows:
+
+1. mkdir jasper_build
+2. cd jasper_build
+3. ./configure --prefix=path_to_jasper_dir
+4. make
+5. make install
+
+
+1. mkdir grib_api_build
+2. cd grib_api_build
+3. ./configure --prefix=path_to_grib_api_dir
+4. make
+5. make check
+6. make install
+
+
+
+B) Compilation
+===============
+
+Simply create a new Options.xxx file (where xxx is the name of your machine) and adapt the compiler name,
+the flags to use and the library paths in this file.
+
+ ***On the CSCS machines***
+You have to load the following modules:
+    module load netcdf
+    module load PrgEnv-pgi
+
+Then simply type "make" to compile with optimization options or
+"make debug" to compile with debug options.
+In case you change the target (from debug to opt or the other way around), don't 
+forget to issue a "make clean" in between.
+
+In case you have a new source file, simply add it to the file Objfiles.
+The dependencies between the files are generated automatically.
+
+
+C) Run
+=============
+
+Some runscript examples are available under /run.
+Just adapt them to your needs!
+
+
+D) Check
+===========
+
+1. that you haven't got any error message at runtime
+2. that you got a file in NetCDF format (.nc) and the same file in Grib1 (.g1)
+3. that Int2lm is able to read these 2 files 
