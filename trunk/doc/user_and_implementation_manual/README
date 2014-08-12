@@ -1,5 +1,0 @@
-source ~morsier/.cshrc
-module load latex/2012
-pdflatex user_and_implementation_manual.tex
-rm user_and_implementation_manual.[aldo]*
-rm user_and_implementation_manual.toc
