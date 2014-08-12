@@ -89,6 +89,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                        alb_buffer_file,       &
                                        i_lsm_data,            &
                                        land_sea_mask_file,    &
+                                       lwrite_netcdf,         &
+                                       lwrite_grib,           &
                                        number_special_points )
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
@@ -114,6 +116,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
    CHARACTER (len=filename_max) :: alb_buffer_file  !< name for albedo buffer file
    CHARACTER (len=filename_max) :: land_sea_mask_file  !< name for land-sea mask file
    INTEGER                      :: number_special_points, i_lsm_data
+   LOGICAL                      :: lwrite_netcdf, lwrite_grib
 
 
    !> namelist with filenames for output of soil data
@@ -131,6 +134,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                          alb_buffer_file, &
                                          i_lsm_data, &
                                          land_sea_mask_file,&
+                                         lwrite_netcdf, &
+                                         lwrite_grib, &
                                          number_special_points
                                          
 
@@ -142,6 +147,9 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
  !roa: what the heck is that!?!
   ! grib_output_filename = 'external_parameters.grb'
   ! grib_sample = 'GRIB2'
+
+   lwrite_netcdf = .TRUE.
+   lwrite_grib   = .TRUE.
 
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 

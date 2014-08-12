@@ -47,7 +47,7 @@
 for Numerical Weather Prediction 
 and Climate Application \\
 EXTPAR\\
-v2\_0 \\
+v2\_0\_2 \\
 User and Implementation Guide} 
  
 \author{
@@ -1617,6 +1617,10 @@ i\_lsm\_data & integer &  & & integer switch to choose if an external land sea m
 land\_sea\_mask\_file & character & & & name of the file which can be used as the external land sea mask. \tabularnewline
 \hline
 number\_special\_points & integer & & & number of points that should be treated specially (maximal value: 3, if no special treatment is desired choose 0). \tabularnewline
+\hline
+lwrite\_netcdf & logical & T & & flag indicating whether NetCDF output for COSMO grid is desired. \tabularnewline
+\hline
+lwrite\_grib & logical & T & & flag indicating whether GRIB output for COSMO grid is desired. \tabularnewline
 \hline
 \bottomrule
 \end{longtable}

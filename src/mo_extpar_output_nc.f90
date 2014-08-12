@@ -107,6 +107,8 @@ MODULE mo_extpar_output_nc
     &                                     ldeep_soil,          &
     &                                     itopo_type,          &
     &                                     lsso,                &
+    &                                     lscale_separation,   &
+    &                                     y_orofilt,           &
     &                                     lrad,                &
     &                                     nhori,               &
     &                                     undefined,           &
@@ -278,6 +280,8 @@ MODULE mo_extpar_output_nc
   LOGICAL,               INTENT(IN) :: ldeep_soil
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
+  LOGICAL,               INTENT(IN) :: lscale_separation
+  CHARACTER (LEN=*),     INTENT(IN) :: y_orofilt
   LOGICAL,               INTENT(IN) :: lrad
   INTEGER(KIND=i4),      INTENT(IN) :: nhori
   REAL(KIND=wp), INTENT(IN)         :: undefined       !< value to indicate undefined grid elements 
@@ -365,7 +369,7 @@ MODULE mo_extpar_output_nc
   TYPE(dim_meta_info), TARGET :: dim_4d_aot(1:4)
   TYPE(dim_meta_info), POINTER :: pdiminfo
 
-  INTEGER, PARAMETER :: nglob_atts=6
+  INTEGER, PARAMETER :: nglob_atts=10
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
   INTEGER :: errorcode !< error status variable
 
@@ -377,7 +381,7 @@ MODULE mo_extpar_output_nc
 
     !-------------------------------------------------------------
     ! define global attributes
-    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
+    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
     write(*,*) '----------------   NetCDF global_attributes ----------------------'
     DO n=1,nglob_atts
     write(*,*) global_attributes(n)
@@ -896,6 +900,8 @@ MODULE mo_extpar_output_nc
     &                                     ldeep_soil,          &
     &                                     itopo_type,          &
     &                                     lsso,                &
+    &                                     lscale_separation,   &
+    &                                     y_orofilt,           &
     &                                     undefined,           &
     &                                     undef_int,           &
     &                                     name_lookup_table_lu,&
@@ -944,7 +950,7 @@ MODULE mo_extpar_output_nc
     &                                     fr_dm_deep,          &
     &                                     theta_topo,          &
     &                                     aniso_topo,          &
-    &                                     slope_topo)
+    &                                     slope_topo )
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -1038,6 +1044,8 @@ MODULE mo_extpar_output_nc
   LOGICAL,               INTENT(IN) :: ldeep_soil
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
+  LOGICAL,               INTENT(IN) :: lscale_separation
+  CHARACTER (LEN=*),     INTENT(IN) :: y_orofilt
 
   REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
@@ -1106,7 +1114,7 @@ MODULE mo_extpar_output_nc
   INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
-  INTEGER, PARAMETER :: nglob_atts=6
+  INTEGER, PARAMETER :: nglob_atts=10
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
@@ -1159,7 +1167,7 @@ MODULE mo_extpar_output_nc
 
 
     ! define global attributes
-    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
+    CALL set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -1467,12 +1475,14 @@ MODULE mo_extpar_output_nc
   !----------------------------------------------------------------------- 
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with lu data
-  SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data)
+  SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:10)
     CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
     CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
     INTEGER,          INTENT(IN) :: isoil_data
+    LOGICAL,          INTENT(IN) :: lscale_separation
+    CHARACTER (LEN=*),INTENT(IN) :: y_orofilt
 
     !local variables
     CHARACTER(len=10) :: ydate
@@ -1489,7 +1499,7 @@ MODULE mo_extpar_output_nc
     global_attributes(1)%attname = 'title'
     global_attributes(1)%attributetext='external parameter'
     global_attributes(2)%attname = 'institution'
-    global_attributes(2)%attributetext='Deutscher Wetterdienst'
+    global_attributes(2)%attributetext='COSMO Consortium and CLM Community'
 
     global_attributes(3)%attname = 'rawdata'
     SELECT CASE(itopo_type)
@@ -1501,13 +1511,23 @@ MODULE mo_extpar_output_nc
         ENDIF
       CASE(topo_gl)
         IF (isoil_data >= HWSD_data) THEN
-          global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'
+          global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, GLOBE, Lake Database'
         ELSE
           global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, GLOBE, Lake Database'
         ENDIF
       END SELECT
     global_attributes(4)%attname = 'note'
     global_attributes(4)%attributetext='Landuse data look-up table: '//TRIM(name_lookup_table_lu)
+
+    global_attributes(5)%attname = 'scale_separation'
+    IF (lscale_separation) THEN
+      global_attributes(5)%attributetext = 'scale separation: ON'
+    ELSE 
+      global_attributes(5)%attributetext = 'scale separation: OFF'
+    ENDIF
+
+    global_attributes(6)%attname = 'filter_options'
+    global_attributes(6)%attributetext = TRIM(y_orofilt)
 
     CALL DATE_AND_TIME(ydate,ytime)
     READ(ydate,'(4A2)') cc,yy,mm,dd
@@ -1516,12 +1536,24 @@ MODULE mo_extpar_output_nc
     ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
     ytime=TRIM(hh)//':'//TRIM(minute) 
 
-    global_attributes(5)%attname = 'history'
-    global_attributes(5)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
+    global_attributes(7)%attname = 'history'
+    global_attributes(7)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
 
-    global_attributes(6)%attname = 'comment'
-    global_attributes(6)%attributetext='Generation of external parameters '//CHAR(10)// &
+
+    global_attributes(8)%attname = 'comment'
+    global_attributes(8)%attributetext='Generation of external parameters '// &
+#ifdef CLM
+      &                                 'for COSMO-CLM through WebPEP'
+#else
       &                                 'for numerical atmospheric models COSMO, GME and ICON.'
+#endif
+
+    global_attributes(9)%attname = 'version'
+    global_attributes(9)%attributetext='EXTPAR 2.0.2'
+
+    global_attributes(10)%attname = 'Conventions'
+    global_attributes(10)%attributetext = 'CF-1.5'
+
 
   END SUBROUTINE set_global_att_extpar
   !-----------------------------------------------------------------------

@@ -323,7 +323,8 @@ USE mo_topo_tg_fields, ONLY: add_parameters_domain, &
    
 USE mo_topo_output_nc, ONLY: read_netcdf_buffer_topo
 
-USE mo_topo_routines, ONLY: read_namelists_extpar_orography
+USE mo_topo_routines, ONLY: read_namelists_extpar_orography, &
+    &                       read_namelists_extpar_scale_sep
 
 USE mo_topo_data, ONLY: lradtopo, nhori, max_tiles, itopo_type
 
@@ -372,6 +373,7 @@ USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
 
 USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
+USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
 
   IMPLICIT NONE
 
@@ -559,6 +561,9 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
   REAL :: lu_data_southern_boundary
 
+  LOGICAL :: lwrite_netcdf  !< flag to enable netcdf output for COSMO
+  LOGICAL :: lwrite_grib    !< flag to enable GRIB output for COSMO
+
   !HA tests
   REAL :: timestart
   REAL :: timeend
@@ -607,11 +612,11 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   INTEGER (KIND=i4) :: point_reg_lat_index          !< latitude index of point for regular lon-lat grid
   INTEGER (KIND=i4) :: nlon_reg !< number of columns
   INTEGER (KIND=i4) :: nlat_reg !< number of rows
-  CHARACTER (len=filename_max) :: path_alb_file 
-  CHARACTER (len=filename_max) :: path_alnid_file
-  CHARACTER (len=filename_max) :: path_aluvd_file
-  CHARACTER (len=filename_max) :: alb_source, alnid_source, aluvd_source
-  CHARACTER (len=filename_max) :: namelist_alb_data_input
+  CHARACTER (LEN=filename_max) :: path_alb_file 
+  CHARACTER (LEN=filename_max) :: path_alnid_file
+  CHARACTER (LEN=filename_max) :: path_aluvd_file
+  CHARACTER (LEN=filename_max) :: alb_source, alnid_source, aluvd_source
+  CHARACTER (LEN=filename_max) :: namelist_alb_data_input
 
 ! for albedo consistency check
   REAL (KIND=wp) :: albvis_min, albnir_min, albuv_min  
@@ -620,6 +625,30 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
   INTEGER (KIND=i4) :: iml, imu, ipl, ipu, jml, jmu, jpl, jpu, ntclct, l
   REAL    (KIND=wp) :: tclsum, elesum
 
+! Namelist values for topography scale separation
+  CHARACTER (LEN=filename_max) :: raw_data_scale_sep_orography_path !< path to raw data
+  CHARACTER (LEN=filename_max) :: scale_sep_files(1:max_tiles)  !< filenames globe raw data
+  LOGICAL           :: lscale_separation
+
+! Namelist values for orography smoothing 
+  LOGICAL           :: &
+    lfilter_oro,     &
+    lxso_first
+
+  INTEGER(KIND=i4)  :: &
+    ilow_pass_oro,   &
+    numfilt_oro,     &
+    ifill_valley,    &
+    ilow_pass_xso,   &
+    numfilt_xso
+
+  REAL(KIND=wp)     :: &
+    eps_filter,      &
+    rfill_valley,    &
+    rxso_mask
+
+! define string used for global attributes:
+  CHARACTER (LEN=255) :: y_orofilter
 
   ! Print the default information to stdout:
   CALL info_define ('extpar_consistency_check')      ! Pre-define the program name as binary name
@@ -709,6 +738,33 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
    &                                  aot_output_file)
 
   !--------------------------------------------------------------------------------------------------------
+  !--------------------------------------------------------------
+  ! get namelist for topography scale separation
+  !--------------------------------------------------------------
+  namelist_file = 'INPUT_SCALE_SEP'
+  CALL read_namelists_extpar_scale_sep(namelist_file,                     &
+    &                                  raw_data_scale_sep_orography_path, &
+    &                                  scale_sep_files,                   &
+    &                                  lscale_separation)
+
+  !--------------------------------------------------------------------------------------------------------
+  !--------------------------------------------------------------
+  ! get namelist for topography smoothing
+  !--------------------------------------------------------------
+  namelist_file = 'INPUT_OROSMOOTH'
+  CALL read_namelists_extpar_orosmooth(namelist_file,            &
+                                           lfilter_oro,          &
+                                           ilow_pass_oro,        &
+                                           numfilt_oro,          &
+                                           eps_filter,           &
+                                           ifill_valley,         &
+                                           rfill_valley,         &
+                                           ilow_pass_xso,        &
+                                           numfilt_xso,          &
+                                           lxso_first,           &
+                                           rxso_mask)
+
+  !--------------------------------------------------------------------------------------------------------
   ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
   ! for th target grid
 
@@ -785,7 +841,9 @@ END SELECT
                                      aot_buffer_file, &
                                      alb_buffer_file, &
                                      i_lsm_data, &
-                                     land_sea_mask_file,&
+                                     land_sea_mask_file, &
+                                     lwrite_netcdf, &
+                                     lwrite_grib, &
                                      number_special_points )
 
   ! test for glcc data
@@ -1841,6 +1899,18 @@ i_sp,j_sp," lai_mx_lu    old  ",lai_mx_lu (i_sp,j_sp,k_sp),"new ",laimx_sp
              ENDWHERE
            END IF
 
+           IF (lfilter_oro) THEN
+             WRITE (y_orofilter,'(A32,I2,A15,I2,A13,L1,A14,I2,A16,I2,A15,I2,A13,F5.1,A15,F5.1,A12,F6.1)') & 
+               'lfilter_oro=.TRUE., numfilt_oro=', &
+               numfilt_oro,', ilow_pass_oro=',ilow_pass_oro,', lxso_first=', &
+               lxso_first,', numfilt_xso=',numfilt_xso,', ilow_pass_xso=',   &
+               ilow_pass_xso,', ifill_valley=',ifill_valley,', eps_filter=', &
+               eps_filter,', rfill_valley=',rfill_valley,', rxso_mask=',rxso_mask
+           ELSE 
+             y_orofilter='lfilter_oro=.FALSE.'
+           ENDIF
+
+           PRINT *,TRIM(y_orofilter)
 !------------------------------------------------------------------------------------------
 !------------- data output ----------------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -1859,6 +1929,8 @@ SELECT CASE(igrid_type)
     &                                     ldeep_soil,                    &
     &                                     itopo_type,                    &
     &                                     lsso_param,                    &
+    &                                     lscale_separation,             &
+    &                                     TRIM(y_orofilter),             &
     &                                     fill_value_real,               &
     &                                     fill_value_int,                &
     &                                     TRIM(name_lookup_table_lu),    &
@@ -1913,6 +1985,8 @@ SELECT CASE(igrid_type)
 
   CASE(igrid_cosmo) ! COSMO grid
 
+    IF (lwrite_netcdf) THEN  
+
 
       PRINT *,'write out ', TRIM(netcdf_output_filename)
  
@@ -1923,6 +1997,8 @@ SELECT CASE(igrid_type)
      &                                     ldeep_soil,                  &
      &                                     itopo_type,                  &
      &                                     lsso_param,                  & 
+     &                                     lscale_separation,           &
+     &                                     TRIM(y_orofilter),           &
      &                                     lradtopo,                    &  
      &                                     nhori,                       &
      &                                     fill_value_real,             &
@@ -1987,13 +2063,15 @@ SELECT CASE(igrid_type)
      &                                     slope_ang_topo=slope_ang_topo,&
      &                                     horizon_topo=horizon_topo,    &
      &                                     skyview_topo=skyview_topo)
+    ENDIF
 
 #ifdef GRIBAPI
-     PRINT *,'write out ', TRIM(grib_output_filename)
+    IF (lwrite_grib) THEN
+      PRINT *,'write out ', TRIM(grib_output_filename)
      
-     WHERE (crutemp < -1E19) crutemp = 9999
+      WHERE (crutemp < -1E19) crutemp = 9999
 
-     CALL  write_cosmo_grid_extpar_grib(TRIM(grib_output_filename),    &
+      CALL  write_cosmo_grid_extpar_grib(TRIM(grib_output_filename),    &
       &                                   TRIM(grib_sample),           &
       &                                     cosmo_grid,                &
       &                                     tg,                        &
@@ -2051,6 +2129,7 @@ SELECT CASE(igrid_type)
       &                                     horizon_topo=horizon_topo,    &
       &                                     skyview_topo=skyview_topo)
 
+    ENDIF
 #endif 
   
   CASE(igrid_gme) ! GME grid
