@@ -168,7 +168,7 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        IF ( point_lon_index_m1 <= 0) THEN ! point is at (western) boundary
          c_m1 = point_lon_index
          c_p1 = point_lon_index_p1
-       ELSE IF ( point_lon_index_p1 >= reg_data_grid%nlon_reg) THEN ! point is at (eastern) boundary 
+       ELSE IF ( point_lon_index_p1 > reg_data_grid%nlon_reg) THEN ! point is at (eastern) boundary 
          c_m1 = point_lon_index_m1
          c_p1 = point_lon_index
        ELSE  
@@ -247,11 +247,16 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        REAL (KIND=wp) :: pixel_lon2
 
 ! recalculate, if longitude is negative
-       IF (pixel_lon.lt.0) THEN
-          pixel_lon2 = 360. + pixel_lon
+       IF ((east_lon > west_lon).AND.(pixel_lon < west_lon)) THEN
+         pixel_lon2 = 360. + pixel_lon
+       ELSE IF ((east_lon < west_lon).AND.(pixel_lon < east_lon)) THEN
+         pixel_lon2 = 360. + pixel_lon
+       ELSE
+         pixel_lon2 = pixel_lon
        ENDIF
+       
 
-       bwlon = (pixel_lon - west_lon)/(east_lon - west_lon)
+       bwlon = (pixel_lon2 - west_lon)/(east_lon - west_lon)
        bwlat = (pixel_lat - south_lat)/(north_lat - south_lat)
 
        END  SUBROUTINE calc_weight_bilinear_interpol

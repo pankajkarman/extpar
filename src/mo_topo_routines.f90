@@ -131,7 +131,7 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
 
    INTEGER           :: nuin !< unit number
    INTEGER (KIND=i4) :: ierr !< error flag
-   INTEGER :: i
+   INTEGER :: i, nzylen
 
   !> namelist with filenames for orography data output
   NAMELIST /orography_io_extpar/ orography_buffer_file, orography_output_file
@@ -147,6 +147,16 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
    READ(nuin, NML=orography_raw_data, IOSTAT=ierr)
 
    CLOSE(nuin, IOSTAT=ierr)
+
+   nzylen=LEN_TRIM(raw_data_orography_path)
+   IF( nzylen > 0 ) THEN
+     IF( raw_data_orography_path(nzylen:nzylen) /= '/') THEN
+       IF( nzylen < LEN(raw_data_orography_path) ) THEN
+         raw_data_orography_path = raw_data_orography_path (1:nzylen)//'/'
+       ENDIF
+     ENDIF
+   ENDIF
+
 
 
 END SUBROUTINE read_namelists_extpar_orography
@@ -173,7 +183,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
   INTEGER           :: nuin !< unit number
   INTEGER (KIND=i4) :: ierr !< error flag
-  INTEGER :: i
+  INTEGER :: i, nzylen
 
   !> namelist with information on scale separated data input
 ! mes > include topo_type in namelist
@@ -186,6 +196,16 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
    READ(nuin, NML=scale_separated_raw_data, IOSTAT=ierr)
 
    CLOSE(nuin, IOSTAT=ierr)
+
+   nzylen=LEN_TRIM(raw_data_scale_sep_path)
+   IF( nzylen > 0 ) THEN
+     IF( raw_data_scale_sep_path(nzylen:nzylen) /= '/') THEN
+       IF( nzylen < LEN(raw_data_scale_sep_path) ) THEN
+         raw_data_scale_sep_path = raw_data_scale_sep_path (1:nzylen)//'/'
+       ENDIF
+     ENDIF
+   ENDIF
+
 
 
  END SUBROUTINE read_namelists_extpar_scale_sep

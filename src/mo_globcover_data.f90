@@ -7,6 +7,8 @@
 ! ------------ ---------- ----
 ! V1_3         2011/04/19 Hermann Asensio
 !  Initial release
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -208,7 +210,8 @@ CONTAINS
 !   print*, half_gridp
 
      DO i = 1,ntiles_globcover
-       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
+!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
+       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_path)//TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lon, len = lu_tiles_ncolumns(i)))          

@@ -8,6 +8,8 @@
 !   replaces the older module mo_globe_data.f90
 !   introduce the ASTER topography as external parameters
 !   contains a deallocation subroutine
+!  V2_0_3                   2014/09/17           Burkhardt Rockel
+!   Added use of directory information to access raw data files
 ! 
 !  Code Description:
 !  Language: Fortran 90
@@ -265,7 +267,8 @@ CHARACTER(LEN=80) :: varname
 
      DO i = 1,ntiles
      
-       CALL check_netcdf(nf90_open(path =TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    ! ASTER/GLOBE file is opened (intent(out) is only the ncid)
+!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    ! ASTER/GLOBE file is opened (intent(out) is only the ncid)
+       CALL check_netcdf(nf90_open(path =TRIM(raw_data_orography_path)//TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    ! ASTER/GLOBE file is opened (intent(out) is only the ncid)
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lon, len = tiles_ncolumns(i)))          

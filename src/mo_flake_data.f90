@@ -59,7 +59,7 @@ CONTAINS
   INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
 
   INTEGER :: errorcode !< error status variable
-    ALLOCATE (lon_flake(1:ncolumns), STAT=errorcode)
+    ALLOCATE (lon_flake(1:ncolumns+1), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lon_flake')
     lon_flake = 0.0
 

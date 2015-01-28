@@ -687,7 +687,7 @@ USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
                                          soil_buffer_file_consistent,&
                                          soil_output_file_consistent)
 
-  IF (ldeep_soil.eqv..TRUE. .and. isoil_data /= HWSD_data) THEN  !_br 21.02.14 replaced eq by eqv
+  IF (ldeep_soil .AND. isoil_data /= HWSD_data) THEN  !_br 21.02.14 replaced eq by eqv
     ldeep_soil = .FALSE.
     print*, '********* you can only use the deep soil if HWSD data is used *********'
     print*, '********* ldeep_soil is set to FALSE *********'

@@ -255,7 +255,7 @@ MODULE mo_agg_flake
 !$   start_cell_arr(:) = 1
      PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
-     PRINT *,'Start loop over flake dataset '
+     PRINT *,'Start loop over flake dataset ',flake_grid%nlat_reg
      ! loop over rows of GLCC dataset
      rows: DO j_row=1,flake_grid%nlat_reg
        point_lat = lat_flake(j_row)
@@ -395,7 +395,7 @@ MODULE mo_agg_flake
     DO je=1, tg%je
     DO ie=1, tg%ie
       IF (flake_tot_npixel(ie,je,ke) == 0) THEN ! nearest neighbour search
-        lon_target = lon_geo(ie,je,ke)
+        lon_target = MIN(lon_geo(ie,je,ke),flake_grid%end_lon_reg)
         lat_target = lat_geo(ie,je,ke)
         ! nearest neighbour search
         CALL find_reg_lonlat_grid_element_index(lon_target,      &
@@ -406,6 +406,7 @@ MODULE mo_agg_flake
         ! get data
         i_col = flake_ir
         j_row = flake_jr
+!        PRINT *,lon_target,lat_target,i_col,j_row
         CALL check_netcdf(nf90_get_var(ncid_flake, varid_flake,  flake_data_pixels,  &
           &               start=(/ i_col,j_row /),count=(/ 1,1 /)))
 

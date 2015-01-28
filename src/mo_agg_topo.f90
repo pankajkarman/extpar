@@ -26,6 +26,8 @@
 !  topo_tiles_grid, globe_files to topo_files, globe_grid to
 !  topo_grid and change ntiles_gl to ntiles to obtain a more 
 !  dynamical code.  
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -87,6 +89,8 @@ MODULE mo_agg_topo
       &                                      aniso_target,         &
       &                                      slope_target,         &
 !< *mes
+      &                                      raw_data_orography_path, & !_br 17.09.14
+      &                                      raw_data_scale_sep_orography_path, & !_br 17.09.14
       &                                      scale_sep_files)
 !> *mes
 
@@ -200,6 +204,8 @@ MODULE mo_agg_topo
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: aniso_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, anisotropie factor
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: slope_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, mean slope
    CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: scale_sep_files(1:max_tiles)  !< filenames globe/aster raw scale separated data
+   CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: raw_data_orography_path !< path to raw data !_br 17.09.14
+   CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: raw_data_scale_sep_orography_path !< path to raw data !_br 17.09.14
 
 
    ! local variables
@@ -322,10 +328,12 @@ MODULE mo_agg_topo
    CHARACTER(LEN=filename_max) :: scale_sep_file_1
 !< *mes
    nc_tot_p1 = nc_tot + 1
-   topo_file_1 = topo_files(1)
+!_br 17.09.14   topo_file_1 = topo_files(1)
+   topo_file_1 = TRIM(raw_data_orography_path)//TRIM(topo_files(1)) !_br 17.09.14
 !< *mes
    IF (lscale_separation) THEN
-     scale_sep_file_1 = scale_sep_files(1)
+!     scale_sep_file_1 = scale_sep_files(1) !_br 17.09.14
+     scale_sep_file_1 = TRIM(raw_data_scale_sep_orography_path)//TRIM(scale_sep_files(1)) !_br 17.09.14
    ENDIF
 !> *mes
 
@@ -425,13 +433,15 @@ MODULE mo_agg_topo
    print *,'open TOPO netcdf files'
    ! first open the GLOBE netcdf files
    DO nt=1,ntiles
-     CALL open_netcdf_TOPO_tile(topo_files(nt), ncids_topo(nt))
+!_br 17.09.14     CALL open_netcdf_TOPO_tile(topo_files(nt), ncids_topo(nt))
+     CALL open_netcdf_TOPO_tile(TRIM(raw_data_orography_path)//TRIM(topo_files(nt)), ncids_topo(nt)) !_br 17.09.14
    ENDDO
 !< *mes
    IF (lscale_separation) THEN
      DO nt=1,ntiles
        print*, 'scale_sep_files(nt): ', TRIM(scale_sep_files(nt))
-       CALL open_netcdf_TOPO_tile(scale_sep_files(nt), ncids_scale(nt))
+!_br 17.09.14       CALL open_netcdf_TOPO_tile(scale_sep_files(nt), ncids_scale(nt))
+       CALL open_netcdf_TOPO_tile(TRIM(raw_data_scale_sep_orography_path)//TRIM(scale_sep_files(nt)), ncids_scale(nt)) !_br 17.09.14
      ENDDO
    ENDIF
 !> *mes
@@ -1068,7 +1078,8 @@ MODULE mo_agg_topo
            point_lon_geo = lon_geo(ie,je,ke)
            point_lat_geo = lat_geo(ie,je,ke)
  
-           CALL bilinear_interpol_topo_to_target_point(topo_files,  & !mes ><
+           CALL bilinear_interpol_topo_to_target_point(raw_data_orography_path, & !_br 26.09.14
+             &                                      topo_files, & !_br 26.09.14 
              &                                      topo_grid,       &     
              &                                      topo_tiles_grid, &
              &                                      ncids_topo,     &
@@ -1103,7 +1114,8 @@ MODULE mo_agg_topo
              point_lon_geo =  rad2deg * icon_grid_region%verts%vertex(nv)%lon
              point_lat_geo =  rad2deg * icon_grid_region%verts%vertex(nv)%lat
 
-             CALL bilinear_interpol_topo_to_target_point(topo_files,  & !mes ><
+             CALL bilinear_interpol_topo_to_target_point(raw_data_orography_path, & !_br 26.09.14
+               &                                      topo_files, & !_br 26.09.14 
                &                                      topo_grid,       &
                &                                      topo_tiles_grid, &
                &                                      ncids_topo,     &
@@ -1144,7 +1156,8 @@ MODULE mo_agg_topo
        !! - the increment dlon_reg_lonlat and dlat_reg_lonlat(implict assuming that the grid definiton goes 
        !!   from the west to the east and from the north to the south)
        !! - the number of grid elements nlon_reg_lonlat and nlat_reg_lonlat for both directions
-       SUBROUTINE bilinear_interpol_topo_to_target_point(topo_files,     & !mes ><
+       SUBROUTINE bilinear_interpol_topo_to_target_point(raw_data_orography_path, & !_br 26.09.14
+                                                          topo_files,  & !_br 26.09.14
                                                           topo_grid,      &
                                                           topo_tiles_grid,&
                                                           ncids_topo,    &
@@ -1215,7 +1228,10 @@ MODULE mo_agg_topo
 !mes >
        CHARACTER(len=filename_max) :: topo_file_1   
 !mes >
-       topo_file_1 = topo_files(1)
+       CHARACTER(len=filename_max) :: raw_data_orography_path !_br 26.09.14
+
+!_br 26.09.14       topo_file_1 = topo_files(1)
+       topo_file_1 = TRIM(raw_data_orography_path)//TRIM(topo_files(1)) !_br 26.09.14
 
        CALL get_fill_value(topo_file_1,undef_topo)
 

@@ -27,6 +27,7 @@ PFLAGS   = -Mpreprocess # perform preprocessing for all source files
 FOPT    = -O3 # aggressive global optimization
 FOPT   += -fast # common optimizations (includes -O2 -Mvect=sse -Mlre -Mautoinline)
 FOPT   += -Mvect=noassoc # dissallow associative transformations (OBSOLETE?)
+FOPT   += -Mpreprocess # perform preprocessing for all source files
 #FOPT   += -Mvect=noaltcode # generate only vectorized code
 #FOPT   += -Msmartalloc # enable optimized malloc routines
 #FOPT   += -Mprefetch=distance:8 # set prefetch-ahead distance in cache lines

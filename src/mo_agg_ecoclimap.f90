@@ -13,6 +13,8 @@
 !   simplified namelist control for ICON  
 !             2013/06/04 Martina Messmer
 !   adaptations to the use of tiles   
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 !
 ! Code Description:
@@ -71,7 +73,9 @@ MODULE mo_agg_ecoclimap
   CONTAINS
 
   !> Subroutine to aggregate ecoclimap data to the target grid
-  SUBROUTINE agg_ecoclimap_data_to_target_grid(ecoclimap_file,        & 
+!_br 17.09.14  SUBROUTINE agg_ecoclimap_data_to_target_grid(ecoclimap_file,        & 
+  SUBROUTINE agg_ecoclimap_data_to_target_grid(raw_data_lu_path, & !_br 17.09.14
+    &                                        ecoclimap_file,        & !_br 17.09.14
     &                                        ilookup_table_ecoclimap, &
     &                                        undefined,               &
     &                                        tg,                      &
@@ -89,7 +93,7 @@ MODULE mo_agg_ecoclimap
     &                                        urban_ecoclimap,  &
     &                                        for_d_ecoclimap,  &
     &                                        for_e_ecoclimap, &
-    &                                        emissivity_ecoclimap    )
+    &                                        emissivity_ecoclimap )
 
 
 
@@ -133,7 +137,8 @@ MODULE mo_agg_ecoclimap
     USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
 
-     CHARACTER (LEN=filename_max), INTENT(IN) :: ecoclimap_file(:)  !< filename ecoclimap raw data
+    CHARACTER (LEN=filename_max) :: raw_data_lu_path        !< path to raw data !_br 17.09.14
+    CHARACTER (LEN=filename_max), INTENT(IN) :: ecoclimap_file(:)  !< filename ecoclimap raw data
      INTEGER, INTENT(IN) :: ilookup_table_ecoclimap
      REAL (KIND=wp), INTENT(IN) :: undefined            !< undef value
 
@@ -267,7 +272,9 @@ MODULE mo_agg_ecoclimap
      END SELECT
 
      ! init lookup tables
-     CALL init_ecoclimap_lookup_tables(nclass_ecoclimap, &
+!_br 17.09.14     CALL init_ecoclimap_lookup_tables(nclass_ecoclimap, &
+     CALL init_ecoclimap_lookup_tables(raw_data_lu_path, & !_br 17.09.14
+        &      nclass_ecoclimap, &   !_br 17.09.14
         &      ilookup_table_ecoclimap, &
         &      z012_lt_ecoclimap,            &
         &      lnz012_lt_ecoclimap,          &

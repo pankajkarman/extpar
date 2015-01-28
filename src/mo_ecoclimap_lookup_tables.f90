@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_3         2011/04/19 Hermann Asensio
 !  Initial release
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -74,7 +76,9 @@ INTEGER :: ecoclimap_value(nclass_ecoclimap)  ! No.
 CONTAINS
 
   !> define lookup table for ecoclimap landuse classes
-  SUBROUTINE init_ecoclimap_lookup_tables(nclass_ecoclimap, &
+!_br 17.09.14  SUBROUTINE init_ecoclimap_lookup_tables(nclass_ecoclimap, &
+  SUBROUTINE init_ecoclimap_lookup_tables(raw_data_lu_path, & !_br 17.09.14
+    &      nclass_ecoclimap, &      !_br 17.09.14
     &      ilookup_table_ecoclimap, &
     &      z012_lt_ecoclimap,           &
     &      lnz012_lt_ecoclimap,       &
@@ -84,6 +88,7 @@ CONTAINS
     &      emiss12_lt_ecoclimap,       &
     &      rs_min_lt_ecoclimap,       &
     &      forest_type_ecoclimap)
+    CHARACTER (LEN=filename_max) :: raw_data_lu_path        !< path to raw data !_br 17.09.14
     INTEGER, INTENT(IN) :: nclass_ecoclimap !< ecoclimap has 243 classes for the land use description
     INTEGER, INTENT(IN) :: ilookup_table_ecoclimap  !< integer switch to choose a lookup table
     REAL (KIND=wp), INTENT(OUT) :: z012_lt_ecoclimap(ntime_ecoclimap, nclass_ecoclimap)      !< lookup table landuse class to roughness length [m]
@@ -106,7 +111,8 @@ CONTAINS
 
 !READ LOOK UP TABLES
      PRINT*, 'READ LOOK UP TABLES ECOCLIMAP'
-     OPEN (UNIT=10, FILE='ecoclimap_lookup.TAB',ACTION='read', STATUS='old', iostat=io_error)
+!_br 17.09.14     OPEN (UNIT=10, FILE='ecoclimap_lookup.TAB',ACTION='read', STATUS='old', iostat=io_error)
+     OPEN (UNIT=10, FILE=TRIM(raw_data_lu_path)//'ecoclimap_lookup.TAB',ACTION='read', STATUS='old', iostat=io_error) !_br 17.09.14
          IF ( io_error == 0 ) THEN    
           READ (10, *) , dum
           PRINT *, 'READ: ', dum

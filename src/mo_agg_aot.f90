@@ -184,12 +184,13 @@ PUBLIC :: agg_aot_data_to_target_grid
          ! perform the interpolation
          bwlon2d = bwlon
          bwlat2d = bwlat
+
          target_array_value = calc_value_bilinear_interpol(bwlon2d,bwlat2d, &
                                          data_array_sw, data_array_se, data_array_ne, data_array_nw)
-!          target_array_value = (1-bwlon) * (1-bwlat) * data_array_sw +  &
-!                              & bwlon    * (1-bwlat) * data_array_se +  &
-!                              & bwlon    *  bwlat    * data_array_ne +  &
-!                              &(1-bwlon) *  bwlat    * data_array_nw 
+         ! target_array_value = (1-bwlon) * (1-bwlat) * data_array_sw +  &
+         !                     & bwlon    * (1-bwlat) * data_array_se +  &
+         !                     & bwlon    *  bwlat    * data_array_ne +  &
+         !                     &(1-bwlon) *  bwlat    * data_array_nw 
  
         ENDIF
        aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))

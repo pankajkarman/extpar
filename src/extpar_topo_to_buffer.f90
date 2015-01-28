@@ -21,6 +21,8 @@
 !   switch to choose if SSO parameters are desired or not
 ! V2_0         2013/06/04 Anne Roches
 !  Implementation of the topographical corrected radiation parameters
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -311,7 +313,7 @@ PROGRAM extpar_topo_to_buffer
     &                                  scale_sep_files,                   &
     &                                  lscale_separation) 
 
-  IF (lscale_separation.eqv..TRUE. .and. itopo_type.eq.2) THEN   !_br 21.02.14 replaced eq by eqv
+  IF (lscale_separation .AND. itopo_type.eq.2) THEN   !_br 21.02.14 replaced eq by eqv
     lscale_separation = .FALSE.
     PRINT*, '*** Scale separation can only be used with GLOBE as raw topography ***'
   ENDIF
@@ -436,6 +438,8 @@ PROGRAM extpar_topo_to_buffer
        &                                aniso_topo,       &
        &                                slope_topo,       &
 !< *mes
+       &                                raw_data_orography_path=raw_data_orography_path,& !_br 17.09.14
+       &                                raw_data_scale_sep_orography_path=raw_data_scale_sep_orography_path,& !_br 17.09.14
        &                                scale_sep_files = scale_sep_files)
 !> *mes
      ELSE
@@ -464,11 +468,43 @@ PROGRAM extpar_topo_to_buffer
        &                                no_raw_data_pixel,&
        &                                theta_topo,       & 
        &                                aniso_topo,       &
-       &                                slope_topo)
+       &                                slope_topo,       &
+       &                                raw_data_orography_path=raw_data_orography_path) !_br 17.09.14)
      ENDIF
    ELSE
-     PRINT *,'CALL agg_topo_data_to_target_grid without SSO'
-     CALL agg_topo_data_to_target_grid(topo_tiles_grid,  &
+     IF (lscale_separation) THEN
+       CALL agg_topo_data_to_target_grid(topo_tiles_grid, &
+       &                                topo_grid,        &
+       &                                tg,               &
+       &                                topo_files,       &
+       &                                lsso_param,       &
+!< *mes
+       &                                lscale_separation,&
+!> *mes
+!roa>
+       &                                lfilter_oro,      &
+       &                                ilow_pass_oro,    &
+       &                                numfilt_oro,      &
+       &                                eps_filter,       &
+       &                                ifill_valley,     &
+       &                                rfill_valley,     &
+       &                                ilow_pass_xso,    &
+       &                                numfilt_xso,      &
+       &                                lxso_first,       &
+       &                                rxso_mask,        &
+!roa<
+       &                                hh_topo,          &
+       &                                stdh_topo,        &
+       &                                fr_land_topo,     &
+       &                                z0_topo,          &
+       &                                no_raw_data_pixel,&
+       &                                raw_data_orography_path=raw_data_orography_path,& !_br 17.09.14
+       &                                raw_data_scale_sep_orography_path=raw_data_scale_sep_orography_path,& !_br 17.09.14
+       &                                scale_sep_files = scale_sep_files)
+!
+     ELSE
+       PRINT *,'CALL agg_topo_data_to_target_grid without SSO'
+       CALL agg_topo_data_to_target_grid(topo_tiles_grid, &
        &                                topo_grid,        &
        &                                tg,               &
        &                                topo_files,       &
@@ -490,9 +526,11 @@ PROGRAM extpar_topo_to_buffer
        &                                stdh_topo,       &
        &                                fr_land_topo,    &
        &                                z0_topo,          &
-       &                                no_raw_data_pixel)
- 
+       &                                no_raw_data_pixel, &
+       &                                raw_data_orography_path=raw_data_orography_path) !_br 17.09.14)
      ENDIF
+ 
+   ENDIF
    
    ! if the target domain has a higher resolution of than the GLOBE data set (30'') some grid elements might not
    ! be set by the routine agg_topo_data_to_target_grid, (no_raw_data_pixel(ie,je,ke) == 0 in this case
@@ -513,7 +551,8 @@ PROGRAM extpar_topo_to_buffer
        PRINT *,'MINVAL(stdh_topo): ', MINVAL(stdh_topo)
 
   ! consistency for small grid sizes, do not use estimates of variance for small sample size
-   IF ( (MAXVAL(no_raw_data_pixel)< 10).OR. (MINVAL(no_raw_data_pixel)==0)) THEN
+!   IF ( (MAXVAL(no_raw_data_pixel)< 10).OR. (MINVAL(no_raw_data_pixel)==0)) THEN
+   IF (MAXVAL(no_raw_data_pixel)< 10) THEN !_dl 22.8.14
      IF (lsso_param) THEN
        stdh_topo  = 0.  
        theta_topo = 0.

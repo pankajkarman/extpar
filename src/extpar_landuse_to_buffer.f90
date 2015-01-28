@@ -20,6 +20,8 @@
 !   introduce a new reading routine of the Globcover data set
 !   (available as 6 tiles)
 !   routines are adapted from the topography
+! V2_0_3       2014/09/17 Burkhardt Rockel
+!  Added use of directory information to access raw data files
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -541,7 +543,8 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
 
    CASE(i_lu_ecoclimap)
 
-    CALL agg_ecoclimap_data_to_target_grid(lu_file,ilookup_table_lu,undefined,       &
+!_br 17.09.14    CALL agg_ecoclimap_data_to_target_grid(lu_file,ilookup_table_lu,undefined,       &
+    CALL agg_ecoclimap_data_to_target_grid(raw_data_lu_path, lu_file,ilookup_table_lu,undefined,       &
     &                                        tg,                                         &
     &                                        nclass_ecoclimap,                             &
     &                                        lu_class_fraction, &
@@ -557,7 +560,7 @@ USE mo_glcc_lookup_tables, ONLY: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emi
     &                                        urban_lu,  &
     &                                        for_d_lu,  &
     &                                        for_e_lu, &
-    &                                        emissivity_lu    )
+    &                                        emissivity_lu )
 
    CASE(i_lu_glc2000)
 

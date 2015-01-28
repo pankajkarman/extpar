@@ -187,7 +187,7 @@ END SUBROUTINE read_namelists_extpar_aerosol
   INTEGER :: errorcode !< error status variable
 
 
-    ALLOCATE (lon_aot(1:ncolumns), STAT=errorcode)
+    ALLOCATE (lon_aot(1:ncolumns+1), STAT=errorcode)
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lon_aot')
     lon_aot = 0.0
 
@@ -195,7 +195,7 @@ END SUBROUTINE read_namelists_extpar_aerosol
         IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lat_aot')
     lat_aot = 0.0
 
-    ALLOCATE (aot_data(1:ncolumns,1:nrows,1:ntime,1:ntype),STAT=errorcode)
+    ALLOCATE (aot_data(1:ncolumns+1,1:nrows,1:ntime,1:ntype),STAT=errorcode)
       IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array aot')
       aot_data = 0.0
 
@@ -308,9 +308,9 @@ END SUBROUTINE read_namelists_extpar_aerosol
    
    TYPE(reg_lonlat_grid), INTENT(INOUT) :: aot_grid !< structure with defenition of the raw data grid for the AOT dataset
 
-   REAL (KIND=wp), INTENT(INOUT) :: lon_aot(1:ncolumns) !< longitude coordinates of aot grid
+   REAL (KIND=wp), INTENT(INOUT) :: lon_aot(1:ncolumns+1) !< longitude coordinates of aot grid
    REAL (KIND=wp), INTENT(INOUT) :: lat_aot(1:nrows) !< latitude coordinates of aot grid
-   REAL (KIND=wp), INTENT(INOUT) :: aot_data(1:ncolumns,1:nrows,1:ntime,1:ntype) !< aerosol optical thickness, aot(ntype,ncolumns,nrows,ntime) 
+   REAL (KIND=wp), INTENT(INOUT) :: aot_data(1:ncolumns+1,1:nrows,1:ntime,1:ntype) !< aerosol optical thickness, aot(ntype,ncolumns,nrows,ntime) 
 
 
     !local variables
@@ -344,7 +344,7 @@ END SUBROUTINE read_namelists_extpar_aerosol
      call check_netcdf( nf90_inq_varid(ncid, TRIM(cooname(n)), coovarid(n)))
     ENDDO
 
-    CALL check_netcdf(nf90_get_var(ncid, coovarid(1),  lon_aot))
+    CALL check_netcdf(nf90_get_var(ncid, coovarid(1),  lon_aot(1:ncolumns)))
     CALL check_netcdf(nf90_get_var(ncid, coovarid(2),  lat_aot))
 
 
@@ -355,11 +355,14 @@ END SUBROUTINE read_namelists_extpar_aerosol
     CALL check_netcdf(nf90_get_var(ncid, varid(n),  aot_data_stype))
 
 
-     aot_data(:,:,:,n) = aot_data_stype(:,:,:)
+     aot_data(1:ncolumns,:,:,n) = aot_data_stype(1:ncolumns,:,:)
 
      ENDDO
-     ! close netcdf file 
      call check_netcdf( nf90_close( ncid))
+     ! close netcdf file 
+
+     ! extend aot_data by 1 column so that the field covers the whole globe
+     aot_data(ncolumns+1,:,:,:) = aot_data(1,:,:,:)
 
      ! set aot_grid values
      aot_grid%start_lon_reg = lon_aot(1)
@@ -368,11 +371,12 @@ END SUBROUTINE read_namelists_extpar_aerosol
      !aot_grid%end_lat_reg = lat_aot(nrows)
      aot_grid%dlon_reg = (lon_aot(ncolumns) -  lon_aot(1) ) / (ncolumns - 1)
      aot_grid%dlat_reg = (lat_aot(nrows) - lat_aot(1) ) / (nrows -1) 
-     aot_grid%nlon_reg = ncolumns
+     aot_grid%nlon_reg = ncolumns+1
      aot_grid%nlat_reg = nrows
 
-     aot_grid%end_lon_reg = lon_aot(ncolumns)
+     aot_grid%end_lon_reg = lon_aot(ncolumns) + aot_grid%dlon_reg
      aot_grid%end_lat_reg = lat_aot(nrows)
+     lon_aot(ncolumns+1)=lon_aot(ncolumns) + aot_grid%dlon_reg
 
 
 
