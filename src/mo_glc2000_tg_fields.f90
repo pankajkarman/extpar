@@ -82,12 +82,15 @@ PUBLIC :: fr_land_glc2000, &
           allocate_glc2000_target_fields
 
 
-       REAL (KIND=wp), ALLOCATABLE  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
+       REAL (KIND=wp), ALLOCATABLE  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class &
+! & on target grid (dimension (ie,je,ke,nclass_glc2000))
 
-       INTEGER (KIND=i8), ALLOCATABLE :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
+       INTEGER (KIND=i8), ALLOCATABLE :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each &
+! & glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
 
 
-       INTEGER (KIND=i8), ALLOCATABLE :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
+       INTEGER (KIND=i8), ALLOCATABLE :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels &
+! & on target grid (dimension (ie,je,ke))
 
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data

@@ -84,7 +84,8 @@ MODULE mo_gme_grid
                                    !! The four (mirrored) points at the corners of the array which
                                    !! has been extended by 1 row/column around, need other spokes,
                                    !! namely "ispokes".
-  INTEGER (KIND=i4) :: ispokes(12,4) !< offsets of the 6 neighbouring gridpoints relative offsets of the 6 neighbouring gridpoints relative
+  INTEGER (KIND=i4) :: ispokes(12,4) 
+                       !< relative offsets of the 6 neighbouring gridpoints
   INTEGER (KIND=i4) :: i1mrp(8) !< i1-index of the four mirrored points of the extended array
   INTEGER (KIND=i4) :: i2mrp(8) !< i2-index of the four mirrored points of the extended array
 
@@ -158,7 +159,7 @@ MODULE mo_gme_grid
      tg%ke = nd              ! nd
 
 
-     END  SUBROUTINE get_gme_grid_info
+    END  SUBROUTINE get_gme_grid_info
 
    
     !> allocate the variables for the GME grid and calcualate the coordinates rlon_gme, rlat_gme 
@@ -215,8 +216,9 @@ MODULE mo_gme_grid
 
         IF(errorcode.NE.0) CALL abort_extpar('No coordinates for GME grid! STOP!')
 
- !       xns(gme_grid%ig2s:gme_grid%ig2e,gme_grid%ig2s:gme_grid%ig2e,1:3, 1:gme_grid%nd) = &
-  !      &  xn(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,1:3,1:gme_grid%nd)  ! shift index to (1:nip1,1:nip1,1:2,1:nd)
+  !       xns(gme_grid%ig2s:gme_grid%ig2e,gme_grid%ig2s:gme_grid%ig2e,1:3, 1:gme_grid%nd) = &
+  !      &  xn(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,1:3,1:gme_grid%nd)  
+  ! shift index to (1:nip1,1:nip1,1:2,1:nd)
 
  
     END SUBROUTINE init_gme_grid
@@ -1107,10 +1109,10 @@ MODULE mo_gme_grid
        ks2(jsp) = k2 + mspoke2(jsp)
       END DO
       END IF
-      END SUBROUTINE spoke
+    END SUBROUTINE spoke
 
     !> Initialize the point search in the GME grid
-          SUBROUTINE distance(xn,ni,spd,spd_t)   
+    SUBROUTINE distance(xn,ni,spd,spd_t)   
     ! Modifications: 22.1.2008: Search for largest distance between grid point and 'half' distance to neighbours
     !                           instead of using simply the distance of the pole point to its neighbours
     !                           Use offset of 0.237 (=1.-1/cos(36)) in determination of position on grid point boundary
@@ -1377,62 +1379,68 @@ MODULE mo_gme_grid
 
     !> copy buffer to gme field
     SUBROUTINE cp_buf2gme_r(tg,gme_grid,buffer_r,gme_field_r)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    REAL (KIND=wp), INTENT(IN)  :: buffer_r(1:tg%ie,1:tg%je,1:tg%ke) !< real buffer
-    REAL (KIND=wp), INTENT(OUT) :: gme_field_r(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-       gme_field_r(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
-     & buffer_r(1:tg%ie,1:tg%je,1:tg%ke)
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      REAL (KIND=wp), INTENT(IN)  :: buffer_r(1:tg%ie,1:tg%je,1:tg%ke) !< real buffer
+      REAL (KIND=wp), INTENT(OUT) :: gme_field_r(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                     !< GME field
+        gme_field_r(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
+        & buffer_r(1:tg%ie,1:tg%je,1:tg%ke)
     END SUBROUTINE cp_buf2gme_r
     
     !> copy buffer to gme field
     SUBROUTINE cp_buf2gme_i(tg,gme_grid,buffer_i,gme_field_i)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    INTEGER (KIND=i8), INTENT(IN)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
-    INTEGER (KIND=i8), INTENT(OUT) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-       gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
-     & buffer_i(1:tg%ie,1:tg%je,1:tg%ke)
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      INTEGER (KIND=i8), INTENT(IN)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
+      INTEGER (KIND=i8), INTENT(OUT) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                        !< GME field
+         gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
+         & buffer_i(1:tg%ie,1:tg%je,1:tg%ke)
     END SUBROUTINE cp_buf2gme_i
 
      !> copy buffer to gme field
     SUBROUTINE cp_buf2gme_i4(tg,gme_grid,buffer_i,gme_field_i)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    INTEGER (KIND=i4), INTENT(IN)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
-    INTEGER (KIND=i4), INTENT(OUT) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-       gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
-     & buffer_i(1:tg%ie,1:tg%je,1:tg%ke)
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      INTEGER (KIND=i4), INTENT(IN)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
+      INTEGER (KIND=i4), INTENT(OUT) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                      !< GME field
+      gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) = &  
+      & buffer_i(1:tg%ie,1:tg%je,1:tg%ke)
     END SUBROUTINE cp_buf2gme_i4
 
     
     !> copy gme to buffer field
     SUBROUTINE cp_gme2buf_r(tg,gme_grid,gme_field_r,buffer_r)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    REAL (KIND=wp), INTENT(IN) :: gme_field_r(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-    REAL (KIND=wp), INTENT(OUT)  :: buffer_r(1:tg%ie,1:tg%je,1:tg%ke) !< real buffer
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      REAL (KIND=wp), INTENT(IN) :: gme_field_r(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                    !< GME field
+      REAL (KIND=wp), INTENT(OUT)  :: buffer_r(1:tg%ie,1:tg%je,1:tg%ke) !< real buffer
       buffer_r(1:tg%ie,1:tg%je,1:tg%ke) = &
-     &  gme_field_r(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) 
+      &  gme_field_r(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) 
     END SUBROUTINE cp_gme2buf_r
 
     !> copy buffer to gme field
     SUBROUTINE cp_gme2buf_i(tg,gme_grid,gme_field_i,buffer_i)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    INTEGER (KIND=i8), INTENT(IN) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-    INTEGER (KIND=i8), INTENT(OUT)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
-       buffer_i(1:tg%ie,1:tg%je,1:tg%ke) = &
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      INTEGER (KIND=i8), INTENT(IN) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                       !< GME field
+      INTEGER (KIND=i8), INTENT(OUT)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
+      buffer_i(1:tg%ie,1:tg%je,1:tg%ke) = &
       &   gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) 
     END SUBROUTINE cp_gme2buf_i
 
     !> copy buffer to gme field
     SUBROUTINE cp_gme2buf_i4(tg,gme_grid,gme_field_i,buffer_i)
-    TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
-    TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
-    INTEGER (KIND=i4), INTENT(IN) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) !< GME field
-    INTEGER (KIND=i4), INTENT(OUT)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
-       buffer_i(1:tg%ie,1:tg%je,1:tg%ke) = &
+      TYPE(target_grid_def), INTENT(IN) ::  tg  !< buffer grid information
+      TYPE(gme_triangular_grid), INTENT(IN) ::  gme_grid  !< GME grid information
+      INTEGER (KIND=i4), INTENT(IN) :: gme_field_i(gme_grid%ig1s:gme_grid%ig1e,gme_grid%ig2s:gme_grid%ig2e,gme_grid%nd) 
+                                       !< GME field
+      INTEGER (KIND=i4), INTENT(OUT)  :: buffer_i(1:tg%ie,1:tg%je,1:tg%ke) !< integer buffer
+      buffer_i(1:tg%ie,1:tg%je,1:tg%ke) = &
       &   gme_field_i(gme_grid%ig1s:gme_grid%ig1e, gme_grid%ig2s:gme_grid%ig2e,1:gme_grid%nd) 
     END SUBROUTINE cp_gme2buf_i4
 

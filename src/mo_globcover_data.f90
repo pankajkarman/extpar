@@ -186,7 +186,7 @@ CONTAINS
    SUBROUTINE fill_globcover_data(raw_data_lu_path,       &
                                   raw_data_lu_filename,   &
                                   lu_tiles_lon_min,       &
-                                  lu_tiles_lon_max,       &    ! the allocated vectors need to be filled with the respective value
+                                  lu_tiles_lon_max,       &  ! the allocated vectors need to be filled with the respective value
                                   lu_tiles_lat_min,       &
                                   lu_tiles_lat_max,       &
                                   nc_tiles_lu)
@@ -201,16 +201,16 @@ CONTAINS
    INTEGER(KIND=i4), INTENT(OUT):: nc_tiles_lu
    CHARACTER(len=2)    :: num
    CHARACTER(len=80)   :: path
-   INTEGER(KIND=i4)    :: i, errorcode                        ! i is a counter, errorcode is used to check if allocation was successful
+   INTEGER(KIND=i4)    :: i, errorcode        ! i is a counter, errorcode is used to check if allocation was successful
    INTEGER(KIND=i4)    :: ncid
    INTEGER(KIND=i4)    :: dimID_lat, dimID_lon, varID_lat, varID_lon                  
-   REAL(KIND=wp)       :: half_gridp                          ! distance of half a grid point as the grid point is centered on a GLOBCOVER pixel
+   REAL(KIND=wp)       :: half_gridp          ! distance of half a grid point as the grid point is centered on a GLOBCOVER pixel
     
    half_gridp = 0.001388888889
 !   print*, half_gridp
 
      DO i = 1,ntiles_globcover
-!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
+!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    
        CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_path)//TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
@@ -218,11 +218,15 @@ CONTAINS
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lat, len = lu_tiles_nrows(i))) 
        CALL check_netcdf(nf90_inq_varid(ncid, "lon", varID_lon))
        CALL check_netcdf(nf90_inq_varid(ncid, "lat", varID_lat))
-       CALL check_netcdf(nf90_get_var(ncid, varID_lon, lu_tiles_lon_min(i), start = (/1/)))            ! reads in the first longitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lon, lu_tiles_lon_max(i), start = (/lu_tiles_ncolumns(i)/))) ! reads in the last longitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lat, lu_tiles_lat_max(i), start = (/1/)))            ! reads in the first latitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lat, lu_tiles_lat_min(i), start = (/lu_tiles_nrows(i)/))) ! reads in the last latitude value of tile i
-       CALL check_netcdf(nf90_close(ncid))                                                             ! the netcdf file is closed again
+       CALL check_netcdf(nf90_get_var(ncid, varID_lon, lu_tiles_lon_min(i), start = (/1/)))            
+       ! reads in the first longitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lon, lu_tiles_lon_max(i), start = (/lu_tiles_ncolumns(i)/))) 
+       ! reads in the last longitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lat, lu_tiles_lat_max(i), start = (/1/)))            
+       ! reads in the first latitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lat, lu_tiles_lat_min(i), start = (/lu_tiles_nrows(i)/))) 
+       ! reads in the last latitude value of tile i
+       CALL check_netcdf(nf90_close(ncid))  ! the netcdf file is closed again
        lu_tiles_lon_min(i) = lu_tiles_lon_min(i) - half_gridp !< half of a grid point must be
        lu_tiles_lon_max(i) = lu_tiles_lon_max(i) + half_gridp !< added, as the GLOBCOVER data
        lu_tiles_lat_min(i) = lu_tiles_lat_min(i) - half_gridp !< is located at the pixel center

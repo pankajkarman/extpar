@@ -11,6 +11,8 @@
 !  bug fix regarding old file paths         
 ! V1_13        2013-05-29 Frank Brenner
 !  missing values fixed         
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix in ICON part
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -646,7 +648,6 @@ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu,alb_min)
   REAL(KIND=wp), INTENT(IN) :: alb_min
   INTEGER (KIND=i4), PARAMETER :: mpy=12     !< month per year
   INTEGER (KIND=i4) :: t,k,j,i,i_miss,i2,j2
-  INTEGER (KIND=i4) :: count1,count2,count3,count4,count5,count6
   INTEGER (KIND=i4) :: igrid_type 
   REAL (KIND=wp) :: lon_geo_w,lon_geo_e,lat_geo_n,lat_geo_s
   REAL (KIND=wp)   :: alb_sw,alb_nw,alb_se,alb_ne
@@ -668,13 +669,6 @@ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu,alb_min)
 
 
   igrid_type = tg%igrid_type
-
-  count1 = 0
-  count2 = 0
-  count3 = 0
-  count4 = 0
-  count5 = 0
-  count6 = 0
 
   !preparing albedo values for interpolation, original data is copied to
   !alb_interpol to easier remove the procedure if necessary.
@@ -776,13 +770,11 @@ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu,alb_min)
 
                 !printing albedo values that are still too small, only COSMO!!
   100         IF (alb_interpol(i,j,k,t).LT.alb_min.and. soiltype_fao(i,j,k).LE.9 .AND. soiltype_fao(i,j,k).NE.0) THEN
-                count3 = count3 + 1
                 !values that are still too small, will receive a soiltype dependent albedo
                 alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
                                           alb_min*(1.-fr_land_lu(i,j,k))
               ELSEIF (alb_interpol(i,j,k,t).LT.alb_min .AND. (soiltype_fao(i,j,k).GT.9 &
                       & .OR. soiltype_fao(i,j,k).EQ.0)) THEN
-                count3 = count3 + 1
                 alb_interpol(i,j,k,t) = alb_min
               ENDIF
 !override wrong values due to bad interpolation (occurs only at some borderpoints)
@@ -792,46 +784,34 @@ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu,alb_min)
                                           alb_min*(1.-fr_land_lu(i,j,k))
               ENDIF
 
-              count1 = count1 + 1
               !water points:
             ELSEIF ((alb_interpol(i,j,k,t).LT.alb_min).AND.(fr_land_lu(i,j,k).LT.0.5)) THEN
-!             count2 = count2 + 1
               alb_interpol(i,j,k,t) = alb_min
             ELSEIF ((alb_interpol(i,j,k,t).GE.alb_min).AND.(fr_land_lu(i,j,k).LT.0.5)) THEN
-              count2 = count2 + 1
               alb_interpol(i,j,k,t) = alb_min
             ENDIF
 
           ELSEIF (igrid_type.EQ.1) THEN !ICON interpolation 
 
-            IF (fr_land_lu(i,j,k).LT.0.5) THEN
+            IF (fr_land_lu(i,j,k).LT.0.01) THEN
               !water point
               alb_interpol(i,j,k,t) = 0.07
-            ELSEIF ((alb_interpol(i,j,k,t).LE.0).AND.(fr_land_lu(i,j,k).GE.0.5)) THEN
+            ELSEIF (alb_interpol(i,j,k,t)) THEN
               !land point with albedo = 0
  
-              count1 = count1+1
-
               alb_se = alb_interpol(icon_grid_region%cells%neighbor_index(i,1),j,k,t)
               alb_nw = alb_interpol(icon_grid_region%cells%neighbor_index(i,2),j,k,t)
               alb_ne = alb_interpol(icon_grid_region%cells%neighbor_index(i,3),j,k,t)
 
               IF (alb_se.GT.0.AND.alb_nw.GT.0.AND.alb_ne.GT.0) THEN
-                count2 = count2+1
                 alb_interpol(i,j,k,t) = (alb_se+alb_nw+alb_ne)/3
               ELSE IF (alb_se.GT.0.AND.alb_nw.GT.0) THEN
-                count3 = count3+1
                 alb_interpol(i,j,k,t) = (alb_se+alb_nw)/2
               ELSE IF (alb_nw.GT.0.AND.alb_ne.GT.0) THEN
                 alb_interpol(i,j,k,t) = (alb_nw+alb_ne)/2
-                count4 = count4+1
-              ELSE IF (alb_nw.GT.0.AND.alb_se.GT.0) THEN
+              ELSE IF (alb_ne.GT.0.AND.alb_se.GT.0) THEN
                 alb_interpol(i,j,k,t) = (alb_nw+alb_se)/2
               ELSE
-                count5 = count5+1
-                IF (soiltype_fao(i,j,k).EQ.1) THEN
-                  count6 = count6+1
-                ENDIF
                 alb_interpol(i,j,k,t) = zalso(soiltype_fao(i,j,k),t)*fr_land_lu(i,j,k) + &
                                           0.07*(1.-fr_land_lu(i,j,k))
               ENDIF
@@ -847,12 +827,6 @@ SUBROUTINE const_check_interpol_alb(alb_field_mom_d,fr_land_lu,alb_min)
         ENDDO !i
       ENDDO !j
     ENDDO !k
-    count1 = 0
-    count2 = 0
-    count3 = 0
-    count4 = 0
-    count5 = 0
-    count6 = 0
   ENDDO !t           
 
 

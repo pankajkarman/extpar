@@ -144,7 +144,7 @@ END SUBROUTINE read_namelists_extpar_flake
           ! open netcdf file 
         CALL check_netcdf( nf90_open(TRIM(path_flake_file),NF90_NOWRITE, ncid))
 
-       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the unlimited dimension (probably time)
        !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        CALL check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
@@ -183,7 +183,8 @@ END SUBROUTINE read_namelists_extpar_flake
         INTEGER (KIND=i8), INTENT(in) :: nlat_flake !< number of grid elements in meridional direction for flake data
         REAL (KIND=wp), INTENT(out)    :: lon_flake(1:nlon_flake) !< longitude of flake raw data
         REAL (KIND=wp), INTENT(out)    :: lat_flake(1:nlat_flake) !< latitude of flake raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: flake_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: flake_grid 
+                                              !< structure with defenition of the raw data grid for the whole GLOBE dataset
         
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number

@@ -239,7 +239,7 @@ END SUBROUTINE read_namelists_extpar_t_clim
     ! open netcdf file 
     call check_netcdf( nf90_open(TRIM(cru_filename),NF90_NOWRITE, ncid))
     
-    ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+    ! look for numbers of dimensions, Variable, Attributes, and the dimid for the unlimited dimension (probably time)
      call check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
 
        !; the dimid in netcdf-files is counted from 1 to ndimension

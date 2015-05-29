@@ -14,6 +14,8 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -70,16 +72,16 @@ MODULE mo_icon_grid_routines
 
    IMPLICIT NONE
 
-   CHARACTER (len=filename_max), INTENT(IN) :: input_namelist_file !< file with input namelist with COSMO grid definition
+   CHARACTER (LEN=*), INTENT(IN) :: input_namelist_file !< file with input namelist with COSMO grid definition
    TYPE(target_grid_def), INTENT(OUT)      :: tg               !< structure with target grid description
    TYPE(icosahedral_triangular_grid), INTENT(OUT) :: icon_grid !< structure which contains the definition of the COSMO grid
-   CHARACTER (len=filename_max),OPTIONAL,INTENT(OUT) :: icon_coor_file !< filname of the ICON grid file with the coordinates
+   CHARACTER (LEN=filename_max),OPTIONAL,INTENT(OUT) :: icon_coor_file !< filname of the ICON grid file with the coordinates
    ! local variables
 
   INTEGER :: i_cell_type !< Cell shape. 3: triangluar grid, 4: quadrilateral grid, 6: hexagonal/pentagonal grid
 
-  CHARACTER (len=filename_max) :: icon_grid_nc_file !< filname of the ICON grid files with the coordinates
-  CHARACTER (len=filename_max) :: icon_grid_dir !< path to directory which contains the ICON grid files with the coordinates
+  CHARACTER (LEN=filename_max) :: icon_grid_nc_file !< filname of the ICON grid files with the coordinates
+  CHARACTER (LEN=filename_max) :: icon_grid_dir !< path to directory which contains the ICON grid files with the coordinates
 
   NAMELIST /icon_grid_info/ icon_grid_dir, icon_grid_nc_file, i_cell_type
 
@@ -87,14 +89,15 @@ MODULE mo_icon_grid_routines
   INTEGER  :: ierr !< error flag
   INTEGER  :: nuin !< unit number
   INTEGER :: i     !< counter
-  CHARACTER (len=filename_max) :: filename
+  CHARACTER (LEN=filename_max) :: filename
 
   INTEGER                :: ncell                   !< number of cells
   INTEGER                :: nvertex                 !< number of edges
   INTEGER                :: nedge                   !< number of vertices
   INTEGER                :: ncells_per_edge         !< number of cells per edge
   INTEGER                :: nedges_per_vertex       !< number of edges per vertex
-
+  INTEGER                :: number_of_grid_used     !< number of grid used, for grib2
+  CHARACTER(LEN=36)       ::uuidOfHGrid          ! ICON grid ID
 
    ! set default values for icon_grid_info
    i_cell_type = 3
@@ -116,7 +119,9 @@ MODULE mo_icon_grid_routines
       &                      nedge,            &
       &                      ncells_per_edge,   &
       &                      nvertex_per_cell,  &
-      &                      nedges_per_vertex  )
+      &                      nedges_per_vertex, &
+      &                      number_of_grid_used,&
+      &                      uuidOfHGrid        )
 
    ! describe the icon grid from the results of subroutine inq_domain_dims
    icon_grid%nvertex_per_cell = nvertex_per_cell
@@ -126,6 +131,8 @@ MODULE mo_icon_grid_routines
    icon_grid%nvertex = nvertex
    icon_grid%nedge = nedge
    icon_grid%nc_grid_file = TRIM(filename)
+   icon_grid%number_of_grid_used= number_of_grid_used
+   icon_grid%uuidOfHGrid        = uuidOfHGrid
 
    !describe the target grid
    tg%igrid_type = igrid_icon      ! "2" is for the COSMO grid, "1" is for the ICON grid
@@ -152,31 +159,34 @@ END SUBROUTINE get_icon_grid_info
    IMPLICIT NONE
 
    TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the COSMO grid
-   CHARACTER (len=filename_max),INTENT(IN) :: icon_coor_file !< filename of the ICON grid file with the coordinates
+   CHARACTER (LEN=*),INTENT(IN) :: icon_coor_file !< filename of the ICON grid file with the coordinates
 
    TYPE(icon_grid_def), INTENT(INOUT) :: icon_dom_def !< structure which contains the definition of the COSMO grid
 
    ! local variables
-   CHARACTER (len=filename_max) :: filename
+   CHARACTER (LEN=filename_max) :: filename
    INTEGER                :: ncell                   !< number of cells
    INTEGER                :: nvertex                 !< number of edges
    INTEGER                :: nedge                   !< number of vertices
    INTEGER                :: ncells_per_edge         !< number of cells per edge
    INTEGER                :: nvertex_per_cell        !< number of vertices per cell
    INTEGER                :: nedges_per_vertex       !< number of edges per vertex
+   INTEGER                :: number_of_grid_used     !< number of grid used, for grib2
+   CHARACTER(LEN=36)      :: uuidOfHGrid             !< ICON grid ID
 
-
-    icon_dom_def%grid_file = TRIM(icon_coor_file)
+    icon_dom_def%grid_file = icon_coor_file
     filename = TRIM(icon_coor_file)
 
     ! read in information from netcdf file with Icon coordinates (e.g. iconR2B04_DOM01.nc)
-    CALL inq_domain_dims( TRIM(filename),      &
+    CALL inq_domain_dims( filename,      &
       &                      ncell,     &
       &                      nvertex,   &
       &                      nedge,            &
       &                      ncells_per_edge,   &
       &                      nvertex_per_cell,  &
-      &                      nedges_per_vertex)
+      &                      nedges_per_vertex, &
+      &                      number_of_grid_used,&
+      &                      uuidOfHGrid  )
 
    ! describe the icon grid from the results of subroutine inq_domain_dims
 
@@ -186,7 +196,7 @@ END SUBROUTINE get_icon_grid_info
    icon_dom_def%ncell = ncell
    icon_dom_def%nvertex = nvertex
    icon_dom_def%nedge = nedge
-   icon_dom_def%grid_file = TRIM(filename)
+   icon_dom_def%grid_file = filename
 
    !HA debug
    PRINT *,'filename: ',TRIM(filename)
@@ -198,6 +208,8 @@ END SUBROUTINE get_icon_grid_info
    PRINT *,'ncell: ',ncell
    PRINT *,'nvertex: ',nvertex
    PRINT *,'nedge: ', nedge
+   PRINT *,'number_of_grid_used: ', number_of_grid_used
+   PRINT *,'uuidOfHGrid: ',uuidOfHGrid
 
 
 END SUBROUTINE get_icon_domain_info
@@ -215,9 +227,11 @@ END SUBROUTINE get_icon_domain_info
                             nedge,            &
                             ncells_per_edge,   &
                             nvertex_per_cell,  &
-                            nedges_per_vertex  )
+                            nedges_per_vertex, &
+                            number_of_grid_used, &
+                            uuidOfHGrid)
 
-   CHARACTER(len=filename_max), INTENT(IN)  :: filename  !< filename of netcdf-file with ICON patch coordinates and variables
+   CHARACTER(LEN=*), INTENT(IN)  :: filename  !< filename of netcdf-file with ICON patch coordinates and variables
    
    
    INTEGER, INTENT(OUT)                      :: ncell                   !< number of cells
@@ -226,7 +240,8 @@ END SUBROUTINE get_icon_domain_info
    INTEGER, INTENT(OUT)                      :: ncells_per_edge         !< number of cells per edge
    INTEGER, INTENT(OUT)                      :: nvertex_per_cell        !< number of vertices per cell
    INTEGER, INTENT(OUT)                      :: nedges_per_vertex       !< number of edges per vertex
-
+   INTEGER, INTENT(OUT)                      :: number_of_grid_used     !< number of grid used, for grib2
+   CHARACTER(LEN=36), INTENT(OUT)            :: uuidOfHGrid             ! ICON grid ID
 
    INTEGER :: ncid     !< unit number for netcdf file
 
@@ -243,7 +258,8 @@ END SUBROUTINE get_icon_domain_info
 
 
 
-    CALL check_netcdf(nf90_open(TRIM(filename), NF90_NOWRITE, ncid))  ! open netcdf file, get ncid
+    WRITE(0,*) 'Now read the ICON grid parameters from ',TRIM(filename)
+    CALL check_netcdf(nf90_open(filename, NF90_NOWRITE, ncid))  ! open netcdf file, get ncid
 
     ! here I know that the dimension for array of cells is called 'cell', get the dimid for this dimension
     CALL check_netcdf(nf90_inq_dimid(ncid, 'cell', dimid)) 
@@ -273,6 +289,8 @@ END SUBROUTINE get_icon_domain_info
     CALL check_netcdf(nf90_inq_dimid(ncid, 'ne', dimid)) 
     ! get the length of the dimension:
     CALL check_netcdf(nf90_inquire_dimension(ncid, dimid, len=nedges_per_vertex))
+    CALL check_netcdf(nf90_get_att(ncid, nf90_global, "number_of_grid_used", number_of_grid_used))
+    CALL check_netcdf(nf90_get_att(ncid, nf90_global, "uuidOfHGrid", uuidOfHGrid))
 
     CALL check_netcdf(nf90_close(ncid))
 
@@ -299,7 +317,7 @@ END SUBROUTINE get_icon_domain_info
 
    USE mo_additional_geometry,   ONLY: gc2cc
 
-   CHARACTER(len=filename_max), INTENT(IN)  :: filename  !< filename of netcdf-file with ICON grid coordinates and variables
+   CHARACTER(LEN=*), INTENT(IN)  :: filename  !< filename of netcdf-file with ICON grid coordinates and variables
 
    TYPE(icon_domain), INTENT(INOUT) :: g
 

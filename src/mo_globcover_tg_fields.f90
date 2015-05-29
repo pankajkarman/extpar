@@ -36,7 +36,8 @@
 !  15   150 'Sparse (>15%) vegetation (woody vegetation, shrubs, grassland)  ' 
 !  16   160 'Closed (>40%) broadleaved forest regularly flooded - Fresh water  ' 
 !  17   170 'Closed (>40%) broadleaved semi-deciduous and/or evergreen forest regularly flooded - Saline water' 
-!  18   180 'Closed to open (>15%) vegetation (grassland, shrubland, woody vegetation) on regularly flooded or waterlogged soil - Fresh, brackish or saline water '
+!  18   180 'Closed to open (>15%) vegetation (grassland, shrubland, woody vegetation) on regularly flooded or &
+! &          waterlogged soil - Fresh, brackish or saline water '
 !  19   190 ' regularly flooded or waterlogged soil - Fresh, brackish or saline water    '
 !  20   200 'bare areas                      '
 !  21   210 'water bodies              ' 
@@ -83,12 +84,15 @@ PUBLIC :: fr_land_globcover, &
           allocate_globcover_target_fields
 
 
-       REAL (KIND=wp), ALLOCATABLE  :: globcover_class_fraction(:,:,:,:)  !< fraction for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
+       REAL (KIND=wp), ALLOCATABLE  :: globcover_class_fraction(:,:,:,:)  !< fraction for each globcover class &
+! &                                    on target grid (dimension (ie,je,ke,nclass_globcover))
 
-       INTEGER (KIND=i8), ALLOCATABLE :: globcover_class_npixel(:,:,:,:) !< number of raw data pixels for each globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
+       INTEGER (KIND=i8), ALLOCATABLE :: globcover_class_npixel(:,:,:,:) !< number of raw data pixels for each &
+! &                                      globcover class on target grid (dimension (ie,je,ke,nclass_globcover))
 
 
-       INTEGER (KIND=i8), ALLOCATABLE :: globcover_tot_npixel(:,:,:)  !< total number of globcover raw data pixels on target grid (dimension (ie,je,ke))
+       INTEGER (KIND=i8), ALLOCATABLE :: globcover_tot_npixel(:,:,:)  !< total number of globcover raw data pixels &
+! &                                      on target grid (dimension (ie,je,ke))
 
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_land_globcover(:,:,:) !< fraction land due to globcover raw data

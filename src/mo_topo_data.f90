@@ -192,8 +192,9 @@ CHARACTER(LEN=80) :: varname
 
 
 
+   SUBROUTINE allocate_topo_data(ntiles)   
+! As it is unknown so far whether GLOBE or ASTER is chosen all parameters must be allocated in a second step.
 
-   SUBROUTINE allocate_topo_data(ntiles)   ! As it is unknown so far if GLOBE or ASTER is chosen all parameters must be allocated in a second step.
    IMPLICIT NONE
    INTEGER, INTENT (IN) :: ntiles       ! number of tiles: 36 for ASTER and 16 for GLOBE
    INTEGER :: errorcode
@@ -233,7 +234,8 @@ CHARACTER(LEN=80) :: varname
 
    SUBROUTINE fill_topo_data(raw_data_orography_path,topo_files,  &
                                                   tiles_lon_min,  &
-                                                  tiles_lon_max,  &    ! the allocated vectors need to be filled with the respective value.
+                                                  tiles_lon_max,  &    
+                                                  ! the allocated vectors need to be filled with the respective value.
                                                   tiles_lat_min,  &
                                                   tiles_lat_max,  &
                                                   nc_tot,         &
@@ -250,16 +252,17 @@ CHARACTER(LEN=80) :: varname
    INTEGER(KIND=i4), INTENT(OUT):: nc_tot, nr_tot, nc_tile
    CHARACTER(len=2)    :: num
    CHARACTER(len=80)   :: path
-   INTEGER(KIND=i4)    :: i, errorcode                        ! i is a counter, errorcode is used to check if allocation was successful
+   INTEGER(KIND=i4)    :: i, errorcode     ! i is a counter, errorcode is used to check if allocation was successful
    INTEGER(KIND=i4)    :: ncid
    INTEGER(KIND=i4)    :: dimID_lat, dimID_lon, varID_lat, varID_lon                  
-   REAL(KIND=wp)       :: half_gridp                          ! distance of half a grid point as the grid point is centered on a GLOBE / ASTER pixel
+   REAL(KIND=wp)       :: half_gridp       ! distance of half a grid point as the grid point is centered on a GLOBE / ASTER pixel
   
 
-    SELECT CASE (itopo_type)                                  ! Also topo could additionally be used for SELECT CASE (must first be read in)
-     CASE(topo_aster)                                         ! ASTER topography, as it has 36 tiles at the moment.
+    SELECT CASE (itopo_type)                ! Also topo could additionally be used for SELECT CASE (must first be read in)
+     CASE(topo_aster)                       ! ASTER topography, as it has 36 tiles at the moment.
        PRINT*, 'ASTER is used as topography'
-       half_gridp = 1./(3600.*2.)                             ! the resolution of the ASTER data is 1./3600. degrees as it is half a grid point it is additionally divided by 2 
+       half_gridp = 1./(3600.*2.)           ! the resolution of the ASTER data is 1./3600. degrees as it is half a grid point
+                                            ! it is additionally divided by 2 
      CASE (topo_gl)                                           ! GLOBE topography is composed of 16 tiles
        PRINT*, 'GLOBE is used as topography'
        half_gridp = 1./(120.*2.)                              ! GLOBE resolution is 1./120. degrees (30 arc-seconds) 
@@ -267,19 +270,25 @@ CHARACTER(LEN=80) :: varname
 
      DO i = 1,ntiles
      
-!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    ! ASTER/GLOBE file is opened (intent(out) is only the ncid)
-       CALL check_netcdf(nf90_open(path =TRIM(raw_data_orography_path)//TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    ! ASTER/GLOBE file is opened (intent(out) is only the ncid)
+!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    
+! ASTER/GLOBE file is opened (intent(out) is only the ncid)
+       CALL check_netcdf(nf90_open(path =TRIM(raw_data_orography_path)//TRIM(topo_files(i)), mode = nf90_nowrite, ncid = ncid))    
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lon, len = tiles_ncolumns(i)))          
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lat, len = tiles_nrows(i))) 
        CALL check_netcdf(nf90_inq_varid(ncid, "lon", varID_lon))
        CALL check_netcdf(nf90_inq_varid(ncid, "lat", varID_lat))
-       CALL check_netcdf(nf90_get_var(ncid, varID_lon, tiles_lon_min(i), start = (/1/)))            ! reads in the first longitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lon, tiles_lon_max(i), start = (/tiles_ncolumns(i)/))) ! reads in the last longitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lat, tiles_lat_max(i), start = (/1/)))            ! reads in the first latitude value of tile i
-       CALL check_netcdf(nf90_get_var(ncid, varID_lat, tiles_lat_min(i), start = (/tiles_nrows(i)/))) ! reads in the last latitude value of tile i
-       CALL check_netcdf(nf90_close(ncid))                                                          ! the netcdf file is closed again
+       CALL check_netcdf(nf90_get_var(ncid, varID_lon, tiles_lon_min(i), start = (/1/)))            
+       ! reads in the first longitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lon, tiles_lon_max(i), start = (/tiles_ncolumns(i)/))) 
+       ! reads in the last longitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lat, tiles_lat_max(i), start = (/1/)))            
+       ! reads in the first latitude value of tile i
+       CALL check_netcdf(nf90_get_var(ncid, varID_lat, tiles_lat_min(i), start = (/tiles_nrows(i)/))) 
+       ! reads in the last latitude value of tile i
+       CALL check_netcdf(nf90_close(ncid))                                                         
+       ! the netcdf file is closed again
        tiles_lon_min(i) = REAL(NINT(tiles_lon_min(i) - half_gridp)) !< half of a grid point must be
        tiles_lon_max(i) = REAL(NINT(tiles_lon_max(i) + half_gridp)) !< added, as the ASTER/GLOBE data
        tiles_lat_min(i) = REAL(NINT(tiles_lat_min(i) + half_gridp)) !< is located at the pixel center
@@ -309,8 +318,9 @@ CHARACTER(LEN=80) :: varname
   
     SELECT CASE(itopo_type)
      CASE(topo_gl)       
-       WHERE (tiles_lon_max.GT.(-1*half_gridp).AND.tiles_lon_max.LT.half_gridp) tiles_lon_max = 0.00000   ! There are probably some rounding problems, 
-       WHERE (tiles_lat_max.GT.(-1*half_gridp).AND.tiles_lat_max.LT.half_gridp) tiles_lat_max = 0.00000   ! which are removed by this procedure.
+       WHERE (tiles_lon_max.GT.(-1*half_gridp).AND.tiles_lon_max.LT.half_gridp) tiles_lon_max = 0.00000   
+       WHERE (tiles_lat_max.GT.(-1*half_gridp).AND.tiles_lat_max.LT.half_gridp) tiles_lat_max = 0.00000   
+! There are probably some rounding problems, which are removed by this procedure.
      END SELECT
 
 

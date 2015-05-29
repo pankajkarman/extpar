@@ -94,7 +94,8 @@ MODULE mo_flake_output_nc
 
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)  !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
+  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)  
+                                   !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
   ! local variables
 
@@ -217,7 +218,8 @@ MODULE mo_flake_output_nc
   
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)  !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
+  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)
+                                   !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
 
   ! local variables
@@ -359,7 +361,8 @@ MODULE mo_flake_output_nc
   
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)  !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
+  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)
+                                   !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
 
 
@@ -545,7 +548,8 @@ MODULE mo_flake_output_nc
   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(OUT)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(OUT)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(OUT) :: flake_tot_npixel(:,:,:)  !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
+  INTEGER (KIND=i8), INTENT(OUT) :: flake_tot_npixel(:,:,:)
+                                    !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
   ! local variables
   INTEGER :: errorcode !< error status variable

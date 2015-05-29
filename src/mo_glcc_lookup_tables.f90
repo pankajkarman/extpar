@@ -52,9 +52,12 @@ PUBLIC :: lai_mn_lt_glcc, lai_mx_lt_glcc, rd_lt_glcc, emiss_lt_glcc, rs_min_lt_g
 
 INTEGER (KIND=i4), PARAMETER :: nclass_glcc = 24 !< GLCC has 24 classes for the land use description
 
-INTEGER (KIND=i4), PARAMETER :: i_gme_lookup_table_glcc = 1 !< lookup_table for GLCC land use classes from the operational settings of GME (Ritter, 2007)
-INTEGER (KIND=i4), PARAMETER :: i_cosmo_lookup_table_glcc = 2 !< lookup_table for GLCC land use classes from the operational settings of COSMO (Heise, 2005)
-INTEGER (KIND=i4), PARAMETER :: i_experimental_lookup_table_glcc = 3 !< lookup_table for GLCC land use classes for experimental setting, analog to look-up tables of ECOCLIMAP (Masson 2003)
+INTEGER (KIND=i4), PARAMETER :: i_gme_lookup_table_glcc = 1 
+                                !< lookup_table for GLCC land use classes from the operational settings of GME (Ritter, 2007)
+INTEGER (KIND=i4), PARAMETER :: i_cosmo_lookup_table_glcc = 2 
+                                !< lookup_table for GLCC land use classes from the operational settings of COSMO (Heise, 2005)
+INTEGER (KIND=i4), PARAMETER :: i_experimental_lookup_table_glcc = 3 
+!< lookup_table for GLCC land use classes for experimental setting, analog to look-up tables of ECOCLIMAP (Masson 2003)
 
 INTEGER (KIND=i4) :: ilookup_table_glcc !< integer switch to choose a lookup table
 CHARACTER (LEN=filename_max) :: name_lookup_table_glcc !< name of lookup table

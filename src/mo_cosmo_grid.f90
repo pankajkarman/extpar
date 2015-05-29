@@ -107,8 +107,8 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       REAL  (KIND=wp)  :: polgam_d !< angle between the north poles of the systems
       REAL  (KIND=wp)  :: dlon_d !< grid point distance in zonal direction (in degrees)
       REAL  (KIND=wp)  :: dlat_d !< grid point distance in meridional direction (in degrees)
-      REAL  (KIND=wp)  :: startlon_tot_d !< transformed longitude of the lower left grid point of the total domain (in degrees, E>0)
-      REAL  (KIND=wp)  :: startlat_tot_d   !< transformed latitude of the lower left grid point of the total domain (in degrees, N>0)
+      REAL  (KIND=wp)  :: startlon_tot_d !< transformed longitude of lower left grid point for total domain (in degrees, E>0)
+      REAL  (KIND=wp)  :: startlat_tot_d  !< transformed latitude of lower left grid point for total domain (in degrees, N>0)
 
       INTEGER  (KIND=i8) :: ie_tot_d !< number of grid points in zonal direction
       INTEGER  (KIND=i8) :: je_tot_d !< number of grid points in meridional direction
@@ -120,8 +120,8 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       REAL  (KIND=wp)  :: polgam !< angle between the north poles of the systems
       REAL  (KIND=wp)  :: dlon !< grid point distance in zonal direction (in degrees)
       REAL  (KIND=wp)  :: dlat !< grid point distance in meridional direction (in degrees)
-      REAL  (KIND=wp)  :: startlon_tot !< transformed longitude of the lower left grid point of the total domain (in degrees, E>0)
-      REAL  (KIND=wp)  :: startlat_tot   !< transformed latitude of the lower left grid point of the total domain (in degrees, N>0)
+      REAL  (KIND=wp)  :: startlon_tot !< transformed longitude of lower left grid point for total domain (in degrees, E>0)
+      REAL  (KIND=wp)  :: startlat_tot !< transformed latitude of lower left grid point for total domain (in degrees, N>0)
 
       INTEGER  (KIND=i8) :: ie_tot !< number of grid points in zonal direction
       INTEGER  (KIND=i8) :: je_tot !< number of grid points in meridional direction
@@ -131,8 +131,8 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       INTEGER (KIND=i8) :: ierr !< error flag
       INTEGER                  :: nuin !< unit number
 
-      REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_wp ! Earth circumference at equator [m] !_br 21.02.14 ireals to wp
-      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_wp ! Radius used for horizon calculation [m]  !_br 21.02.14 ireals to wp
+      REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_wp ! Earth circumference at equator [m]
+      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_wp ! Radius used for horizon calculation [m]  
                                                                      ! (M. Buzzi's recommendation: 40-50 km)
       INTEGER(KIND=i8), PARAMETER :: securi      = 4                 ! Minimum number of points required for horizon computation
 

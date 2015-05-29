@@ -176,8 +176,8 @@ MODULE mo_agg_globcover
     REAL (KIND=wp), INTENT(OUT)  :: for_e_globcover(:,:,:)   !< evergreen forest (fraction) due to globcover land use data
     REAL (KIND=wp), INTENT(OUT)  :: emissivity_globcover(:,:,:) !< longwave emissivity due to globcover land use da
 
-
-     TYPE(reg_lonlat_grid):: ta_grid ! structure with definition of the target area grid (dlon must be the same for the whole GLOBCOVER dataset)
+     ! structure with definition of the target area grid (dlon must be the same for the whole GLOBCOVER dataset)
+     TYPE(reg_lonlat_grid):: ta_grid 
 
      INTEGER (KIND=i8) :: undefined_integer ! undef value
      REAL (KIND=wp)    :: default_real
@@ -407,7 +407,7 @@ MODULE mo_agg_globcover
 
          point_lat = lat_globcover(mlat)
 
-         IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
+         IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, omit some I/O from hard disk when out of target domain
            IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
              CYCLE globcover_rows
            ENDIF

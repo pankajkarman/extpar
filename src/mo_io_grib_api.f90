@@ -17,6 +17,10 @@
 !  versions (above 1.9.9)         
 ! V1_11        2013/04/16 Juergen Helmert
 !  Specify resolutionAndComponentFlags       
+! V1_14        2014-07-18 Juergen Helmert
+!  Combined COSMO Release
+! V2_0_3       2015-02-23 Juergen Helmert
+!  Adaption for usage of standard GRIB-API template
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -101,6 +105,12 @@ MODULE mo_io_grib_api
     MODULE PROCEDURE write_extpar_gme_real_field_grib
     MODULE PROCEDURE write_extpar_gme_int_field_grib
   END INTERFACE write_extpar_gme_field_grib
+
+  !> write ICON field to grib record
+  INTERFACE write_extpar_ICON_field_grib
+    MODULE PROCEDURE write_extpar_ICON_real_field_grib
+    MODULE PROCEDURE write_extpar_ICON_int_field_grib
+  END INTERFACE write_extpar_ICON_field_grib
 
   PUBLIC :: write_extpar_cosmo_real_1lev_grib
 
@@ -273,12 +283,22 @@ MODULE mo_io_grib_api
     ! set stepType for GRIB1 and GRIB2, as the GRIB sample may not have the correct value
     ! the dataDate values are conventions for external parameter fields 
     ! \TODO maybe in GRIB2 these settings have to be improved
+    IF (editionNumber == 1) THEN
+      CALL grib_set (gribid,'timeRangeIndicator',0) ! GRIB1 setting
+      CALL grib_set (gribid,'stepRange',0)
+      CALL grib_set (gribid,'startStep',0)
+      CALL grib_set (gribid,'endStep',0)
+      CALL grib_set (gribid,'PVPresent',0)
+      CALL grib_set (gribid,'numberOfVerticalCoordinateValues',0)
+    ENDIF
     IF ( editionNumber == 1 ) THEN
       IF ( ANY(field_meta%stepType == (/'min','max'/)) ) THEN
         ! ... GRIB 1 does not support 'min' and 'max' ==> use generic time range instead
         !     (the GRIB API is setting the value 2 in this case, but also changes the
         !      originating centre, which is not acceptable)
         CALL grib_set(gribid,"timeRangeIndicator",2)
+      ELSE IF ( field_meta%stepType == 'avg' ) THEN
+        CALL grib_set(gribid,"timeRangeIndicator",3)
       ELSE
         CALL grib_set(gribid,"stepType",TRIM(field_meta%stepType))
       ENDIF
@@ -296,6 +316,32 @@ MODULE mo_io_grib_api
 
     IF (TRIM(field_meta%shortName)=='T_2M_CL') THEN
       CALL grib_set(gribid,'bitmapPresent',1)
+    ENDIF
+
+    IF (editionNumber == 1) THEN
+      IF (TRIM(shortName)=='DEPTH_LK') THEN
+        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
+        CALL grib_set(gribid,"indicatorOfParameter", 96)  ! element
+        CALL grib_set(gribid,"table2Version", 201)        ! table
+      ENDIF
+      IF (TRIM(shortName)=='FR_LAKE') THEN
+        CALL grib_set(gribid,"indicatorOfTypeOfLevel", 1) ! ground level type
+        CALL grib_set(gribid,"indicatorOfParameter", 55)  ! element
+        CALL grib_set(gribid,"table2Version", 202)        ! table
+      ENDIF
+    ELSEIF (editionNumber == 2) THEN
+      IF (TRIM(shortName)=='DEPTH_LK') THEN
+        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
+        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
+        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
+        CALL grib_set(gribid,"parameterNumber",0)   ! parameterNumber 'water depth'
+      ENDIF
+      IF (TRIM(shortName)=='FR_LAKE') THEN
+        CALL grib_set(gribid,"typeOfFirstFixedSurface", 1) ! ground level type
+        CALL grib_set(gribid,"discipline", 1)       ! discipline 'Hydrological Products'
+        CALL grib_set(gribid,"parameterCategory", 2)! parameterCategory 'inland water and sediment properties'
+        CALL grib_set(gribid,"parameterNumber",2)   ! parameterNumber 'water fraction'
+      ENDIF
     ENDIF
 
     IF ((centre == dwd_id_grib ).AND.(editionNumber == 1)) THEN
@@ -519,7 +565,7 @@ MODULE mo_io_grib_api
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
-    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+    CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
@@ -577,7 +623,7 @@ MODULE mo_io_grib_api
     USE mo_grid_structures, ONLY: gme_triangular_grid
 
     INTEGER, INTENT(IN) :: outfile_id !< id of the GRIB file
-    CHARACTER (len=filename_max), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
+    CHARACTER (len=*), INTENT(IN) :: grib_sample  !< name for grib sample  (sample to be found in $GRIB_SAMPLES_PATH)
 
     TYPE(gme_triangular_grid), INTENT(IN)  :: gme_grid !< structure which contains the definition of the GME grid
     INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:gme_grid%nip1,1:gme_grid%nip1,1:gme_grid%nd) 
@@ -680,6 +726,108 @@ MODULE mo_io_grib_api
 
   END SUBROUTINE
 
+
+
+  SUBROUTINE write_extpar_ICON_real_field_grib(outfile_id,gribid_dest,icon_grid,&
+                                           extpar_buffer,shortName,dataDate,dataTime)
+    USE mo_grid_structures, ONLY: icosahedral_triangular_grid
+
+    INTEGER, INTENT(IN) :: outfile_id   !< id of the GRIB file, for writing
+    INTEGER, INTENT(IN) :: gribid_dest  !< id of the GRIB2 process
+
+    TYPE(icosahedral_triangular_grid), INTENT(IN)  :: icon_grid !< structure which contains the definition of the ICON grid
+    REAL (KIND=wp), INTENT(IN)             :: extpar_buffer(1:icon_grid%ncell,1,1) 
+!< field to write out to GRIB file with outfile_id
+    CHARACTER (LEN=*), INTENT(IN) :: shortName !< shortName parameter of the field
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
+    ! local variables
+    INTEGER :: igribclone !< id of grib message (GRIB_API)
+
+
+    REAL    :: ds(1:icon_grid%ncell) !< working array
+    INTEGER :: errorcode
+    INTEGER :: ind
+    INTEGER :: ie,je,ke
+    INTEGER :: nip1
+
+    INTEGER :: i,j,k
+
+    CALL grib_clone(gribid_dest,igribclone) ! clone sample before modifying it
+    CALL grib_set(igribclone,'shortName',shortName,errorcode) 
+
+    ds=0._wp
+ 
+    DO k=1,1
+    DO j=1,1
+    DO i=1,icon_grid%ncell
+       ds(i) =extpar_buffer(i,j,k)   ! put data to 1D array before putting it to the GRIB record
+    ENDDO
+    ENDDO
+    ENDDO
+
+!    CALL grib_set (igribclone,'dataDate',dataDate)
+!    CALL grib_set (igribclone,'dataTime',dataTime)
+    CALL grib_set(igribclone,'values',ds,errorcode) ! put data to GRIB message
+    CALL grib_write(igribclone,outfile_id,errorcode) ! write out GRIB message to file
+    CALL grib_release(igribclone) ! free memory of grib message
+
+  END  SUBROUTINE write_extpar_ICON_real_field_grib
+
+  SUBROUTINE write_extpar_ICON_int_field_grib(outfile_id,gribid_dest,icon_grid,&
+                                           extpar_buffer,shortName,dataDate,dataTime)
+    USE mo_grid_structures, ONLY: icosahedral_triangular_grid
+
+    INTEGER, INTENT(IN) :: outfile_id   !< id of the GRIB file, for writing
+    INTEGER, INTENT(IN) :: gribid_dest  !< id of the GRIB2 process
+
+    TYPE(icosahedral_triangular_grid), INTENT(IN)  :: icon_grid !< structure which contains the definition of the ICON grid
+    INTEGER (KIND=i4), INTENT(IN)             :: extpar_buffer(1:icon_grid%ncell,1,1) 
+!< field to write out to GRIB file with outfile_id
+    CHARACTER (LEN=*), INTENT(IN) :: shortName !< shortName parameter of the field
+    INTEGER (KIND=8), INTENT(IN)  :: dataDate  
+!< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=8), INTENT(IN)  :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+
+
+    ! local variables
+    INTEGER :: igribclone !< id of grib message (GRIB_API)
+
+
+    INTEGER :: ds(1:icon_grid%ncell) !< working array
+    INTEGER :: errorcode
+    INTEGER :: ind
+    INTEGER :: ie,je,ke
+    INTEGER :: nip1
+
+    INTEGER :: i,j,k
+
+    CALL grib_clone(gribid_dest,igribclone) ! clone sample before modifying it
+    CALL grib_set(igribclone,'shortName',shortName,errorcode) 
+    CALL grib_set(igribclone,'typeOfLevel','surface')
+    CALL grib_set(igribclone,'typeOfOriginalFieldValues',1)
+
+    ds=0
+ 
+    DO k=1,1
+    DO j=1,1
+    DO i=1,icon_grid%ncell
+       ds(i) =extpar_buffer(i,j,k)   ! put data to 1D array before putting it to the GRIB record
+    ENDDO
+    ENDDO
+    ENDDO
+
+!    CALL grib_set (igribclone,'dataDate',dataDate)
+!    CALL grib_set (igribclone,'dataTime',dataTime)
+    CALL grib_set(igribclone,'values',ds,errorcode) ! put data to GRIB message
+    CALL grib_write(igribclone,outfile_id,errorcode) ! write out GRIB message to file
+    CALL grib_release(igribclone) ! free memory of grib message
+
+  END  SUBROUTINE write_extpar_ICON_int_field_grib
+!------------------------------------------------------------------------------
 
 
 

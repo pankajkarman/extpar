@@ -141,9 +141,12 @@ MODULE mo_landuse_output_nc
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
+                                 !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
+                                   !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  
+                                   !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
@@ -345,9 +348,12 @@ END SUBROUTINE write_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
+                                 !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
+                                 !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  
+                                   !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: z012_lu(:,:,:,:)      !< roughness length due to lu land use data
@@ -609,9 +615,12 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   INTEGER, INTENT(IN) :: nclass_lu !< number of land use classes 
   REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(OUT)  :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(OUT)  :: lu_class_fraction(:,:,:,:)  
+                                  !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
+                                    !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
+                                    !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
@@ -764,9 +773,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN) :: nclass_lu !< number of land use classes 
   REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(OUT)  :: ecoclimap_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) !< number of raw data pixels for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(OUT)  :: ecoclimap_class_fraction(:,:,:,:)  
+                                  !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
+                                    !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
+  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
+                                    !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: z012_lu(:,:,:,:)      !< roughness length due to lu land use data
@@ -899,9 +911,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
+                                 !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
+                       !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
+                                   !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
@@ -1103,9 +1118,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
+                                 !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
+                         !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
+                                   !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
@@ -1347,9 +1365,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
+                                 !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
+                           !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
+                                   !< total number of glc2000 raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
@@ -1798,9 +1819,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
+                                 !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
+                             !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
+                                   !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data
@@ -2042,9 +2066,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
+                                 !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
+                             !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
+                                   !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data
@@ -2295,9 +2322,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(OUT)  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each glc2000 class on target grid (dimension (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(OUT)  :: glc2000_class_fraction(:,:,:,:)  
+                                  !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_class_npixel(:,:,:,:) 
+                            !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
+  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_tot_npixel(:,:,:)
+                                    !< total number of glc2000 raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
   REAL (KIND=wp), INTENT(OUT)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
@@ -2453,9 +2483,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(OUT)  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+  REAL (KIND=wp), INTENT(OUT)  :: glcc_class_fraction(:,:,:,:)  
+                                  !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) 
+                           !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  
+                                    !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
   REAL (KIND=wp), INTENT(OUT)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data

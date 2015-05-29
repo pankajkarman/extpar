@@ -40,8 +40,10 @@ PUBLIC :: undef_ndvi, minimal_ndvi
 
 TYPE(reg_lonlat_grid) :: ndvi_raw_data_grid
                          
-REAL (KIND=wp), ALLOCATABLE  :: lon_ndvi(:)          !< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
-REAL (KIND=wp), ALLOCATABLE  :: lat_ndvi(:)          !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
+!< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
+REAL (KIND=wp), ALLOCATABLE  :: lon_ndvi(:)
+ !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)    
+REAL (KIND=wp), ALLOCATABLE  :: lat_ndvi(:)
 
 REAL (KIND=wp), ALLOCATABLE  :: ndvi_field_row_mom(:,:)      !< field for one row of ndvi data with monthly mean values
 

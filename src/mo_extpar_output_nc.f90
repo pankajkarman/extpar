@@ -32,6 +32,8 @@
 !  SSO parameters changed to optional parameters 
 !  allow for alternative AOT data sets via raw_data_aot_data
 !  allow for prescribed soil albedo instead of albedo       
+! V2_1         2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -70,6 +72,7 @@ MODULE mo_extpar_output_nc
   USE mo_io_utilities, ONLY: get_date_const_field
   USE mo_io_utilities, ONLY: set_date_mm_extpar_field
 
+  USE mo_exception,    ONLY: message_text, message, finish
 
   USE mo_io_units, ONLY: filename_max
 
@@ -158,14 +161,12 @@ MODULE mo_extpar_output_nc
     &                                     fr_clay,             &
     &                                     fr_oc,               &
     &                                     fr_bd,               &
-    &                                     fr_dm,               &
     &                                     soiltype_deep,       &
     &                                     fr_sand_deep,        &
     &                                     fr_silt_deep,        &
     &                                     fr_clay_deep,        &
     &                                     fr_oc_deep,          &
     &                                     fr_bd_deep,          &
-    &                                     fr_dm_deep,          &
     &                                     theta_topo,          &
     &                                     aniso_topo,          &
     &                                     slope_topo,          & 
@@ -331,14 +332,12 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm(:,:,:)     !< bulk density due to HWSD
   INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
-  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm_deep(:,:,:)     !< bulk density due to HWSD
 
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
@@ -347,9 +346,9 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: skyview_topo  (:,:,:)   !< lradtopo parameter, skyview
-   REAL(KIND=wp), INTENT(IN)    :: plcov12_lu(:,:,:,:) !<  plcov ecoclimap
-   REAL(KIND=wp), INTENT(IN)    :: lai12_lu(:,:,:,:) !<  lai ecoclimap
-   REAL(KIND=wp), INTENT(IN)    :: z012_lu(:,:,:,:) !<  lai ecoclimap
+  REAL(KIND=wp), INTENT(IN)            :: plcov12_lu(:,:,:,:) !<  plcov ecoclimap
+  REAL(KIND=wp), INTENT(IN)            :: lai12_lu(:,:,:,:) !<  lai ecoclimap
+  REAL(KIND=wp), INTENT(IN)            :: z012_lu(:,:,:,:) !<  lai ecoclimap
 
   ! local variables
   REAL(KIND=wp), ALLOCATABLE :: z012tot(:,:,:) !<  z0 ecoclimap plant+oro
@@ -376,6 +375,7 @@ MODULE mo_extpar_output_nc
   CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
   CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
   INTEGER :: n !< counter
+  INTEGER :: i !< counter
 
     PRINT *,'Enter write_netcdf_cosmo_grid_extpar'
 
@@ -673,6 +673,7 @@ MODULE mo_extpar_output_nc
       var_real_hor(:,:,:) = horizon_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:nhori)
       CALL netcdf_put_var(ncid,var_real_hor, horizon_topo_meta,undefined)
       PRINT *, "write horizon"
+      DEALLOCATE(var_real_hor)
     ENDIF
 
     ! skyview
@@ -744,12 +745,6 @@ MODULE mo_extpar_output_nc
       print*, "write fr_bd"
     ENDIF
 
-    ! fr_dm
-    IF (isoil_data == HWSD_data) THEN
-      var_real_2d(:,:) = fr_dm(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
-     CALL netcdf_put_var(ncid,var_real_2d,HWSD_DM_meta,undefined)
-    ENDIF
-
     ! fr_sand_deep
     IF (ldeep_soil) THEN
       var_real_2d(:,:) = fr_sand_deep(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
@@ -785,19 +780,13 @@ MODULE mo_extpar_output_nc
       print*, "write fr_bd_deep"
     ENDIF
 
-    ! fr_dm_deep
-    IF (ldeep_soil) THEN
-      var_real_2d(:,:) = fr_dm_deep(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
-     CALL netcdf_put_var(ncid,var_real_2d,HWSD_DM_deep_meta,undefined)
-      print*, "write fr_dm_deep"
-    ENDIF
-
     !-----------------------------------------------------------------
     ! lu_class_fraction
     CALL netcdf_put_var(ncid,&
                        & lu_class_fraction(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:nclass_lu), &
                        & lu_class_fraction_meta, &
                        & undefined)
+
 
     IF (ialb_type == 2) THEN
     !-----------------------------------------------------------------
@@ -863,25 +852,36 @@ MODULE mo_extpar_output_nc
 
     !-----------------------------------------------------------------
     ! aot
+     ALLOCATE(var_real_hor(cosmo_grid%nlon_rot,cosmo_grid%nlat_rot,ntime_aot))
      n=1 ! aot_bc
-     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1,1:ntime_aot), &
-       &                 aer_bc_meta, undefined)
+     var_real_hor(:,:,:)=aot_tg(:,:,1,1,:)
+!     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1,1:ntime_aot), &
+!       &                 aer_bc_meta, undefined)
+     CALL netcdf_put_var(ncid,var_real_hor,aer_bc_meta, undefined)
+     
      n=2 ! aot_dust
-     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,2,1:ntime_aot), &
-       &                 aer_dust_meta, undefined)
+     var_real_hor(:,:,:)=aot_tg(:,:,1,2,:)
+!     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,2,1:ntime_aot), &
+!       &                 aer_dust_meta, undefined)
+     CALL netcdf_put_var(ncid,var_real_hor,aer_dust_meta, undefined)
 
      n=3 ! aot_org
-     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,3,1:ntime_aot), &
-       &                 aer_org_meta, undefined)
+     var_real_hor(:,:,:)=aot_tg(:,:,1,3,:)
+!     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,3,1:ntime_aot), &
+!       &                 aer_org_meta, undefined)
+     CALL netcdf_put_var(ncid,var_real_hor,aer_org_meta, undefined)
 
      n=4 ! aot_so4
-     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,4,1:ntime_aot), &
-       &                 aer_so4_meta, undefined)
+     var_real_hor(:,:,:)=aot_tg(:,:,1,4,:)
+!     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,4,1:ntime_aot), &
+!       &                 aer_so4_meta, undefined)
+     CALL netcdf_put_var(ncid,var_real_hor,aer_so4_meta, undefined)
 
      n=5 ! aot_ss
-     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,5,1:ntime_aot), &
-       &                 aer_ss_meta, undefined)
-
+     var_real_hor(:,:,:)=aot_tg(:,:,1,5,:)
+!     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,5,1:ntime_aot), &
+!       &                 aer_ss_meta, undefined)
+     CALL netcdf_put_var(ncid,var_real_hor,aer_ss_meta, undefined)
 
 
     !-----------------------------------------------------------------
@@ -940,17 +940,15 @@ MODULE mo_extpar_output_nc
     &                                     fr_clay,             &
     &                                     fr_oc,               &
     &                                     fr_bd,               &
-    &                                     fr_dm,               &
     &                                     soiltype_deep,       &
     &                                     fr_sand_deep,        &
     &                                     fr_silt_deep,        &
     &                                     fr_clay_deep,        &
     &                                     fr_oc_deep,          &
     &                                     fr_bd_deep,          &
-    &                                     fr_dm_deep,          &
     &                                     theta_topo,          &
-    &                                     aniso_topo,          &
-    &                                     slope_topo )
+    &                                     aniso_topo,          & 
+    &                                     slope_topo)
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -1089,14 +1087,12 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm(:,:,:)     !< bulk density due to HWSD
   INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
-  REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_dm_deep(:,:,:)     !< bulk density due to HWSD
 
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
@@ -1285,11 +1281,6 @@ MODULE mo_extpar_output_nc
       print*, "write fr_bd"
     ENDIF
 
-    ! fr_dm
-    IF (isoil_data == HWSD_data) THEN
-     CALL netcdf_put_var(ncid,fr_dm(1:icon_grid%ncell,1,1),HWSD_DM_meta,undefined)
-    ENDIF
-
     ! fr_sand_deep
     IF (ldeep_soil) THEN
       CALL netcdf_put_var(ncid,fr_sand_deep(1:icon_grid%ncell,1,1),HWSD_SAND_deep_meta,undefined)
@@ -1318,12 +1309,6 @@ MODULE mo_extpar_output_nc
     IF (ldeep_soil) THEN
      CALL netcdf_put_var(ncid,fr_bd_deep(1:icon_grid%ncell,1,1),HWSD_BD_deep_meta,undefined)
       print*, "write fr_bd_deep"
-    ENDIF
-
-    ! fr_dm_deep
-    IF (ldeep_soil) THEN
-     CALL netcdf_put_var(ncid,fr_dm_deep(1:icon_grid%ncell,1,1),HWSD_DM_deep_meta,undefined)
-     print*, "write fr_dm_deep"
     ENDIF
 
     !-----------------------------------------------------------------
@@ -1360,11 +1345,11 @@ MODULE mo_extpar_output_nc
     n=11 ! z0_lu
     CALL netcdf_put_var(ncid,z0_lu(1:icon_grid%ncell,1,1),z0_lu_meta,undefined)
 
-    n=12 ! lon
-    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
-
-    n=13 ! lat
-    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
+!!$    n=12 ! lon
+!!$    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
+!!$
+!!$    n=13 ! lat
+!!$    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
 
     !n=14 ! lai_mn_lu
     !CALL netcdf_put_var(ncid,lai_mn_lu(1:icon_grid%ncell,1,1),lai_mn_lu_meta,undefined)
@@ -1372,43 +1357,44 @@ MODULE mo_extpar_output_nc
     !n=15 ! plcov_mn_lu
     !CALL netcdf_put_var(ncid,plcov_mn_lu(1:icon_grid%ncell,1,1),plcov_mn_lu_meta,undefined)
 
-    n=14 ! ndvi_max
+    n=12 ! ndvi_max
     CALL netcdf_put_var(ncid,ndvi_max(1:icon_grid%ncell,1,1),ndvi_max_meta,undefined)
 
-    n=15 ! hh_topo
+    n=13 ! hh_topo
     CALL netcdf_put_var(ncid,hh_topo(1:icon_grid%ncell,1,1),hh_topo_meta,undefined)
 
-    n=16 ! stdh_topo
+    n=14 ! stdh_topo
     CALL netcdf_put_var(ncid,stdh_topo(1:icon_grid%ncell,1,1),stdh_topo_meta,undefined)
 
     IF (lsso) THEN
-    n=17 ! theta_topo
+    n=15 ! theta_topo
     CALL netcdf_put_var(ncid,theta_topo(1:icon_grid%ncell,1,1),theta_topo_meta,undefined)
     ENDIF
 
     IF (lsso) THEN
-    n=18 ! aniso_topo
+    n=16 ! aniso_topo
     CALL netcdf_put_var(ncid,aniso_topo(1:icon_grid%ncell,1,1),aniso_topo_meta,undefined)
     ENDIF
 
     IF (lsso) THEN
-    n=19 ! slope_topo
+    n=17 ! slope_topo
     CALL netcdf_put_var(ncid,slope_topo(1:icon_grid%ncell,1,1),slope_topo_meta,undefined)
     ENDIF
 
-    n=20 ! crutemp
+    n=18 ! crutemp
     CALL netcdf_put_var(ncid,crutemp(1:icon_grid%ncell,1,1),crutemp_meta,undefined)
 
-     n=21 ! fr_lake
-     CALL netcdf_put_var(ncid,fr_lake(1:icon_grid%ncell,1,1),fr_lake_meta,undefined)
+    n=19 ! fr_lake
+    CALL netcdf_put_var(ncid,fr_lake(1:icon_grid%ncell,1,1),fr_lake_meta,undefined)
 
-     n=22 ! lake_depth
-     CALL netcdf_put_var(ncid,lake_depth(1:icon_grid%ncell,1,1),lake_depth_meta,undefined)
+    n=20 ! lake_depth
+    CALL netcdf_put_var(ncid,lake_depth(1:icon_grid%ncell,1,1),lake_depth_meta,undefined)
 
-    n=23 ! for vertex_param%hh_vert
-    nvertex = icon_grid%nvertex
-    PRINT *,'nvertex ', nvertex
-    CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:nvertex,1,1),hh_vert_meta,undefined)
+! hh_vert not demanded for output 
+!!$    n=21 ! for vertex_param%hh_vert
+!!$    nvertex = icon_grid%nvertex
+!!$    PRINT *,'nvertex ', nvertex
+!!$    CALL netcdf_put_var(ncid,vertex_param%hh_vert(1:nvertex,1,1),hh_vert_meta,undefined)
 
     n=1 ! lu_class_fraction
 
@@ -1457,10 +1443,8 @@ MODULE mo_extpar_output_nc
      ! write out ICON grid cell coordinates (in radians) to netcdf file
      CALL  netcdf_put_var(ncid,clon,clon_meta,undefined)
      CALL  netcdf_put_var(ncid,clat,clat_meta,undefined)
-     CALL  netcdf_put_var(ncid,clon_vertices,clon_vertices_meta,undefined)
-     CALL  netcdf_put_var(ncid,clat_vertices,clat_vertices_meta,undefined)
-
-
+!!$     CALL  netcdf_put_var(ncid,clon_vertices,clon_vertices_meta,undefined)
+!!$     CALL  netcdf_put_var(ncid,clat_vertices,clat_vertices_meta,undefined)
 
 
      !-----------------------------------------------------------------
@@ -1472,6 +1456,97 @@ MODULE mo_extpar_output_nc
   END SUBROUTINE write_netcdf_icon_grid_extpar
   !-----------------------------------------------------------------------
 
+  !----------------------------------------------------------------------- 
+  !-----------------------------------------------------------------------
+  !> set global attributes for netcdf with lu data
+  SUBROUTINE set_global_att_icon(icon_grid,global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
+
+    USE mo_topo_data, ONLY: topo_aster,&
+                            topo_gl
+
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:8)
+    TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
+    INTEGER (KIND=i4),     INTENT(IN) :: itopo_type,isoil_data
+    INTEGER i, env_len, status
+    CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
+    CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
+    CHARACTER (LEN=filename_max) :: md5sum,rawdata_file,env_str
+
+    !local variables
+    CHARACTER(len=2)  :: number_Of_Grid_Used_string
+    CHARACTER(len=10) :: ydate
+    CHARACTER(len=10) :: ytime
+    CHARACTER(len=2)  :: cc
+    CHARACTER(len=2)  :: yy
+    CHARACTER(len=2)  :: mm
+    CHARACTER(len=2)  :: dd
+    CHARACTER(len=2)  :: hh
+    CHARACTER(len=2)  :: minute
+    CHARACTER(len=1 ) :: uuid(16)    !   UUID of unstructured grids 
+    CHARACTER(len=16 ) :: uuidtxt    !   UUID of unstructured grids 
+
+    ! define global attributes
+    
+    global_attributes(1)%attname = 'title'
+    global_attributes(1)%attributetext='external parameter'
+    global_attributes(2)%attname = 'institution'
+    global_attributes(2)%attributetext='Deutscher Wetterdienst'
+
+    global_attributes(3)%attname = 'rawdata'
+  
+
+
+    SELECT CASE(itopo_type)
+      CASE(1) ! topo_gl
+        global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, GLOBE, Lake Database'
+      IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, GLOBE, Lake Database'
+      CASE(2) ! topo_aster
+        global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, ASTER, Lake Database'
+     IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'   
+   END SELECT
+
+    global_attributes(4)%attname = 'note'
+    global_attributes(4)%attributetext='Landuse data look-up table: '//TRIM(name_lookup_table_lu)
+
+    CALL DATE_AND_TIME(ydate,ytime)
+    READ(ydate,'(4A2)') cc,yy,mm,dd
+    READ(ytime,'(2A2)') hh, minute
+
+    ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
+    ytime=TRIM(hh)//':'//TRIM(minute) 
+
+    global_attributes(5)%attname = 'history'
+    global_attributes(5)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
+
+    global_attributes(6)%attname = 'comment'
+    call get_environment_variable( "progdir", env_str, env_len, status)
+    global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
+
+    write(number_Of_Grid_Used_string,'(I2)')  icon_grid%number_Of_Grid_Used
+    global_attributes(7)%attname = 'number_of_grid_used'
+    global_attributes(7)%attributetext=number_Of_Grid_Used_string
+
+    call decode_uuid (icon_grid%uuidOfHGrid, uuid) 
+
+    do i=1,len(uuid)
+       uuidtxt(i:i)=uuid(i)
+    end do
+
+    global_attributes(8)%attname = 'uuidOfHGrid'
+    global_attributes(8)%attributetext=icon_grid%uuidOfHGrid
+
+!!$    open(1,file='rawdata_checksum.md5',status='unknown')
+!!$
+!!$    do i=7,35
+!!$       global_attributes(i)%attname = 'MD5 checksum - rawdata'
+!!$       read(1,*) md5sum, rawdata_file
+!!$         global_attributes(i)%attributetext=TRIM(md5sum)//' - '//TRIM(rawdata_file)
+!!$    end do
+  
+    close(1)
+
+
+  END SUBROUTINE set_global_att_icon
   !----------------------------------------------------------------------- 
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with lu data
@@ -1556,7 +1631,41 @@ MODULE mo_extpar_output_nc
 
 
   END SUBROUTINE set_global_att_extpar
-  !-----------------------------------------------------------------------
+   !-----------------------------------------------------------------------
+    
+
+  SUBROUTINE decode_uuid (uuid_str, uuid)
+    CHARACTER(LEN=*), INTENT(IN)  :: uuid_str   ! uuid encoded as string
+    CHARACTER(LEN=1), INTENT(OUT) :: uuid(:)    ! decoded uuid
+
+    INTEGER          :: i, j, l, n, b
+    CHARACTER(LEN=2) :: buf
+
+    uuid(:) = ACHAR (0)
+    l = VERIFY (uuid_str, "0123456789ABCDEFabcdef-")
+    IF (l > 0) THEN
+       WRITE (0,*) "Warning: invalid character in uuid: '", uuid_str(l:l),"'"
+       RETURN
+    END IF
+    n = LEN  (uuid_str)
+    i = 1
+    j = 0
+    DO WHILE (i < n)
+       buf = uuid_str(i:i+1)
+       IF (buf(1:1) == "-") THEN
+          i = i + 1                     ! Skip over dashes
+          CYCLE
+       END IF
+       i = i + 2
+       READ (buf,'(Z2)') b
+       j = j + 1
+       IF (j > SIZE (uuid)) CALL finish ("decode_uuid", "uuid input too long!")
+       uuid(j) = ACHAR (b)
+    END DO
+    IF (i == n) CALL finish ("decode_uuid", "uuid bad length")
+  END SUBROUTINE decode_uuid
+
+ !-----------------------------------------------------------------------
 
     
  

@@ -776,13 +776,13 @@ CONTAINS
     INTEGER, INTENT(IN) :: ilookup_table_glc2000  !< integer switch to choose a lookup table
     REAL (KIND=wp), INTENT(OUT) :: z0_lt_glc2000(nclass_glc2000)      !< lookup table landuse class to roughness length [m]
     REAL (KIND=wp), INTENT(OUT) :: lnz0_lt_glc2000(nclass_glc2000)    !< corresponding natural logarithm of z0c_gme_o
-    REAL (KIND=wp), INTENT(OUT) :: plc_mn_lt_glc2000(nclass_glc2000)  !< lookup table landuse class to minimal plant cover
-    REAL (KIND=wp), INTENT(OUT) :: plc_mx_lt_glc2000(nclass_glc2000)  !< lookup table landuse class to maximal plant cover
-    REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_glc2000(nclass_glc2000)  !< lookup table landuse class to minimal leaf area index
-    REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_glc2000(nclass_glc2000)  !< lookup table landuse class to maximal leaf area index
-    REAL (KIND=wp), INTENT(OUT) :: rd_lt_glc2000(nclass_glc2000)      !< lookup table landuse class to root depth [m]
-    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_glc2000(nclass_glc2000)   !< lookup table landuse class to surface thermal emissivity
-    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_glc2000(nclass_glc2000)  !< lookup table landuse class to minimal stomata resistance
+    REAL (KIND=wp), INTENT(OUT) :: plc_mn_lt_glc2000(nclass_glc2000)  !< lookup table LU class to minimal plant cover
+    REAL (KIND=wp), INTENT(OUT) :: plc_mx_lt_glc2000(nclass_glc2000)  !< lookup table LU class to maximal plant cover
+    REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_glc2000(nclass_glc2000)  !< lookup table LU class to minimal leaf area index
+    REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_glc2000(nclass_glc2000)  !< lookup table LU class to maximal leaf area index
+    REAL (KIND=wp), INTENT(OUT) :: rd_lt_glc2000(nclass_glc2000)      !< lookup table LU class to root depth [m]
+    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_glc2000(nclass_glc2000)   !< lookup table LU class to surface thermal emissivity
+    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_glc2000(nclass_glc2000)  !< lookup table LU class to minimal stomata resistance
 
     ! local variable
     INTEGER :: i !< counter

@@ -10,6 +10,9 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V2.0_3         2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
+!  Bugfix in loop index boundaries
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -178,11 +181,9 @@ PUBLIC :: agg_ndvi_data_to_target_grid
 
 
 
-    ndvi_field = undefined ! set cosmo_ndvi_field to undefined value at the start
-    ndvi_field_mom = undefined
-    default_value = 0.
-   ! ndvi_field = default_value
-   ! ndvi_field_mom = default_value
+    default_value = -1.
+    ndvi_field = default_value
+    ndvi_field_mom = default_value
     
     !HA debug:
     print *,' ndvi_raw_data_grid: ', ndvi_raw_data_grid
@@ -191,30 +192,35 @@ PUBLIC :: agg_ndvi_data_to_target_grid
     print *,' ndvi_raw_data_grid%nlat_reg: ', ndvi_raw_data_grid%nlat_reg
     
     ! determine northern and southern boundary for NDVI data to read for COSMO grid domain
-    northern_bound =  MAXVAL(lat_geo) + 1.* ndvi_raw_data_grid%dlat_reg 
+    northern_bound =  MAXVAL(lat_geo) + 1.* ABS(ndvi_raw_data_grid%dlat_reg) 
 ! One row of NDVI data north of northern boundary of COSMO grid domain
     northern_bound = MIN(90._wp, northern_bound)                                 ! Check for the poles
       
-    northern_bound_index = NINT((northern_bound - ndvi_raw_data_grid%start_lat_reg)/&
-                                 ndvi_raw_data_grid%dlat_reg) +1  ! calculate index for regular lon-lat NDVI grid
+    northern_bound_index = NINT(ABS((northern_bound - ndvi_raw_data_grid%start_lat_reg)/&
+                            ABS(ndvi_raw_data_grid%dlat_reg))) + 1  ! calculate index for regular lon-lat NDVI grid
     
-  if (northern_bound_index < 1) then 
+    if (northern_bound_index < 1) then 
         northern_bound_index = 1 !< check for bounds
     else if (northern_bound_index > ndvi_raw_data_grid%nlat_reg) then
         northern_bound_index=ndvi_raw_data_grid%nlat_reg
     endif
-    southern_bound = MINVAL(lat_geo) - 1.* ndvi_raw_data_grid%dlat_reg 
+    southern_bound = MINVAL(lat_geo) - 1.* ABS(ndvi_raw_data_grid%dlat_reg) 
 ! One row of NDVI data south of southern boundary of COSMO grid domain
     southern_bound = MAX(-90._wp, southern_bound)                               ! Check for the poles
 
-    southern_bound_index = NINT((southern_bound - ndvi_raw_data_grid%start_lat_reg)/&
-                                 ndvi_raw_data_grid%dlat_reg) +1  ! calculate index for regular lon-lat NDVI grid
+    southern_bound_index = NINT(ABS((southern_bound - ndvi_raw_data_grid%start_lat_reg)/&
+                            ABS(ndvi_raw_data_grid%dlat_reg))) + 2  ! calculate index for regular lon-lat NDVI grid
     if (southern_bound_index < 1) then 
         southern_bound_index = 1 !< check for bounds
     else if (southern_bound_index > ndvi_raw_data_grid%nlat_reg) then
         southern_bound_index=ndvi_raw_data_grid%nlat_reg
     endif
 
+    IF (tg%igrid_type == igrid_icon) THEN
+      northern_bound_index=1
+      southern_bound_index=ndvi_raw_data_grid%nlat_reg
+    ENDIF
+    
     !HA debug:
     print *,' MAXVAL(lat_geo): ', MAXVAL(lat_geo)
     print *,' MINVAL(lat_geo): ', MINVAL(lat_geo)
@@ -342,7 +348,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
       !   PRINT *,'SHAPE(ndvi_field): ', SHAPE(ndvi_field)
       !   
       !   print *,'ndvi_field(i,j,k): ', ndvi_field(i,j,k)
-          ndvi_field(i,j,k) = ndvi_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k))   ! calculate arithmetic mean
+          ndvi_field(i,j,k) = ndvi_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k),wp)   ! calculate arithmetic mean
       !    PRINT *,' ndvi_field(i,j,k) = ndvi_sum(i,j,k) / REAL(no_raw_data_pixel(i,j,k))'
      ELSE ! bilinear interpolation
        !--------------------------------------------------------------------------------------------------------------------
@@ -354,6 +360,7 @@ PUBLIC :: agg_ndvi_data_to_target_grid
 
         ! get four surrounding raw data indices
 
+!DIR$ NOINLINE
          CALL  get_4_surrounding_raw_data_indices(   ndvi_raw_data_grid, &
                                                      lon_ndvi,           &
                                                      lat_ndvi,           &
@@ -442,7 +449,6 @@ PUBLIC :: agg_ndvi_data_to_target_grid
 
          target_value = calc_value_bilinear_interpol(bwlon, bwlat, &
                                            ndvi_point_sw, ndvi_point_se, ndvi_point_ne, ndvi_point_nw)
-
 
          ndvi_field(i,j,k) = target_value
        ELSE ! grid element outside target grid

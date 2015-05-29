@@ -82,10 +82,11 @@ MODULE mo_additional_geometry
     v1%x = cc_vertices(2)%x - cc_vertices(1)%x
     v2%x = cc_vertices(nvertices)%x - cc_vertices(1)%x
     p1 = vector_product(v1,v2)
-    ps = MAXLOC(ABS(p1%x),DIM=1) ! this is the dimension (x1, x2 or x3) with the maximum value for a vector rectangular to two edges of the grid element
-                                 ! use this dimension "ps" as projection surface of the coordinates for a point in polygon test
+    ps = MAXLOC(ABS(p1%x),DIM=1) ! this is the dimension (x1, x2 or x3) with the maximum value for a 
+                                 ! vector rectangular to two edges of the grid element use this dimension "ps"
+                                 ! as projection surface of the coordinates for a point in polygon test
    ! instead of the vector product and the test for equal sign in the "projection" surface
-   ! one could perform a 3D "point in tetrahedon" test with a triple product and test for equal sign
+   ! one could perform a 3D "point in tetrahedron" test with a triple product and test for equal sign
     DO nv=1,nvertices-1
       v0%x = point%x - cc_vertices(nv)%x
       v1%x = cc_vertices(nv+1)%x - cc_vertices(nv)%x
@@ -125,7 +126,8 @@ MODULE mo_additional_geometry
   !! where strictly speaking "inside" and "outside" is not really well defined.
   !! The polygon is assumed to be "simply connected", i.e. the edges do not intesect itself
   !! (no "8") and that there are no wholes. A test point defines the "outside" area.
-  !! The intesections of the segment "test point" to the "target point" (arc on the great circle which is defined by the two points)
+  !! The intesections of the segment "test point" to the "target point" 
+  !! (arc on the great circle which is defined by the two points)
   !! with the edges of the polygon are counted. 
   !! For an even number of interesctions (0, 2, 4, ...) the test point is in the "outside" area, inflag = 0
   !! for an odd number if intersections (1, 3, 5, ...) the test point is in the "inside" area. inflag = 1
@@ -134,10 +136,12 @@ MODULE mo_additional_geometry
   SUBROUTINE point_in_polygon_sp(point,nvertices, polygon, out_point, inflag)
     TYPE(cartesian_coordinates), INTENT(IN) :: point        !< coordinates of the "test point"
     INTEGER, INTENT(IN)                     :: nvertices    !< number of vertices of the polygon
-    TYPE(cartesian_coordinates), INTENT(IN) :: polygon(1:nvertices+1) !< coordinates of the "simple connected" polygon, and with  polygon(1) = polygon(nvertices+1)
+    TYPE(cartesian_coordinates), INTENT(IN) :: polygon(1:nvertices+1) 
+    !< coordinates of the "simple connected" polygon, and with  polygon(1) = polygon(nvertices+1)
     TYPE(cartesian_coordinates), INTENT(IN) :: out_point !< coordinates of a point which defines the "outside" area
 
-    INTEGER, INTENT(OUT)                    :: inflag    !< flag for polygon test, 0 if point is "outside", 1 if point is "inside", -1 for an error
+    INTEGER, INTENT(OUT)                    :: inflag    
+    !< flag for polygon test, 0 if point is "outside", 1 if point is "inside", -1 for an error
 
     ! local variables
     INTEGER :: crossn  !< number of intersections
@@ -173,7 +177,8 @@ MODULE mo_additional_geometry
 
      IF ((out_point%x(1) == polygon(i)%x(1)).AND.    &
          (out_point%x(2) == polygon(i)%x(2)).AND.    &
-         (out_point%x(3) == polygon(i)%x(3)) ) THEN   !  -> outpoint not outside :-( -> inflag = -1 (error) or 0 (outside) and exit subroutine
+         (out_point%x(3) == polygon(i)%x(3)) ) THEN   !  -> outpoint not outside :-( -> inflag = -1 (error) or 
+                                                      !  0 (outside) and exit subroutine
        inflag = -1 ! Error
        RETURN
      ENDIF
@@ -181,7 +186,8 @@ MODULE mo_additional_geometry
      
      IF ((out_point%x(1) == polygon(i+1)%x(1)).AND.    &
          (out_point%x(2) == polygon(i+1)%x(2)).AND.    &
-         (out_point%x(3) == polygon(i+1)%x(3)) ) THEN !  -> outpoint not outside :-( -> inflag = -1 (error) or 0 (outside) and exit subroutine
+         (out_point%x(3) == polygon(i+1)%x(3)) ) THEN !  -> outpoint not outside :-( -> inflag = -1 (error) or 
+                                                      !  0 (outside) and exit subroutine
        inflag = -1 ! Error
        RETURN
      ENDIF
@@ -214,14 +220,16 @@ MODULE mo_additional_geometry
      normal_pt_op     = vector_product(point, out_point)  ! normal vector for plain point - (0,0,0) (earth centre) - out-point
      
      c_arcl_poly_edge = cos_arc_length(polygon(i), polygon(i+1))
-     normal_poly_edge = vector_product(polygon(i), polygon(i+1)) ! normal vector for plain (polygon(i) - (0,0,0) (earth centre) - (polygon(i+1)
+     normal_poly_edge = vector_product(polygon(i), polygon(i+1)) ! normal vector for plain (polygon(i) - (0,0,0) 
+                                                                 ! (earth centre) - (polygon(i+1)
      !----------------------------------------------------------------------------------------------------------------
      
      
      !  calculate the intesection points of the two great circles (given by point-test_point and polygon edge)
      !----------------------------------------------------------------------------------------------------------------
      isp =  inter_section (point, out_point, polygon(i), polygon(i+1))
-     !isp2%x = -1. * isp%x ! on the sphere there are always two intersection points of great circles, here the sphere has the radius 1
+     !isp2%x = -1. * isp%x ! on the sphere there are always two intersection points of great circles, 
+                           ! here the sphere has the radius 1
                            ! the function "inter_section" returns the intersection point 
                            ! which is nearer to the first point (p0) in the argument list
                            ! of FUNCTION inter_section (p0, p1, v0, v1)
@@ -309,16 +317,19 @@ MODULE mo_additional_geometry
      ! calculate cos arc length (distance measure)
      c_arcl_poly1_ips = cos_arc_length(polygon(i), isp)
 
-     IF  (c_arcl_poly1_ips == 1._wp)  THEN ! .OR. (c_arcl_poly1_ips==c_arcl_poly_edge) ) THEN ! the intesection point is on a polygon vertex
+     IF  (c_arcl_poly1_ips == 1._wp)  THEN ! .OR. (c_arcl_poly1_ips==c_arcl_poly_edge) ) THEN 
+                                           ! the intesection point is on a polygon vertex
        normal_poly1_ips = vector_product(isp, polygon(i+1))
-       s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and the polygon edge have the same direction
+       s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and 
+                                                              ! the polygon edge have the same direction
        IF (s_rot > 0 ) THEN ! define as "valid" intersection
           isp_on_polyedge = .true.
        ENDIF
        
      ELSEIF (c_arcl_poly1_ips == c_arcl_poly_edge) THEN !  the intesection point is on a polygon vertex
        normal_poly1_ips = vector_product(isp, polygon(i))
-       s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and the polygon edge have the same direction
+       s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and 
+                                                              ! the polygon edge have the same direction
        IF (s_rot > 0 ) THEN ! define as "valid" intersection
           isp_on_polyedge = .true.
        ENDIF
@@ -381,16 +392,19 @@ MODULE mo_additional_geometry
        ! calculate cos arc length (distance measure)
        c_arcl_poly1_ips = cos_arc_length(polygon(i), isp)
 
-       IF  (c_arcl_poly1_ips == 1._wp)  THEN ! .OR. (c_arcl_poly1_ips==c_arcl_poly_edge) ) THEN ! the intesection point is on a polygon vertex
+       IF  (c_arcl_poly1_ips == 1._wp)  THEN ! .OR. (c_arcl_poly1_ips==c_arcl_poly_edge) ) THEN 
+                                             ! the intesection point is on a polygon vertex
          normal_poly1_ips = vector_product(isp, polygon(i+1))
-         s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and the polygon edge have the same direction
+         s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and 
+                                                                ! the polygon edge have the same direction
          IF (s_rot > 0 ) THEN ! define as "valid" intersection
             isp_on_polyedge = .true.
          ENDIF
          
        ELSEIF (c_arcl_poly1_ips == c_arcl_poly_edge) THEN !  the intesection point is on a polygon vertex
          normal_poly1_ips = vector_product(isp, polygon(i))
-         s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and the polygon edge have the same direction
+         s_rot = DOT_PRODUCT(normal_pt_op%x,normal_poly1_ips%x) ! check if the normal vectors of the test arc and 
+                                                                ! the polygon edge have the same direction
          IF (s_rot > 0 ) THEN ! define as "valid" intersection
             isp_on_polyedge = .true.
          ENDIF

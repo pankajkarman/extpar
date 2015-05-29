@@ -341,7 +341,8 @@ MODULE mo_agg_glc2000
      rows: DO j_row=1,glc2000_grid%nlat_reg
        point_lat = lat_glc2000(j_row)
         
-       IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
+       IF (tg%igrid_type == igrid_cosmo) THEN 
+       ! CASE COSMO grid, save some I/O from hard disk if you are out of the target domain
          IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
            CYCLE rows
          ENDIF

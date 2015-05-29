@@ -149,7 +149,8 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
   CHARACTER (len=filename_max) :: glcc_output_file    !< name for glcc output file
 
   !> namelist with land use data input
-  NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu, ntiles_globcover, ncolumn_tiles
+  NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu, &
+                         ntiles_globcover, ncolumn_tiles
   !> namelist with filenames for land use data output
   NAMELIST /lu_io_extpar/ lu_buffer_file, lu_output_file
 
@@ -235,7 +236,7 @@ END SUBROUTINE read_namelists_extpar_land_use
         CALL check_netcdf( nf90_open(TRIM(path_glc2000_file(1)),NF90_NOWRITE, ncid))
 
 
-       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+       ! look for numbers of dimensions, Variable, Attributes, and the dimid for the unlimited dimension (probably time)
        !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        CALL check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
@@ -274,7 +275,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(in) :: nlat_glc2000 !< number of grid elements in meridional direction for glc2000 data
         REAL (KIND=wp), INTENT(out)    :: lon_glc2000(1:nlon_glc2000) !< longitude of glc2000 raw data
         REAL (KIND=wp), INTENT(out)    :: lat_glc2000(1:nlat_glc2000) !< latitude of glc2000 raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: glc2000_grid !< structure with defenition of the raw data grid for the whole GLC2000 dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: glc2000_grid !< structure with defenition of the raw data grid
+                                                           !  for the whole GLC2000 dataset
         
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number
@@ -339,7 +341,8 @@ END SUBROUTINE read_namelists_extpar_land_use
        ! open netcdf file 
         CALL check_netcdf( nf90_open(TRIM(path_glc2000_file),NF90_NOWRITE, ncid))
 
-        varname = 'glc2000byte' ! I know that the longitude coordinates for the GLC2000 data are stored in a variable called 'glc2000byte'
+        varname = 'glc2000byte' ! I know that the longitude coordinates for the GLC2000 data are stored
+                                ! in a variable called 'glc2000byte'
 
          CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
 
@@ -406,7 +409,7 @@ END SUBROUTINE read_namelists_extpar_land_use
         CALL check_netcdf( nf90_open(TRIM(path_glcc_file(1)),NF90_NOWRITE, ncid))
 
 
-         ! look for numbers of dimensions, Variable, Attributes, and the dimid for the one possible unlimited dimension (probably time)
+         ! look for numbers of dimensions, Variable, Attributes, and the dimid for the unlimited dimension (probably time)
          !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
          CALL check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
          !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
@@ -444,7 +447,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(in) :: nlat_glcc !< number of grid elements in meridional direction for glcc data
         REAL (KIND=wp), INTENT(out)    :: lon_glcc(1:nlon_glcc) !< longitude of glcc raw data
         REAL (KIND=wp), INTENT(out)    :: lat_glcc(1:nlat_glcc) !< latitude of glcc raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: glcc_grid !< structure with defenition of the raw data grid for the whole GLCC dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: glcc_grid !< structure with defenition of the raw data grid
+                                                        !  for the whole GLCC dataset
 
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number
@@ -508,7 +512,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         ! open netcdf file 
         CALL check_netcdf( nf90_open(TRIM(path_glcc_file),NF90_NOWRITE, ncid))
 
-        varname = 'glccbyte' ! I know that the longitude coordinates for the GLC2000 data are stored in a variable called 'glccbyte'
+        varname = 'glccbyte' ! I know that the longitude coordinates for the GLC2000 data
+                             ! are stored in a variable called 'glccbyte'
 
         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
 
@@ -605,7 +610,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(IN) :: nlat_globcover !< number of grid elements in meridional direction for globcover data
         REAL (KIND=wp), INTENT(OUT)    :: lon_globcover(1:nlon_globcover) !< longitude of globcover raw data
         REAL (KIND=wp), INTENT(OUT)    :: lat_globcover(1:nlat_globcover) !< latitude of globcover raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: globcover_grid !< structure with defenition of the raw data grid for the whole GLOBECOVER dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: globcover_grid !< structure with defenition of the raw data grid for
+                                                             !  the whole GLOBECOVER dataset
 
         !local variables
 !        REAL, PARAMETER ::  xmin_glc = -180.001388888889 ! area of glcover data: western longitude
@@ -674,7 +680,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         INTEGER (KIND=i8), INTENT(IN) :: nlat_ecoclimap !< number of grid elements in meridional direction for ecoclimap data
         REAL (KIND=wp), INTENT(OUT)    :: lon_ecoclimap(1:nlon_ecoclimap) !< longitude of ecoclimap raw data
         REAL (KIND=wp), INTENT(OUT)    :: lat_ecoclimap(1:nlat_ecoclimap) !< latitude of ecoclimap raw data
-        TYPE(reg_lonlat_grid), INTENT(OUT) :: ecoclimap_grid !< structure with defenition of the raw data grid for the whole GLOBE dataset
+        TYPE(reg_lonlat_grid), INTENT(OUT) :: ecoclimap_grid !< structure with defenition of the raw data grid
+                                                             !  for the whole ecoclimap dataset
 
         !local variables
         REAL, PARAMETER ::  xmin_glc = -179.995833335    ! area of glcover data: western longitude
@@ -728,7 +735,8 @@ END SUBROUTINE read_namelists_extpar_land_use
           DO k = 1,ntiles_globcover
 
             dlon = (lu_tiles_lon_max(k) - lu_tiles_lon_min(k)) / REAL(lu_tiles_ncolumns(k)) !_br 04.04.14
-            dlat = -1. * (lu_tiles_lat_max(k) - lu_tiles_lat_min(k)) / REAL(lu_tiles_nrows(k))   ! latitude from north to south, negative increment !_br 04.04.14
+            dlat = -1. * (lu_tiles_lat_max(k) - lu_tiles_lat_min(k)) / REAL(lu_tiles_nrows(k))   
+            !< latitude from north to south, negative increment !_br 04.04.14
 
             globcover_tiles_grid(k)%start_lon_reg = lu_tiles_lon_min(k) + 0.5*dlon
             globcover_tiles_grid(k)%end_lon_reg = lu_tiles_lon_max(k) - 0.5*dlon 
@@ -751,7 +759,8 @@ END SUBROUTINE read_namelists_extpar_land_use
         !> determine grid description of band for GLOBCOVER
 
         SUBROUTINE det_band_globcover_data(globcover_grid,start_globcover_row,ta_grid)
-          TYPE(reg_lonlat_grid),INTENT(IN) :: globcover_grid ! sturcture with the definition of the global data grid of the GLOBCOVER data
+          TYPE(reg_lonlat_grid),INTENT(IN) :: globcover_grid ! sturcture with the definition of the global data grid
+                                                             ! of the GLOBCOVER data
           INTEGER, INTENT(IN) :: start_globcover_row         ! number of the start row of band 
           TYPE(reg_lonlat_grid), INTENT(OUT):: ta_grid       ! structure with definition of the target area grid.
 
@@ -767,8 +776,10 @@ END SUBROUTINE read_namelists_extpar_land_use
 
           !latitude from north to south, negative increment
           ta_grid%nlat_reg = nrows
-          ta_grid%start_lat_reg = globcover_grid%start_lat_reg + ta_grid%dlat_reg * (start_globcover_row-1)   ! latitude from north to south, note the negative increment!
-          ta_grid%end_lat_reg = ta_grid%start_lat_reg + ta_grid%dlat_reg * (nrows - 1)   ! latitude from north to south, note the negative increment!
+          ta_grid%start_lat_reg = globcover_grid%start_lat_reg + ta_grid%dlat_reg * (start_globcover_row-1)   
+          !< latitude from north to south, note the negative increment!
+          ta_grid%end_lat_reg = ta_grid%start_lat_reg + ta_grid%dlat_reg * (nrows - 1)   
+          !< latitude from north to south, note the negative increment!
           
          ! check for the southern bound of the globcover data
          IF (ta_grid%end_lat_reg < globcover_grid%end_lat_reg) THEN ! band is at the southern bound
@@ -791,9 +802,12 @@ END SUBROUTINE read_namelists_extpar_land_use
          USE mo_grid_structures,  ONLY: reg_lonlat_grid  ! Definition of DATA Typeto describe a regular lonlat grid
          USE mo_globcover_data,   ONLY: ntiles_globcover, &
                                         nc_tiles_lu
-         TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBCOVER dataset)
-         TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover) !< structure with defenition of the raw data grid for the 16 GLOBECOVER tiles
-         INTEGER , INTENT(IN) :: ncids_globcover(1:ntiles_globcover)  !< ncid for the GLOBCOVER tiles, the netcdf files have to be opened previously
+         TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid
+                                                       !  (dlon must be the same as for the whole GLOBCOVER dataset)
+         TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover)
+         !< structure with defenition of the raw data grid for the 16 GLOBECOVER tiles
+         INTEGER , INTENT(IN) :: ncids_globcover(1:ntiles_globcover)  
+         !< ncid for the GLOBCOVER tiles, the netcdf files have to be opened previously
          INTEGER (KIND=ishort), INTENT(OUT) :: lu_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBCOVER data 
 
        !local variables
@@ -802,10 +816,14 @@ END SUBROUTINE read_namelists_extpar_land_use
        INTEGER (KIND=i4) :: globcover_startcolumn(1:ntiles_globcover) !< starcolumn indices for each GLOBCOVER tile
        INTEGER (KIND=i4) :: globcover_endcolumn(1:ntiles_globcover) !< endcolumn indices for each GLOBCOVER tile
 
-       INTEGER (KIND=i4) :: ta_start_ie(1:ntiles_globcover)    !< indices of target area block for first column of each GLOBCOVER tile
-       INTEGER (KIND=i4) :: ta_end_ie(1:ntiles_globcover)      !< indices of target area block for last column of each GLOBCOVER tile
-       INTEGER (KIND=i4) :: ta_start_je(1:ntiles_globcover)  !< indices of target area block for first row of each GLOBCOVER tile
-       INTEGER (KIND=i4) :: ta_end_je(1:ntiles_globcover)   !< indices of target area block for last row of each GLOBCOVER tile
+       INTEGER (KIND=i4) :: ta_start_ie(1:ntiles_globcover)
+       !< indices of target area block for first column of each GLOBCOVER tile
+       INTEGER (KIND=i4) :: ta_end_ie(1:ntiles_globcover)
+       !< indices of target area block for last column of each GLOBCOVER tile
+       INTEGER (KIND=i4) :: ta_start_je(1:ntiles_globcover)
+       !< indices of target area block for first row of each GLOBCOVER tile
+       INTEGER (KIND=i4) :: ta_end_je(1:ntiles_globcover)
+       !< indices of target area block for last row of each GLOBCOVER tile
 
 
        INTEGER (KIND=ishort), ALLOCATABLE :: raw_lu_block(:,:) !< a block with GLOBCOVER data
@@ -820,7 +838,7 @@ END SUBROUTINE read_namelists_extpar_land_use
        INTEGER :: i,j,k     ! counter
        INTEGER :: errorcode !< error status variable
 
-       varname = 'GLOBCOVER'   ! I know that in the GLOBCOVER netcdf files the landuse data is stored in a variable "GLOBCOVER"
+       varname = 'GLOBCOVER'   ! I know that in the GLOBCOVER netcdf files the LU data is stored in a variable "GLOBCOVER"
 
        CALL get_globcover_tile_block_indices(ta_grid,              &
             &                                globcover_tiles_grid, &  
@@ -889,19 +907,29 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
                               lu_tiles_nrows
 
        USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of data type to describe a regular (lonlat) grid
-       TYPE(reg_lonlat_grid), INTENT(IN) :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBCOVER dataset)
-       TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover) !< structure with defenition of the raw data grid for the 6 GLOBCOVER tiles
+       TYPE(reg_lonlat_grid), INTENT(IN) :: ta_grid !< structure with definition of the target area grid
+                                                    !  (dlon must be the same as for the whole GLOBCOVER dataset)
+       TYPE(reg_lonlat_grid), INTENT(IN) :: globcover_tiles_grid(1:ntiles_globcover) 
+       !< structure with defenition of the raw data grid for the 6 GLOBCOVER tiles
 
-       INTEGER (KIND=i4), INTENT(OUT) :: globcover_startrow(1:ntiles_globcover)    !< startrow indices for each GLOBCOVER tile
-       INTEGER (KIND=i4), INTENT(OUT) :: globcover_endrow(1:ntiles_globcover)      !< endrow indices for each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: globcover_startrow(1:ntiles_globcover)
+                                         !< startrow indices for each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: globcover_endrow(1:ntiles_globcover)
+                                         !< endrow indices for each GLOBCOVER tile
 
-       INTEGER (KIND=i4), INTENT(OUT) :: globcover_startcolumn(1:ntiles_globcover)  !< starcolumn indices for each GLOBCOVER tile
-       INTEGER (KIND=i4), INTENT(OUT) :: globcover_endcolumn(1:ntiles_globcover)   !< endcolumn indices for each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: globcover_startcolumn(1:ntiles_globcover)
+                                         !< starcolumn indices for each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: globcover_endcolumn(1:ntiles_globcover)
+                                         !< endcolumn indices for each GLOBCOVER tile
 
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_ie(1:ntiles_globcover)    !< indices of target area block for first column of each GLOBCOVER tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_ie(1:ntiles_globcover)      !< indices of target area block for last column of each GLOBCOVER tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_je(1:ntiles_globcover)  !< indices of target area block for first row of each GLOBCOVER tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles_globcover)   !< indices of target area block for last row of each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_ie(1:ntiles_globcover)    
+       !< indices of target area block for first column of each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_ie(1:ntiles_globcover)      
+       !< indices of target area block for last column of each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_je(1:ntiles_globcover)  
+       !< indices of target area block for first row of each GLOBCOVER tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles_globcover)   
+       !< indices of target area block for last row of each GLOBCOVER tile
 
        
        INTEGER (KIND=i4) :: index_k !< index of GLOBCOVER tile which contains point_geo
@@ -947,12 +975,14 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
 
         DO k = 1,ntiles_globcover   !loop over the tiles which overlap the target area
 
-          startcolumn = NINT((ta_grid%start_lon_reg - globcover_tiles_grid(k)%start_lon_reg)/dlon) +1 ! here I want nearest index (NINT)
+          startcolumn = NINT((ta_grid%start_lon_reg - globcover_tiles_grid(k)%start_lon_reg)/dlon) + 1
+          ! here I want nearest index (NINT)
 
           IF (startcolumn < 1) THEN 
             globcover_startcolumn(k) = 1
             ! get the start index of the subtile for the target area block
-            ta_start_ie(k) = NINT ((globcover_tiles_grid(k)%start_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 ! index of target area block
+            ta_start_ie(k) = NINT ((globcover_tiles_grid(k)%start_lon_reg - ta_grid%start_lon_reg)/dlon) + 1
+            ! index of target area block
 
           ELSE IF (startcolumn > lu_tiles_ncolumns(k)) THEN
             globcover_startcolumn(k) = 0
@@ -968,7 +998,8 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
          IF (endcolumn > lu_tiles_ncolumns(k)) THEN 
            globcover_endcolumn(k) = lu_tiles_ncolumns(k)
            ! get the end index of the subtile for the target area block
-           ta_end_ie(k) = NINT ((globcover_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1                  ! index of target area block
+           ta_end_ie(k) = NINT ((globcover_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1
+           ! index of target area block
          ELSE IF (endcolumn < 1) THEN
            globcover_endcolumn(k) = 0
            ta_end_ie(k) = 0
@@ -983,7 +1014,8 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
          IF (startrow < 1) THEN 
            globcover_startrow(k) = 1
            ! get the start index of the subtile for the target area block
-           ta_start_je(k) = NINT ((globcover_tiles_grid(k)%start_lat_reg  - ta_grid%start_lat_reg)/dlat) + 1 ! index of target area block
+           ta_start_je(k) = NINT ((globcover_tiles_grid(k)%start_lat_reg  - ta_grid%start_lat_reg)/dlat) + 1
+           ! index of target area block
          ELSE IF (startrow > lu_tiles_nrows(k)) THEN
            globcover_startrow(k) = 0
            ta_start_je(k) = 0
@@ -998,7 +1030,8 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
          IF (endrow > lu_tiles_nrows(k)) THEN 
            globcover_endrow(k) = lu_tiles_nrows(k)
            ! get the start index of the subtile for the target area block
-           ta_end_je(k) = NINT ((globcover_tiles_grid(k)%end_lat_reg -  ta_grid%start_lat_reg )/dlat) + 1 ! index of target area block
+           ta_end_je(k) = NINT ((globcover_tiles_grid(k)%end_lat_reg -  ta_grid%start_lat_reg )/dlat) + 1
+           ! index of target area block
 
          ELSE IF (endrow < 1) THEN
            globcover_endrow(k) = 0
@@ -1014,16 +1047,16 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
 
 ! <mes
 
-       !----------------------------------------------------------------------------------------------------------------
-       !----------------------------------------------------------------------------------------------------------------
+      !----------------------------------------------------------------------------------------------------------------
+      !----------------------------------------------------------------------------------------------------------------
 
-        !> get one row of globcover raw data
-        SUBROUTINE get_row_globcover_data(path_globcover_file, &
+      !> get one row of globcover raw data
+      SUBROUTINE get_row_globcover_data(path_globcover_file, &
                                           nlon_globcover,      &
                                           data_row,            &
                                           globcover_data_row)
 
-       USE mo_grid_structures, ONLY: reg_lonlat_grid
+        USE mo_grid_structures, ONLY: reg_lonlat_grid
 
         CHARACTER (LEN=filename_max), INTENT(IN) :: path_globcover_file         !< filename with path for globcover raw data
         INTEGER , INTENT(IN) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
@@ -1037,31 +1070,31 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
         CHARACTER (LEN=80) :: varname  !< name of variable
         INTEGER :: varid               !< id of variable
 
-       ! open netcdf file
+        ! open netcdf file
         CALL check_netcdf( nf90_open(TRIM(path_globcover_file),NF90_NOWRITE, ncid))
 
         varname = 'GLOBCOVER' ! I know that the globcover data are stored in a variable called 'GLOBCOVER'
 
-         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+        CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
 
-         CALL check_netcdf(nf90_get_var(ncid, varid,  globcover_data_row,  &
+        CALL check_netcdf(nf90_get_var(ncid, varid,  globcover_data_row,  &
                        start=(/1,data_row/),count=(/nlon_globcover,1/)))
 
-       ! close netcdf file
-       CALL check_netcdf( nf90_close( ncid))
+        ! close netcdf file
+        CALL check_netcdf( nf90_close( ncid))
 
-       END SUBROUTINE get_row_globcover_data
+      END SUBROUTINE get_row_globcover_data
 
       !----------------------------------------------------------------------------------------------------------------
-       !> get one row of ecoclimap raw data
-        SUBROUTINE get_row_ecoclimap_data(path_ecoclimap_file, &
+      !> get one row of ecoclimap raw data
+      SUBROUTINE get_row_ecoclimap_data(path_ecoclimap_file, &
                                           nlon_ecoclimap, &
                                           data_row, &
                                           ecoclimap_data_row)
 
-       USE mo_grid_structures, ONLY: reg_lonlat_grid
+        USE mo_grid_structures, ONLY: reg_lonlat_grid
 
-        CHARACTER (LEN=filename_max), INTENT(IN) :: path_ecoclimap_file         !< filename with path for ecoclimap raw data
+        CHARACTER (LEN=filename_max), INTENT(IN) :: path_ecoclimap_file   !< filename with path for ecoclimap raw data
         INTEGER , INTENT(IN) :: nlon_ecoclimap !< number of grid elements in zonal direction for ecoclimap data
         INTEGER , INTENT(IN) :: data_row !< number or row for data to read in
 
@@ -1073,21 +1106,21 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
         CHARACTER (LEN=80) :: varname  !< name of variable
         INTEGER :: varid               !< id of variable
 
-       ! open netcdf file
+        ! open netcdf file
         CALL check_netcdf( nf90_open(TRIM(path_ecoclimap_file),NF90_NOWRITE, ncid))
 
         varname = 'landuse' ! I know that the ecoclimap data are stored in a variable called 'LANDUSE'
 
-         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+        CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
 
-         CALL check_netcdf(nf90_get_var(ncid, varid,  ecoclimap_data_row,  &
+        CALL check_netcdf(nf90_get_var(ncid, varid,  ecoclimap_data_row,  &
                        start=(/1,data_row/),count=(/nlon_ecoclimap,1/)))
 
-       ! close netcdf file
+        ! close netcdf file
 
-       CALL check_netcdf( nf90_close( ncid))
+        CALL check_netcdf( nf90_close( ncid))
 
-       END SUBROUTINE get_row_ecoclimap_data
+      END SUBROUTINE get_row_ecoclimap_data
 
       !----------------------------------------------------------------------------------------------------------------
 

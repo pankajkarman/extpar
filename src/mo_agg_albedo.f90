@@ -9,6 +9,10 @@
 !  minor bug fix         
 ! V1_13        2013-05-29 Frank Brenner
 !  missing values fixed         
+! V1_14        2014-07-18 Juergen Helmert
+!  Combined COSMO Release
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -224,8 +228,8 @@ PUBLIC :: agg_alb_data_to_target_grid
 
     print *, 'northern_bound_index: ', northern_bound_index
     print *, 'southern_bound_index: ', southern_bound_index
-    print *,'lon_alb(northern_bound_index): ', lat_alb(northern_bound_index)
-    print *,'lon_alb(southern_bound_index): ', lat_alb(southern_bound_index)
+    print *,'lat_alb(northern_bound_index): ', lat_alb(northern_bound_index)
+    print *,'lat_alb(southern_bound_index): ', lat_alb(southern_bound_index)
 
 
     nlon_reg = alb_raw_data_grid%nlon_reg
@@ -243,14 +247,15 @@ PUBLIC :: agg_alb_data_to_target_grid
 
     PRINT *, 'mo_agg_albedo, albedo nc input file opened'
 
-    ! read in albedo data row by row and assign albedo raw data pixel to COSMO grid
+    ! read in albedo data row by row and assign albedo raw data pixel to target grid
     ! start loop over albedo raw data
     time_loop: DO time_index=1,ntime_alb
     no_raw_data_pixel       = 0 ! set count to 0
     no_valid_raw_data_pixel = 0 ! set count to 0
     alb_sum = 0.  ! set sum to 0
 
-    data_rows: DO row_index=northern_bound_index,southern_bound_index
+!    data_rows: DO row_index=northern_bound_index,southern_bound_index
+    data_rows: DO row_index=southern_bound_index,northern_bound_index
                     ! get input raw data row
                     
                     CALL get_one_row_ALB_data(ncid_alb,      &
@@ -322,10 +327,10 @@ PUBLIC :: agg_alb_data_to_target_grid
      END SELECT
 
     !HA debug:
-    print *,'MAXVAL(no_raw_data_pixel): ',MAXVAL(no_raw_data_pixel)
-    print *,'MINVAL(no_raw_data_pixel): ',MINVAL(no_raw_data_pixel)
+    PRINT *,'MAXVAL(no_raw_data_pixel): ',MAXVAL(no_raw_data_pixel)
+    PRINT *,'MINVAL(no_raw_data_pixel): ',MINVAL(no_raw_data_pixel)
 
-    print *,'tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
+    PRINT *,'tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
 
     DO k=1, tg%ke
     DO j=1, tg%je
@@ -421,13 +426,6 @@ PUBLIC :: agg_alb_data_to_target_grid
                                             bwlat)
          ! the weights are bwlon and bwlat
 
-         ! catching some extreme values due to false weight factor calculation
-         IF ((ialb_type /= 2) .AND. (point_lon_geo.lt.0)) THEN
-            lon_alt = 360. + point_lon_geo
-            bwlon = (lon_alt - lon_alb(western_column))/(lon_alb(eastern_column) - &
-  &                  lon_alb(western_column))
-         ENDIF
-
         IF (ialb_type == 2) THEN
          IF ((alb_point_ne>undef_raw).OR.(alb_point_nw>undef_raw).OR. &
             (alb_point_se>undef_raw).OR.(alb_point_sw>undef_raw)) THEN
@@ -475,6 +473,11 @@ PUBLIC :: agg_alb_data_to_target_grid
         IF (alb_point_sw > 0.02 .AND. alb_point_se > 0.02 .AND. alb_point_ne > 0.02 .AND. alb_point_nw > 0.02) THEN
           target_value = calc_value_bilinear_interpol(bwlon, bwlat, &
                                            alb_point_sw, alb_point_se, alb_point_ne, alb_point_nw)
+          IF (target_value < 0.02) THEN
+!           print *,'Interpolation gone wrong! ',target_value,alb_point_sw, alb_point_se, alb_point_ne, &
+!                        alb_point_nw,bwlon, bwlat 
+            target_value = -999.
+          ENDIF
         ELSE
            target_value = -999. ! assume missing value - will be fixed later in the cross check
         ENDIF
@@ -493,10 +496,16 @@ PUBLIC :: agg_alb_data_to_target_grid
        ELSE ! grid element outside target grid
          alb_field_mom_d(i,j,k,time_index) = default_value
        ENDIF
+       IF (bwlon>1) THEN !calculation of bwlon gone wrong (eastern border)
+         alb_field_mom_d(i,j,k,time_index) = -999.
+       ENDIF
+       IF (bwlon<0) THEN !calculation of bwlon gone wrong (western border)
+         alb_field_mom_d(i,j,k,time_index) = -999.
+       ENDIF
 
      ELSE
-       alb_field_mom_d(i,j,k,time_index) = -999. !assume missing value if no valid data point was present, will be fixed later in the cross check
-
+       alb_field_mom_d(i,j,k,time_index) = -999. !assume missing value if no valid data point was present, 
+                                                 !will be fixed later in the cross check
      ENDIF
 
     ENDDO !i

@@ -13,6 +13,8 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON 
+! V2_0_3       2015-01-12 Juergen Helmert
+!   Combined COSMO Release
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -74,6 +76,8 @@ TYPE :: icosahedral_triangular_grid
   INTEGER (KIND=i4) :: nvertex           !< number of vertices
   INTEGER (KIND=i4) :: nedge             !< number of edges
   CHARACTER (LEN=filename_max) :: nc_grid_file !< filename of grid file which contains the Icon grid coordinates 
+  INTEGER           :: number_of_grid_used     !< number of grid used, for grib2
+  CHARACTER(LEN=36) :: uuidOfHGrid          ! ICON grid ID
 END TYPE icosahedral_triangular_grid
 
 !> Definition of data type with ICON grid definition for multiple model domains
@@ -119,9 +123,9 @@ TYPE :: reg_lonlat_grid
        REAL (KIND=wp) :: end_lon_reg   !< end longitude for regular lon-lat grid (usually eastern boundary)
 
        REAL (KIND=wp) :: start_lat_reg !< start latitude for regular lon-lat grid 
-!(usually southern boundary, but northern boundary possible of dlat_reg has a negative increment (grid order from north to south)
+!(usually southern boundary, but northern boundary possible of dlat_reg has negative increment (grid order from north to south)
        REAL (KIND=wp) :: end_lat_reg !< end latitude for regular lon-lat grid  
-!(usually northern boundary, but southern boundary possible of dlat_reg has a negative increment (grid order from north to south)
+!(usually northern boundary, but southern boundary possible of dlat_reg has negative increment (grid order from north to south)
 
 
        REAL (KIND=wp) :: dlon_reg !< grid point distance in zonal direction (in degrees) for regular lon-lat grid

@@ -65,7 +65,7 @@ PUBLIC :: auxiliary_sso_parameter, &
 
    END SUBROUTINE auxiliary_sso_parameter
 
-!---------------------------------------------------------------------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------------------------------
 
    SUBROUTINE calculate_sso(tg,no_raw_data_pixel,   &
         &                   h11,h12,h22,stdh_target,&
@@ -96,8 +96,10 @@ PUBLIC :: auxiliary_sso_parameter, &
      REAL(KIND=wp) :: point_lon, point_lat
      REAL(KIND=wp) :: znorm
      REAL(KIND=wp) :: zh11, zh12, zh22
-     REAL(KIND=wp) :: K_lm, L_lm, M_lm                     !< Variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
-     REAL(KIND=wp) :: K_lm_prime, L_lm_prime, M_lm_prime   !< Variables to determine angle of principal axis, anisotropy and slope after Lott and Miller 96
+     REAL(KIND=wp) :: K_lm, L_lm, M_lm                     !< Variables to determine angle of principal axis, 
+                                                           !< anisotropy and slope after Lott and Miller 96
+     REAL(KIND=wp) :: K_lm_prime, L_lm_prime, M_lm_prime   !< Variables to determine angle of principal axis, 
+                                                           !< anisotropy and slope after Lott and Miller 96
      REAL(KIND=wp) :: theta                 ! angle of principle axis
      REAL(KIND=wp) :: theta_rot             ! angle of principle axis in the rotated system
      REAL(KIND=wp) :: theta_u, theta_v      ! help variables for the rotation of theta into the rotated system

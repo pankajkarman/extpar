@@ -6,7 +6,11 @@
 ! V1_8         2013/03/12 Frank Brenner
 !  introduced MODIS albedo dataset(s) as new external parameter(s) 
 ! V1_12        2013-04-24 Frank Brenner
-!  bug fix regarding old file paths         
+!  bug fix regarding old file paths
+! V2_0         2013-10-11 Daniel Luethi
+!  added support for prescribed bare soil albedo
+! V2_0_3       2015-01-12 Juergen Helmert 
+!  new orientation of latitudes for ialb_type=1   
 ! 
 ! Code Description:
 ! Language: Fortran 2003.
@@ -276,17 +280,19 @@ PROGRAM extpar_albedo_to_buffer
   alb_raw_data_grid%start_lon_reg= startlon_alb
   alb_raw_data_grid%start_lat_reg= startlat_alb
   alb_raw_data_grid%dlon_reg= dlon_alb
-  IF (ialb_type == 2) THEN
-    alb_raw_data_grid%dlat_reg= dlat_alb
-  ELSE
-    alb_raw_data_grid%dlat_reg= -1. * dlat_alb ! albedo raw data rows from North to South
-  ENDIF
+! versions from 2.0_3 on use also raw MODIS albedo data running from South to North
+!  IF (ialb_type == 2) THEN
+!    alb_raw_data_grid%dlat_reg= dlat_alb
+!  ELSE
+!    alb_raw_data_grid%dlat_reg= -1. * dlat_alb ! albedo raw data rows from North to South
+!  ENDIF
+  alb_raw_data_grid%dlat_reg= dlat_alb
   alb_raw_data_grid%nlon_reg= nlon_alb
   alb_raw_data_grid%nlat_reg= nlat_alb
 
   alb_raw_data_grid%end_lon_reg= lon_alb(nlon_alb) 
   alb_raw_data_grid%end_lat_reg= lat_alb(nlat_alb) 
-  print *,'alb_raw_data_grid: ',alb_raw_data_grid
+  PRINT *,'alb_raw_data_grid: ',alb_raw_data_grid
 
   CALL close_netcdf_ALB_data(ncid_alb)
 

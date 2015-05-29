@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_8         2013/03/12 Frank Brenner
 !  fixed bug in get_4_surrounding_raw_data_indices regarding negative longitudes
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -58,19 +60,19 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
 
        USE mo_search_ll_grid, ONLY : find_reg_lonlat_grid_element_index
 
-       TYPE(reg_lonlat_grid), INTENT(in)  :: reg_data_grid               !< structure with the definition of the raw data grid
-        REAL (KIND=wp), INTENT(in)         :: reg_lon(1:reg_data_grid%nlon_reg)  !< longitude of raw data in geographical system
-       REAL (KIND=wp), INTENT(in)          :: reg_lat(1:reg_data_grid%nlat_reg)  !< latitude of raw date in geographical system
+       TYPE(reg_lonlat_grid), INTENT(IN)  :: reg_data_grid               !< structure with the definition of the raw data grid
+       REAL (KIND=wp), INTENT(IN)         :: reg_lon(1:reg_data_grid%nlon_reg)  !< longitude of raw data in geographical system
+       REAL (KIND=wp), INTENT(IN)          :: reg_lat(1:reg_data_grid%nlat_reg)  !< latitude of raw date in geographical system
        LOGICAL, INTENT(IN) :: gldata !< logical switch to indicate whether the raw data has global coverage or not
 
-       REAL (KIND=wp), INTENT(in) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
-       REAL (KIND=wp), INTENT(in) :: point_lat_geo       !< latitude coordinate in geographical system of input point
+       REAL (KIND=wp), INTENT(IN) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
+       REAL (KIND=wp), INTENT(IN) :: point_lat_geo       !< latitude coordinate in geographical system of input point
 
        
-      INTEGER (KIND=i8), INTENT(out) :: western_column     !< the index of the western_column of raw data 
-      INTEGER (KIND=i8), INTENT(out) :: eastern_column     !< the index of the eastern_column of raw data 
-      INTEGER (KIND=i8), INTENT(out) :: northern_row       !< the index of the northern_row of raw data 
-      INTEGER (KIND=i8), INTENT(out) :: southern_row       !< the index of the southern_row of raw data 
+      INTEGER (KIND=i8), INTENT(OUT) :: western_column     !< the index of the western_column of raw data 
+      INTEGER (KIND=i8), INTENT(OUT) :: eastern_column     !< the index of the eastern_column of raw data 
+      INTEGER (KIND=i8), INTENT(OUT) :: northern_row       !< the index of the northern_row of raw data 
+      INTEGER (KIND=i8), INTENT(OUT) :: southern_row       !< the index of the southern_row of raw data 
 
 
 
@@ -92,6 +94,9 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        
        undefined_integer = 0 ! set undefined to zero
         
+       point_lon_index = 0 ! initialise with zero
+       point_lat_index = 0 ! initialise with zero
+       
        ! find  grid element indices for the point
        CALL find_reg_lonlat_grid_element_index(point_lon_geo, &
          &                                      point_lat_geo, &
@@ -244,19 +249,41 @@ PUBLIC :: get_4_surrounding_raw_data_indices, &
        REAL (KIND=wp), INTENT(out):: bwlon     !< weight bwlon
        REAL (KIND=wp), INTENT(out):: bwlat     !< weight bwlat
 
-       REAL (KIND=wp) :: pixel_lon2
+       REAL (KIND=wp) :: pixel_lon2, east_lon2
 
-! recalculate, if longitude is negative
-       IF ((east_lon > west_lon).AND.(pixel_lon < west_lon)) THEN
-         pixel_lon2 = 360. + pixel_lon
-       ELSE IF ((east_lon < west_lon).AND.(pixel_lon < east_lon)) THEN
-         pixel_lon2 = 360. + pixel_lon
-       ELSE
-         pixel_lon2 = pixel_lon
-       ENDIF
+       east_lon2 = east_lon
+       pixel_lon2 = pixel_lon
+
+       DO WHILE (ABS(east_lon2+360._wp-west_lon) < ABS(east_lon2-west_lon))
+         east_lon2 = east_lon2 + 360._wp
+       ENDDO
        
+       IF (east_lon2 < west_lon) THEN   ! other than expected east_lon is smaller than west_lon
+         DO WHILE (ABS(pixel_lon2+360._wp-east_lon2) < ABS(pixel_lon2-east_lon2))
+           pixel_lon2 = pixel_lon2 + 360._wp
+         ENDDO
+         IF (pixel_lon2 < east_lon2) THEN
+           bwlon = 0._wp
+         ELSE IF (pixel_lon2 > west_lon) THEN
+           bwlon = 1._wp
+         ELSE                            ! pixel_lon2 lies between east_lon2 and west_lon
+           bwlon = ABS((pixel_lon2 - west_lon)/(east_lon2 - west_lon))
+         ENDIF
+       ELSE IF (east_lon2 > west_lon) THEN
+         DO WHILE (ABS(pixel_lon2+360._wp-west_lon) < ABS(pixel_lon2-west_lon))
+           pixel_lon2 = pixel_lon2 + 360._wp
+         ENDDO
+         IF (pixel_lon2 > east_lon2) THEN
+           bwlon = 0._wp
+         ELSE IF (pixel_lon2 < west_lon) THEN
+           bwlon = 1._wp
+         ELSE                            ! pixel_lon2 lies between east_lon2 and west_lon
+           bwlon = ABS((pixel_lon2 - west_lon)/(east_lon2 - west_lon))
+         ENDIF
+       ELSE
+         bwlon = 0.5
+       ENDIF
 
-       bwlon = (pixel_lon2 - west_lon)/(east_lon - west_lon)
        bwlat = (pixel_lat - south_lat)/(north_lat - south_lat)
 
        END  SUBROUTINE calc_weight_bilinear_interpol

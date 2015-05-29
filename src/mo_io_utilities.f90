@@ -21,6 +21,8 @@
 !   simplified namelist control for ICON 
 ! V2_0         2013/08/08 Daniel Luethi
 !   added possibility to add name of data set to var_meta_info
+! V2_0_3       2015-01-12 Juergen Helmert
+!   added code for number_of_grid_used global attribute
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -568,6 +570,7 @@ MODULE mo_io_utilities
   INTEGER :: errorcode
   INTEGER :: dimsize
   REAL :: fill_value
+  INTEGER :: i
 
   CHARACTER (len=12) :: dimname  !< name of dimension
   CHARACTER (len=20) :: varname    !< name of variable
@@ -719,7 +722,7 @@ MODULE mo_io_utilities
 
     ! put variable to netcdf file
 
-!   CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
+!    CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d))
     DO n=1,size(var_real_4d,4)
       CALL check_netcdf(nf90_put_var(ncid,varid,var_real_4d(:,:,:,n),start=(/1,1,1,n/)))
     ENDDO
@@ -814,6 +817,7 @@ MODULE mo_io_utilities
     ! get varname
     varname = TRIM(meta_5d%varname)
     ! define netcdf variable
+    PRINT *,'put_real_5d: ',varname
     CALL check_netcdf( nf90_def_var(ncid, &
                     & varname,            &
                     & NF90_FLOAT,           &
@@ -2222,7 +2226,7 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
   SUBROUTINE open_new_netcdf_file(netcdf_filename, dim_list, global_attributes, time, ncid)
     USE netcdf, ONLY: nf90_create 
     USE netcdf, ONLY: NF90_CLOBBER, NF90_GLOBAL, NF90_UNLIMITED, NF90_FLOAT
-    USE netcdf, ONLY: NF90_64BIT_OFFSET
+    USE netcdf, ONLY: NF90_64BIT_OFFSET, NF90_NETCDF4
     USE netcdf, ONLY: nf90_def_dim
     USE netcdf, ONLY: nf90_def_var
     USE netcdf, ONLY: nf90_put_att
@@ -2253,6 +2257,8 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
     INTEGER :: varid_mlev  !< netcdf varid of variable
     INTEGER :: dimid_mlev
     INTEGER, ALLOCATABLE :: mlev(:)
+    INTEGER                :: number_of_grid_used_int
+    CHARACTER (LEN=4)      :: number_of_grid_used_char
 
     call_mode = NF90_CLOBBER + NF90_64BIT_OFFSET
     CALL check_netcdf( nf90_create(TRIM(netcdf_filename),call_mode,ncid))
@@ -2279,9 +2285,17 @@ write(0,*) 'netcdf_get_var_int_4d',n,length,var_int_4d_meta%diminfo(n)%dimsize
       ng_att=SIZE(global_attributes)
 
       DO n=1, ng_att
-        CALL check_netcdf( nf90_put_att(ncid,NF90_GLOBAL, &
+        IF(TRIM(global_attributes(n)%attname)=='number_of_grid_used') THEN
+          number_of_grid_used_char=TRIM(global_attributes(n)%attributetext)
+          READ(number_of_grid_used_char,'(I4)') number_of_grid_used_int
+          CALL check_netcdf( nf90_put_att(ncid,NF90_GLOBAL, &
+          &                TRIM(global_attributes(n)%attname), &
+          &                number_of_grid_used_int))
+        ELSE
+          CALL check_netcdf( nf90_put_att(ncid,NF90_GLOBAL, &
           &                TRIM(global_attributes(n)%attname), &
           &                TRIM(global_attributes(n)%attributetext)))
+        END IF
       ENDDO
     ENDIF
 

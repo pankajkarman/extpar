@@ -77,14 +77,19 @@ TYPE(dsmw_legend), ALLOCATABLE :: soil_texslo_deep(:)             !< legend for 
 
 INTEGER :: n_unit   !< number of soil units
 
-INTEGER (KIND=i4), ALLOCATABLE :: dsmw_soil_unit(:,:) !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
-INTEGER (KIND=i4), ALLOCATABLE :: dsmw_deep_soil_unit(:,:) !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
+
+! FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
+INTEGER (KIND=i4), ALLOCATABLE :: dsmw_soil_unit(:,:)
+! FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo) 
+INTEGER (KIND=i4), ALLOCATABLE :: dsmw_deep_soil_unit(:,:) 
 
 
 TYPE(reg_lonlat_grid) :: dsmw_grid !< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
 
-REAL (KIND=wp), ALLOCATABLE  :: lon_soil(:)          !< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
-REAL (KIND=wp), ALLOCATABLE  :: lat_soil(:)          !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
+! longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
+REAL (KIND=wp), ALLOCATABLE  :: lon_soil(:)
+! latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)     
+REAL (KIND=wp), ALLOCATABLE  :: lat_soil(:)
 
 
 SAVE

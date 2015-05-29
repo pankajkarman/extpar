@@ -640,7 +640,8 @@ END SUBROUTINE uv2uvrot
 !==============================================================================
 
 !------------------------------------------------------------------------------
-!>  This routine converts the wind components u and v from the real  geographical system to the rotated system. This is the vectorized form.
+!>  This routine converts the wind components u and v from the real  geographical system to the rotated system.
+!>  This is the vectorized form.
 SUBROUTINE uv2uvrot_vec(u, v, rlat, rlon, pollat, pollon, idim, jdim)
 
 !------------------------------------------------------------------------------

@@ -42,10 +42,10 @@ MODULE mo_target_grid_data
   PUBLIC :: search_res
 
 
-  REAL (KIND=wp), ALLOCATABLE  :: lon_geo(:,:,:)          !< longitude coordinates of the target grid in the geographical system 
-  REAL (KIND=wp), ALLOCATABLE  :: lat_geo(:,:,:)          !< latitude coordinates of the target grid in the geographical system
+  REAL (KIND=wp), ALLOCATABLE  :: lon_geo(:,:,:)    !< longitude coordinates of the target grid in the geographical system 
+  REAL (KIND=wp), ALLOCATABLE  :: lat_geo(:,:,:)    !< latitude coordinates of the target grid in the geographical system
 
-  INTEGER (KIND=i8), ALLOCATABLE :: no_raw_data_pixel(:,:,:) !< number of raw data pixel which are inside the target grid element
+  INTEGER (KIND=i8), ALLOCATABLE :: no_raw_data_pixel(:,:,:) !< number of raw data pixel inside the target grid element
 
   TYPE(target_grid_def) :: tg !< structure with target grid description
 

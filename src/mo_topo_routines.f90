@@ -115,12 +115,12 @@ SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
   USE mo_topo_data,        ONLY: max_tiles  
 
   
-  CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
+  CHARACTER (LEN=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
   ! orography
 
   
-  CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_orography_path        !< path to raw data
-  CHARACTER (len=filename_max), INTENT(OUT) :: topo_files(1:max_tiles)                     !< filenames globe raw data
+  CHARACTER (LEN=filename_max), INTENT(OUT) :: raw_data_orography_path        !< path to raw data
+  CHARACTER (LEN=filename_max), INTENT(OUT) :: topo_files(1:max_tiles)                     !< filenames globe raw data
   INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_column     !< number of tile columns
   INTEGER (KIND=i4), INTENT(OUT)  :: ntiles_row        !< number of tile rows
   INTEGER (KIND=i4), INTENT(OUT)  :: itopo_type
@@ -178,7 +178,7 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
   
   CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_scale_sep_path        !< path to raw data
-  CHARACTER (len=filename_max), INTENT(OUT) :: scale_sep_files(1:max_tiles)                     !< filenames globe raw data
+  CHARACTER (len=filename_max), INTENT(OUT) :: scale_sep_files(1:max_tiles)   !< filenames globe raw data
   LOGICAL, INTENT(OUT)            :: lscale_separation
 
   INTEGER           :: nuin !< unit number
@@ -257,7 +257,8 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
                                 tiles_lat_max, &
                                 tiles_ncolumns, &
                                 tiles_nrows
-         TYPE(reg_lonlat_grid), INTENT(OUT) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+         TYPE(reg_lonlat_grid), INTENT(OUT) :: topo_tiles_grid(1:ntiles) 
+                                               !< structure with definition of the raw data grid for the 16 GLOBE tiles
 
          INTEGER :: k ! counter
 
@@ -267,28 +268,30 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          REAL (KIND=wp) :: dlon
          REAL (KIND=wp) :: dlat
 
-            DO k=1,  ntiles ! determine the globe_tile_grid information from the namelist information
+         DO k=1,  ntiles ! determine the globe_tile_grid information from the namelist information
 
-            dlon = (tiles_lon_max(k) - tiles_lon_min(k)) / FLOAT(tiles_ncolumns(k))
+           dlon = (tiles_lon_max(k) - tiles_lon_min(k)) / FLOAT(tiles_ncolumns(k))
            
-            dlat = -1. * (tiles_lat_max(k) - tiles_lat_min(k)) / FLOAT(tiles_nrows(k))
+           dlat = -1. * (tiles_lat_max(k) - tiles_lat_min(k)) / FLOAT(tiles_nrows(k))
 
-            ! latitude from north to south, negative increment
+           ! latitude from north to south, negative increment
             
 
-             topo_tiles_grid(k)%start_lon_reg  = tiles_lon_min(k) + 0.5 * dlon
-             topo_tiles_grid(k)%end_lon_reg    = tiles_lon_max(k) - 0.5 * dlon
+           topo_tiles_grid(k)%start_lon_reg  = tiles_lon_min(k) + 0.5 * dlon
+           topo_tiles_grid(k)%end_lon_reg    = tiles_lon_max(k) - 0.5 * dlon
            
-             topo_tiles_grid(k)%start_lat_reg  = tiles_lat_max(k) + 0.5 * dlat ! latitude from north to south, note the negative increment!
-             topo_tiles_grid(k)%end_lat_reg    = tiles_lat_min(k) - 0.5 * dlat ! latitude from north to south, note the negative increment!
+           topo_tiles_grid(k)%start_lat_reg  = tiles_lat_max(k) + 0.5 * dlat 
+                                                 ! latitude from north to south, note the negative increment!
+           topo_tiles_grid(k)%end_lat_reg    = tiles_lat_min(k) - 0.5 * dlat 
+                                                 ! latitude from north to south, note the negative increment!
 
-            topo_tiles_grid(k)%dlon_reg = dlon
-            topo_tiles_grid(k)%dlat_reg = dlat
+           topo_tiles_grid(k)%dlon_reg = dlon
+           topo_tiles_grid(k)%dlat_reg = dlat
 
-            topo_tiles_grid(k)%nlon_reg = tiles_ncolumns(k)
-            topo_tiles_grid(k)%nlat_reg = tiles_nrows(k)
+           topo_tiles_grid(k)%nlon_reg = tiles_ncolumns(k)
+           topo_tiles_grid(k)%nlat_reg = tiles_nrows(k)
 
-            ENDDO
+         ENDDO
             
 
        END SUBROUTINE det_topo_tiles_grid
@@ -379,8 +382,10 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
           
          ! latitude from north to south, negative increment
          ta_grid%nlat_reg = nrows
-         ta_grid%start_lat_reg = topo_grid%start_lat_reg + ta_grid%dlat_reg * (start_topo_row - 1)  ! latitude from north to south, note the negative increment!
-         ta_grid%end_lat_reg  =  ta_grid%start_lat_reg + ta_grid%dlat_reg * (nrows - 1)! latitude from north to south, note the negative increment!
+         ta_grid%start_lat_reg = topo_grid%start_lat_reg + ta_grid%dlat_reg * (start_topo_row - 1)  
+                                 ! latitude from north to south, note the negative increment!
+         ta_grid%end_lat_reg  =  ta_grid%start_lat_reg + ta_grid%dlat_reg * (nrows - 1)
+                                 ! latitude from north to south, note the negative increment!
          ! check for south pole
          IF (ta_grid%end_lat_reg < topo_grid%end_lat_reg) THEN ! band is at south pole
            ta_grid%end_lat_reg =  topo_grid%end_lat_reg
@@ -472,7 +477,8 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
 
 
-       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) 
+                                            !< structure with defenition of the raw data grid for the 16 GLOBE tiles
 
        INTEGER (KIND=i4), INTENT(OUT) :: topo_startrow(1:ntiles)    !< startrow indices for each GLOBE tile
        INTEGER (KIND=i4), INTENT(OUT) :: topo_endrow(1:ntiles)      !< endrow indices for each GLOBE tile
@@ -480,10 +486,14 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        INTEGER (KIND=i4), INTENT(OUT) :: topo_startcolumn(1:ntiles)  !< starcolumn indices for each GLOBE tile
        INTEGER (KIND=i4), INTENT(OUT) :: topo_endcolumn(1:ntiles)   !< endcolumn indices for each GLOBE tile
 
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_ie(1:ntiles)    !< indices of target area block for first column of each GLOBE tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_ie(1:ntiles)      !< indices of target area block for last column of each GLOBE tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_je(1:ntiles)  !< indices of target area block for first row of each GLOBE tile
-       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles)   !< indices of target area block for last row of each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_ie(1:ntiles)    
+                                         !< indices of target area block for first column of each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_ie(1:ntiles)      
+                                         !< indices of target area block for last column of each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_start_je(1:ntiles)  
+                                         !< indices of target area block for first row of each GLOBE tile
+       INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles)   
+                                         !< indices of target area block for last row of each GLOBE tile
 
        
        INTEGER (KIND=i4) :: index_k !< index of GLOBE tile which contains point_geo
@@ -615,11 +625,13 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
 !         print *,'k ',k
          ! get startcolumn for tile k
-         startcolumn = NINT((ta_grid%start_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) +1 ! here I want nearest index (NINT)
+         startcolumn = NINT((ta_grid%start_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) + 1 
+         !< here I want nearest index (NINT)
          IF (startcolumn < 1) THEN 
            topo_startcolumn(k) = 1
            ! get the start index of the subtile for the target area block
-           ta_start_ie(k) = NINT ((topo_tiles_grid(k)%start_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 ! index of target area block
+           ta_start_ie(k) = NINT ((topo_tiles_grid(k)%start_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 
+           !< index of target area block
 
          ELSE IF (startcolumn > tiles_ncolumns(k)) THEN
            topo_startcolumn(k) = 0
@@ -630,12 +642,13 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          ENDIF
 
          ! get endcolumn for tile k
-         endcolumn = NINT((ta_grid%end_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) +1
+         endcolumn = NINT((ta_grid%end_lon_reg - topo_tiles_grid(k)%start_lon_reg)/dlon) + 1
          IF (endcolumn > tiles_ncolumns(k)) THEN 
            topo_endcolumn(k) = tiles_ncolumns(k)
            ! get the end index of the subtile for the target area block
            stile_ur_lon =  topo_tiles_grid(k)%end_lon_reg ! coordinates [degrees]
-           ta_end_ie(k) = NINT ((topo_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1                ! index of target area block
+           ta_end_ie(k) = NINT ((topo_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 
+           !< index of target area block
          ELSE IF (endcolumn < 1) THEN
            topo_endcolumn(k) = 0
            ta_end_ie(k) = 0
@@ -651,7 +664,8 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          IF (startrow < 1) THEN 
            topo_startrow(k) = 1
            ! get the start index of the subtile for the target area block
-           ta_start_je(k) = NINT ((topo_tiles_grid(k)%start_lat_reg  - ta_grid%start_lat_reg)/dlat) + 1 ! index of target area block
+           ta_start_je(k) = NINT ((topo_tiles_grid(k)%start_lat_reg  - ta_grid%start_lat_reg)/dlat) + 1 
+           !< index of target area block
             
           ELSE IF (startrow > tiles_nrows(k)) THEN
            topo_startrow(k) = 0
@@ -668,7 +682,8 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
          IF (endrow > tiles_nrows(k)) THEN 
            topo_endrow(k) = tiles_nrows(k)
            ! get the start index of the subtile for the target area block
-           ta_end_je(k) = NINT ((topo_tiles_grid(k)%end_lat_reg -  ta_grid%start_lat_reg )/dlat) + 1 ! index of target area block
+           ta_end_je(k) = NINT ((topo_tiles_grid(k)%end_lat_reg -  ta_grid%start_lat_reg )/dlat) + 1 
+           !< index of target area block
 
          ELSE IF (endrow < 1) THEN
            topo_endrow(k) = 0
@@ -721,8 +736,9 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        USE mo_topo_data, ONLY : h_tile_row !< variable for height of GLOBE data for a data row of a tile
        
        INTEGER , INTENT(IN) :: mlat  !< global index of raw data line
-       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
-       INTEGER (KIND=i4), INTENT(OUT) :: h_parallel(1:nc_tot)     !< GLOBE altitude data along a parallel
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  
+       !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       INTEGER (KIND=i4), INTENT(OUT) :: h_parallel(1:nc_tot) !< GLOBE altitude data along a parallel
 
        ! local variables
         INTEGER  :: tile_start
@@ -808,10 +824,13 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        CHARACTER (len=filename_max), INTENT(IN)     :: topo_file_1
        ! mes <
 
-       TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
-       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16 GLOBE tiles
+       TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid 
+       !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
+       TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) 
+       !< structure with defenition of the raw data grid for the 16 GLOBE tiles
 
-       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  
+       !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
 
        INTEGER (KIND=i4), INTENT(OUT) :: h_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBE altitude data 
        !local variables
@@ -923,7 +942,8 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
        INTEGER , INTENT(IN) :: mstart  !< global index of first raw data line
        INTEGER , INTENT(IN) :: nrows   !< total number or row data rows to read in
-       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_TOPO_tile
+       INTEGER , INTENT(IN) :: ncids_topo(1:ntiles)  
+       !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_TOPO_tile
        INTEGER (KIND=i4), INTENT(OUT) :: h_band(1:nc_tot,1:nrows)     !< GLOBE altitude data along a parallel
 
        ! local variables

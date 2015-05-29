@@ -28,7 +28,8 @@
 !!
 !! Tegen, I., P. Hollrigl, M. Chin, I. Fung, D. Jacob, and J. Penner 1997.
 !!  <a href="http://pubs.giss.nasa.gov/abstracts/1997/Tegen_etal.html">
-!!  Contribution of different aerosol species to the global aerosol extinction optical thickness: Estimates from model results</a>.
+!!  Contribution of different aerosol species to the global aerosol extinction optical thickness:&
+!!& Estimates from model results</a>.
 !! J. Geophys. Res., <b>102</b>, 23895-23915.
 !> \author Hermann Asensio
 MODULE mo_agg_aot
@@ -175,8 +176,8 @@ PUBLIC :: agg_aot_data_to_target_grid
                                           bwlon,         &
                                           bwlat)
          ! the weights are bwlon and bwlat
-         ! put all relevent data to an array
-         data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype)  ! (ntime, ntype) for each grid point
+         ! put all relevant data to an array, dimension (ntime, ntype) for each grid point  
+         data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype) 
          data_array_se(1:ntime,1:ntype) = aot_data(eastern_column,southern_row,1:ntime,1:ntype)
          data_array_ne(1:ntime,1:ntype) = aot_data(eastern_column,northern_row,1:ntime,1:ntype)
          data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)

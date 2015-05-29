@@ -14,6 +14,8 @@
 !  introduced MODIS albedo dataset(s) as new external parameter(s)         
 ! V1_11        2013/04/16 Juergen Helmert
 !  Adaptions for using special points and external land-sea-mask
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -91,7 +93,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                        land_sea_mask_file,    &
                                        lwrite_netcdf,         &
                                        lwrite_grib,           &
-                                       number_special_points )
+                                       number_special_points, tile_mode )
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
 
@@ -116,7 +118,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
    CHARACTER (len=filename_max) :: alb_buffer_file  !< name for albedo buffer file
    CHARACTER (len=filename_max) :: land_sea_mask_file  !< name for land-sea mask file
    INTEGER                      :: number_special_points, i_lsm_data
-   LOGICAL                      :: lwrite_netcdf, lwrite_grib
+   LOGICAL                      :: lwrite_netcdf, lwrite_grib, tile_mode
 
 
    !> namelist with filenames for output of soil data
@@ -136,6 +138,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
                                          land_sea_mask_file,&
                                          lwrite_netcdf, &
                                          lwrite_grib, &
+                                         tile_mode, &
                                          number_special_points
                                          
 
@@ -150,6 +153,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
 
    lwrite_netcdf = .TRUE.
    lwrite_grib   = .TRUE.
+   tile_mode     = .FALSE.
 
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 
@@ -169,7 +173,10 @@ SUBROUTINE read_namelists_extpar_special_points(namelist_file,        &
                                                 plcovmn_sp,           &
                                                 plcovmx_sp,           &
                                                 laimn_sp,             &
-                                                laimx_sp)
+                                                laimx_sp,             &
+                                                for_d_sp,             &
+                                                for_e_sp,             &
+                                                fr_land_sp            )
 
 
   USE mo_utilities_extpar, ONLY: free_un, & ! function to get free unit number
@@ -188,7 +195,10 @@ SUBROUTINE read_namelists_extpar_special_points(namelist_file,        &
                                                 plcovmn_sp,           &
                                                 plcovmx_sp,           &
                                                 laimn_sp,             &
-                                                laimx_sp
+                                                laimx_sp,             &
+                                                for_d_sp,             &
+                                                for_e_sp,             &
+                                                fr_land_sp
 
 !> local variables
   INTEGER           :: nuin     !< unit number
@@ -198,7 +208,7 @@ SUBROUTINE read_namelists_extpar_special_points(namelist_file,        &
 !> define the namelist group
   NAMELIST /special_points/ &
     lon_geo_sp, lat_geo_sp, soiltype_sp, z0_sp, rootdp_sp, plcovmn_sp, plcovmx_sp, &
-    laimn_sp, laimx_sp
+    laimn_sp, laimx_sp,for_d_sp,for_e_sp,fr_land_sp
                                  
 !> initialization
   ierr     = 0

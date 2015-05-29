@@ -66,7 +66,8 @@ MODULE mo_kind
                      ! number of desired significant digits for
                      ! real variables
                      ! corresponds to 8 byte real variables
-                       INTEGER, PARAMETER       ::      iintegers = KIND  (1)                                            !< KIND parameter for integer variables
+                     
+   INTEGER, PARAMETER ::      iintegers = KIND  (1)                   !< KIND parameter for integer variables
                      ! kind-type parameter of the integer values
                      ! corresponds to the default integers
 
@@ -86,7 +87,7 @@ MODULE mo_kind
        ! Kind type for C integer variables used in the GRIB library
        ! this always is the Standard integer
 
-   INTEGER, PARAMETER :: irealgrib = KIND(1.0)                                               !< KIND parameter for real variables for GRIB library
+   INTEGER, PARAMETER :: irealgrib = KIND(1.0)                 !< KIND parameter for real variables for GRIB library
 
        ! Kind type for Fortran real variables used in the GRIB library
        ! this is the Standard real of the machine

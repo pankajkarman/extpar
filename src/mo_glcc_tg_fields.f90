@@ -51,12 +51,15 @@ PUBLIC :: fr_land_glcc, &
   &        allocate_glcc_target_fields
 
 
-       REAL (KIND=wp), ALLOCATABLE  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+       REAL (KIND=wp), ALLOCATABLE  :: glcc_class_fraction(:,:,:,:)  
+!< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
 
-       INTEGER (KIND=i8), ALLOCATABLE :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+       INTEGER (KIND=i8), ALLOCATABLE :: glcc_class_npixel(:,:,:,:) 
+!< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
 
 
-       INTEGER (KIND=i8), ALLOCATABLE :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+       INTEGER (KIND=i8), ALLOCATABLE :: glcc_tot_npixel(:,:,:)  
+!< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
 
 
        REAL (KIND=wp), ALLOCATABLE  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data

@@ -33,7 +33,8 @@ PUBLIC :: lake_depth, &
   &       flake_tot_npixel, &
   &       allocate_flake_target_fields
 
-       INTEGER (KIND=i8), ALLOCATABLE :: flake_tot_npixel(:,:,:)  !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
+       INTEGER (KIND=i8), ALLOCATABLE :: flake_tot_npixel(:,:,:)  
+                                         !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
        REAL (KIND=wp), ALLOCATABLE  :: lake_depth(:,:,:)     !< lake depth [m]
        REAL (KIND=wp), ALLOCATABLE  :: fr_lake(:,:,:)      !< lake fraction
 

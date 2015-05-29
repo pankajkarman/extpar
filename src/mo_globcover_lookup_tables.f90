@@ -486,7 +486,7 @@ REAL (KIND=wp) :: zrd_experimental(nclass_globcover)   = (/ &         !< lookup 
  &  0. /)     !'undefined                                      ' ! 23.
 
 
-REAL (KIND=wp) :: zemiss_experimental(nclass_globcover)  = (/ &       !< lookup table landuse class to surface thermal emissivity
+REAL (KIND=wp) :: zemiss_experimental(nclass_globcover)  = (/ &   !< lookup table LU class to surface thermal emissivity
  &  0.990 ,  & ! 'irrigated croplands                           ' ! 1.
  &  0.990 ,  & ! 'rainfed croplands                             ' ! 2.
  &  0.990 ,  & ! 'mosaic cropland (50-70%) - vegetation (20-50%)' ! 3.
@@ -609,15 +609,15 @@ CONTAINS
     &      rs_min_lt_globcover)
     INTEGER, INTENT(IN) :: nclass_globcover !< globcover has 23 classes for the land use description
     INTEGER, INTENT(IN) :: ilookup_table_globcover  !< integer switch to choose a lookup table
-    REAL (KIND=wp), INTENT(OUT) :: z0_lt_globcover(nclass_globcover)      !< lookup table landuse class to roughness length [m]
+    REAL (KIND=wp), INTENT(OUT) :: z0_lt_globcover(nclass_globcover)      !< lookup table LU class to roughness length [m]
     REAL (KIND=wp), INTENT(OUT) :: lnz0_lt_globcover(nclass_globcover)    !< corresponding natural logarithm of z0c_extpar_o
     REAL (KIND=wp), INTENT(OUT) :: plc_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal plant cover
     REAL (KIND=wp), INTENT(OUT) :: plc_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal plant cover
     REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal LAI
     REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal LAI
-    REAL (KIND=wp), INTENT(OUT) :: rd_lt_globcover(nclass_globcover)      !< lookup table landuse class to root depth [m]
-    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_globcover(nclass_globcover)   !< lookup table landuse class to surface thermal emiss.
-    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal stomata resis.
+    REAL (KIND=wp), INTENT(OUT) :: rd_lt_globcover(nclass_globcover)      !< lookup table LU class to root depth [m]
+    REAL (KIND=wp), INTENT(OUT) :: emiss_lt_globcover(nclass_globcover)   !< lookup table LU class to surface thermal emiss.
+    REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table LU class to minimal stomata resis.
 
     ! local variable
     INTEGER :: i !< counter

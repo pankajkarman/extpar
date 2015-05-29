@@ -471,8 +471,6 @@ SUBROUTINE compute_skyview( slope_ang, slope_asp, horizon, nhori, skyview )
     i, i0, k, ip
 
   REAL(KIND=wp)                                    :: &
-!    sffront,                 & !  !_br 21.02.14  defined twice
-!    sfback,                  & !  !_br 21.02.14  defined twice
     rslope_ang,              & ! slope angle [rad]
     rdeghor,                 & ! number of radians per sector [rad]
     cosa, cosah, sinah,      & ! cosine, half cosine, half sine of the slope angle resp. [-] 
@@ -647,8 +645,7 @@ END SUBROUTINE compute_skyview
 FUNCTION atan22( psi, cosalfa )
 
   REAL (KIND=wp),INTENT(IN) :: psi, cosalfa
-!  REAL (KIND=wp),INTENT(OUT):: atan22 !_br 21.02.14
-  REAL (KIND=wp):: atan22 !_br 21.02.14 function should not have an INTENT attribute
+  REAL (KIND=wp):: atan22
   REAL (KIND=wp) :: pih, pi3h, x
 
   IF( cosalfa == 0.0_wp ) THEN 
@@ -697,7 +694,6 @@ END FUNCTION sffront
 
     REAL(KIND=wp),INTENT(IN):: c, s, hpip, hpi, so, su
     REAL(KIND=wp)           :: sfback
-!    REAL(KIND=wp)           :: atan22 !_br 21.02.14 defined twice
 
     sfback = s * ( hpip * COS(so) - hpi * COS(su) ) 
     sfback = sfback + 0.5_wp * ( atan22(so,c) - atan22(su,c) ) 

@@ -348,7 +348,7 @@ MODULE mo_agg_glcc
      rows: DO j_row=1,glcc_grid%nlat_reg
        point_lat = lat_glcc(j_row)
         
-       IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, save some I/O from hard disk if you are out or the target domain
+       IF (tg%igrid_type == igrid_cosmo) THEN ! CASE COSMO grid, omit I/O from hard disk when outside target domain
          IF ((point_lat > bound_north_cosmo).OR.(point_lat < bound_south_cosmo) ) THEN ! raw data out of target grid
            CYCLE rows
          ENDIF
