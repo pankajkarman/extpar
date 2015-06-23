@@ -13,6 +13,8 @@
 !  introduced MODIS albedo dataset(s) as new external parameter(s) 
 ! V2_0_3       2015-01-12 Juergen Helmert
 !  Bugfix correction covers CSCS SVN r5907-r6359
+! V3_0         2015-05-18 Juergen Helmert 
+!  Remove tableVersion from GRIB2-Output use Template default         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -1150,7 +1152,9 @@ MODULE mo_extpar_output_grib
   CALL grib_set (gribid_dest,'centre'                     ,78) ! DWD
   CALL grib_set (gribid_dest,'subCentre'                  ,255)! DWD
 
-  CALL grib_set (gribid_dest,'tablesVersion',5)
+!Only needed if a wrong value in the Template exist: was the case for early grib_api-versions
+!   call grib_set (gribid_dest,'tablesVersion',11)
+!  CALL grib_set (gribid_dest,'tablesVersion',5)
 
 
   ! grib2/tables/4/1.2.table :: 0=ana,1=fc_start,2=veri_time
@@ -1577,7 +1581,7 @@ MODULE mo_extpar_output_grib
   CALL grib_set (ogrib,'endStep',0)
   CALL grib_set (ogrib,'stepUnits',1)
 
-  CALL grib_set (ogrib,'tablesVersion',11)
+!  CALL grib_set (ogrib,'tablesVersion',11)
   CALL grib_set (ogrib,'productDefinitionTemplateNumber', 53)
   CALL grib_set (ogrib,'discipline',2)
   CALL grib_set (ogrib,'parameterCategory',0)

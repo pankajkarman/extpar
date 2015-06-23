@@ -12,6 +12,8 @@ mo_agg_ecoclimap.o \
 mo_agg_ndvi.o \
 mo_agg_soil.o \
 mo_agg_topo.o \
+mo_agg_ahf.o \
+mo_agg_isa.o \
 mo_albedo_data.o \
 mo_albedo_output_nc.o \
 mo_albedo_routines.o \
@@ -81,6 +83,14 @@ mo_topo_routines.o \
 mo_topo_sso.o \
 mo_topo_tg_fields.o \
 mo_utilities_extpar.o \
+mo_ahf_data.o \
+mo_ahf_output_nc.o \
+mo_ahf_routines.o \
+mo_ahf_tg_fields.o \
+mo_isa_data.o \
+mo_isa_output_nc.o \
+mo_isa_routines.o \
+mo_isa_tg_fields.o \
 mo_var_meta_data.o 
 
 GRIBOBJ := \

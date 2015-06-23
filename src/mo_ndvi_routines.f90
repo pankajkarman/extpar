@@ -7,7 +7,7 @@
 !  Initial release
 ! V2_0_3       2015-02-23 Juergen Helmert, Daniel Luethi
 !  Increase working precision in grid size computation
-!  compute raw data lat/lon values (values on file are unaccurate)
+!  compute raw data lat/lon values (values on file are inaccurate)
 !
 ! Code Description:
 ! Language: Fortran 2003.

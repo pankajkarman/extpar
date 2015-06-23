@@ -1,6 +1,10 @@
 SRC := \
 $(ROOT)/$(SRCDIR)/info_extpar.f90 \
 $(ROOT)/$(SRCDIR)/mo_additional_geometry.f90 \
+$(ROOT)/$(SRCDIR)/mo_ahf_data.f90 \
+$(ROOT)/$(SRCDIR)/mo_ahf_output_nc.f90 \
+$(ROOT)/$(SRCDIR)/mo_ahf_routines.f90 \
+$(ROOT)/$(SRCDIR)/mo_ahf_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_albedo.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_aot.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_cru.f90 \
@@ -12,6 +16,8 @@ $(ROOT)/$(SRCDIR)/mo_agg_ecoclimap.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ndvi.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_soil.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_topo.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_ahf.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_isa.f90 \
 $(ROOT)/$(SRCDIR)/mo_albedo_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_albedo_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_albedo_routines.f90 \
@@ -50,6 +56,10 @@ $(ROOT)/$(SRCDIR)/mo_icon_grid_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_icon_grid_routines.f90 \
 $(ROOT)/$(SRCDIR)/mo_io_units.f90 \
 $(ROOT)/$(SRCDIR)/mo_io_utilities.f90 \
+$(ROOT)/$(SRCDIR)/mo_isa_data.f90 \
+$(ROOT)/$(SRCDIR)/mo_isa_output_nc.f90 \
+$(ROOT)/$(SRCDIR)/mo_isa_routines.f90 \
+$(ROOT)/$(SRCDIR)/mo_isa_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_kind.f90 \
 $(ROOT)/$(SRCDIR)/mo_landuse_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_landuse_routines.f90 \
@@ -90,7 +100,9 @@ $(ROOT)/$(SRCDIR)/extpar_consistency_check.f90 \
 $(ROOT)/$(SRCDIR)/extpar_soil_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_cru_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_topo_to_buffer.f90 \
-$(ROOT)/$(SRCDIR)/extpar_flake_to_buffer.f90
+$(ROOT)/$(SRCDIR)/extpar_flake_to_buffer.f90 \
+$(ROOT)/$(SRCDIR)/extpar_ahf_to_buffer.f90 \
+$(ROOT)/$(SRCDIR)/extpar_isa_to_buffer.f90 
 
 GRIBSRC := \
 $(ROOT)/$(SRCDIR)/mo_extpar_output_grib.f90 \

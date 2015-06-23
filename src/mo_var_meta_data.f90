@@ -24,6 +24,10 @@
 !  introduced HWSD soil data set as new external parameters (Juergen Helmert)
 !  contains the topsoil and the subsoil
 !  allow for different AOT climatologies       
+! V2_0_3       2015-01-12 Juergen Helmert
+!  Bugfix correction covers CSCS SVN r5907-r6359
+! V3_0         2015-05-21 Juergen Helmert 
+!  Add information for urban fields ISA and AHF         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -101,6 +105,12 @@ MODULE mo_var_meta_data
 
   PUBLIC :: def_glcc_fields_meta
 
+  PUBLIC :: dim_isa_tg
+
+  PUBLIC :: isa_field_meta,isa_tot_npixel_meta
+  
+  PUBLIC :: def_isa_fields_meta
+
   PUBLIC :: dim_lu_tg, dim_ecoclimap_tg, dim_ecoclimap_tg2
 
   PUBLIC :: fr_land_lu_meta, fr_land_mask_meta,lu_tot_npixel_meta, &
@@ -144,6 +154,8 @@ MODULE mo_var_meta_data
   PUBLIC :: def_flake_fields_meta
   PUBLIC :: def_lsm_fields_meta
 
+  PUBLIC :: dim_ahf_tg, def_ahf_meta
+  PUBLIC :: ahf_field_meta
 
   PUBLIC :: dim_ndvi_tg, def_ndvi_meta
   PUBLIC :: ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
@@ -173,6 +185,8 @@ MODULE mo_var_meta_data
   TYPE(dim_meta_info), TARGET,ALLOCATABLE :: dim_glcc_tg(:)
 
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_lu_tg(:)
+  TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_isa_tg(:)
+  TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_ahf_tg(:)
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_ecoclimap_tg(:)
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_ecoclimap_tg2(:)
   TYPE(dim_meta_info), TARGET, ALLOCATABLE :: dim_ndvi_tg(:)
@@ -184,6 +198,10 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: aer_org_meta !< additional information for variable with aerosol optical thickness of organic matter
   TYPE(var_meta_info) :: aer_so4_meta !< additional information for variable with aerosol optical thickness of sulfate
   TYPE(var_meta_info) :: aer_ss_meta !< additional information for variable with aerosol optical thickness of sea salt
+
+  TYPE(var_meta_info) :: ahf_field_meta !< additional information for variable 
+
+  TYPE(var_meta_info) :: ndvi_field_meta !< additional information for variable 
 
   TYPE(var_meta_info) :: ndvi_max_meta !< additional information for variable 
   TYPE(var_meta_info) :: ndvi_field_mom_meta !< additional information for variable 
@@ -229,7 +247,8 @@ MODULE mo_var_meta_data
   TYPE(var_meta_info) :: for_e_glc2000_meta !< additional information for variable
   TYPE(var_meta_info) :: emissivity_glc2000_meta !< additional information for variable
 
-  
+  TYPE(var_meta_info) :: isa_field_meta  !< additional information for variable
+  TYPE(var_meta_info) :: isa_tot_npixel_meta !< additional information for variable
   TYPE(var_meta_info) :: fr_land_glcc_meta  !< additional information for variable
   TYPE(var_meta_info) :: glcc_tot_npixel_meta !< additional information for variable
   TYPE(var_meta_info) :: glcc_class_npixel_meta !< additional information for variable
@@ -942,6 +961,107 @@ MODULE mo_var_meta_data
     alb_sat_meta%data_set = 'MODIS soil color derived soil albedo'
 
   END SUBROUTINE def_alb_meta
+
+  !> define meta information for AHF data for netcdf output
+  SUBROUTINE def_ahf_meta(tg,diminfo,coordinates,grid_mapping)
+    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
+    CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+
+    ! local variables
+    INTEGER  :: n_dim      !< number of dimensions
+    CHARACTER (len=80) :: gridmp
+    CHARACTER (len=80) :: coord
+
+    gridmp = c_undef
+    coord = c_undef
+    
+    IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
+    IF (PRESENT(coordinates)) coord = TRIM(coordinates)
+    n_dim = SIZE(diminfo)
+
+    ahf_field_meta%varname = 'AHF'
+    ahf_field_meta%n_dim = n_dim
+    ahf_field_meta%diminfo => diminfo
+    ahf_field_meta%vartype = vartype_real !REAL variable
+    ahf_field_meta%standard_name = 'Anthropogenice heat flux'
+    ahf_field_meta%long_name = 'AHF annual mean for 2006'
+    ahf_field_meta%shortName = 'GFLUX'
+    ahf_field_meta%units = c_undef
+    ahf_field_meta%grid_mapping = gridmp
+    ahf_field_meta%coordinates = coord
+     
+  END SUBROUTINE def_ahf_meta
+
+  !> define meta information for  landuse target fields
+  SUBROUTINE def_isa_fields_meta(tg,diminfo,coordinates,grid_mapping)
+    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+    TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
+    CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
+    CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
+
+
+    ! local variables
+    INTEGER  :: n_dim      !< number of dimensions
+    CHARACTER (len=80) :: gridmp
+    CHARACTER (len=80) :: coord
+
+    gridmp = c_undef
+    coord = c_undef
+    
+    IF (PRESENT(grid_mapping)) gridmp = TRIM(grid_mapping)
+    IF (PRESENT(coordinates)) coord = TRIM(coordinates)
+
+    n_dim = SIZE(diminfo)
+
+
+    ! ! set meta information for strucutre dim_ndvi_tg
+    ! IF (ALLOCATED(dim_isa_tg)) DEALLOCATE(dim_isa_tg)
+    ! ALLOCATE(dim_isa_tg(1:n_dim))
+    ! SELECT CASE(n_dim)
+    ! CASE (1)
+    !   dim_isa_tg(1)%dimname = diminfo(1)%dimname 
+    !   dim_isa_tg(1)%dimsize = diminfo(1)%dimsize
+    ! CASE (2)
+    !   dim_isa_tg(1)%dimname = diminfo(1)%dimname
+    !   dim_isa_tg(1)%dimsize = diminfo(1)%dimsize
+    !   dim_isa_tg(2)%dimname = diminfo(2)%dimname
+    !   dim_isa_tg(2)%dimsize = diminfo(2)%dimsize
+    ! CASE (3)
+    !   dim_isa_tg(1)%dimname = diminfo(1)%dimname
+    !   dim_isa_tg(1)%dimsize = diminfo(1)%dimsize
+    !   dim_isa_tg(2)%dimname = diminfo(2)%dimname
+    !   dim_isa_tg(2)%dimsize = diminfo(2)%dimsize
+    !   dim_isa_tg(3)%dimname = diminfo(3)%dimname
+    !   dim_isa_tg(3)%dimsize = diminfo(3)%dimsize
+    ! END SELECT
+
+   ! isa_tot_npixel_meta
+    isa_tot_npixel_meta%varname = 'ISA_TOT_NPIXEL'
+    isa_tot_npixel_meta%n_dim = n_dim
+    isa_tot_npixel_meta%diminfo => diminfo
+    isa_tot_npixel_meta%vartype = vartype_int !INTEGER variable
+    isa_tot_npixel_meta%standard_name = 'npixel'
+    isa_tot_npixel_meta%long_name = 'number of raw data pixel in target grid element'
+    isa_tot_npixel_meta%shortName = c_undef
+    isa_tot_npixel_meta%units = c_undef
+    isa_tot_npixel_meta%grid_mapping = gridmp
+    isa_tot_npixel_meta%coordinates = coord
+
+    ! urban_isa_meta
+    isa_field_meta%varname = 'ISA'
+    isa_field_meta%n_dim = n_dim
+    isa_field_meta%diminfo => diminfo
+    isa_field_meta%vartype = vartype_real !REAL variable
+    isa_field_meta%standard_name = 'fraction_of_impervious_surfaces'
+    isa_field_meta%long_name = 'impervious surface area'
+    isa_field_meta%shortName = 'GRAD' ! dummy for GRIB2
+    isa_field_meta%units =  c_undef
+    isa_field_meta%grid_mapping = gridmp
+    isa_field_meta%coordinates = coord
+
+  END SUBROUTINE def_isa_fields_meta
 
   !> define meta information for NDVI data for netcdf output
   SUBROUTINE def_ndvi_meta(tg,ntime,diminfo,coordinates,grid_mapping)

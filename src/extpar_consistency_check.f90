@@ -41,6 +41,10 @@
 !  Globcover 2009
 ! V2_0_3       2015-01-12 Juergen Helmert 
 !  Bugfix correction covers CSCS SVN r5907-r6359
+! V3_0         2015-05-18 Juergen Helmert, 2015-06-19 Daniel Luethi
+!  Change tile_mode switch to integer, scale glacier soil with fr_land         
+!  Modification of Caspian Sea treatment (height below sea level, JH), adjust surface height (DL) 
+!  Adaptions for urban fields         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -231,6 +235,8 @@ USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_glcc
 USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_lu
 USE mo_landuse_output_nc, ONLY: read_netcdf_buffer_ecoclimap
 
+USE mo_isa_output_nc, ONLY: read_netcdf_buffer_isa
+
 USE mo_landuse_routines, ONLY: read_namelists_extpar_land_use
 
 USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
@@ -294,6 +300,23 @@ USE mo_albedo_data, ONLY: alb_raw_data_grid, &
                           lon_alb, &
                           lat_alb, &
                           ntime_alb
+
+USE mo_isa_tg_fields, ONLY: isa_field, &
+  &        isa_tot_npixel
+
+
+USE mo_isa_tg_fields, ONLY: allocate_isa_target_fields, &
+  & allocate_add_isa_fields
+
+USE mo_isa_routines, ONLY: read_namelists_extpar_isa
+
+USE mo_ahf_tg_fields, ONLY: ahf_field, &
+    &                                allocate_ahf_target_fields
+
+USE mo_ahf_data, ONLY: undef_ahf, minimal_ahf
+USE mo_ahf_output_nc, ONLY: read_netcdf_buffer_ahf
+
+USE mo_ahf_routines, ONLY: read_namelists_extpar_ahf
 
 USE mo_ndvi_tg_fields, ONLY: ndvi_field, &
     &                                ndvi_max, &
@@ -378,6 +401,9 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
 USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
 
+USE mo_isa_data,   ONLY: max_tiles_isa
+USE mo_isa_data, ONLY: undef_isa, minimal_isa
+
   IMPLICIT NONE
 
   CHARACTER (len=filename_max) :: namelist_grid_def
@@ -448,6 +474,22 @@ USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
   CHARACTER (len=filename_max) :: alb_output_file    !< name for albedo output file
   !-----------------------------------------------------------------------------------------------------------------------
   CHARACTER (len=filename_max) :: land_sea_mask_file !< name for external land-sea-mask
+
+  ! ISA
+  CHARACTER (len=filename_max) :: raw_data_isa_path        !< path to raw data
+  CHARACTER (len=filename_max) :: raw_data_isa_filename(1:max_tiles_isa) !< filename glc2000 raw data
+  INTEGER                      :: ntiles_isa
+  CHARACTER (len=filename_max) :: isa_buffer_file !< name for NDVI buffer file
+  CHARACTER (len=filename_max) :: isa_output_file !< name for NDVI output file
+  CHARACTER (len=filename_max) :: isa_buffer_cons_output  !< name for ahf output file after consistency check
+
+  !AHF
+  CHARACTER (len=filename_max) :: raw_data_ahf_path        !< path to raw data
+  CHARACTER (len=filename_max) :: raw_data_ahf_filename !< filename NDVI raw data
+
+  CHARACTER (len=filename_max) :: ahf_buffer_file !< name for NDVI buffer file
+  CHARACTER (len=filename_max) :: ahf_output_file !< name for NDVI output file
+  CHARACTER (len=filename_max) :: ahf_buffer_cons_output  !< name for ahf output file after consistency check
 
   ! NDVI
   CHARACTER (len=filename_max) :: raw_data_ndvi_path        !< path to raw data
@@ -561,6 +603,8 @@ USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
   ! lapse rate
   REAL (KIND=wp) :: lr = 0.0064_wp !< lapse rate [K/m] 
 
+  LOGICAL :: l_use_isa=.FALSE. !< flag if additional urban data are present
+  LOGICAL :: l_use_ahf=.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
   REAL :: lu_data_southern_boundary
 
@@ -622,10 +666,13 @@ USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
   CHARACTER (LEN=filename_max) :: path_aluvd_file
   CHARACTER (LEN=filename_max) :: alb_source, alnid_source, aluvd_source
   CHARACTER (LEN=filename_max) :: namelist_alb_data_input
-  LOGICAL                      :: tile_mode
-
+  CHARACTER (LEN=filename_max), DIMENSION(1:23) :: glc_class
+  INTEGER                      :: tile_mode
+  LOGICAL                      :: tile_mask
+ 
 ! for albedo consistency check
   REAL (KIND=wp) :: albvis_min, albnir_min, albuv_min  
+  REAL (KIND=wp) :: hh_death_sea
 
 ! T_CL consistency check
   INTEGER (KIND=i4) :: iml, imu, ipl, ipu, jml, jmu, jpl, jpu, ntclct, l
@@ -829,6 +876,33 @@ END SELECT
   PRINT *,'name_lookup_table_lu: ',TRIM(name_lookup_table_lu)
 
   !--------------------------------------------------------------------------------------------------------
+  ! get info on urban data file
+  !--------------------------------------------------------------------------------------------------------
+  namelist_file = 'INPUT_ISA'
+  INQUIRE(file=TRIM(namelist_file),exist=l_use_isa)
+  IF (l_use_isa) THEN
+  PRINT *,'URBAN DATA ISA active: Reading INPUT-File...'
+  CALL read_namelists_extpar_isa(namelist_file, &
+  !  &                                 i_isa_data,         &
+    &                                 raw_data_isa_path,       &
+    &                                 raw_data_isa_filename,   &
+    &                                 ntiles_isa,       &
+    &                                 isa_buffer_file,         &
+    &                                 isa_output_file)
+  END IF
+
+  namelist_file = 'INPUT_AHF'
+  INQUIRE(file=TRIM(namelist_file),exist=l_use_ahf)
+  IF (l_use_ahf) THEN
+  PRINT *,'URBAN DATA AHF active: Reading INPUT-File...'
+  CALL  read_namelists_extpar_ahf(namelist_file, &
+    &                                  raw_data_ahf_path, &
+    &                                  raw_data_ahf_filename, &
+    &                                  ahf_buffer_file, &
+    &                                  ahf_output_file)
+  END IF
+
+  !--------------------------------------------------------------------------------------------------------
   ! get filenames from namelist
   !--------------------------------------------------------------------------------------------------------
   namelist_file = 'INPUT_CHECK'
@@ -852,6 +926,11 @@ END SELECT
                                      lwrite_grib, &
                                      number_special_points, tile_mode )
 
+  IF (tile_mode == 1) THEN
+    tile_mask=.TRUE.
+    PRINT*, 'Tile mode for EXTPAR is set to tile_mode= ',tile_mode,'tile_mask= ',tile_mask 
+  END IF
+
   ! test for glcc data
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
   IF (l_use_glcc) THEN
@@ -865,6 +944,16 @@ END SELECT
 
   CALL allocate_soil_target_fields(tg,ldeep_soil)
   PRINT *,'soil fields allocated'
+
+  IF (l_use_ahf) THEN
+    CALL allocate_ahf_target_fields(tg)
+    PRINT *,'AHF fields allocated'
+  END IF
+  IF (l_use_isa) THEN
+    CALL allocate_isa_target_fields(tg)
+    CALL allocate_add_isa_fields(tg)
+    PRINT *,'ISA fields allocated'
+  END IF
 
   CALL allocate_ndvi_target_fields(tg,ntime_ndvi)
   PRINT *,'ntime_ndvi ', ntime_ndvi
@@ -987,6 +1076,24 @@ END SELECT
    &                                     fr_land_soil,&
    &                                     soiltype_fao)
   ENDIF
+
+  IF (l_use_isa) THEN
+    PRINT *,'Read in ISA data'
+    CALL read_netcdf_buffer_isa(isa_buffer_file,  &
+      &                                     tg,         &
+      &                                     undefined, &
+      &                                     undef_int,   &
+      &                                     isa_field, &
+      &                                     isa_tot_npixel )
+  END IF
+  IF (l_use_ahf) THEN
+    PRINT *,'Read in AHF data'
+    CALL read_netcdf_buffer_ahf(ahf_buffer_file,  &
+     &                                     tg,         &
+     &                                     undefined, &
+     &                                     undef_int, &
+     &                                     ahf_field )
+  END IF
 
   PRINT *,'Read in albedo data'
   IF (ialb_type == 2) THEN
@@ -1225,7 +1332,7 @@ END SELECT
 !------------------------------------------------------------------------------------------
 !------------- land use data consistency  -------------------------------------------------
 !------------------------------------------------------------------------------------------
-      IF (.NOT. tile_mode) THEN   ! values are kept for ICON because of tile approach
+      IF (tile_mode < 1) THEN   ! values are kept for ICON because of tile approach
         WHERE (fr_land_lu < 0.5)  ! set vegetation to undefined (0.) for water grid elements
         ! z0 and emissivity are not set to undefined_lu
           ice_lu            = undefined_lu
@@ -1262,7 +1369,7 @@ END SELECT
       SELECT CASE (isoil_data)
       CASE(FAO_data, HWSD_map)
 
-        WHERE (fr_land_lu <  MERGE(0.01,0.5,tile_mode))  ! set water soiltype for water grid elements
+        WHERE (fr_land_lu <  MERGE(0.01,0.5,tile_mask))  ! set water soiltype for water grid elements
                            ! MERGE(TSOURCE, FSOURCE, MASK) is a function which joins two arrays. 
                            ! It gives the elements in TSOURCE if the condition in MASK is .TRUE. and 
                            ! FSOURCE if the condition in MASK is .FALSE.  
@@ -1288,7 +1395,7 @@ END SELECT
             DO j=1,tg%je
               DO i=1,tg%ie
                 IF  ( (soiltype_fao(i,j,k) /= soiltype_ice) .AND.  & 
-               &    (fr_land_lu(i,j,k) > 0.5).AND. (ice_lu(i,j,k) > 0.5 )) THEN
+               &    (fr_land_lu(i,j,k) * ice_lu(i,j,k) > 0.5 )) THEN
                   soiltype_fao(i,j,k) = soiltype_ice 
                   db_ice_counter = db_ice_counter +1
                 ENDIF
@@ -1386,7 +1493,7 @@ END SELECT
         ENDWHERE
         
         IF(igrid_type == igrid_icon) THEN
-          WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mode))  ! set water soiltype for water grid elements
+          WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask))  ! set water soiltype for water grid elements
                             !MERGE(TSOURCE, FSOURCE, MASK) is a function which joins two arrays. 
                             !It gives the elements in TSOURCE if the condition in MASK is .TRUE. and 
                             !FSOURCE if the condition in MASK is .FALSE.  
@@ -1461,36 +1568,49 @@ END SELECT
      ! determine "fraction ocean" first before considering "fraction lake"
      ! fr_ocean should be determined by ocean model if available
      ! so use (1. - lsm_ocean_model) as mask instead of fr_land_topo from the orography data
-     thr_cr = 0.99
+     thr_cr = 0.95
      WHERE (fr_land_topo < thr_cr)
        fr_ocean_lu = 1. - fr_land_lu
        fr_lake = 0.0
-     ELSEWHERE
-       fr_ocean_lu = 0.0
-       fr_lake = 1. - fr_land_lu
      ENDWHERE
 
-     ! set Death Sea to "ocean water"
-     WHERE ((hh_topo < -390.).AND. &
-      &     (lon_geo > 35.).AND.(lon_geo < 36.).AND. &
-      &     (lat_geo > 31.).AND.(lat_geo < 32.) )
-       fr_ocean_lu = 1. - fr_land_lu
-       fr_lake = 0.0
+     ! set surface height of all Death Sea points to the level given in the 
+     ! repective data_set, i. e. -405 m (GLOBE) and -432 m (ASTER)
+     hh_death_sea = -405._wp
+     IF (itopo_type ==2) hh_death_sea = -432._wp 
+     WHERE ((lon_geo > 35.).AND.(lon_geo < 36.).AND. &
+      &     (lat_geo > 31.).AND.(lat_geo < 32.).AND. &
+      &     (1._wp - fr_land_lu > 0.5_wp))
+       hh_topo = hh_death_sea
+       fr_lake = 0.0_wp
+       fr_ocean_lu = 1._wp - fr_land_lu
+     ENDWHERE
+     WHERE ((lon_geo > 35.).AND.(lon_geo < 36.).AND. &
+      &     (lat_geo > 31.).AND.(lat_geo < 32.))
+       hh_topo = MAX(hh_topo, hh_death_sea)
+       fr_ocean_lu = fr_ocean_lu + fr_lake
+       fr_lake = 0.0_wp
+       fr_land_lu = 1._wp - fr_ocean_lu
      ENDWHERE
      
-     ! set Caspian Sea to "ocean water"
-     WHERE ((hh_topo < 33.).AND. &
-      &     (lon_geo > 46.).AND.(lon_geo < 55.).AND. &
-      &     (lat_geo > 36.).AND.(lat_geo < 48.) )
-       fr_ocean_lu = 1. - fr_land_lu
-       fr_lake = 0.0
+     ! set surface height of all Caspian Sea points to -28. meters
+     WHERE ((lon_geo > 46.).AND.(lon_geo < 55.).AND. &
+      &     (lat_geo > 36.).AND.(lat_geo < 48.).AND. &
+      &     (1._wp - fr_land_lu > 0.5_wp) )
+       hh_topo = -28._wp
+       fr_lake = 0.0 
+       fr_ocean_lu = 1. - fr_land_lu       
      ENDWHERE
-     ! here fr_ocean_lu + fr_lake +fr_land_lu = 1
-     ! fr_ocean_lu + fr_lake = fr_water
-     ! fr_water + fr_land_lu = 1
+     WHERE ((lon_geo > 46.).AND.(lon_geo < 55.).AND. &
+      &     (lat_geo > 36.).AND.(lat_geo < 48.) )
+       hh_topo = MAX(hh_topo, -28._wp)
+       fr_ocean_lu = fr_ocean_lu + fr_lake
+       fr_lake = 0.0_wp
+       fr_land_lu = 1._wp - fr_ocean_lu       
+     ENDWHERE
 
      ! check consistency for "lake depth"
-     IF (tile_mode) THEN ! subgrid lakes for ICON 
+     IF (tile_mode == 1) THEN ! subgrid lakes for ICON 
        WHERE (fr_land_lu >= thr_cr ) ! 0.5)  
          lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
        ENDWHERE 
@@ -1597,6 +1717,7 @@ END SELECT
                  IF ((ne_ie(n)>= 1).AND.(ne_je(n)>=1).AND.(ne_ke(n)>=1)) THEN
                    IF (fr_ocean_lu(ne_ie(n),ne_je(n),ne_ke(n))>0.5) THEN ! if the direct neighbour element is ocean,
                      fr_lake(i,j,k) = 0.0                                ! set this grid element also to ocean.
+                     IF ((i==391).AND.(j==267)) PRINT *,'changed: ',ne_ie(n),ne_je(n),ne_ke(n),fr_ocean_lu(ne_ie(n),ne_je(n),ne_ke(n))
                      fr_ocean_lu(i,j,k) = 1.0 - fr_land_lu(i,j,k)
                      lake_depth(i,j,k) = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
                    ENDIF  
@@ -1622,7 +1743,7 @@ END SELECT
       
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart
-      PRINT *,'flake data consitency check, WHERE, done in: ', timediff
+      PRINT *,'flake data consistency check, WHERE, done in: ', timediff
 
 !------------------------------------------------------------------------------------------
 !------------- Albedo data consistency ------------------------------------------------------
@@ -1709,6 +1830,45 @@ END SELECT
     ENDIF
 
 !------------------------------------------------------------------------------------------
+!------------- ISA/AHF data consistency ---------------------------------------------------
+!------------------------------------------------------------------------------------------
+
+    IF (l_use_isa.AND.l_use_ahf) THEN
+
+      ! set default ISA/AHF values for land grid elements with so far undefined values or very small NDVI values
+      PRINT *,'ISA/AHF data consistency check'
+      
+      CALL CPU_TIME(timestart)
+      !minimal_ndvi = 0.09 ! bare soil value
+      !undef_ndvi   = 0.0  ! no vegetation
+
+
+      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined ISA value (0.0) for water grid elements
+        isa_field = undef_isa
+      ELSEWHERE ! fr_land_lu >= 0.5
+        WHERE (isa_field <= minimal_isa) ! small ISA values at land grid elements
+          isa_field = minimal_isa
+        ENDWHERE
+      ENDWHERE
+
+
+      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined AHF value (0.0) for water grid elements
+        ahf_field = undef_ahf
+      ELSEWHERE ! fr_land_lu >= 0.5
+        WHERE (ahf_field <= minimal_ahf) ! small AHF values at land grid elements
+          ahf_field = minimal_ahf
+        ENDWHERE
+      ENDWHERE
+
+      PRINT *,'Urban data consistency check'
+
+      WHERE (fr_land_lu < 0.5)  ! set water soiltype for water grid elements
+        isa_field=0.
+      ENDWHERE 
+    END IF
+!------------------------------------------------------------------------------------------
+
+!------------------------------------------------------------------------------------------
 !------------- NDVI data consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
 
@@ -1719,7 +1879,7 @@ END SELECT
       !minimal_ndvi = 0.09 ! bare soil value
       !undef_ndvi   = 0.0  ! no vegetation
 
-      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mode)) ! set undefined NDVI value (0.0) for water grid elements
+      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined NDVI value (0.0) for water grid elements
         ndvi_max = undef_ndvi
       ELSEWHERE ! fr_land_lu >= 0.5
         WHERE (ndvi_max <= minimal_ndvi) ! small NDVI values at land grid elements
@@ -1728,18 +1888,18 @@ END SELECT
       ENDWHERE
         
       FORALL (t=1:mpy) ! mpy = month per year = 12
-        WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mode)) ! set undefined NDVI value (0.0) for water grid elements
+        WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined NDVI value (0.0) for water grid elements
           ndvi_field_mom(:,:,:,t) = undef_ndvi
           ndvi_ratio_mom(:,:,:,t) = undef_ndvi
-         ELSEWHERE ! fr_land_lu >= 0.5
-           WHERE (ndvi_max(:,:,:) <= minimal_ndvi) ! small NDVI values at land grid elements
-              ndvi_field_mom(:,:,:,t) = minimal_ndvi
-              ndvi_ratio_mom(:,:,:,t) = 1.0  ! minimal_ndvi / minimal_ndvi ! ndvi_max set to minimal_ndvi
-            ENDWHERE 
-            WHERE (ndvi_field_mom(:,:,:,t) <= minimal_ndvi) ! small NDVI values at land grid elements
-              ndvi_field_mom(:,:,:,t) = minimal_ndvi
-              ndvi_ratio_mom(:,:,:,t) = minimal_ndvi / ndvi_max(:,:,:)
-            ENDWHERE
+        ELSEWHERE ! fr_land_lu >= 0.5
+          WHERE (ndvi_max(:,:,:) <= minimal_ndvi) ! small NDVI values at land grid elements
+            ndvi_field_mom(:,:,:,t) = minimal_ndvi
+            ndvi_ratio_mom(:,:,:,t) = 1.0  ! minimal_ndvi / minimal_ndvi ! ndvi_max set to minimal_ndvi
+          ENDWHERE 
+          WHERE (ndvi_field_mom(:,:,:,t) <= minimal_ndvi) ! small NDVI values at land grid elements
+            ndvi_field_mom(:,:,:,t) = minimal_ndvi
+            ndvi_ratio_mom(:,:,:,t) = minimal_ndvi / ndvi_max(:,:,:)
+          ENDWHERE
         ENDWHERE
       END FORALL
        
@@ -1878,8 +2038,9 @@ END SELECT
 !------------------------------------------------------------------------------------------
 !------------- Special Points        ------------------------------------------------------
 
-  SELECT CASE(igrid_type)  
-  CASE(igrid_cosmo) ! COSMO grid
+!  SELECT CASE(igrid_type)  
+!  CASE(igrid_cosmo) ! COSMO grid
+  IF (igrid_type==igrid_cosmo.OR.igrid_type==igrid_icon) THEN
 
     DO isp=1,number_special_points
       IF (number_special_points<1) THEN
@@ -1930,29 +2091,61 @@ END SELECT
         WRITE(*,'(A26,A10,A4,2X,I1)') "Consider special point in ",namelist_file," of ",number_special_points
         WRITE(*,'(A33,1X,2(F6.3,2X))') "Consider special point: lon,lat  ",lon_geo_sp,lat_geo_sp
         WRITE(*,'(A33,1X,3(I9,2X))') "Consider special point:  ie,je,ke   ",i_sp,j_sp,k_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," z0_tot old ",z0_tot (i_sp,j_sp,k_sp),"new ",z0_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," root_lu old ",root_lu(i_sp,j_sp,k_sp),"new ",rootdp_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,I5,2X,A4,I5)')"Consider special point: ",&
-              i_sp,j_sp," soiltype_fao old  ",soiltype_fao(i_sp,j_sp,k_sp),"new ",NINT(soiltype_sp)
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," plcov_mn_lu  old  ",plcov_mn_lu (i_sp,j_sp,k_sp),"new ",plcovmn_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," plcov_mx_lu  old  ",plcov_mx_lu (i_sp,j_sp,k_sp),"new ",plcovmx_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," lai_mn_lu    old  ",lai_mn_lu (i_sp,j_sp,k_sp),"new ",laimn_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," lai_mx_lu    old  ",lai_mx_lu (i_sp,j_sp,k_sp),"new ",laimx_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," for_d_lu     old  ",for_d_lu (i_sp,j_sp,k_sp),"new ",for_d_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," for_e_lu     old  ",for_e_lu (i_sp,j_sp,k_sp),"new ",for_e_sp
-        WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
-              i_sp,j_sp," fr_land      old  ",fr_land_lu(i_sp,j_sp,k_sp),"new ",fr_land_sp
+        IF ((i_sp == 0).OR.(j_sp == 0)) THEN
+          PRINT*,"CAUTION! Special points out of range of target domain!"
+        ELSE
+          WRITE(*,'(A23,I7,2X,I7,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," z0_tot old ",z0_tot (i_sp,j_sp,k_sp),"new ",z0_sp
+          WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," root_lu old ",root_lu(i_sp,j_sp,k_sp),"new ",rootdp_sp
+          WRITE(*,'(A23,I9,2X,I9,A19,I5,2X,A4,I5)')"Consider special point: ",&
+                i_sp,j_sp," soiltype_fao old  ",soiltype_fao(i_sp,j_sp,k_sp),"new ",NINT(soiltype_sp)
+          WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," plcov_mn_lu  old  ",plcov_mn_lu (i_sp,j_sp,k_sp),"new ",plcovmn_sp
+          WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," plcov_mx_lu  old  ",plcov_mx_lu (i_sp,j_sp,k_sp),"new ",plcovmx_sp
+          WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," lai_mn_lu    old  ",lai_mn_lu (i_sp,j_sp,k_sp),"new ",laimn_sp
+          WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," lai_mx_lu    old  ",lai_mx_lu (i_sp,j_sp,k_sp),"new ",laimx_sp
+          IF (for_d_sp >= 0._wp) WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," for_d_lu     old  ",for_d_lu (i_sp,j_sp,k_sp),"new ",for_d_sp
+          IF (for_e_sp >= 0._wp)WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," for_e_lu     old  ",for_e_lu (i_sp,j_sp,k_sp),"new ",for_e_sp
+          IF (fr_land_sp >= 0._wp)WRITE(*,'(A23,I9,2X,I9,A19,F6.4,2X,A4,F6.4)')"Consider special point: ",&
+                i_sp,j_sp," fr_land      old  ",fr_land_lu(i_sp,j_sp,k_sp),"new ",fr_land_sp
+          SELECT CASE (i_landuse_data)
+          CASE (i_lu_globcover)
+            glc_class(1)=  'Post-flooding or irrigated croplands                                              '
+            glc_class(2)=  'Rainfed croplands                                                                 '
+            glc_class(3)=  'Mosaic Cropland (50-70%) / Vegetation (grassland, shrubland, forest) (20-50%)     ' 
+            glc_class(4)=  'Mosaic Vegetation (grassland, shrubland, forest) (50-70%) / Cropland (20-50%)     ' 
+            glc_class(5)=  'Closed to open (>15%) broadleaved evergreen and/or semi-deciduous forest (>5m)    ' 
+            glc_class(6)=  'Closed (>40%) --broadleaved-- deciduous forest (>5m)                              ' 
+            glc_class(7)=  'Open (15-40%) broadleaved deciduous forest (>5m)                                  '
+            glc_class(8)=  'Closed (>40%) --needleleaved-- evergreen forest (>5m)                             '
+            glc_class(9)=  'Open (15-40%) needleleaved deciduous or evergreen forest (>5m)                    '
+            glc_class(10)= 'Closed to open (>15%) mixed broadleaved and needleleaved forest (>5m)             '
+            glc_class(11)= 'Mosaic Forest/Shrubland (50-70%) / Grassland (20-50%)                             '
+            glc_class(12)= 'Mosaic Grassland (50-70%) / Forest/Shrubland (20-50%)                             '
+            glc_class(13)= 'Closed to open (>15%) shrubland (<5m)                                             ' 
+            glc_class(14)= 'Closed to open (>15%) grassland                                                   '
+            glc_class(15)= 'Sparse (>15%) vegetation (woody vegetation, shrubs, grassland)                    '
+            glc_class(16)= 'Closed (>40%) broadleaved forest regularly flooded - Fresh water                  '
+            glc_class(17)= 'Closed (>40%) broadleaved semi-deciduous and/or evergreen forest regularly flooded' 
+            glc_class(18)= 'Closed to open (>15%) vegetation  on regularly flooded or waterlogged soil        ' 
+            glc_class(19)= 'Artificial surfaces and associated areas (urban areas >50%)                       '
+            glc_class(20)= 'Bare areas                                                                        '
+            glc_class(21)= 'Water bodies                                                                      '
+            glc_class(22)= 'Permanent snow and ice                                                            '
+            glc_class(23)= 'undefined                                                                         '
 
-        IF ((i_sp == 0).OR.(j_sp == 0)) PRINT*,"CAUTION! Special points out of range of target domain!"
-
+            DO i=1,nclass_globcover
+              WRITE (*,'(A33,1X,A85,2X,F8.4)') "Land-Use Fractions for GLOBCOVER class  ", &
+                        glc_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
+            ENDDO
+          END SELECT
+        ENDIF
 
         ! Consider only well defined variables, default is -999.!
         IF(z0_sp > 0._wp)          z0_tot (i_sp,j_sp,k_sp)      = z0_sp
@@ -1984,7 +2177,7 @@ END SELECT
 
     END DO ! Special Points  loop
 
-  END SELECT
+  END IF
 !------------------------------------------------------------------------------------------
 !------------- TOPO Data Consistency ------------------------------------------------------
 !------------------------------------------------------------------------------------------
@@ -2030,6 +2223,8 @@ END SELECT
     &                                     itopo_type,                    &
     &                                     lsso_param,                    &
     &                                     lscale_separation,             &
+    &                                     l_use_isa,                     &
+    &                                     l_use_ahf,                     &
     &                                     TRIM(y_orofilter),             &
     &                                     fill_value_real,               &
     &                                     fill_value_int,                &
@@ -2077,7 +2272,9 @@ END SELECT
     &                                     fr_bd_deep = fr_bd_deep,       &
     &                                     theta_topo=theta_topo,         &
     &                                     aniso_topo=aniso_topo,         &
-    &                                     slope_topo=slope_topo)
+    &                                     slope_topo=slope_topo,         &
+    &                                     isa_field=isa_field,           &
+    &                                     ahf_field=ahf_field             )         
 
 #ifdef GRIBAPI
      PRINT *,'write out ', TRIM(grib_output_filename)
@@ -2140,6 +2337,8 @@ END SELECT
      &                                     ldeep_soil,                  &
      &                                     itopo_type,                  &
      &                                     lsso_param,                  & 
+     &                                     l_use_isa,                   &
+     &                                     l_use_ahf,                   &
      &                                     lscale_separation,           &
      &                                     TRIM(y_orofilter),           &
      &                                     lradtopo,                    &  
@@ -2203,7 +2402,9 @@ END SELECT
      &                                     slope_asp_topo=slope_asp_topo,&
      &                                     slope_ang_topo=slope_ang_topo,&
      &                                     horizon_topo=horizon_topo,    &
-     &                                     skyview_topo=skyview_topo)
+     &                                     skyview_topo=skyview_topo,   &
+     &                                     isa_field=isa_field,         &
+     &                                     ahf_field=ahf_field           ) 
     ENDIF
 
 #ifdef GRIBAPI

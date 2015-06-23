@@ -118,7 +118,8 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
    CHARACTER (len=filename_max) :: alb_buffer_file  !< name for albedo buffer file
    CHARACTER (len=filename_max) :: land_sea_mask_file  !< name for land-sea mask file
    INTEGER                      :: number_special_points, i_lsm_data
-   LOGICAL                      :: lwrite_netcdf, lwrite_grib, tile_mode
+   INTEGER                      :: tile_mode
+   LOGICAL                      :: lwrite_netcdf, lwrite_grib
 
 
    !> namelist with filenames for output of soil data
@@ -153,7 +154,7 @@ SUBROUTINE read_namelists_extpar_check(namelist_file,         &
 
    lwrite_netcdf = .TRUE.
    lwrite_grib   = .TRUE.
-   tile_mode     = .FALSE.
+   tile_mode    = 0
 
    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 

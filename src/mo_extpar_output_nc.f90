@@ -32,8 +32,10 @@
 !  SSO parameters changed to optional parameters 
 !  allow for alternative AOT data sets via raw_data_aot_data
 !  allow for prescribed soil albedo instead of albedo       
-! V2_1         2015-01-12 Juergen Helmert
+! V2_0_3       2015-01-12 Juergen Helmert
 !  Bugfix correction covers CSCS SVN r5907-r6359
+! V3_0         2015-05-21 Juergen Helmert
+!  Adaptions for urban fields         
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -110,6 +112,8 @@ MODULE mo_extpar_output_nc
     &                                     ldeep_soil,          &
     &                                     itopo_type,          &
     &                                     lsso,                &
+    &                                     l_use_isa,           &
+    &                                     l_use_ahf,           &
     &                                     lscale_separation,   &
     &                                     y_orofilt,           &
     &                                     lrad,                &
@@ -173,7 +177,9 @@ MODULE mo_extpar_output_nc
     &                                     slope_asp_topo,      &
     &                                     slope_ang_topo,      &
     &                                     horizon_topo,        &
-    &                                     skyview_topo)
+    &                                     skyview_topo,        &
+    &                                     isa_field,           &
+    &                                     ahf_field            )
   
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
@@ -197,6 +203,12 @@ MODULE mo_extpar_output_nc
     &                         def_dimension_info_cosmo
 
   USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
+
+  USE mo_var_meta_data, ONLY: def_isa_fields_meta
+
+  USE mo_var_meta_data, ONLY: dim_isa_tg
+
+  USE mo_var_meta_data, ONLY: isa_field_meta, isa_tot_npixel_meta
 
   USE mo_var_meta_data, ONLY: def_lu_fields_meta
 
@@ -234,6 +246,10 @@ MODULE mo_extpar_output_nc
   USE mo_var_meta_data, ONLY: alb_dry_meta,         &
       &                       alb_sat_meta
 
+  USE mo_var_meta_data, ONLY: dim_ahf_tg
+  USE mo_var_meta_data, ONLY: ahf_field_meta,       &
+      &                       def_ahf_meta
+  
   USE mo_var_meta_data, ONLY: dim_ndvi_tg
   USE mo_var_meta_data, ONLY: ndvi_max_meta,       &
       &                       ndvi_field_mom_meta, &
@@ -279,6 +295,8 @@ MODULE mo_extpar_output_nc
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER,               INTENT(IN) :: isoil_data
   LOGICAL,               INTENT(IN) :: ldeep_soil
+  LOGICAL,               INTENT(IN) :: l_use_isa
+  LOGICAL,               INTENT(IN) :: l_use_ahf
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
   LOGICAL,               INTENT(IN) :: lscale_separation
@@ -349,6 +367,8 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN)            :: plcov12_lu(:,:,:,:) !<  plcov ecoclimap
   REAL(KIND=wp), INTENT(IN)            :: lai12_lu(:,:,:,:) !<  lai ecoclimap
   REAL(KIND=wp), INTENT(IN)            :: z012_lu(:,:,:,:) !<  lai ecoclimap
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: isa_field(:,:,:) !< impervious surface area
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: ahf_field(:,:,:) !< field for ahf
 
   ! local variables
   REAL(KIND=wp), ALLOCATABLE :: z012tot(:,:,:) !<  z0 ecoclimap plant+oro
@@ -364,6 +384,7 @@ MODULE mo_extpar_output_nc
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
   TYPE(dim_meta_info), TARGET :: dim_nclass(1:3)
+  TYPE(dim_meta_info), TARGET :: dim_3d_ahf(1:3)
   TYPE(dim_meta_info), TARGET :: dim_3d_ndvi(1:3)
   TYPE(dim_meta_info), TARGET :: dim_4d_aot(1:4)
   TYPE(dim_meta_info), POINTER :: pdiminfo
@@ -406,6 +427,10 @@ MODULE mo_extpar_output_nc
     CALL def_com_target_fields_meta(dim_2d_cosmo,coordinates,grid_mapping)
     ! lon_geo_meta and lat_geo_meta
 
+    ! define meta information for various land use related variables (GLC2000) for netcdf output
+    PRINT *,'def_isa_fields_meta'
+    CALL def_isa_fields_meta(tg,dim_2d_cosmo,coordinates,grid_mapping)
+
     ! define meta information for various land use related variables for netcdf output
     IF (i_landuse_data .eq. 4) THEN
       PRINT *,'def_ecoclimap_fields_meta'
@@ -421,6 +446,11 @@ MODULE mo_extpar_output_nc
 
     PRINT *,'def_alb_meta'
     CALL def_alb_meta(tg,ntime_alb,dim_2d_cosmo,coordinates,grid_mapping)
+
+    !define meta information for various AHF data related variables for netcdf output
+    PRINT *,'def_ahf_meta'
+    CALL def_ahf_meta(tg,dim_2d_cosmo,coordinates,grid_mapping)
+    ! dim_ahf_tg, ahf_field_meta
 
     !define meta information for various NDVI data related variables for netcdf output
     PRINT *,'def_ndvi_meta'
@@ -598,6 +628,19 @@ MODULE mo_extpar_output_nc
     ! urban_lu
     var_real_2d(:,:) = urban_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
     CALL netcdf_put_var(ncid,var_real_2d,urban_lu_meta,undefined)
+
+    IF (l_use_isa) THEN
+    ! isa_field
+      var_real_2d(:,:) = isa_field(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d,isa_field_meta,undefined)
+    END IF
+
+    IF (l_use_ahf) THEN
+    ! hw-marker. maybe provide a switch to either include/exclude ahf
+    ! ahf_field
+      var_real_2d(:,:) = ahf_field(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d,ahf_field_meta,undefined)
+    END IF
 
     ! for_d_lu
     var_real_2d(:,:) = for_d_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
@@ -900,6 +943,8 @@ MODULE mo_extpar_output_nc
     &                                     ldeep_soil,          &
     &                                     itopo_type,          &
     &                                     lsso,                &
+    &                                     l_use_isa,           &
+    &                                     l_use_ahf,           &
     &                                     lscale_separation,   &
     &                                     y_orofilt,           &
     &                                     undefined,           &
@@ -948,7 +993,9 @@ MODULE mo_extpar_output_nc
     &                                     fr_bd_deep,          &
     &                                     theta_topo,          &
     &                                     aniso_topo,          & 
-    &                                     slope_topo)
+    &                                     slope_topo,          &
+    &                                     isa_field,           &
+    &                                     ahf_field            )
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -968,6 +1015,13 @@ MODULE mo_extpar_output_nc
 
   USE mo_var_meta_data, ONLY: nc_grid_def_icon, &
     &                         set_nc_grid_def_icon
+
+  USE mo_var_meta_data, ONLY: def_isa_fields_meta
+  USE mo_var_meta_data, ONLY: dim_isa_tg
+  USE mo_var_meta_data, ONLY: isa_field_meta, isa_tot_npixel_meta
+  USE mo_var_meta_data, ONLY: dim_ahf_tg
+  USE mo_var_meta_data, ONLY: ahf_field_meta, &
+    &                         def_ahf_meta
 
   USE mo_var_meta_data, ONLY: def_lu_fields_meta
 
@@ -1040,6 +1094,8 @@ MODULE mo_extpar_output_nc
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER,               INTENT(IN) :: isoil_data
   LOGICAL,               INTENT(IN) :: ldeep_soil
+  LOGICAL,               INTENT(IN) :: l_use_isa
+  LOGICAL,               INTENT(IN) :: l_use_ahf
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
   LOGICAL,               INTENT(IN) :: lscale_separation
@@ -1094,9 +1150,11 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
 
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
-  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: slope_topo(:,:,:) !< sso parameter, mean slope
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: isa_field(:,:,:) !< field for isa 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: ahf_field(:,:,:) !< field for ahf 
 
   ! local variables
 
@@ -1173,6 +1231,9 @@ MODULE mo_extpar_output_nc
     CALL def_dimension_info_icon(icon_grid)
     ! dim_icon
 
+    ! define meta information for various land use related variables (GLC2000) for netcdf output
+    CALL def_isa_fields_meta(tg,dim_1d_icon)
+
     ! define meta information for various land use related variables for netcdf output
     CALL def_lu_fields_meta(tg,nclass_lu,dim_1d_icon,lu_dataset=lu_dataset)
     ! dim_lu_tg
@@ -1200,6 +1261,10 @@ MODULE mo_extpar_output_nc
     !  fr_land_soil_meta, soiltype_fao_meta
 
     CALL def_alb_meta(tg,ntime_alb,dim_1d_icon)
+    
+    !define meta information for various NDVI data related variables for netcdf output
+    CALL def_ahf_meta(tg,dim_1d_icon)
+    ! dim_ahf_tg, ahf_field_meta
     
     !define meta information for various NDVI data related variables for netcdf output
     CALL def_ndvi_meta(tg,ntime_ndvi,dim_1d_icon)
@@ -1345,6 +1410,12 @@ MODULE mo_extpar_output_nc
     n=11 ! z0_lu
     CALL netcdf_put_var(ncid,z0_lu(1:icon_grid%ncell,1,1),z0_lu_meta,undefined)
 
+    n=12 ! lon
+    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
+
+    n=13 ! lat
+    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
+
 !!$    n=12 ! lon
 !!$    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
 !!$
@@ -1357,38 +1428,48 @@ MODULE mo_extpar_output_nc
     !n=15 ! plcov_mn_lu
     !CALL netcdf_put_var(ncid,plcov_mn_lu(1:icon_grid%ncell,1,1),plcov_mn_lu_meta,undefined)
 
-    n=12 ! ndvi_max
+    n=14 ! ndvi_max
     CALL netcdf_put_var(ncid,ndvi_max(1:icon_grid%ncell,1,1),ndvi_max_meta,undefined)
 
-    n=13 ! hh_topo
+    n=15 ! hh_topo
     CALL netcdf_put_var(ncid,hh_topo(1:icon_grid%ncell,1,1),hh_topo_meta,undefined)
 
-    n=14 ! stdh_topo
+    n=16 ! stdh_topo
     CALL netcdf_put_var(ncid,stdh_topo(1:icon_grid%ncell,1,1),stdh_topo_meta,undefined)
 
     IF (lsso) THEN
-    n=15 ! theta_topo
-    CALL netcdf_put_var(ncid,theta_topo(1:icon_grid%ncell,1,1),theta_topo_meta,undefined)
+      n=17 ! theta_topo
+      CALL netcdf_put_var(ncid,theta_topo(1:icon_grid%ncell,1,1),theta_topo_meta,undefined)
     ENDIF
 
     IF (lsso) THEN
-    n=16 ! aniso_topo
-    CALL netcdf_put_var(ncid,aniso_topo(1:icon_grid%ncell,1,1),aniso_topo_meta,undefined)
+      n=18 ! aniso_topo
+      CALL netcdf_put_var(ncid,aniso_topo(1:icon_grid%ncell,1,1),aniso_topo_meta,undefined)
     ENDIF
 
     IF (lsso) THEN
-    n=17 ! slope_topo
-    CALL netcdf_put_var(ncid,slope_topo(1:icon_grid%ncell,1,1),slope_topo_meta,undefined)
+      n=19 ! slope_topo
+      CALL netcdf_put_var(ncid,slope_topo(1:icon_grid%ncell,1,1),slope_topo_meta,undefined)
     ENDIF
 
-    n=18 ! crutemp
+    n=20 ! crutemp
     CALL netcdf_put_var(ncid,crutemp(1:icon_grid%ncell,1,1),crutemp_meta,undefined)
 
-    n=19 ! fr_lake
+    n=21 ! fr_lake
     CALL netcdf_put_var(ncid,fr_lake(1:icon_grid%ncell,1,1),fr_lake_meta,undefined)
 
-    n=20 ! lake_depth
+    n=22 ! lake_depth
     CALL netcdf_put_var(ncid,lake_depth(1:icon_grid%ncell,1,1),lake_depth_meta,undefined)
+
+    IF (l_use_ahf) THEN
+      n=23 ! ahf
+      CALL netcdf_put_var(ncid,ahf_field(1:icon_grid%ncell,1,1),ahf_field_meta,undefined)
+    END IF
+
+    IF (l_use_isa) THEN
+      n=24 ! isa
+      CALL netcdf_put_var(ncid,isa_field(1:icon_grid%ncell,1,1),isa_field_meta,undefined)
+    END IF
 
 ! hh_vert not demanded for output 
 !!$    n=21 ! for vertex_param%hh_vert
