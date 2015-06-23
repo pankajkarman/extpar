@@ -1705,7 +1705,7 @@ MODULE mo_extpar_output_nc
 #endif
 
     global_attributes(9)%attname = 'version'
-    global_attributes(9)%attributetext='EXTPAR 2.0.2'
+    global_attributes(9)%attributetext='EXTPAR 3.0'
 
     global_attributes(10)%attname = 'Conventions'
     global_attributes(10)%attributetext = 'CF-1.5'
