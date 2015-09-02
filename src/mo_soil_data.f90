@@ -49,6 +49,8 @@ PUBLIC :: FAO_data, HWSD_data, HWSD_map
 PUBLIC :: soil_data
 PUBLIC :: deep_soil
 
+PUBLIC :: lon_full, lat_full
+
 
 !> Definition of Data Type to describe the legend for the FAO Digital Soil Map of the World
 TYPE :: dsmw_legend
@@ -90,6 +92,10 @@ TYPE(reg_lonlat_grid) :: dsmw_grid !< structure with defenition of the raw data 
 REAL (KIND=wp), ALLOCATABLE  :: lon_soil(:)
 ! latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)     
 REAL (KIND=wp), ALLOCATABLE  :: lat_soil(:)
+! longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
+REAL (KIND=wp), ALLOCATABLE  :: lon_full(:)
+! latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)     
+REAL (KIND=wp), ALLOCATABLE  :: lat_full(:)
 
 
 SAVE

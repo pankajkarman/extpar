@@ -101,6 +101,10 @@ USE mo_soil_routines, ONLY: get_soil_data, &
                             get_deep_soil_data, &
                             get_dimension_soil_data
 
+USE mo_soil_routines, ONLY: &
+        nlon_soil,          &
+        nlat_soil
+
 USE mo_soil_data, ONLY: allocate_raw_soil_fields, &
         allocate_raw_deep_soil_fields,            &
         define_soiltype,    &
@@ -116,6 +120,10 @@ USE mo_soil_data, ONLY: allocate_raw_soil_fields, &
 
 USE mo_soil_data, ONLY: FAO_data, HWSD_data, HWSD_map, soil_data
 
+USE mo_soil_data, ONLY:     &
+       lon_full,            &
+       lat_full
+
 USE   mo_soil_tg_fields, ONLY:  fr_land_soil
 USE   mo_soil_tg_fields, ONLY:  soiltype_fao, soiltype_deep
 USE   mo_soil_tg_fields, ONLY:  allocate_soil_target_fields
@@ -130,9 +138,6 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
   IMPLICIT NONE
 
-
-      INTEGER  (KIND=i4) :: nlon_soil  !< number of grid elements in zonal direction for soil raw dataset
-      INTEGER  (KIND=i4) :: nlat_soil  !< number of grid elements in meridional direction for soil raw dataset
 
       CHARACTER(len=filename_max) :: netcdf_filename
  
@@ -183,7 +188,10 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
       LOGICAL :: ldeep_soil            !< switch to decide weather the deep soil layer is desired or not
 
-
+      INTEGER  (KIND=i4) :: nlon_full
+      INTEGER  (KIND=i4) :: nlat_full
+      INTEGER  (KIND=i4) :: lon_low, lat_low, lon_hig, lat_hig
+      INTEGER  (KIND=i4) :: start(2)
 
 
       ! Print the default information to stdout:
@@ -253,9 +261,29 @@ USE mo_target_grid_routines, ONLY: init_target_grid
       ! inquire dimensions from raw data file
 
       CALL  get_dimension_soil_data(path_soil_file,  &
-                                          nlon_soil, &
-                                          nlat_soil, &
+                                          nlon_full, &
+                                          nlat_full, &
                                           n_unit)
+
+      
+      ! determine section of full data covered by target domain
+
+      IF (MAXVAL(lon_geo) > 180.0) THEN
+        nlon_soil = nlon_full
+        lon_low = 1
+        lon_hig = nlon_full
+      ELSE
+        lon_low = MAX(1,INT((MINVAL(lon_geo)-dsmw_grid%dlon_reg-0.5_wp-lon_full(1))/dsmw_grid%dlon_reg))
+        lon_hig = MIN(nlon_full,INT((MAXVAL(lon_geo)+dsmw_grid%dlon_reg+0.5_wp-lon_full(1))/dsmw_grid%dlon_reg))
+        nlon_soil = lon_hig + 1 - lon_low
+      ENDIF
+
+!     latitude runs from north to south in the raw data
+      lat_low = MAX(1,INT((lat_full(1)-MAXVAL(lat_geo)-0.5_wp+dsmw_grid%dlat_reg)/ABS(dsmw_grid%dlat_reg)))
+      lat_hig = MIN(nlat_full,INT((lat_full(1)-MINVAL(lat_geo)+0.5_wp-dsmw_grid%dlat_reg)/ABS(dsmw_grid%dlat_reg)))
+      nlat_soil = lat_hig + 1 - lat_low
+      start(1) = lon_low
+      start(2) = lat_low
 
       !HA debug
       print *, 'nlon_soil', nlon_soil
@@ -276,7 +304,11 @@ USE mo_target_grid_routines, ONLY: init_target_grid
       print*, 'define_soiltype done'
       CALL allocate_raw_soil_fields(nlon_soil, nlat_soil, n_unit)
       print*, 'allocate_raw_soil_fields done'
-      CALL get_soil_data(path_soil_file)
+
+      lon_soil = lon_full(lon_low:lon_hig)
+      lat_soil = lat_full(lat_low:lat_hig)
+
+      CALL get_soil_data(path_soil_file,start)
       print*, 'get_soil_data'
       CALL allocate_soil_target_fields(tg, ldeep_soil)
       print*, 'allocate_soil_target_fields done'
@@ -356,7 +388,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
 
       IF (ldeep_soil) THEN
         CALL allocate_raw_deep_soil_fields(nlon_soil, nlat_soil, n_unit)
-        CALL get_deep_soil_data(path_deep_soil_file)
+        CALL get_deep_soil_data(path_deep_soil_file,start)
 
         print *,'HWSD deep soil read from file ', TRIM(path_deep_soil_file)
 

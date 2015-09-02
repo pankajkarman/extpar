@@ -391,8 +391,10 @@ END SUBROUTINE read_namelists_extpar_ahf
              startlon_ahf = lon(1) ! longitude of the upper left grid element
              startlat_ahf = lat(1) ! latitude of the upper left grid element
 
-             dlon_ahf = 360._wp/float(nlon_ahf) ! dlon_ahf in degrees
-             dlat_ahf = 180._wp/float(nlat_ahf) ! dlat_ahf in degrees
+             dlon_ahf = (lon(nlon_ahf)-lon(1))/float(nlon_ahf-1) ! dlon_ahf in degrees
+             dlat_ahf = (lat(1)-lat(nlat_ahf))/float(nlat_ahf-1) ! dlat_ahf in degrees
+!             dlon_ahf = 360._wp/float(nlon_ahf) ! dlon_ahf in degrees
+!             dlat_ahf = 180._wp/float(nlat_ahf) ! dlat_ahf in degrees
 
 
 
@@ -499,8 +501,8 @@ END SUBROUTINE read_namelists_extpar_ahf
                     ENDIF
 
 
-                IF (trim(varname) == 'ahf') THEN                          ! here I know that the variable with latitude coordina &
-!& tes is called 'ahf'
+                IF (trim(varname) == 'AHF') THEN                          ! here I know that the variable with latitude coordina &
+!& tes is called 'AHF'
 
                     !print *,'------------------------------------'
                     !print *,'ncid,varid,vrname',ncid,varid,trim(varname)
@@ -658,8 +660,8 @@ END SUBROUTINE read_namelists_extpar_ahf
                     ENDIF
 
 
-                IF (trim(varname) == 'ahf') THEN                          ! here I know that the variable with latitude coordina &
-!& tes is called 'ahf'
+                IF (trim(varname) == 'AHF') THEN                          ! here I know that the variable with latitude coordina &
+!& tes is called 'AHF'
 
                     !print *,'------------------------------------'
                     !print *,'ncid,varid,vrname',ncid,varid,trim(varname)
@@ -771,8 +773,8 @@ END SUBROUTINE read_namelists_extpar_ahf
                     !print *, 'nAtts', nAtts
                     !print *,'------------------------------------'
 
-                IF (trim(varname) == 'ahf') THEN                          ! here I know that the variable with latitude coordina &
-!& tes is called 'ahf'
+                IF (trim(varname) == 'AHF') THEN                          ! here I know that the variable with latitude coordina &
+!& tes is called 'AHF'
 
                     !print *,'------------------------------------'
                     !print *,'ncid,varid,vrname',ncid,varid,trim(varname)

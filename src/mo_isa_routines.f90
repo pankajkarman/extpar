@@ -101,8 +101,7 @@ SUBROUTINE read_namelists_extpar_isa(namelist_file,            &
                                        raw_data_isa_path,          &
                                          raw_data_isa_filename,      &
                                          ntiles_isa,          &
-                                         isa_buffer_file,            &
-                                         isa_output_file      )
+                                         isa_buffer_file      )
 
 
   USE mo_utilities_extpar, ONLY: free_un ! function to get free unit number
@@ -119,7 +118,6 @@ SUBROUTINE read_namelists_extpar_isa(namelist_file,            &
   CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_isa_filename(1:max_tiles_isa) !< filename isa raw data
 
   CHARACTER (len=filename_max), INTENT(OUT) :: isa_buffer_file !< name for isa buffer file
-  CHARACTER (len=filename_max), INTENT(OUT) :: isa_output_file !< name for isa output file
   INTEGER, INTENT(OUT) :: ntiles_isa
 !--
   !> namelist with isa data input
@@ -127,12 +125,12 @@ SUBROUTINE read_namelists_extpar_isa(namelist_file,            &
   ! NAMELIST /isa_raw_data/ raw_data_isa_path, raw_data_isa_filename, i_isa_data, ilookup_table_isa, ntiles_isa
   NAMELIST /isa_raw_data/ raw_data_isa_path, raw_data_isa_filename, ntiles_isa
   !> namelist with filenames for isa data output
-  NAMELIST /isa_io_extpar/ isa_buffer_file, isa_output_file
+  NAMELIST /isa_io_extpar/ isa_buffer_file
 
   INTEGER           :: nuin !< unit number
   INTEGER (KIND=i4) :: ierr !< error flag
 
-
+  ntiles_isa=1
   nuin = free_un()  ! functioin free_un returns free Fortran unit number
   OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
 

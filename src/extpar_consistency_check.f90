@@ -480,7 +480,6 @@ USE mo_isa_data, ONLY: undef_isa, minimal_isa
   CHARACTER (len=filename_max) :: raw_data_isa_filename(1:max_tiles_isa) !< filename glc2000 raw data
   INTEGER                      :: ntiles_isa
   CHARACTER (len=filename_max) :: isa_buffer_file !< name for NDVI buffer file
-  CHARACTER (len=filename_max) :: isa_output_file !< name for NDVI output file
   CHARACTER (len=filename_max) :: isa_buffer_cons_output  !< name for ahf output file after consistency check
 
   !AHF
@@ -887,8 +886,7 @@ END SELECT
     &                                 raw_data_isa_path,       &
     &                                 raw_data_isa_filename,   &
     &                                 ntiles_isa,       &
-    &                                 isa_buffer_file,         &
-    &                                 isa_output_file)
+    &                                 isa_buffer_file)
   END IF
 
   namelist_file = 'INPUT_AHF'
@@ -1627,6 +1625,9 @@ END SELECT
        WHERE (fr_ocean_lu >= 0.5)  
          lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
        ENDWHERE 
+       WHERE (fr_lake < 0.5)  
+         lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE 
        WHERE ((fr_lake > 0.5).AND.(lake_depth < 0.0))
          lake_depth = flake_depth_default ! set lake depth to default value (10 m)
        ENDWHERE ! 
@@ -1740,6 +1741,49 @@ END SELECT
        lake_depth = DWD_max_lake_depth
      ENDWHERE
      
+     ! check consistency for "lake depth" again
+     WHERE (fr_lake >= fr_ocean_lu)
+       fr_lake = 1.0_wp - fr_land_lu
+       fr_ocean_lu = 0.0_wp
+     ELSEWHERE
+       fr_ocean_lu = 1.0_wp - fr_land_lu
+       fr_lake = 0.0_wp
+     ENDWHERE
+
+     IF (tile_mode == 1) THEN ! subgrid lakes for ICON 
+       WHERE (fr_land_lu >= thr_cr ) ! 0.5)  
+         lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE 
+       WHERE (fr_ocean_lu >= 0.5)  
+         lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE 
+       WHERE ((fr_lake > 1.-thr_cr).AND.(lake_depth < 0.0)) ! fr_lake > 0.5
+         lake_depth = flake_depth_default ! set lake depth to default value (10 m)
+       ENDWHERE ! 
+     ELSE
+       WHERE (fr_land_lu >= 0.5)  
+         lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE 
+       WHERE (fr_ocean_lu >= 0.5)  
+         lake_depth = flake_depth_undef ! set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE 
+       WHERE ((fr_lake < 0.5))
+         lake_depth = flake_depth_undef !  set lake depth to flake_depth_undef (-1 m)
+       ENDWHERE ! 
+       WHERE ((fr_lake > 0.5).AND.(lake_depth < DWD_min_lake_depth))
+         lake_depth = flake_depth_default ! set lake depth to default value (10 m)
+       ENDWHERE ! 
+     ENDIF
+     ! restrict lake depth to maximum value (50 m)
+     WHERE (lake_depth > DWD_max_lake_depth)
+       lake_depth = DWD_max_lake_depth
+     END WHERE
+
+     ! restrict lake depth to minimal value (1 m)
+     WHERE ( (lake_depth > 0.0).AND.(lake_depth < DWD_min_lake_depth ))
+       lake_depth = DWD_min_lake_depth
+     END WHERE
+
       
       CALL CPU_TIME(timeend)
       timediff = timeend - timestart

@@ -151,7 +151,6 @@ PROGRAM extpar_isa_to_buffer
 
 
   CHARACTER (len=filename_max) :: isa_buffer_file !< name for glc2000 buffer file
-  CHARACTER (len=filename_max) :: isa_output_file !< name for glc2000 output file
 
 
   INTEGER :: i,j,k !< counter
@@ -197,12 +196,10 @@ PROGRAM extpar_isa_to_buffer
 
   !---------------------------------------------------------------------------
   CALL read_namelists_extpar_isa(input_isa_namelist_file, &
-  !  &                                 i_isa_data,         &
     &                                 raw_data_isa_path,       &
     &                                 raw_data_isa_filename,   &
     &                                 ntiles_isa,       &
-    &                                 isa_buffer_file,         &
-    &                                 isa_output_file)
+    &                                 isa_buffer_file)
 
 ! >mes
 !     print*,input_isa_namelist_file,   raw_data_isa_path,       &

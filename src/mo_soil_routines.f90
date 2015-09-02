@@ -150,14 +150,19 @@ CONTAINS
 
      !> inquire dimension information for NDVI raw data 
      SUBROUTINE get_dimension_soil_data(path_soil_file, &
-                                          nlon_soil, &
-                                          nlat_soil, &
+                                          nlon_full, &
+                                          nlat_full, &
                                           n_unit)
 
+       !! here the coordintates, legend and data are read into global variables from the "Soil_data" Module
+       USE mo_soil_data, ONLY: lon_full       !< longitide coordinates of the regular grid in the geographical (lonlat)
+       USE mo_soil_data, ONLY: lat_full       !< latitude coordinates of the regular grid in the geographical (lonlat)
+
+       USE mo_soil_data, ONLY: dsmw_grid      !< structure with the definition of the soil raw data grid
 
        CHARACTER (len=*), INTENT(IN) :: path_soil_file         !< filename with path for soil raw data
-       INTEGER (KIND=i4), INTENT(OUT) :: nlon_soil !< number of grid elements in zonal direction for soil data
-       INTEGER (KIND=i4), INTENT(OUT) :: nlat_soil !< number of grid elements in meridional direction for soil data
+       INTEGER (KIND=i4), INTENT(OUT) :: nlon_full !< number of grid elements in zonal direction for soil data
+       INTEGER (KIND=i4), INTENT(OUT) :: nlat_full !< number of grid elements in meridional direction for soil data
        INTEGER (KIND=i4), INTENT(OUT) :: n_unit    !< number of soil unit numbers (legend)
 
        !local variables
@@ -171,6 +176,15 @@ CONTAINS
        CHARACTER (LEN=80) :: dimname               !< name of dimensiona
        INTEGER :: length                           !< length of dimension
 
+       INTEGER :: varid                            !< id of variable
+
+       CHARACTER (LEN=80) :: varname               !< name of variable
+       INTEGER :: xtype                            !< netcdf type of variable/attribute
+       INTEGER :: ndim                             !< number of dimensions of variable
+       INTEGER, ALLOCATABLE :: var_dimids(:)       !< id of variable dimensions, vector, maximal dimension ndimension
+       INTEGER :: nAtts                            !< number of attributes for a netcdf variable
+
+       INTEGER :: errorcode                        !< error status variable
 
        ! open netcdf file 
        CALL check_netcdf(nf90_open(TRIM(path_soil_file),NF90_NOWRITE, ncid))
@@ -180,6 +194,7 @@ CONTAINS
        !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        CALL check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
+       ALLOCATE (var_dimids(ndimension), STAT=errorcode)
 
 
        !; the dimid in netcdf-files is counted from 1 to ndimension
@@ -189,12 +204,50 @@ CONTAINS
                     !print *,'dimension loop dimid ',dimid
          CALL check_netcdf( nf90_inquire_dimension(ncid,dimid, dimname, length) )
                      !print*, 'ncid,dimid, dimname, length',ncid,dimid, trim(dimname), length
-         IF ( TRIM(dimname) == 'lon') nlon_soil=length          ! here I know that the name of zonal dimension is 'lon'
-         IF ( TRIM(dimname) == 'lat') nlat_soil=length          ! here I know that the name of meridional dimension is 'lat'
+         IF ( TRIM(dimname) == 'lon') nlon_full=length          ! here I know that the name of zonal dimension is 'lon'
+         IF ( TRIM(dimname) == 'lat') nlat_full=length          ! here I know that the name of meridional dimension is 'lat'
          IF ( TRIM(dimname) == 'soil_unit') n_unit=length        ! here I know that the name of unit dimension is 'soil_unit'
        ENDDO
 
+       ! Allocate lon_full, lat_full
+       ALLOCATE (lon_full(nlon_full), lat_full(nlat_full))
 
+       ! read lon_full and lat_full from raw data file
+       variables: DO varid=1,nVars
+         !print *,'variable loop, varid ',varid
+         CALL check_netcdf(nf90_inquire_variable(ncid,varid,varname,xtype, ndim, var_dimids, nAtts))
+
+         getvar: SELECT CASE(TRIM(varname))
+             
+         CASE('lon')     !  here I know that the variable with the longitude coordinates is called 'lon'
+           CALL check_netcdf(nf90_get_var(ncid,varid,lon_full(:)) )
+             
+         CASE('lat')     !  here I know that the variable with the latitude coordinates is called 'lat'
+           CALL check_netcdf(nf90_get_var(ncid,varid,lat_full(:)) )
+             
+         END SELECT getvar
+           
+       ENDDO variables
+
+       dsmw_grid%nlon_reg = nlon_full
+       dsmw_grid%nlat_reg = nlat_full
+
+       dsmw_grid%start_lon_reg = lon_full(1)
+       dsmw_grid%end_lon_reg   = lon_full(nlon_full)
+
+       dsmw_grid%start_lat_reg = lat_full(1)
+       dsmw_grid%end_lat_reg   = lat_full(nlat_full)
+       
+       IF (dsmw_grid%nlon_reg /= 0) THEN
+         dsmw_grid%dlon_reg = (dsmw_grid%end_lon_reg - dsmw_grid%start_lon_reg)/(dsmw_grid%nlon_reg-1._wp)
+       ENDIF 
+
+       IF (dsmw_grid%nlat_reg /= 0) THEN
+         dsmw_grid%dlat_reg = (dsmw_grid%end_lat_reg - dsmw_grid%start_lat_reg)/(dsmw_grid%nlat_reg-1._wp)
+       ENDIF ! in case of latitude orientation from north to south dlat is negative!
+
+       !HA debug
+       PRINT *,'get_soil_data, dsmw_grid: ', dsmw_grid
        ! close netcdf file 
        CALL check_netcdf( nf90_close(ncid))
 
@@ -203,7 +256,7 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------------------       
 
      !> get coordintates, legend and data for soil raw data 
-     SUBROUTINE get_soil_data(path_soil_file)
+     SUBROUTINE get_soil_data(path_soil_file,start)
        !! here the coordintates, legend and data are read into global variables from the "Soil_data" Module
        USE mo_soil_data, ONLY: lon_soil       !< longitide coordinates of the regular grid in the geographical (lonlat)
        USE mo_soil_data, ONLY: lat_soil       !< latitude coordinates of the regular grid in the geographical (lonlat)
@@ -216,6 +269,7 @@ CONTAINS
        !USE SOIL_data, ONLY: dsmw_legend     !< Definition of Data Type to describe the legend for the FAO DSMW
 
        CHARACTER (len=*), INTENT(in) :: path_soil_file                !< filename with path for soil raw data
+       INTEGER , INTENT(IN)          :: start(2)
 
        !local variables
        INTEGER :: ncid                             !< netcdf unit file number
@@ -239,8 +293,6 @@ CONTAINS
        INTEGER :: errorcode                        !< error status variable
 
 
-       INTEGER (KIND=i4) :: nlon_soil !< number of grid elements in zonal direction for soil data
-       INTEGER (KIND=i4) :: nlat_soil !< number of grid elements in meridional direction for soil data
        INTEGER (KIND=i4) :: n_unit    !< number of soil unit numbers (legend)
 
  
@@ -262,8 +314,6 @@ CONTAINS
                     !print *,'dimension loop dimid ',dimid
          CALL check_netcdf( nf90_inquire_dimension(ncid,dimid, dimname, length) )
          !print*, 'ncid,dimid, dimname, length',ncid,dimid, trim(dimname), length
-         IF ( trim(dimname) == 'lon') nlon_soil=length          ! here I know that the name of zonal dimension is 'lon'
-         IF ( TRIM(dimname) == 'lat') nlat_soil=length          ! here I know that the name of meridional dimension is 'lat'
          IF ( TRIM(dimname) == 'soil_unit') n_unit=length        ! here I know that the name of unit dimension is 'soil_unit'
        ENDDO
        ! the deep soil has the same dimensions as the top soil
@@ -286,12 +336,6 @@ CONTAINS
          !print *,'------------------------------------'
            
          getvar: SELECT CASE(TRIM(varname))
-             
-         CASE('lon')     !  here I know that the variable with the longitude coordinates is called 'lon'
-           CALL check_netcdf(nf90_get_var(ncid,varid,lon_soil(:)) )
-             
-         CASE('lat')     !  here I know that the variable with the latitude coordinates is called 'lat'
-           CALL check_netcdf(nf90_get_var(ncid,varid,lat_soil(:)) )
              
          CASE('code')    !  here I know that the variable with the dsmw_code is called 'code'
            CALL check_netcdf(nf90_get_var(ncid,varid,soil_texslo(:)%dsmw_code) )
@@ -318,10 +362,10 @@ CONTAINS
            CALL check_netcdf(nf90_get_var(ncid,varid,soil_texslo(:)%steep) )                         
              
          CASE('DSMW')  !  here I know that the variable with the DSMW soil units is called 'DSMW'
-           CALL check_netcdf(nf90_get_var(ncid,varid,dsmw_soil_unit) )
-             
+           CALL check_netcdf(nf90_get_var(ncid,varid,dsmw_soil_unit,start=start,count=(/ nlon_soil, nlat_soil /)))
+                          
          CASE('Soil')  !  here I know that the variable with the DSMW soil units is called 'Soil'
-           CALL check_netcdf(nf90_get_var(ncid,varid,dsmw_soil_unit) )
+           CALL check_netcdf(nf90_get_var(ncid,varid,dsmw_soil_unit,start=start,count=(/ nlon_soil, nlat_soil /)) )
              
          END SELECT getvar
            
@@ -342,14 +386,6 @@ CONTAINS
        dsmw_grid%start_lat_reg = lat_soil(1)
        dsmw_grid%end_lat_reg   = lat_soil(nlat_soil)
        
-       IF (dsmw_grid%nlon_reg /= 0) THEN
-         dsmw_grid%dlon_reg = (dsmw_grid%end_lon_reg - dsmw_grid%start_lon_reg)/(dsmw_grid%nlon_reg-1._wp)
-       ENDIF 
-
-       IF (dsmw_grid%nlat_reg /= 0) THEN
-         dsmw_grid%dlat_reg = (dsmw_grid%end_lat_reg - dsmw_grid%start_lat_reg)/(dsmw_grid%nlat_reg-1._wp)
-       ENDIF ! in case of latitude orientation from north to south dlat is negative!
-
        !HA debug
        PRINT *,'get_soil_data, dsmw_grid: ', dsmw_grid
 
@@ -359,7 +395,7 @@ CONTAINS
      !------------------------------------------------------------------------------------------------------------
 
      !> get coordintates, legend and data for soil raw data 
-     SUBROUTINE get_deep_soil_data(path_deep_soil_file)
+     SUBROUTINE get_deep_soil_data(path_deep_soil_file,start)
      !! here the coordintates, legend and data are read into global variables from the "Soil_data" Module
      USE mo_soil_data, ONLY: dsmw_grid      !< structure with the definition of the soil raw data grid
      USE mo_soil_data, ONLY: soil_texslo_deep    !< legend for DSMW with texture and slope information
@@ -369,7 +405,8 @@ CONTAINS
      !USE SOIL_data, ONLY: dsmw_legend     !< Definition of Data Type to describe the legend for the FAO DSMW
 
 
-     CHARACTER (LEN=*), INTENT(IN), OPTIONAL :: path_deep_soil_file !< filename with path for deep soil raw data
+     INTEGER , INTENT(IN)          :: start(2)
+     CHARACTER (LEN=*), INTENT(IN) :: path_deep_soil_file !< filename with path for deep soil raw data
 
      !local variables
      INTEGER :: ncid_deep                        !< netcdf unit file number
@@ -433,7 +470,7 @@ CONTAINS
          CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%steep) )
             
        CASE('Soil')  !  here I know that the variable with the DSMW soil units is called 'Soil'
-         CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,dsmw_deep_soil_unit) )
+         CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,dsmw_deep_soil_unit,start=start,count=(/ nlon_soil, nlat_soil /)) )
  
        END SELECT getvar_deep
           
