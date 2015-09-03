@@ -15,7 +15,7 @@
 
 # set some globals (need to be manually updated)
 code_name="extpar"
-code_version="_3.0-rc"
+code_version="_3.0"
 
 # parse command line arguments
 fconfig="$1"
