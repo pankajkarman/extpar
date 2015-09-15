@@ -53,10 +53,10 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 ! of the binary.
 !
 ! Following declarations have to be defined just after checkout from the version control system:
-CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_3.0-rc'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'https://cosmo.cscs.ch/tools/extpar/trunk_tags/extpar_v3.0'
-CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2015-09-03 14:33:18 +0200 (Thu, 03 Sep 2015)'
-CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '7137M'
+CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_3.0'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = 'https://cosmo.cscs.ch/tools/extpar/trunk'
+CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '2015-09-02 13:32:36 +0200 (Wed, 02 Sep 2015)'
+CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '7136:7139M'
 CHARACTER (LEN=*), PARAMETER :: INFO_CheckoutDate    = '(missing)'
 CHARACTER (LEN=*), PARAMETER :: INFO_ProductionDate  = '(missing)'
 ! Following declarations have to be defined just before compiling:
