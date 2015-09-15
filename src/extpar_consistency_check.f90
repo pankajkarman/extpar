@@ -671,7 +671,7 @@ USE mo_isa_data, ONLY: undef_isa, minimal_isa
  
 ! for albedo consistency check
   REAL (KIND=wp) :: albvis_min, albnir_min, albuv_min  
-  REAL (KIND=wp) :: hh_death_sea
+  REAL (KIND=wp) :: hh_dead_sea, hh_cr_casp
 
 ! T_CL consistency check
   INTEGER (KIND=i4) :: iml, imu, ipl, ipu, jml, jmu, jpl, jpu, ntclct, l
@@ -1299,7 +1299,7 @@ END SELECT
         fr_land_lu = MAX(0.51_wp,fr_land_lu)
       ENDWHERE
 
-       IF (i_lsm_data == 2) THEN
+      IF (i_lsm_data == 2) THEN
           fr_land_lu = fr_land_mask
       ENDIF
 
@@ -1566,45 +1566,72 @@ END SELECT
      ! determine "fraction ocean" first before considering "fraction lake"
      ! fr_ocean should be determined by ocean model if available
      ! so use (1. - lsm_ocean_model) as mask instead of fr_land_topo from the orography data
-     thr_cr = 0.95
-     WHERE (fr_land_topo < thr_cr)
-       fr_ocean_lu = 1. - fr_land_lu
-       fr_lake = 0.0
-     ENDWHERE
 
-     ! set surface height of all Death Sea points to the level given in the 
+     ! set surface height of all Dead Sea points to the level given in the 
      ! repective data_set, i. e. -405 m (GLOBE) and -432 m (ASTER)
-     hh_death_sea = -405._wp
-     IF (itopo_type ==2) hh_death_sea = -432._wp 
+     hh_dead_sea = -405._wp
+     IF (itopo_type ==2) hh_dead_sea = -432._wp 
      WHERE ((lon_geo > 35.).AND.(lon_geo < 36.).AND. &
       &     (lat_geo > 31.).AND.(lat_geo < 32.).AND. &
       &     (1._wp - fr_land_lu > 0.5_wp))
-       hh_topo = hh_death_sea
+       hh_topo = hh_dead_sea
        fr_lake = 0.0_wp
        fr_ocean_lu = 1._wp - fr_land_lu
      ENDWHERE
      WHERE ((lon_geo > 35.).AND.(lon_geo < 36.).AND. &
       &     (lat_geo > 31.).AND.(lat_geo < 32.))
-       hh_topo = MAX(hh_topo, hh_death_sea)
+       hh_topo = MAX(hh_topo, hh_dead_sea)
        fr_ocean_lu = fr_ocean_lu + fr_lake
        fr_lake = 0.0_wp
        fr_land_lu = 1._wp - fr_ocean_lu
      ENDWHERE
      
+     hh_cr_casp = -25._wp
      ! set surface height of all Caspian Sea points to -28. meters
      WHERE ((lon_geo > 46.).AND.(lon_geo < 55.).AND. &
-      &     (lat_geo > 36.).AND.(lat_geo < 48.).AND. &
-      &     (1._wp - fr_land_lu > 0.5_wp) )
-       hh_topo = -28._wp
-       fr_lake = 0.0 
-       fr_ocean_lu = 1. - fr_land_lu       
+      &     (lat_geo > 36.).AND.(lat_geo < 49.))
+       fr_ocean_lu = 1. - fr_land_lu - fr_lake
+       fr_land_topo = -1._wp
      ENDWHERE
-     WHERE ((lon_geo > 46.).AND.(lon_geo < 55.).AND. &
-      &     (lat_geo > 36.).AND.(lat_geo < 48.) )
-       hh_topo = MAX(hh_topo, -28._wp)
-       fr_ocean_lu = fr_ocean_lu + fr_lake
-       fr_lake = 0.0_wp
-       fr_land_lu = 1._wp - fr_ocean_lu       
+     WHERE ((lon_geo > 45.2).AND.(lon_geo < 48.8).AND. &
+      &     (lat_geo > 45.9).AND.(lat_geo < 50.0))
+       fr_ocean_lu = 0.0
+       fr_lake = 1._wp - fr_land_lu
+       fr_land_topo = 1._wp
+     ENDWHERE
+     WHERE ((lon_geo > 48.8).AND.(lon_geo < 52.9).AND. &
+      &     (lat_geo > 47.2).AND.(lat_geo < 50.0))
+       fr_ocean_lu = 0.0
+       fr_lake = 1._wp - fr_land_lu
+       fr_land_topo = 1._wp
+     ENDWHERE
+     WHERE ((lon_geo > 52.9).AND.(lon_geo < 55.0).AND. &
+      &     (lat_geo > 47.2).AND.(lat_geo < 50.0))
+       fr_ocean_lu = 0.0
+       fr_lake = 1._wp - fr_land_lu
+       fr_land_topo = 1._wp
+     ENDWHERE
+     WHERE ((lon_geo > 53.4).AND.(lon_geo < 56.7).AND. &
+      &     (lat_geo > 45.8).AND.(lat_geo < 47.0))
+       fr_ocean_lu = 0.0
+       fr_lake = 1._wp - fr_land_lu
+       fr_land_topo = 1._wp
+     ENDWHERE
+     WHERE ((lon_geo > 45.8).AND.(lon_geo < 48.6).AND. &
+      &     (lat_geo > 39.5).AND.(lat_geo < 41.4))
+       fr_ocean_lu = 0.0
+       fr_lake = 1._wp - fr_land_lu
+       fr_land_topo = 1._wp
+     ENDWHERE
+
+     thr_cr = 0.99
+     WHERE ((fr_land_topo < thr_cr).AND.(fr_land_topo >= 0._wp))
+       fr_ocean_lu = 1. - fr_land_lu
+       fr_lake = 0.0
+     ENDWHERE
+     WHERE ((fr_land_topo >= thr_cr))
+       fr_ocean_lu = 0.0
+       fr_lake = 1. - fr_land_lu
      ENDWHERE
 
      ! check consistency for "lake depth"
@@ -1783,6 +1810,13 @@ END SELECT
      WHERE ( (lake_depth > 0.0).AND.(lake_depth < DWD_min_lake_depth ))
        lake_depth = DWD_min_lake_depth
      END WHERE
+
+     ! adjust surface height of Caspian sea to -28 m 
+     WHERE ((lon_geo > 46.).AND.(lon_geo < 55.).AND. &
+      &     (lat_geo > 36.).AND.(lat_geo < 48.).AND. &
+      &     (fr_ocean_lu > 0.5))
+       hh_topo = -28.0_wp
+     ENDWHERE
 
       
       CALL CPU_TIME(timeend)

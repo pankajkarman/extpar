@@ -495,10 +495,6 @@ MODULE mo_extpar_output_nc
 
     ALLOCATE(var_real_2d(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot), STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate var_real_2d')
-    IF(PRESENT(horizon_topo)) THEN
-      ALLOCATE(var_real_hor(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:nhori), STAT=errorcode)
-      IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate var_real_hor')
-    ENDIF
 
 ! z0 tot veg + topo
     IF (i_landuse_data .eq. 4) THEN
@@ -713,6 +709,8 @@ MODULE mo_extpar_output_nc
 
     ! horizon_topo
     IF (lrad) THEN
+      ALLOCATE(var_real_hor(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:nhori), STAT=errorcode)
+      IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate var_real_hor')
       var_real_hor(:,:,:) = horizon_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:nhori)
       CALL netcdf_put_var(ncid,var_real_hor, horizon_topo_meta,undefined)
       PRINT *, "write horizon"
