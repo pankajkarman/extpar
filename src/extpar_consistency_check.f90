@@ -43,7 +43,8 @@
 !  Bugfix correction covers CSCS SVN r5907-r6359
 ! V3_0         2015-05-18 Juergen Helmert, 2015-06-19 Daniel Luethi
 !  Change tile_mode switch to integer, scale glacier soil with fr_land         
-!  Modification of Caspian Sea treatment (height below sea level, JH), adjust surface height (DL) 
+!  Modification of Caspian Sea treatment (height below sea level, JH)
+!  Adjust surface height (DL) and correct treatment also for ASTER topo
 !  Adaptions for urban fields         
 !
 ! Code Description:

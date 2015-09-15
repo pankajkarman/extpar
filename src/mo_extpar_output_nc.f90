@@ -36,6 +36,7 @@
 !  Bugfix correction covers CSCS SVN r5907-r6359
 ! V3_0         2015-05-21 Juergen Helmert
 !  Adaptions for urban fields         
+!  correction of double allocation in case of lrad=.FALSE. (B. Rockel)
 !
 ! Code Description:
 ! Language: Fortran 2003.
