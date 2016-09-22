@@ -37,6 +37,9 @@
 ! V3_0         2015-05-21 Juergen Helmert
 !  Adaptions for urban fields         
 !  correction of double allocation in case of lrad=.FALSE. (B. Rockel)
+! V4_0         2016/08/17 Daniel Lüthi and authors from RHM
+!  added support for subgrid-scale slope parameter
+!  added support for MACv2 spectrally stratified monthly aerosol fields
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -86,7 +89,7 @@ MODULE mo_extpar_output_nc
   USE mo_albedo_data, ONLY: ntime_alb
   USE mo_albedo_data, ONLY: ialb_type, undef_alb_bs
   USE mo_ndvi_data,   ONLY: ntime_ndvi
-  USE mo_aot_data,    ONLY: ntype_aot, ntime_aot
+  USE mo_aot_data,    ONLY: ntype_aot, ntime_aot,n_spectr
   USE mo_aot_data,    ONLY: iaot_type
 
   USE mo_soil_data,   ONLY: HWSD_data
@@ -115,6 +118,7 @@ MODULE mo_extpar_output_nc
     &                                     lsso,                &
     &                                     l_use_isa,           &
     &                                     l_use_ahf,           &
+    &                                     l_use_sgsl,          &
     &                                     lscale_separation,   &
     &                                     y_orofilt,           &
     &                                     lrad,                &
@@ -155,6 +159,9 @@ MODULE mo_extpar_output_nc
     &                                     hh_topo,             &
     &                                     stdh_topo,           &
     &                                     aot_tg,              &
+    &                                     MAC_aot_tg,          &
+    &                                     MAC_ssa_tg,          &
+    &                                     MAC_asy_tg,          & 
     &                                     crutemp,             &
     &                                     alb_field_mom,       &
     &                                     alnid_field_mom,     &
@@ -180,7 +187,8 @@ MODULE mo_extpar_output_nc
     &                                     horizon_topo,        &
     &                                     skyview_topo,        &
     &                                     isa_field,           &
-    &                                     ahf_field            )
+    &                                     ahf_field,           &
+    &                                     sgsl             )
   
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
@@ -270,6 +278,9 @@ MODULE mo_extpar_output_nc
    &       slope_asp_topo_meta, slope_ang_topo_meta,   &
    &       horizon_topo_meta, skyview_topo_meta
 
+  USE mo_var_meta_data, ONLY: def_sgsl_meta
+
+  USE mo_var_meta_data, ONLY: sgsl_meta
 
 
   USE mo_var_meta_data, ONLY: dim_aot_tg, dim_aot_ty, &
@@ -277,6 +288,10 @@ MODULE mo_extpar_output_nc
   USE mo_var_meta_data, ONLY: aot_tg_meta, aer_bc_meta,   & 
     &                         aer_dust_meta, aer_org_meta,&
     &                         aer_so4_meta, aer_ss_meta
+
+  USE mo_var_meta_data, ONLY: aot_tg_MAC_meta,&
+    &                         ssa_tg_MAC_meta,&
+    &                         asy_tg_MAC_meta
 
   USE mo_var_meta_data, ONLY: crutemp_meta, &
     &                         def_crutemp_meta
@@ -298,6 +313,7 @@ MODULE mo_extpar_output_nc
   LOGICAL,               INTENT(IN) :: ldeep_soil
   LOGICAL,               INTENT(IN) :: l_use_isa
   LOGICAL,               INTENT(IN) :: l_use_ahf
+  LOGICAL,               INTENT(IN) :: l_use_sgsl
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
   LOGICAL,               INTENT(IN) :: lscale_separation
@@ -345,6 +361,9 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
   REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_aot_tg(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_ssa_tg(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_asy_tg(:,:,:,:)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
@@ -370,11 +389,13 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN)            :: z012_lu(:,:,:,:) !<  lai ecoclimap
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: isa_field(:,:,:) !< impervious surface area
   REAL(KIND=wp), INTENT(IN), OPTIONAL  :: ahf_field(:,:,:) !< field for ahf
+  REAL(KIND=wp), INTENT(IN), OPTIONAL  :: sgsl(:,:,:) !< field for subgrid-scale slope
 
   ! local variables
   REAL(KIND=wp), ALLOCATABLE :: z012tot(:,:,:) !<  z0 ecoclimap plant+oro
   REAL(KIND=wp), ALLOCATABLE :: var_real_2d(:,:)
   REAL(KIND=wp), ALLOCATABLE :: var_real_hor(:,:,:)
+  REAL(KIND=wp), ALLOCATABLE :: var_real_MAC(:,:,:,:)
 
   INTEGER :: ndims  
   INTEGER :: ncid
@@ -474,6 +495,12 @@ MODULE mo_extpar_output_nc
       !  stdh_topo_meta, theta_topo_meta, &
       !  aniso_topo_meta, slope_topo_meta, &
       !  hh_vert_meta, npixel_vert_meta
+    ENDIF
+
+    !define meta information for subgrid-scale slope data related variables for netcdf output
+    IF (l_use_sgsl) THEN
+      PRINT *,'def_sgsl_meta'
+      CALL def_sgsl_meta(dim_2d_cosmo,itopo_type,coordinates,grid_mapping)
     ENDIF
 
     ! define dimensions and meta information for variable aot_tg for netcdf output
@@ -637,6 +664,13 @@ MODULE mo_extpar_output_nc
     ! ahf_field
       var_real_2d(:,:) = ahf_field(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,ahf_field_meta,undefined)
+    END IF
+
+    IF (l_use_sgsl) THEN
+    ! hw-marker. maybe provide a switch to either include/exclude ahf
+    ! ahf_field
+      var_real_2d(:,:) = sgsl(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
+      CALL netcdf_put_var(ncid,var_real_2d,sgsl_meta,undefined)
     END IF
 
     ! for_d_lu
@@ -894,6 +928,19 @@ MODULE mo_extpar_output_nc
 
     !-----------------------------------------------------------------
     ! aot
+    IF (iaot_type == 4) THEN
+      ALLOCATE(var_real_MAC(cosmo_grid%nlon_rot, cosmo_grid%nlat_rot,n_spectr,ntime_aot))
+
+      var_real_MAC(:,:,:,:)=MAC_aot_tg(:,:,:,:)
+      CALL netcdf_put_var(ncid,var_real_MAC,aot_tg_MAC_meta,undefined)
+
+      var_real_MAC(:,:,:,:)=MAC_ssa_tg(:,:,:,:)
+      CALL netcdf_put_var(ncid,var_real_MAC,ssa_tg_MAC_meta,undefined)
+
+      var_real_MAC(:,:,:,:)=MAC_asy_tg(:,:,:,:)
+      CALL netcdf_put_var(ncid,var_real_MAC,asy_tg_MAC_meta,undefined)
+
+    ELSE
      ALLOCATE(var_real_hor(cosmo_grid%nlon_rot,cosmo_grid%nlat_rot,ntime_aot))
      n=1 ! aot_bc
      var_real_hor(:,:,:)=aot_tg(:,:,1,1,:)
@@ -924,13 +971,13 @@ MODULE mo_extpar_output_nc
 !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,5,1:ntime_aot), &
 !       &                 aer_ss_meta, undefined)
      CALL netcdf_put_var(ncid,var_real_hor,aer_ss_meta, undefined)
-
+    ENDIF
 
     !-----------------------------------------------------------------
     CALL netcdf_def_grid_mapping(ncid, nc_grid_def_cosmo, varid)
 
     CALL close_netcdf_file(ncid)
-
+   
   END SUBROUTINE write_netcdf_cosmo_grid_extpar
   !-----------------------------------------------------------------------
 
@@ -944,6 +991,7 @@ MODULE mo_extpar_output_nc
     &                                     lsso,                &
     &                                     l_use_isa,           &
     &                                     l_use_ahf,           &
+    &                                     l_use_sgsl,          &
     &                                     lscale_separation,   &
     &                                     y_orofilt,           &
     &                                     undefined,           &
@@ -994,7 +1042,8 @@ MODULE mo_extpar_output_nc
     &                                     aniso_topo,          & 
     &                                     slope_topo,          &
     &                                     isa_field,           &
-    &                                     ahf_field            )
+    &                                     ahf_field,           &
+    &                                     sgsl            )
 
   USE mo_var_meta_data, ONLY: dim_3d_tg, &
     &                         def_dimension_info_buffer
@@ -1065,6 +1114,9 @@ MODULE mo_extpar_output_nc
    &       aniso_topo_meta, slope_topo_meta, &
    &       hh_vert_meta, npixel_vert_meta
 
+  USE mo_var_meta_data, ONLY: def_sgsl_meta
+  USE mo_var_meta_data, ONLY: sgsl_meta
+
   USE mo_var_meta_data, ONLY: dim_aot_tg, dim_aot_ty, &
     &                         def_aot_tg_meta
   USE mo_var_meta_data, ONLY: aot_tg_meta, aer_bc_meta,   & 
@@ -1095,6 +1147,7 @@ MODULE mo_extpar_output_nc
   LOGICAL,               INTENT(IN) :: ldeep_soil
   LOGICAL,               INTENT(IN) :: l_use_isa
   LOGICAL,               INTENT(IN) :: l_use_ahf
+  LOGICAL,               INTENT(IN) :: l_use_sgsl
   INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
   LOGICAL,               INTENT(IN) :: lsso
   LOGICAL,               INTENT(IN) :: lscale_separation
@@ -1154,6 +1207,7 @@ MODULE mo_extpar_output_nc
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: slope_topo(:,:,:) !< sso parameter, mean slope
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: isa_field(:,:,:) !< field for isa 
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: ahf_field(:,:,:) !< field for ahf 
+  REAL(KIND=wp), INTENT(IN), OPTIONAL :: sgsl(:,:,:) !< field for subgrid-scale slope
 
   ! local variables
 
@@ -1468,6 +1522,11 @@ MODULE mo_extpar_output_nc
     IF (l_use_isa) THEN
       n=24 ! isa
       CALL netcdf_put_var(ncid,isa_field(1:icon_grid%ncell,1,1),isa_field_meta,undefined)
+    END IF
+
+    IF (l_use_sgsl) THEN
+      n=25 ! sgsl
+      CALL netcdf_put_var(ncid,sgsl(1:icon_grid%ncell,1,1),sgsl_meta,undefined)
     END IF
 
 ! hh_vert not demanded for output 

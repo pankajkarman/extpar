@@ -101,6 +101,7 @@ CONTAINS
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for AHF data settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_ahf(namelist_file, &
+                                      iahf_type,    & !_br 14.04.16
                                       raw_data_ahf_path, &
                                       raw_data_ahf_filename, &
                                       ahf_buffer_file, &
@@ -119,8 +120,10 @@ CHARACTER (len=filename_max) :: raw_data_ahf_filename !< filename AHF raw data
 CHARACTER (len=filename_max) :: ahf_buffer_file !< name for AHF buffer file
 CHARACTER (len=filename_max) :: ahf_output_file !< name for AHF output file
 
+INTEGER (KIND=i4)            :: iahf_type  !< ID of dataset used !_br 14.04.16
+
 !> namelist with filenames for AHF data input
-NAMELIST /ahf_raw_data/ raw_data_ahf_path, raw_data_ahf_filename
+NAMELIST /ahf_raw_data/ raw_data_ahf_path, raw_data_ahf_filename, iahf_type !_br 14.04.16
 !> namelist with filenames for AHF data output
 NAMELIST /ahf_io_extpar/ ahf_buffer_file, ahf_output_file
 

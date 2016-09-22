@@ -5,6 +5,8 @@
 ! ------------ ---------- ----
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
+! V4_0         2016/08/17 authors from RHM and Daniel Lüthi
+!  Added support for MACv2 aerosol data fields
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -84,10 +86,14 @@ PUBLIC :: allocate_aot_data, &
           lat_aot, &
           aot_data, &
           ntype_aot, &
+          n_spectr,  &
           aot_varname, &
           aot_longname, &
-          aot_shortname
+          aot_shortname, &
+          MAC_data    !------new kinne-----
+
 PUBLIC :: ntime_aot
+PUBLIC :: nspb_aot
 PUBLIC :: iaot_type
 
 
@@ -99,9 +105,12 @@ REAL (KIND=wp), ALLOCATABLE :: lon_aot(:) !< longitude of aot grid
 REAL (KIND=wp), ALLOCATABLE :: lat_aot(:) !< latitude of aot grid
 
 REAL (KIND=wp), ALLOCATABLE :: aot_data(:,:,:,:) !< aerosol optical thickness, aot(ntype,ncolumns,nrows,ntime) 
+REAL (KIND=wp), ALLOCATABLE :: MAC_data(:,:,:,:,:) !< normalized aerosol optical properties, aot(ntype,ncolumns,nrows,ntime,itype) 
 
 INTEGER (KIND=i8), PARAMETER :: ntype_aot = 5 !< number of types of aerosols
 INTEGER (KIND=i8), PARAMETER :: ntime_aot = 12 !< 12 monthly mean data of aeorsol optical thickness
+INTEGER (KIND=i8), PARAMETER :: nspb_aot = 9 !< 9 spectral bands of aeorsol optical thickness
+INTEGER (KIND=i8) :: n_spectr
 
 CHARACTER (len=32) :: aot_varname(ntype_aot) = &    !< variable name for aerosolt type
                     & (/ 'bc   ', 'dust ', 'org  ', 'so4  ', 'ssalt' /)
@@ -119,10 +128,6 @@ CHARACTER (len=20) :: aot_shortname(ntype_aot)= &   !< short name for aereosol t
                     &   'AER_SS              ' /)
 
 INTEGER (KIND=i4)            :: iaot_type = 1
-
-
-
-
 
 
 CONTAINS
@@ -179,15 +184,16 @@ CONTAINS
 
 
   !> subroutine to allocate aot data fields
-  SUBROUTINE allocate_aot_data(nrows,ncolumns,ntime,ntype)
+  SUBROUTINE allocate_aot_data(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
     IMPLICIT NONE
     INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
     INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
     INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
     INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+    INTEGER (KIND=i8), INTENT(IN) :: n_spectr !< number of times
+    INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< if =4 MACv2 new
 
     INTEGER :: errorcode !< error status variable
-
 
     ALLOCATE (lon_aot(1:ncolumns+1), STAT=errorcode)
     IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lon_aot')
@@ -197,9 +203,15 @@ CONTAINS
     IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array lat_aot')
     lat_aot = 0.0
 
-    ALLOCATE (aot_data(1:ncolumns+1,1:nrows,1:ntime,1:ntype),STAT=errorcode)
-    IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array aot')
-    aot_data = 0.0
+    IF (iaot_type.NE.4) THEN
+      ALLOCATE (aot_data(1:ncolumns+1,1:nrows,1:ntime,1:ntype),STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array aot_data')
+      aot_data = 0.0
+    ELSE
+      ALLOCATE (MAC_data(1:ncolumns+1,1:nrows,1:n_spectr,1:ntime,1:ntype),STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant allocate the array MAC_data')
+      MAC_data = 0.0
+    ENDIF
 
   END SUBROUTINE allocate_aot_data
 
@@ -233,17 +245,21 @@ CONTAINS
 
   !> get dimension information of aot data from netcdf file
   SUBROUTINE get_dimension_aot_data(aot_filename, &
+                                     iaot_type,    &
                                      nrows,        &
                                      ncolumns,     &
                                      ntime,        &
-                                     ntype)
+                                     ntype,        &
+				     n_spectr)
    IMPLICIT NONE
    CHARACTER (LEN=filename_max), INTENT(IN)  ::  aot_filename  !< filename aot raw data
+   INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< if =4 MACv2
 
    INTEGER (KIND=i8), INTENT(OUT) :: ntype !< number of types of aerosols
    INTEGER (KIND=i8), INTENT(OUT) :: nrows !< number of rows
    INTEGER (KIND=i8), INTENT(OUT) :: ncolumns !< number of columns
    INTEGER (KIND=i8), INTENT(OUT) :: ntime !< number of times
+   INTEGER (KIND=i8), INTENT(OUT) :: n_spectr !< number of times
 
     !local variables
     CHARACTER (LEN=filename_max)  :: filename
@@ -278,46 +294,58 @@ CONTAINS
          IF ( TRIM(dimname) == 'time') ntime=length            ! here I know that the name of time dimension is "time"
        ENDDO
 
+       IF (iaot_type == 4) THEN
+         ntype=3
+         n_spectr=9
+       ELSE
+         ntype=ntype_aot ! here I know that i have 5 different aerosol types
+                         ! are in the netcdf file:
+                         ! i.e. black_carbon, dust, organic, sulfate, sea_salt
+         n_spectr=1
+       ENDIF
+
     ! close netcdf file 
     CALL check_netcdf( nf90_close( ncid))
-
-    ntype = ntype_aot ! here I know that i have 5 different aerosol types in the netcdf file
-                       ! i.e. black_carbon, dust, organic, sulfate, sea_salt
-
-
-
 
 
   END SUBROUTINE get_dimension_aot_data 
 
 
   !> get all aot data and coordinates and grid description
-  SUBROUTINE get_aot_grid_and_data(aot_filename, &
+  SUBROUTINE get_aot_grid_and_data(iaot_type, &
+                                     aot_filename, &
                                      nrows,        &
                                      ncolumns,     &
                                      ntime,        &
                                      ntype,        &
+                                     n_spectr,     &
                                      aot_grid,     &
                                      lon_aot,      &
                                      lat_aot,      &
-                                     aot_data)
+                                     aot_data,     &
+                                     MAC_data)
     IMPLICIT NONE
     CHARACTER (LEN=filename_max), INTENT(IN)  ::  aot_filename  !< filename aot raw data
+    INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< if =0 MACv2 new
     INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
     INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
     INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
     INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+    INTEGER (KIND=i8), INTENT(IN) :: n_spectr !< number of spectral bands
  
     TYPE(reg_lonlat_grid), INTENT(INOUT) :: aot_grid !< structure with defenition of the raw data grid for the AOT dataset
 
     REAL (KIND=wp), INTENT(INOUT) :: lon_aot(1:ncolumns+1) !< longitude coordinates of aot grid
     REAL (KIND=wp), INTENT(INOUT) :: lat_aot(1:nrows) !< latitude coordinates of aot grid
-    REAL (KIND=wp), INTENT(INOUT) :: aot_data(1:ncolumns+1,1:nrows,1:ntime,1:ntype) 
+    REAL (KIND=wp), INTENT(INOUT) :: aot_data(:,:,:,:) 
                                     !< aerosol optical thickness, aot(ntype,ncolumns,nrows,ntime) 
+    REAL (KIND=wp), INTENT(INOUT) :: MAC_data(:,:,:,:,:) !< aerosol optical thickness, aot(ntype,ncolumns &
+!& ,nrows,ntime) 
 
 
     !local variables
-    REAL :: aot_data_stype(ncolumns,nrows,ntime)
+    REAL, ALLOCATABLE :: aot_data_stype(:,:,:)
+    REAL, ALLOCATABLE :: MAC_data_stype(:,:,:,:)
     INTEGER :: ncid                             !< netcdf unit file number
 
     CHARACTER (LEN=80) :: varname(ntype)  !< name of variable
@@ -331,13 +359,18 @@ CONTAINS
     cooname(1) = 'lon'
     cooname(2) = 'lat'
 
-
     ! I know the names of tha variables already
-    varname(1) = 'black_carbon'
-    varname(2) = 'dust'
-    varname(3) = 'organic'
-    varname(4) = 'sulfate'
-    varname(5) = 'sea_salt'
+    IF (iaot_type == 4) THEN
+      varname(1) = 'AOT'
+      varname(2) = 'SSA'
+      varname(3) = 'ASY'
+    ELSE
+      varname(1) = 'black_carbon'
+      varname(2) = 'dust'
+      varname(3) = 'organic'
+      varname(4) = 'sulfate'
+      varname(5) = 'sea_salt'
+    ENDIF
 
   
     ! open netcdf file 
@@ -351,16 +384,30 @@ CONTAINS
     CALL check_netcdf(nf90_get_var(ncid, coovarid(2),  lat_aot))
 
 
+    IF (iaot_type == 4) THEN
+      ALLOCATE (MAC_data_stype(ncolumns,nrows,n_spectr,ntime))
+      DO n=1,ntype
+        CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname(n)), varid(n)))
 
-    DO n=1,ntype
-      CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname(n)), varid(n)))
+        CALL check_netcdf(nf90_get_var(ncid, varid(n),  MAC_data_stype))
 
-      CALL check_netcdf(nf90_get_var(ncid, varid(n),  aot_data_stype))
+        MAC_data(1:ncolumns,:,:,:,n) = MAC_data_stype(1:ncolumns,:,:,:)
+      ENDDO
+      MAC_data(ncolumns+1,:,:,:,:) = MAC_data(1,:,:,:,:)
+      DEALLOCATE (MAC_data_stype)
+    ELSE
+      ALLOCATE (aot_data_stype(ncolumns,nrows,ntime))
+      DO n=1,ntype
+        CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname(n)), varid(n)))
 
+        CALL check_netcdf(nf90_get_var(ncid, varid(n),  aot_data_stype))
 
-      aot_data(1:ncolumns,:,:,n) = aot_data_stype(1:ncolumns,:,:)
-
-    ENDDO
+        aot_data(1:ncolumns,:,:,n) = aot_data_stype(1:ncolumns,:,:)
+      ENDDO
+      aot_data(ncolumns+1,:,:,:) = aot_data(1,:,:,:)
+      DEALLOCATE (aot_data_stype)
+    ENDIF
+      
     CALL check_netcdf( nf90_close( ncid))
     ! close netcdf file 
 
@@ -381,13 +428,15 @@ CONTAINS
     aot_grid%end_lat_reg = lat_aot(nrows)
     lon_aot(ncolumns+1)=lon_aot(ncolumns) + aot_grid%dlon_reg
 
-
   END SUBROUTINE get_aot_grid_and_data
 
 
   SUBROUTINE deallocate_aot_data()
 
-    USE mo_aot_target_fields, ONLY: aot_tg
+    USE mo_aot_target_fields, ONLY: aot_tg, &
+      &                             MAC_aot_tg, &
+      &                             MAC_ssa_tg, &
+      &                             MAC_asy_tg
 
     IMPLICIT NONE
    
@@ -398,11 +447,22 @@ CONTAINS
     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lon_aot')
     DEALLOCATE (lat_aot, STAT=errorcode)
     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array lat_aot')
-    DEALLOCATE (aot_data, STAT=errorcode)
-    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_data')
-    DEALLOCATE (aot_tg, STAT=errorcode)
-    IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_tg')
-    
+
+    IF (iaot_type == 4) THEN
+      DEALLOCATE (MAC_data, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array MAC_data')
+      DEALLOCATE (MAC_aot_tg, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array MAC_aot_tg')
+      DEALLOCATE (MAC_ssa_tg, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array MAC_ssa_tg')
+      DEALLOCATE (MAC_asy_tg, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array MAC_asy_tg')
+    ELSE
+      DEALLOCATE (aot_data, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_data')
+      DEALLOCATE (aot_tg, STAT=errorcode)
+      IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array aot_tg')
+    ENDIF
   END SUBROUTINE deallocate_aot_data
 
 END MODULE mo_aot_data

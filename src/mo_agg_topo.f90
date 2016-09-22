@@ -425,7 +425,7 @@ MODULE mo_agg_topo
    nt = 1
    dx0 =  topo_tiles_grid(nt)%dlon_reg * deg2rad * re ! longitudinal distance between to topo grid elemtens at equator
    print *, 'dx0: ',dx0
-   dy = topo_tiles_grid(nt)%dlat_reg * deg2rad * re
+   dy = -1.0 * topo_tiles_grid(nt)%dlat_reg * deg2rad * re
 ! latitudinal distance  between to topo grid elemtens ! note the negative increment, as direction of data from north to south
    print *,'dy: ',dy
    d2y = 2. * dy

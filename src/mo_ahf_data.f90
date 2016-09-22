@@ -45,6 +45,8 @@ PUBLIC :: allocate_raw_ahf_fields, &
 
 PUBLIC :: undef_ahf, minimal_ahf
 
+PUBLIC :: iahf_type !_br 14.04.16
+
 TYPE(reg_lonlat_grid) :: ahf_raw_data_grid
                          
 REAL (KIND=wp), ALLOCATABLE  :: lon_ahf(:)          !< longitide coordinates of the soil grid in the geographical (lonlat) syste &
@@ -58,6 +60,7 @@ REAL (KIND=wp), ALLOCATABLE  :: ahf_field_row(:)      !< field for one row of ah
 REAL (KIND=wp) :: undef_ahf = 0.0  !< undefined value for AHF data
 REAL (KIND=wp) :: minimal_ahf = 0.0 !< minimal AHF value bare soil value
 
+INTEGER (KIND=i4)            :: iahf_type = 1 !_br 14.04.16
 
 
 CONTAINS

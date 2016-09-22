@@ -14,7 +14,9 @@
 ! V2_0_3       2015-01-12 Juergen Helmert
 !  Bugfix correction covers CSCS SVN r5907-r6359
 ! V3_0         2015-05-18 Juergen Helmert 
-!  Remove tableVersion from GRIB2-Output use Template default         
+!  Remove tableVersion from GRIB2-Output use Template default  
+! V4_0         2016/08/23 Daniel Lüthi
+!  added support for MACv2 spectrally stratified monthly aerosol fields       
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -59,7 +61,7 @@ MODULE mo_extpar_output_grib
 
   USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
   USE mo_ndvi_data, ONLY: ntime_ndvi
-  USE mo_aot_data, ONLY: ntype_aot, ntime_aot
+  USE mo_aot_data, ONLY: ntype_aot, ntime_aot, nspb_aot, iaot_type
   USE mo_albedo_data, ONLY: ntime_alb
 
   USE mo_soil_data,   ONLY: HWSD_data
@@ -122,6 +124,9 @@ MODULE mo_extpar_output_grib
     &                                     hh_topo,       &
     &                                     stdh_topo,     &
     &                                     aot_tg,        &
+    &                                     MAC_aot_tg,    &
+    &                                     MAC_ssa_tg,    &
+    &                                     MAC_asy_tg,    & 
     &                                     crutemp,       &
     &                                     alb_field_mom, &
     &                                     fr_sand,       & 
@@ -205,14 +210,18 @@ MODULE mo_extpar_output_grib
    &                         skyview_topo_meta
 
  USE mo_var_meta_data, ONLY: dim_aot_tg,  &
-    &                        aot_tg_meta, &
-    &                        def_aot_tg_meta
+   &                         aot_tg_meta, &
+   &                         def_aot_tg_meta
  USE mo_var_meta_data, ONLY: aot_type_shortname
+
+ USE mo_var_meta_data, ONLY: aot_tg_MAC_meta,&
+   &                         ssa_tg_MAC_meta,&
+   &                         asy_tg_MAC_meta
 
  USE mo_var_meta_data, ONLY: crutemp_meta, &
     &                        def_crutemp_meta
 
-  USE mo_physical_constants, ONLY: grav
+ USE mo_physical_constants, ONLY: grav
 
 
   CHARACTER (len=*), INTENT(IN) :: grib_filename !< filename for the grib file
@@ -258,6 +267,9 @@ MODULE mo_extpar_output_grib
   REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
   REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
   REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_aot_tg(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_ssa_tg(:,:,:,:)
+  REAL (KIND=wp), INTENT(IN)  :: MAC_asy_tg(:,:,:,:)
   REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
   REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
@@ -283,6 +295,7 @@ MODULE mo_extpar_output_grib
   INTEGER (KIND=i8)  :: dataTime
   INTEGER :: mm ! month
   INTEGER :: ntype ! type of aerosol
+  INTEGER :: ll ! level
   TYPE(var_meta_info) :: field_meta
 
 
@@ -515,34 +528,51 @@ MODULE mo_extpar_output_grib
     & cosmo_grid,extpar_cosmo_buffer,alb_field_mom_meta,dataDate,dataTime)
  ENDDO 
 
- ! aot_tg
-
- DO ntype=1,ntype_aot
-   SELECT CASE ( ntype )
-   CASE ( 1 )
-     field_meta = aer_bc_meta
-   CASE ( 2 )
-     field_meta = aer_dust_meta
-   CASE ( 3 )
-     field_meta = aer_org_meta
-   CASE ( 4 )
-     field_meta = aer_so4_meta
-   CASE ( 5 )
-     field_meta = aer_ss_meta
-   END SELECT
+ IF (iaot_type == 4) THEN
    DO mm=1,12
-   ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
-    CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
-    extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
-  & aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,ntype,mm)
-    CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
-    & cosmo_grid,extpar_cosmo_buffer,field_meta,dataDate,dataTime)
+     CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+     DO ll=1,nspb_aot
+       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+       &  MAC_aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,ll:ll,mm)
+       CALL write_extpar_cosmo_real_1lev_grib(outfile_id,TRIM(grib_sample), &
+       & cosmo_grid,extpar_cosmo_buffer,aot_tg_MAC_meta,dataDate,dataTime,ll)
+       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+       &  MAC_ssa_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,ll:ll,mm)
+       CALL write_extpar_cosmo_real_1lev_grib(outfile_id,TRIM(grib_sample), &
+       & cosmo_grid,extpar_cosmo_buffer,ssa_tg_MAC_meta,dataDate,dataTime,ll)
+       extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+       &  MAC_asy_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,ll:ll,mm)
+       CALL write_extpar_cosmo_real_1lev_grib(outfile_id,TRIM(grib_sample), &
+       & cosmo_grid,extpar_cosmo_buffer,asy_tg_MAC_meta,dataDate,dataTime,ll)
+     ENDDO
    ENDDO
- ENDDO
- ! ice_lu
+ ELSE
+   ! aot_tg
+   DO ntype=1,ntype_aot
+     SELECT CASE ( ntype )
+     CASE ( 1 )
+       field_meta = aer_bc_meta
+     CASE ( 2 )
+       field_meta = aer_dust_meta
+     CASE ( 3 )
+       field_meta = aer_org_meta
+     CASE ( 4 )
+       field_meta = aer_so4_meta
+     CASE ( 5 )
+       field_meta = aer_ss_meta
+     END SELECT
+     DO mm=1,12
+   ! get dataDate and dataTime according to DWD convention for external parameters of climatological monthly mean fields
+      CALL set_date_mm_extpar_field(mm,dataDate,dataTime)
+      extpar_cosmo_buffer(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1) = &
+    & aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:1,ntype,mm)
+      CALL write_extpar_cosmo_field_grib(outfile_id,TRIM(grib_sample), &
+      & cosmo_grid,extpar_cosmo_buffer,field_meta,dataDate,dataTime)
+     ENDDO
+   ENDDO
+ ENDIF
 
-
-  CALL grib_close_file(outfile_id)
+ CALL grib_close_file(outfile_id)
 
 
 

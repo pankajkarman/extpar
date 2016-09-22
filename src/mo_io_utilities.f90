@@ -1896,7 +1896,6 @@ write(0,*) 'netcdf_get_var_real_3d',n,length,var_real_3d_meta%diminfo(n)%dimsize
   INTEGER :: ndim  !< number of dimensions of variable
   INTEGER :: length!< length of dimension
 
-
   ! open netcdf file 
   CALL check_netcdf(nf90_open(TRIM(path_netcdf_file),NF90_NOWRITE, ncid))
 
