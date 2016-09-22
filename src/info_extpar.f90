@@ -53,7 +53,7 @@ PUBLIC :: info_readnl, info_define, info_print, info_getvalue
 ! of the binary.
 !
 ! Following declarations have to be defined just after checkout from the version control system:
-CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_4.0'
+CHARACTER (LEN=*), PARAMETER :: INFO_LibraryName     = 'extpar_3.0'
 CHARACTER (LEN=*), PARAMETER :: INFO_RevisionTag     = '(missing)'
 CHARACTER (LEN=*), PARAMETER :: INFO_CheckinDate     = '(missing)'
 CHARACTER (LEN=*), PARAMETER :: INFO_RevisionNumber  = '(missing)'
