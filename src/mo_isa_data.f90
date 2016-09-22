@@ -100,6 +100,9 @@ PUBLIC :: isa_grid,                &
           allocate_isa_data,       &
           deallocate_isa_data
 
+PUBLIC :: isa_type !_br 14.04.16
+
+
 PUBLIC :: undef_isa, minimal_isa
 
 TYPE(reg_lonlat_grid) :: isa_grid !< structure with defenition of the raw data grid for the whole isa dataset
@@ -127,6 +130,8 @@ REAL(KIND=wp), ALLOCATABLE    :: raw_isa_block(:,:)
 
 REAL (KIND=wp) :: undef_isa = 0.0  !< undefined value for ISA data
 REAL (KIND=wp) :: minimal_isa = 0.0 !< minimal ISA value 
+
+INTEGER (KIND=i4)            :: isa_type = 1 !_br 14.04.16
 
 CONTAINS
 
@@ -219,8 +224,10 @@ CONTAINS
 !   print*, half_gridp
 
      DO i = 1,ntiles_isa
-       CALL check_netcdf(nf90_open(path =TRIM(raw_data_isa_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! ISA file is &
-!&  opened 
+!_br 12.04.16 included the path raw_data_isa_path
+       CALL check_netcdf(nf90_open(path =TRIM(raw_data_isa_path)//TRIM(raw_data_isa_filename(i)), &
+                                   mode = nf90_nowrite, ncid = ncid))    ! ISA file is opened 
+!_br 12.04.16 end
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lon, len = isa_tiles_ncolumns(i)))          

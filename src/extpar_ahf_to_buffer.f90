@@ -97,6 +97,9 @@ PROGRAM extpar_ahf_to_buffer
     &                           lat_ahf, &
     &                           allocate_raw_ahf_fields,&
     &                           deallocate_ahf_fields
+
+   USE mo_ahf_data, ONLY : iahf_type !_br 14.04.16
+
                                
   USE mo_ahf_tg_fields, ONLY: ahf_field, &
     &                                allocate_ahf_target_fields
@@ -184,6 +187,7 @@ PROGRAM extpar_ahf_to_buffer
 
   namelist_ahf_data_input = 'INPUT_AHF'
   CALL  read_namelists_extpar_ahf(namelist_ahf_data_input, &
+    &                                  iahf_type,    & !_br 14.04.16
     &                                  raw_data_ahf_path, &
     &                                  raw_data_ahf_filename, &
     &                                  ahf_buffer_file, &

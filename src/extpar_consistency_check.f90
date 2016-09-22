@@ -45,7 +45,10 @@
 !  Change tile_mode switch to integer, scale glacier soil with fr_land         
 !  Modification of Caspian Sea treatment (height below sea level, JH)
 !  Adjust surface height (DL) and correct treatment also for ASTER topo
-!  Adaptions for urban fields         
+!  Adaptions for urban fields
+! V4_0         2016/08/17 Daniel Lüthi and authors from RHM
+!  add support for subgrid-scale slope parameter
+!  add support for MACv2 spectr. stratified monthly aerosol fields (iaot_type=4)
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -314,7 +317,7 @@ USE mo_isa_routines, ONLY: read_namelists_extpar_isa
 USE mo_ahf_tg_fields, ONLY: ahf_field, &
     &                                allocate_ahf_target_fields
 
-USE mo_ahf_data, ONLY: undef_ahf, minimal_ahf
+USE mo_ahf_data, ONLY: undef_ahf, minimal_ahf, iahf_type !_br 14.04.16
 USE mo_ahf_output_nc, ONLY: read_netcdf_buffer_ahf
 
 USE mo_ahf_routines, ONLY: read_namelists_extpar_ahf
@@ -354,10 +357,25 @@ USE mo_topo_routines, ONLY: read_namelists_extpar_orography, &
 
 USE mo_topo_data, ONLY: lradtopo, nhori, max_tiles, itopo_type
 
+USE mo_sgsl_tg_fields, ONLY:  sgsl,       &
+    &                         allocate_sgsl_target_fields
+
+USE mo_sgsl_tg_fields, ONLY:  allocate_additional_sgsl_param
+   
+USE mo_sgsl_output_nc, ONLY: read_netcdf_buffer_sgsl
+
+USE mo_sgsl_routines, ONLY: read_namelists_extpar_sg_slope
+
+USE mo_sgsl_data, ONLY: idem_type
+
 USE mo_aot_target_fields, ONLY: allocate_aot_target_fields,&
-    &                              aot_tg
+    &                              aot_tg,&
+    &                              MAC_aot_tg,&
+    &                              MAC_ssa_tg,&
+    &                              MAC_asy_tg
+
     
-USE mo_aot_output_nc, ONLY: read_netcdf_buffer_aot
+USE mo_aot_output_nc, ONLY: read_netcdf_buffer_aot, read_netcdf_buffer_aot_MAC
 
 USE mo_cru_target_fields, ONLY: allocate_cru_target_fields,   &
     &                              crutemp, crutemp2, cruelev,&
@@ -367,7 +385,7 @@ USE mo_cru_data,  ONLY: read_namelists_extpar_t_clim
 
 USE mo_cru_output_nc, ONLY: read_netcdf_buffer_cru
 
-USE mo_aot_data, ONLY: ntype_aot, ntime_aot, iaot_type
+USE mo_aot_data, ONLY: ntype_aot, ntime_aot, iaot_type, n_spectr, nspb_aot
 
 USE mo_aot_data, ONLY: read_namelists_extpar_aerosol
 
@@ -403,7 +421,7 @@ USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 USE mo_oro_filter, ONLY: read_namelists_extpar_orosmooth
 
 USE mo_isa_data,   ONLY: max_tiles_isa
-USE mo_isa_data, ONLY: undef_isa, minimal_isa
+USE mo_isa_data, ONLY: undef_isa, minimal_isa, isa_type !_br 14.04.16
 
   IMPLICIT NONE
 
@@ -443,6 +461,11 @@ USE mo_isa_data, ONLY: undef_isa, minimal_isa
   CHARACTER (len=filename_max) :: raw_data_orography_path        !< path to raw data
 
   CHARACTER (len=filename_max) :: orography_buffer_cons_output  !< name for orography output file after consistency check
+  
+  ! subgrid-scale slope 
+  CHARACTER (LEN=filename_max) :: sgsl_files(1:max_tiles)  !< filenames globe raw data
+  CHARACTER (len=filename_max) :: sgsl_buffer_file !< name for orography buffer file
+  CHARACTER (len=filename_max) :: raw_data_sgsl_path        !< path to raw data
 
   ! land use
 
@@ -605,6 +628,7 @@ USE mo_isa_data, ONLY: undef_isa, minimal_isa
 
   LOGICAL :: l_use_isa=.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_ahf=.FALSE. !< flag if additional urban data are present
+  LOGICAL :: l_use_sgsl=.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
   REAL :: lu_data_southern_boundary
 
@@ -883,7 +907,7 @@ END SELECT
   IF (l_use_isa) THEN
   PRINT *,'URBAN DATA ISA active: Reading INPUT-File...'
   CALL read_namelists_extpar_isa(namelist_file, &
-  !  &                                 i_isa_data,         &
+    &                                 isa_type,    & !_br 14.04.16
     &                                 raw_data_isa_path,       &
     &                                 raw_data_isa_filename,   &
     &                                 ntiles_isa,       &
@@ -895,10 +919,27 @@ END SELECT
   IF (l_use_ahf) THEN
   PRINT *,'URBAN DATA AHF active: Reading INPUT-File...'
   CALL  read_namelists_extpar_ahf(namelist_file, &
+    &                                  iahf_type,    & !_br 14.04.16
     &                                  raw_data_ahf_path, &
     &                                  raw_data_ahf_filename, &
     &                                  ahf_buffer_file, &
     &                                  ahf_output_file)
+  END IF
+
+
+  !--------------------------------------------------------------------------------------------------------
+  ! get info on subgrid-scale slope file
+  !--------------------------------------------------------------------------------------------------------
+  namelist_file = 'INPUT_SGSL'
+  INQUIRE(file=TRIM(namelist_file),exist=l_use_sgsl)
+  IF (l_use_sgsl) THEN
+    CALL  read_namelists_extpar_sg_slope(namelist_file,    &
+    &                                  raw_data_sgsl_path, &
+    &                                  sgsl_files,         &
+    &                                  ntiles_column,      &
+    &                                  ntiles_row,         &
+    &                                  idem_type,          &
+    &                                  sgsl_buffer_file)
   END IF
 
   !--------------------------------------------------------------------------------------------------------
@@ -961,7 +1002,12 @@ END SELECT
   CALL allocate_topo_target_fields(tg,nhori)
   PRINT *,'TOPO fields allocated'
 
-  CALL allocate_aot_target_fields(tg, ntime_aot, ntype_aot)
+  IF (l_use_sgsl) THEN
+    CALL allocate_sgsl_target_fields(tg)
+    PRINT *,'SGSL fields allocated'
+  END IF
+
+  CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot)
   PRINT *,'aot fields allocated'
 
   CALL allocate_cru_target_fields(tg)
@@ -1232,14 +1278,34 @@ END SELECT
 
    END SELECT
 
+  IF (l_use_sgsl) THEN
+    PRINT *,'Read in subgrid-scale slope data: ',TRIM(sgsl_buffer_file)
+    CALL read_netcdf_buffer_sgsl(sgsl_buffer_file,  &
+     &                                     tg,         &
+     &                                     undefined, &
+     &                                     undef_int, &
+     &                                     sgsl )
+  END IF
 
-   PRINT *,'Read in aot data'
 
-   CALL read_netcdf_buffer_aot(aot_buffer_file,    &
-   &                                     tg,       &
-   &                                     ntype_aot,&
-   &                                     ntime_aot,&
-   &                                     aot_tg)
+  PRINT *,'Read in aot data: ', TRIM (aot_buffer_file)
+  IF (iaot_type == 4) THEN
+    n_spectr = 9
+    CALL read_netcdf_buffer_aot_MAC (aot_buffer_file,     &
+    &                                     tg,             &
+    &                                     ntype_aot,      &
+    &                                     ntime_aot,      &
+    &                                     n_spectr,       & 
+    &                                     MAC_aot_tg,     &
+    &                                     MAC_ssa_tg,     &
+    &                                     MAC_asy_tg)
+  ELSE
+    CALL read_netcdf_buffer_aot(aot_buffer_file,    &
+    &                                     tg,       &
+    &                                     ntype_aot,&
+    &                                     ntime_aot,&
+    &                                     aot_tg)
+  ENDIF
 
    PRINT *,'Read in cru data'
    SELECT CASE(it_cl_type)
@@ -2304,6 +2370,7 @@ END SELECT
     &                                     lscale_separation,             &
     &                                     l_use_isa,                     &
     &                                     l_use_ahf,                     &
+    &                                     l_use_sgsl,                    &
     &                                     TRIM(y_orofilter),             &
     &                                     fill_value_real,               &
     &                                     fill_value_int,                &
@@ -2353,7 +2420,8 @@ END SELECT
     &                                     aniso_topo=aniso_topo,         &
     &                                     slope_topo=slope_topo,         &
     &                                     isa_field=isa_field,           &
-    &                                     ahf_field=ahf_field             )         
+    &                                     ahf_field=ahf_field,           &
+    &                                     sgsl=sgsl             )         
 
 #ifdef GRIBAPI
      PRINT *,'write out ', TRIM(grib_output_filename)
@@ -2418,6 +2486,7 @@ END SELECT
      &                                     lsso_param,                  & 
      &                                     l_use_isa,                   &
      &                                     l_use_ahf,                   &
+     &                                     l_use_sgsl,                  &
      &                                     lscale_separation,           &
      &                                     TRIM(y_orofilter),           &
      &                                     lradtopo,                    &  
@@ -2458,6 +2527,9 @@ END SELECT
      &                                     hh_topo,                     &
      &                                     stdh_topo,                   &
      &                                     aot_tg,                      &
+     &                                     MAC_aot_tg,                  &
+     &                                     MAC_ssa_tg,                  &
+     &                                     MAC_asy_tg,                  & 
      &                                     crutemp,                     &
      &                                     alb_field_mom,               &
      &                                     alnid_field_mom,             &
@@ -2483,7 +2555,8 @@ END SELECT
      &                                     horizon_topo=horizon_topo,    &
      &                                     skyview_topo=skyview_topo,   &
      &                                     isa_field=isa_field,         &
-     &                                     ahf_field=ahf_field           ) 
+     &                                     ahf_field=ahf_field,         &
+     &                                     sgsl=sgsl  ) 
     ENDIF
 
 #ifdef GRIBAPI
@@ -2527,6 +2600,9 @@ END SELECT
       &                                     hh_topo,                   &
       &                                     stdh_topo,                 &
       &                                     aot_tg,                    &
+      &                                     MAC_aot_tg,                &
+      &                                     MAC_ssa_tg,                &
+      &                                     MAC_asy_tg,                & 
       &                                     crutemp,                   &
       &                                     alb_field_mom,             &
       &                                     fr_sand = fr_sand,         &

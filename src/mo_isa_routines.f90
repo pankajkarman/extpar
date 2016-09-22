@@ -98,6 +98,7 @@ CONTAINS
 !---------------------------------------------------------------------------
 !> subroutine to read namelist for orography data settings for EXTPAR 
 SUBROUTINE read_namelists_extpar_isa(namelist_file,            &
+    &                                  isa_type,    & !_br 14.04.16
                                        raw_data_isa_path,          &
                                          raw_data_isa_filename,      &
                                          ntiles_isa,          &
@@ -119,11 +120,12 @@ SUBROUTINE read_namelists_extpar_isa(namelist_file,            &
 
   CHARACTER (len=filename_max), INTENT(OUT) :: isa_buffer_file !< name for isa buffer file
   INTEGER, INTENT(OUT) :: ntiles_isa
+  INTEGER (KIND=i4)            :: isa_type  !< ID of dataset used !_br 14.04.16
 !--
   !> namelist with isa data input
   !! HW: options from land-use left away
   ! NAMELIST /isa_raw_data/ raw_data_isa_path, raw_data_isa_filename, i_isa_data, ilookup_table_isa, ntiles_isa
-  NAMELIST /isa_raw_data/ raw_data_isa_path, raw_data_isa_filename, ntiles_isa
+  NAMELIST /isa_raw_data/ raw_data_isa_path, raw_data_isa_filename, ntiles_isa, isa_type !_br 14.04.16
   !> namelist with filenames for isa data output
   NAMELIST /isa_io_extpar/ isa_buffer_file
 

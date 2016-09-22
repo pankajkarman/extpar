@@ -16,6 +16,8 @@
 !   simplified namelist control for ICON  
 ! V2_0         2013/08/08 Daniel Luethi
 !   Addition of 2 alternative Aerosol Climatologies
+! V4_0         2013/08/17 authors from RHM and Daniel Lüthi
+!   Addition of support for MACv2 aerosol fields
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -69,6 +71,14 @@
 !! Part I: Forward modelling, J. Geophys. Res., 114D, D06206, 
 !! doi:10.1029/2008JD011235
 !!
+!! iaot_type = 4 
+!! MACv2 dataset from AEROCOM project
+!! ftp://ftp-projects.zmaw.de/aerocom/climatology/MACv2_2015/MACv2_13_mosk/2005/
+!! 
+!! Kinne, S., D. O'Donnel, P. Stier, S. Kloster, K. Zhang, H. Schmidt, S. Rast,
+!! M. Giorgetta, T. F. Eck, and B. Stevens (2013), 
+!! MAC-v1: A new global aerosol climatology for climate studies, 
+!! J. Adv. Model. Earth Syst., 5, 704–740, doi:10.1002/jame.20035
 PROGRAM extpar_aot_to_buffer
 
   ! Load the library information data:
@@ -147,12 +157,16 @@ PROGRAM extpar_aot_to_buffer
     &                      lon_aot, &
     &                      lat_aot, &
     &                      aot_data, &
-    &                      aot_grid
+    &                      aot_grid, &
+    &                      MAC_data         !------new MACv2-----
 
-  USE mo_aot_data, ONLY : iaot_type
+  USE mo_aot_data, ONLY : iaot_type, n_spectr
 
   USE mo_aot_target_fields, ONLY: allocate_aot_target_fields,&
-    &                              aot_tg
+    &                              aot_tg,&
+    &                              MAC_aot_tg,&
+    &                              MAC_ssa_tg,&
+    &                              MAC_asy_tg
   
   USE mo_agg_aot, ONLY: agg_aot_data_to_target_grid
 
@@ -234,42 +248,55 @@ PROGRAM extpar_aot_to_buffer
    ! inquire dimensions
 
    CALL  get_dimension_aot_data(filename, &
+                                     iaot_type,    &
                                      nrows,        &
                                      ncolumns,     &
                                      ntime,        &
-                                     ntype)
+                                     ntype,        &
+                                     n_spectr)
 
    PRINT *, 'nrows: ',nrows
    PRINT *, 'ncolumns: ',ncolumns
    PRINT *, 'ntime: ',ntime
    PRINT *, 'ntype: ',ntype
+   PRINT *, 'n_spectr: ',n_spectr
+   PRINT *, 'iaot_type: ',iaot_type
    ! allocate aot raw data fields
 
-   CALL allocate_aot_data(nrows,ncolumns,ntime,ntype)
+   CALL allocate_aot_data(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
 
 
    ! read in aot raw data
 
-   CALL get_aot_grid_and_data(filename, &
+   CALL get_aot_grid_and_data(iaot_type,           &
+                                     filename,     &
                                      nrows,        &
                                      ncolumns,     &
                                      ntime,        &
                                      ntype,        &
+                                     n_spectr,     &
                                      aot_grid,     &
                                      lon_aot,      &
                                      lat_aot,      &
-                                     aot_data)
+                                     aot_data,     &
+                                     MAC_data)         !------new kinne-----))
     ! allocate target grid fields for aerosol optical thickness
 
-    CALL allocate_aot_target_fields(tg, ntime, ntype)
+    CALL allocate_aot_target_fields(tg, iaot_type, ntime, ntype, n_spectr)
     
     undefined = -999.0_wp
     undef_int = -999
 
-    aot_tg  =  undefined  ! set target grid values to undefined
+    IF (iaot_type == 4) THEN
+      MAC_aot_tg =  undefined
+      MAC_ssa_tg =  undefined
+      MAC_asy_tg =  undefined
+    ELSE
+      aot_tg  =  undefined  ! set target grid values to undefined
+    ENDIF
 
     PRINT *,'call agg_aot_data_to_target_grid'
-    CALL  agg_aot_data_to_target_grid(nrows,ncolumns,ntime,ntype)
+    CALL  agg_aot_data_to_target_grid(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
 
     !write out data to buffer
 
@@ -284,7 +311,11 @@ PROGRAM extpar_aot_to_buffer
    &                                     lat_geo,         &
    &                                     ntype,           &
    &                                     ntime,           &
+   &                                     n_spectr,        &
    &                                     aot_tg,          &
+   &                                     MAC_aot_tg, &
+   &                                     MAC_ssa_tg, &
+   &                                     MAC_asy_tg, &
    &                                     iaot_type)
 
     !write out data
@@ -306,12 +337,16 @@ PROGRAM extpar_aot_to_buffer
    &                                     lat_geo,         &
    &                                     ntype,           &
    &                                     ntime,           &
+   &                                     n_spectr,        &
    &                                     aot_tg,          &
+   &                                     MAC_aot_tg, &
+   &                                     MAC_ssa_tg, &
+   &                                     MAC_asy_tg, &
    &                                     iaot_type)
 
 
 
-        CASE(igrid_cosmo) ! COSMO grid
+    CASE(igrid_cosmo) ! COSMO grid
         PRINT *,'write cosmo output to ',TRIM(aot_output_file)
 
         CALL write_netcdf_cosmo_grid_aot(netcdf_filename, &
@@ -323,7 +358,11 @@ PROGRAM extpar_aot_to_buffer
    &                                     lat_geo,         &
    &                                     ntype,           &
    &                                     ntime,           &
+   &                                     n_spectr,        &
    &                                     aot_tg,          &
+   &                                     MAC_aot_tg, &
+   &                                     MAC_ssa_tg, &
+   &                                     MAC_asy_tg, &
    &                                     iaot_type)
 
 

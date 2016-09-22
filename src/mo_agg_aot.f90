@@ -7,6 +7,8 @@
 !  Initial release
 ! V1_3         2011/04/19 Hermann Asensio
 !  suppurt unlimited time dimension for netcdf
+! V4_0         2016/08/17 authors from RHM and Daniel Lüthi
+!  Add support for MACv2 aerosol fields
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -53,121 +55,131 @@ PRIVATE
 
 PUBLIC :: agg_aot_data_to_target_grid
 
-    CONTAINS
+  CONTAINS
 
-    !> Subroutine to aggregate aerosol optical thickness data to the target grid
-    SUBROUTINE agg_aot_data_to_target_grid(nrows,ncolumns,ntime,ntype)
-      !-------------------------------------------------------------------------------------
-      ! list of modules which are used as "input"
-      USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
-      !> data type structures form module GRID_structures
-      USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-        &                           rotated_lonlat_grid, &
-        &                           gme_triangular_grid
-     USE mo_grid_structures, ONLY: igrid_gme, igrid_icon, igrid_cosmo
+  !> Subroutine to aggregate aerosol optical thickness data to the target grid
+  SUBROUTINE agg_aot_data_to_target_grid(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
+  !-------------------------------------------------------------------------------------
+  ! list of modules which are used as "input"
+  USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
+  !> data type structures form module GRID_structures
+  USE mo_grid_structures, ONLY: reg_lonlat_grid, &
+    &                           rotated_lonlat_grid, &
+    &                           gme_triangular_grid
+  USE mo_grid_structures, ONLY: igrid_gme, igrid_icon, igrid_cosmo
 
-      USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
+  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
 
-      ! USE global data fields (coordinates)
-      USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
-        &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
-      USE mo_target_grid_data, ONLY: tg !< structure with target grid description
+  ! USE global data fields (coordinates)
+  USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
+    &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
+  USE mo_target_grid_data, ONLY: tg !< structure with target grid description
 
-      ! "input" fields
-      USE mo_aot_data, ONLY : lon_aot, &
-        &                     lat_aot, &
-        &                     aot_data, &
-        &                     aot_grid
-      !-------------------------------------------------------------------------------------
-      ! list of modules and fields for "output"
-      USE mo_aot_target_fields, ONLY: aot_tg
+  ! "input" fields
+  USE mo_aot_data, ONLY : lon_aot, &
+    &                     lat_aot, &
+    &                     aot_data, &
+    &                     aot_grid, &
+    &                     MAC_data !------new MACv2-----
+  !-------------------------------------------------------------------------------------
+  ! list of modules and fields for "output"
+  USE mo_aot_target_fields, ONLY: aot_tg,&
+       &                          MAC_aot_tg,&
+       &                          MAC_ssa_tg,&
+       &                          MAC_asy_tg
 
-      INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
-      INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
-      INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
-      INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
-      REAL (KIND=wp) :: undefined            !< undef value
+
+  INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< type of AOT source data
+  INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
+  INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
+  INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
+  INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
+  INTEGER (KIND=i8), INTENT(IN) :: n_spectr !< number of spectr new
+  REAL (KIND=wp) :: undefined            !< undef value
  
-      INTEGER (KIND=i8) :: undefined_integer ! undef value
-      REAL (KIND=wp)    :: default_real
+  INTEGER (KIND=i8) :: undefined_integer ! undef value
+  REAL (KIND=wp)    :: default_real
 
-      INTEGER :: i,j,k,l ! counters
-      INTEGER (KIND=i8) :: ie, je, ke  !  for target grid elements
+  INTEGER :: i,j,k,l ! counters
+  INTEGER (KIND=i8) :: ie, je, ke  !  for target grid elements
 
-      INTEGER        :: k_error     ! error return code
+  REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
+  REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
 
-      REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
-      REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
-
-      REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
-      REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
+  REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
+  REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
       
        
-      INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
-      INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
-      INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
-      INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data 
+  INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
+  INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
+  INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
+  INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data 
 
-      INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
+  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
 
-      ! global data flag
-      LOGICAL :: gldata=.TRUE. ! AOT data are global
-
-
-      REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
-      REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation
-      REAL (KIND=wp) :: bwlon2d(ntime,ntype)
-      REAL (KIND=wp) :: bwlat2d(ntime,ntype)
-
-      REAL (KIND=wp) :: data_array_sw(ntime,ntype) !< data array values at south-western point
-      REAL (KIND=wp) :: data_array_se(ntime,ntype) !< data array values at south-eastern point
-      REAL (KIND=wp) :: data_array_ne(ntime,ntype) !< data array values at north-eastern point
-      REAL (KIND=wp) :: data_array_nw(ntime,ntype) !< data array values at north-western point
-      REAL (KIND=wp) :: target_array_value(ntime,ntype) !< interpolated values
+  ! global data flag
+  LOGICAL :: gldata=.TRUE. ! AOT data are global
 
 
-      !PRINT *,'entering agg_aot_data_to_target_grid'
+  REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
+  REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation
+  REAL (KIND=wp) :: bwlon2d(ntime,ntype)
+  REAL (KIND=wp) :: bwlat2d(ntime,ntype)
 
-      target_array_value = -999.
+  REAL (KIND=wp) :: data_array_sw(ntime,ntype) !< data array values at south-western point
+  REAL (KIND=wp) :: data_array_se(ntime,ntype) !< data array values at south-eastern point
+  REAL (KIND=wp) :: data_array_ne(ntime,ntype) !< data array values at north-eastern point
+  REAL (KIND=wp) :: data_array_nw(ntime,ntype) !< data array values at north-western point
+  REAL (KIND=wp) :: target_array_value(ntime,ntype) !< interpolated values
 
-      PRINT *,'MINVAL(lon_geo)', MINVAL(lon_geo)
-      PRINT *,'MAXVAL(lon_geo)', MAXVAL(lon_geo)
 
-      PRINT *,'MINVAL(lat_geo)', MINVAL(lat_geo)
-      PRINT *,'MAXVAL(lat_geo)', MAXVAL(lat_geo)
+  !PRINT *,'entering agg_aot_data_to_target_grid'
 
-      ! loop through all target grid elements
-       DO i=1,tg%ie
-       DO j=1,tg%je
-       DO k=1,tg%ke
+!  PRINT *,'lon_aot = ',lon_aot
+!  PRINT *,'lat_aot = ',lat_aot
+!  PRINT *, aot_grid
+  
 
-         point_lon_geo = lon_geo(i,j,k) 
-         point_lat_geo = lat_geo(i,j,k)
+  target_array_value = -999.
 
-         ! get four surrounding raw data indices
-         !PRINT *,'CALL  get_4_surrounding_raw_data_indices'
+  PRINT *,'MINVAL(lon_geo)', MINVAL(lon_geo)
+  PRINT *,'MAXVAL(lon_geo)', MAXVAL(lon_geo)
 
-         CALL  get_4_surrounding_raw_data_indices( aot_grid,      &
-                                                   lon_aot,       &
-                                                   lat_aot,       &
-                                                   gldata,        &
-                                                   point_lon_geo, &
-                                                   point_lat_geo, &
-                                                   western_column,&
-                                                   eastern_column,&
-                                                   northern_row,  &
-                                                   southern_row)
-         ! for the bilinear interpolation, use the four data pixels
+  PRINT *,'MINVAL(lat_geo)', MINVAL(lat_geo)
+  PRINT *,'MAXVAL(lat_geo)', MAXVAL(lat_geo)
+
+  ! loop through all target grid elements
+  DO i=1,tg%ie
+    DO j=1,tg%je
+      DO k=1,tg%ke
+
+        point_lon_geo = lon_geo(i,j,1) 
+        point_lat_geo = lat_geo(i,j,1)
+
+        ! get four surrounding raw data indices
+        !PRINT *,'CALL  get_4_surrounding_raw_data_indices'
+
+        CALL  get_4_surrounding_raw_data_indices( aot_grid,      &
+                                                  lon_aot,       &
+                                                  lat_aot,       &
+                                                  gldata,        &
+                                                  point_lon_geo, &
+                                                  point_lat_geo, &
+                                                  western_column,&
+                                                  eastern_column,&
+                                                  northern_row,  &
+                                                  southern_row)
+        ! for the bilinear interpolation, use the four data pixels
          ! data(western_column,northern_row)
          ! data(western_column,southern_row)
          ! data(eastern_column,southern_row)
          ! data(eastern_column,northern_row)
 
-         ! calculate weight for bilinear interpolation
-         target_array_value = -999.
-         IF ((western_column /= 0) ) THEN  ! point is not out of data grid range
+        ! calculate weight for bilinear interpolation
+        target_array_value = -999.
+        IF ((western_column /= 0) ) THEN  ! point is not out of data grid range
 
-           CALL calc_weight_bilinear_interpol(point_lon_geo, &
+          CALL calc_weight_bilinear_interpol(point_lon_geo, &
                                           point_lat_geo, &
                                           lon_aot(western_column),      &
                                           lon_aot(eastern_column),      &
@@ -177,31 +189,48 @@ PUBLIC :: agg_aot_data_to_target_grid
                                           bwlat)
          ! the weights are bwlon and bwlat
          ! put all relevant data to an array, dimension (ntime, ntype) for each grid point  
-         data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype) 
-         data_array_se(1:ntime,1:ntype) = aot_data(eastern_column,southern_row,1:ntime,1:ntype)
-         data_array_ne(1:ntime,1:ntype) = aot_data(eastern_column,northern_row,1:ntime,1:ntype)
-         data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)
-
          ! perform the interpolation
-         bwlon2d = bwlon
-         bwlat2d = bwlat
+          bwlon2d = bwlon
+          bwlat2d = bwlat
 
-         target_array_value = calc_value_bilinear_interpol(bwlon2d,bwlat2d, &
-                                         data_array_sw, data_array_se, data_array_ne, data_array_nw)
-         ! target_array_value = (1-bwlon) * (1-bwlat) * data_array_sw +  &
-         !                     & bwlon    * (1-bwlat) * data_array_se +  &
-         !                     & bwlon    *  bwlat    * data_array_ne +  &
-         !                     &(1-bwlon) *  bwlat    * data_array_nw 
- 
+          IF (iaot_type ==4) THEN
+            DO l=1,n_spectr
+              data_array_sw(1:ntime,1:ntype)= MAC_data(western_column,southern_row,l,1:ntime,1:ntype)
+              data_array_se(1:ntime,1:ntype)= MAC_data(eastern_column,southern_row,l,1:ntime,1:ntype)
+              data_array_ne(1:ntime,1:ntype)= MAC_data(eastern_column,northern_row,l,1:ntime,1:ntype)
+              data_array_nw(1:ntime,1:ntype)= MAC_data(western_column,northern_row,l,1:ntime,1:ntype)
+              target_array_value = calc_value_bilinear_interpol(bwlon2d,bwlat2d,&
+                  data_array_sw, data_array_se, data_array_ne, data_array_nw)
+              MAC_aot_tg(i,j,l,1:ntime)=target_array_value(1:ntime,1)
+              MAC_ssa_tg(i,j,l,1:ntime)=target_array_value(1:ntime,2)
+              MAC_asy_tg(i,j,l,1:ntime)=target_array_value(1:ntime,3)
+            ENDDO
+          ELSE
+            data_array_sw(1:ntime,1:ntype) = aot_data(western_column,southern_row,1:ntime,1:ntype) 
+            data_array_se(1:ntime,1:ntype) = aot_data(eastern_column,southern_row,1:ntime,1:ntype)
+            data_array_ne(1:ntime,1:ntype) = aot_data(eastern_column,northern_row,1:ntime,1:ntype)
+            data_array_nw(1:ntime,1:ntype) = aot_data(western_column,northern_row,1:ntime,1:ntype)
+            target_array_value = calc_value_bilinear_interpol(bwlon2d,bwlat2d,&
+                   data_array_sw, data_array_se, data_array_ne, data_array_nw)
+            aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))
+          ENDIF
+        ELSE
+          IF (iaot_type == 4) THEN
+            DO l = 1,n_spectr
+              MAC_aot_tg(i,j,l,1:ntime)=target_array_value(1:ntime,1)
+              MAC_ssa_tg(i,j,l,1:ntime)=target_array_value(1:ntime,2)
+              MAC_asy_tg(i,j,l,1:ntime)=target_array_value(1:ntime,3)
+            ENDDO
+          ELSE
+            aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))
+          ENDIF
         ENDIF
-       aot_tg(i,j,k,1:ntype,1:ntime) = TRANSPOSE(target_array_value(1:ntime,1:ntype))
 
-       ENDDO
-       ENDDO
-       ENDDO ! loop through all target grid elements
+      ENDDO
+    ENDDO
+  ENDDO ! loop through all target grid elements
 
-
-    END SUBROUTINE agg_aot_data_to_target_grid
+  END SUBROUTINE agg_aot_data_to_target_grid
 
 
 END MODULE mo_agg_aot

@@ -130,7 +130,9 @@ PROGRAM extpar_isa_to_buffer
     &                          fill_isa_data,           &
     &                          deallocate_isa_data
 
- USE mo_agg_isa, ONLY : agg_isa_data_to_target_grid
+  USE mo_isa_data, ONLY : isa_type !_br 14.04.16
+
+  USE mo_agg_isa, ONLY : agg_isa_data_to_target_grid
 
   IMPLICIT NONE
   
@@ -196,6 +198,7 @@ PROGRAM extpar_isa_to_buffer
 
   !---------------------------------------------------------------------------
   CALL read_namelists_extpar_isa(input_isa_namelist_file, &
+    &                                 isa_type,    & !_br 14.04.16
     &                                 raw_data_isa_path,       &
     &                                 raw_data_isa_filename,   &
     &                                 ntiles_isa,       &
