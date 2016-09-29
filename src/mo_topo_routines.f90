@@ -323,31 +323,31 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
             SELECT CASE(itopo_type)
             CASE(topo_aster)
 
-             dlon = (aster_lon_max - aster_lon_min) / FLOAT(nc_tot)
+             dlon = (aster_lon_max - aster_lon_min) / REAL(nc_tot,wp)
 
-             dlat = -1. * (aster_lat_max - aster_lat_min) / FLOAT(nr_tot)
+             dlat = -1. * (aster_lat_max - aster_lat_min) / REAL(nr_tot,wp)
              ! latitude from north to south, negative increment
 
-             topo_grid%start_lon_reg  =  aster_lon_min + 0.5 * dlon
-             topo_grid%end_lon_reg    =  aster_lon_max - 0.5 * dlon
+             topo_grid%start_lon_reg  =  aster_lon_min + 0.5_wp * dlon
+             topo_grid%end_lon_reg    =  aster_lon_max - 0.5_wp * dlon
 
             
-             topo_grid%start_lat_reg = aster_lat_max + 0.5 * dlat ! latitude from north to south, note the negative increment!
-             topo_grid%end_lat_reg  =  aster_lat_min - 0.5 * dlat ! latitude from north to south, note the negative increment!
+             topo_grid%start_lat_reg = aster_lat_max + 0.5_wp * dlat ! latitude from north to south, note the negative increment!
+             topo_grid%end_lat_reg  =  aster_lat_min - 0.5_wp * dlat ! latitude from north to south, note the negative increment!
 
 
             CASE(topo_gl)
 
-             dlon = 360. / FLOAT(nc_tot)
-             dlat = -1. * 180. / FLOAT(nr_tot)
+             dlon = 360._wp / REAL(nc_tot,wp)
+             dlat = -1. * 180._wp / REAL(nr_tot,wp)
              ! latitude from north to south, negative increment
             
-             topo_grid%start_lon_reg  = -180. + 0.5 * dlon
-             topo_grid%end_lon_reg    =  180. - 0.5 * dlon
+             topo_grid%start_lon_reg  = -180._wp + 0.5_wp * dlon
+             topo_grid%end_lon_reg    =  180._wp - 0.5_wp * dlon
    
             
-             topo_grid%start_lat_reg = 90. + 0.5 * dlat ! latitude from north to south, note the negative increment!
-             topo_grid%end_lat_reg  = -90. - 0.5 * dlat ! latitude from north to south, note the negative increment!
+             topo_grid%start_lat_reg = 90._wp + 0.5_wp * dlat ! latitude from north to south, note the negative increment!
+             topo_grid%end_lat_reg  = -90._wp - 0.5_wp * dlat ! latitude from north to south, note the negative increment!
 
             END SELECT
             !mes <
@@ -420,14 +420,14 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
 
        ! the GLOBE data are diveded in 16 tiles, 
        ! this defines a "dummy grid" to determine the index with a function
-       lon0_t = -180. 
-       lat0_t = 100.
-       dlon_t = 90.
-       dlat_t = -50.
+       lon0_t = -180._wp 
+       lat0_t = 100._wp
+       dlon_t = 90._wp
+       dlat_t = -50._wp
 
        point_lon_coor = point_geo%lon
-       IF (point_lon_coor > 180.) THEN  ! shift longitude range
-         point_lon_coor = point_lon_coor -360.
+       IF (point_lon_coor > 180._wp) THEN  ! shift longitude range
+         point_lon_coor = point_lon_coor -360._wp
        ENDIF
 
        t_i = INT((point_lon_coor - lon0_t)/dlon_t) + 1 ! get the tile index for the column
@@ -564,10 +564,10 @@ SUBROUTINE read_namelists_extpar_scale_sep(namelist_file,           &
        ! this defines a "dummy grid" to determine the tile index with a function
        ! lon from -180 to 180 with dlon 90 degrees
        ! lat from 100 to -100 with dlat 50 degrees
-       lon0_t = -180. 
-       lat0_t = 100.
-       dlon_t = 90.
-       dlat_t = 50.
+       lon0_t = -180._wp
+       lat0_t = 100._wp
+       dlon_t = 90._wp
+       dlat_t = 50._wp
 
        !tb_ll_lon = ta_grid%start_lon_reg
        !IF (tb_ll_lon > 180.) THEN  ! shift longitude range
