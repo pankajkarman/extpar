@@ -1007,6 +1007,12 @@ END SELECT
     PRINT *,'SGSL fields allocated'
   END IF
 
+  IF (lscale_separation .AND. (itopo_type == 2)) THEN   !_br 21.02.14 replaced eq by eqv
+    lscale_separation = .FALSE.
+    PRINT*, '*** Scale separation can only be used with GLOBE as raw topography ***'
+  ENDIF
+
+
   CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot)
   PRINT *,'aot fields allocated'
 
