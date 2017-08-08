@@ -1,0 +1,51 @@
+# compiler
+F90      = ftn
+
+# linker
+LD       = $(F90)
+
+# global compilation flags
+FFLAGS   = 
+
+# global linking flags
+LFLAGS   = -static 
+
+# verbose compilation flags
+VFLAGS   = -v 
+
+# force preprocessing flags
+PFLAGS   += -Mpreprocess
+# optimization flags (FOPT0=none, FOPT1=strong, FOPT2=strongest)
+FOPT    = -O3 
+
+# debugging flags
+FDBG     = -O0 
+FDBG    += -g 
+
+# global libraries and includes
+LIB      = 
+INC      = 
+
+# optimized flags, libraries and includes
+OPTL     = 
+OPTI     = 
+
+# debugging flags, libraries and includes
+DBGL     = 
+DBGI     = 
+
+# Grib API library
+LIB     += -L/project/c14/install/daint/libgrib_api/1.13.1/pgi/lib -lgrib_api_f90 -lgrib_api
+INC     += -I/project/c14/install/daint/libgrib_api/1.13.1/pgi/include
+ 
+# JASPER library
+LIB     += -L/oprusers/osm/lib/libjasper_1.900.1_gnu/lib -ljasper
+INC     +=
+
+# PNG library
+LIB     += -L/oprusers/osm/lib/libpng_1.5.12_pgi13.6.0/lib -lpng
+INC     += 
+
+# ZLIB library
+LIB     += -L/users/bettems/lib/zlib/zlib-1.2.7 -lz
+INC     +=
