@@ -1,0 +1,6 @@
+*.exe
+*.pyc
+.depend*
+test/testsuite/work
+*.out
+*.nc
