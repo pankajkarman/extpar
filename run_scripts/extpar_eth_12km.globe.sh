@@ -430,7 +430,7 @@ EOF_check
 
 # link raw data files to local workdir
 ln -s -f ${data_dir}/*.nc .
-ln -s -f ../s_oro/*.nc .
+
 # run the programs
 # the next seven programs can run independently of each other
 echo "\n>> Run ${binary_alb} ..."  ;  time ${progdir}/${binary_alb} 2>&1 >> ${logfile}
