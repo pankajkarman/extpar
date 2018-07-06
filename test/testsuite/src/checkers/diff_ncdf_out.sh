@@ -40,6 +40,12 @@ if [ $? -ne 1 ] ; then
    echo "Differences from reference file found" 1>&1
    exit 20 # FAIL
 fi
+
+cdo diffv $REFOUTDIR/external_parameter*.nc $FILE 2>&1 | grep Abort
+if [ $? -ne 1 ] ; then
+   echo "CDO abort during file comparison" 1>&1
+   exit 20 # FAIL
+fi
 # goodbye
 exit 0 # MATCH
 
