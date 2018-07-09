@@ -29,7 +29,7 @@ if [ ! -d "${RUNDIR}" ] ; then
   exit 20 # FAIL
 fi
 
-if [ ! -f "$REFOUTDIR/external_parameter*.nc" ] ; then
+if [ ! -f "$REFOUTDIR/external_parameter"* ] ; then
   echo "No netCDF reference file found"  1>&1
   exit 20 # FAIL
 fi
