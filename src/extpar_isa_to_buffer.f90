@@ -33,73 +33,27 @@
 !!
 PROGRAM extpar_isa_to_buffer
   
-  ! Load the library information data:
-  USE info_extpar, ONLY: info_define, info_readnl, info_print
-
+  USE info_extpar, ONLY: info_print
+  USE mo_logging
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i8
-  USE mo_kind, ONLY: i4
-
-  USE mo_grid_structures, ONLY: target_grid_def,   &
-    &                            reg_lonlat_grid,   &
-    &                            rotated_lonlat_grid
-  
-  USE mo_grid_structures, ONLY: igrid_icon
-  USE mo_grid_structures, ONLY: igrid_cosmo
-  USE mo_grid_structures, ONLY: igrid_gme
 
   USE mo_target_grid_data, ONLY: lon_geo, &
-    &                            lat_geo, &
-    &                            no_raw_data_pixel, &
-    &                            allocate_com_target_fields
+    &                            lat_geo
   
   USE mo_target_grid_data, ONLY: tg
   
   USE mo_target_grid_routines, ONLY: init_target_grid
 
-  USE mo_icon_grid_data, ONLY: ICON_grid  !< structure which contains the definition of the ICON grid
-
-  USE  mo_cosmo_grid, ONLY: COSMO_grid, &
-    &                       lon_rot, &
-    &                       lat_rot, &
-    &                       allocate_cosmo_rc, &
-    &                       get_cosmo_grid_info, &
-    &                       calculate_cosmo_domain_coordinates
-
-  USE mo_base_geometry,    ONLY:  geographical_coordinates, &
-    &                             cartesian_coordinates
-
-  USE mo_icon_domain,          ONLY: icon_domain, &
-    &                             grid_cells,               &
-    &                             grid_vertices,            &
-    &                             construct_icon_domain,    &
-    &                             destruct_icon_domain
-
   USE mo_io_units,          ONLY: filename_max
-
-  USE mo_exception,         ONLY: message_text, message, finish
 
   USE mo_utilities_extpar,  ONLY: abort_extpar
 
-  USE mo_additional_geometry,   ONLY: cc2gc,                  &
-    &                                 gc2cc,                  &
-    &                                 arc_length,             &
-    &                                 cos_arc_length,         &
-    &                                 inter_section,          &
-    &                                 vector_product,         &
-    &                                 point_in_polygon_sp
-
-
-  USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
-
   USE mo_isa_routines, ONLY: read_namelists_extpar_isa
 
-  USE mo_isa_routines, ONLY:  get_isa_tiles_grid,  &
-    &                             det_band_isa_data
-! <mes
-
+  USE mo_isa_routines, ONLY:  get_isa_tiles_grid
 
   !USE mo_isa_tg_fields, ONLY :  i_isa_isa, i_isa_glc2000, i_isa_glcc
   USE mo_isa_tg_fields, ONLY: allocate_isa_target_fields, allocate_add_isa_fields
@@ -132,19 +86,15 @@ PROGRAM extpar_isa_to_buffer
 
   USE mo_isa_data, ONLY : isa_type !_br 14.04.16
 
-  USE mo_agg_isa, ONLY : agg_isa_data_to_target_grid
+ USE mo_agg_isa, ONLY : agg_isa_data_to_target_grid
 
   IMPLICIT NONE
-  
-  CHARACTER(len=filename_max) :: filename
-  CHARACTER(len=filename_max) :: netcdf_filename
 
-  CHARACTER(len=filename_max) :: input_namelist_file
-  CHARACTER(len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
+  CHARACTER(len=filename_max) :: netcdf_filename
 
   CHARACTER(len=filename_max) :: namelist_grid_def
 
-  CHARACTER (len=filename_max) :: namelist_topo_data_input !< file with input namelist with GLOBE data information
+
   CHARACTER(len=filename_max) :: input_isa_namelist_file
   CHARACTER(len=filename_max), ALLOCATABLE:: isa_file(:)
 
@@ -154,13 +104,10 @@ PROGRAM extpar_isa_to_buffer
 
   CHARACTER (len=filename_max) :: isa_buffer_file !< name for glc2000 buffer file
 
-
-  INTEGER :: i,j,k !< counter
+  INTEGER :: i,k !< counter
   INTEGER :: errorcode
 
   REAL (KIND=wp) :: undefined
-  REAL (KIND=wp) :: tg_southern_bound
-
 
   INTEGER :: undef_int
 
@@ -171,21 +118,13 @@ PROGRAM extpar_isa_to_buffer
 
 
   !--------------------------------------------------------------------------------------
-
-  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
-  !INTEGER  :: i_isa_data !<integer switch to choose a isa raw data set
-
-  
-  ! Print the default information to stdout:
-  CALL info_define ('extpar_isa_to_buffer')      ! Pre-define the program name as binary name
-  CALL info_print ()                     ! Print the information to stdout
+  CALL initialize_logging("extpar_isa_to_buffer.log", stdout_level=debug)  
+  CALL info_print ()
   !--------------------------------------------------------------------------------------------------------
 
   namelist_grid_def = 'INPUT_grid_org'
   CALL init_target_grid(namelist_grid_def)
 
-  igrid_type = tg%igrid_type
-  tg_southern_bound=MINVAL(lat_geo) ! get southern boundary of target grid
   CALL allocate_isa_target_fields(tg)
   print *,'Grid defined, isa target fields allocated'
 
@@ -201,15 +140,14 @@ PROGRAM extpar_isa_to_buffer
     &                                 isa_type,    & !_br 14.04.16
     &                                 raw_data_isa_path,       &
     &                                 raw_data_isa_filename,   &
-    &                                 ntiles_isa,       &
-    &                                 isa_buffer_file)
+    &                                 ntiles_isa,              &
+    &                                 isa_buffer_file          )
 
 ! >mes
 !     print*,input_isa_namelist_file,   raw_data_isa_path,       &
 !     &                                 raw_data_isa_filename,   &
 !     &                                 ntiles_isa,       &
-!     &                                 isa_buffer_file,         &
-!     &                                 isa_output_file
+!     &                                 isa_buffer_file
 
 
        
@@ -276,12 +214,6 @@ PROGRAM extpar_isa_to_buffer
         &                              isa_grid)
         !HA debug
         PRINT *,'isa_grid: ',isa_grid
-        !! If southern boundary of target grid is south of southern boundary of Globcover data
-        !! (Globcover 2009 does not include Antarctica) then also process GLCC data)
-        !IF (tg_southern_bound < isa_grid%end_lat_reg) THEN
-        !  isa_se_glcc=.TRUE.
-        !  CALL allocate_glcc_target_fields(tg)
-        !ENDIF 
 
 ! >mes
       CALL get_isa_tiles_grid(isa_tiles_grid)

@@ -15,15 +15,13 @@ MODULE mo_sgsl_data
  USE mo_kind,               ONLY: wp,     &
                                   i4,     &
                                   i8,     &
-                                  ishort
+                                  i2
 
  USE mo_grid_structures,    ONLY:  reg_lonlat_grid
 
  USE mo_utilities_extpar,   ONLY:  abort_extpar
 
  USE mo_io_utilities,       ONLY:  check_netcdf
-
- USE mo_io_units,           ONLY:  filename_max
 
  USE mo_sgsl_tg_fields,     ONLY:  sgsl
 
@@ -141,17 +139,12 @@ CHARACTER(LEN=80) :: varname
   CONTAINS
 
 
-   SUBROUTINE num_tiles(dem,columns,rows,ntiles,idem_type) ! it gives the value of the number of tiles depending 
+   SUBROUTINE num_tiles(columns,rows,ntiles) ! it gives the value of the number of tiles depending 
    IMPLICIT NONE
    SAVE
-   INTEGER, INTENT(IN) :: dem
    INTEGER, INTENT(IN) :: columns
    INTEGER, INTENT(IN) :: rows
    INTEGER, INTENT(OUT):: ntiles           ! if the user chooses GLOBE or ASTER 
-   INTEGER, INTENT(OUT):: idem_type
-
-
-   idem_type = dem
 
    ntiles_column = columns
    ntiles_row    = rows
@@ -213,8 +206,8 @@ CHARACTER(LEN=80) :: varname
                                                   nc_tile)
    IMPLICIT NONE
    SAVE
-   CHARACTER (len=filename_max),INTENT(IN) :: raw_data_sgsl_path
-   CHARACTER (len=filename_max),INTENT(IN) :: sgsl_files(1:ntiles)
+   CHARACTER (len=*),INTENT(IN) :: raw_data_sgsl_path
+   CHARACTER (len=*),INTENT(IN) :: sgsl_files(1:ntiles)
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lon_min(1:ntiles) 
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lon_max(1:ntiles)
    REAL(KIND=wp), INTENT(OUT)   :: tiles_lat_min(1:ntiles)
@@ -320,9 +313,9 @@ CHARACTER(LEN=80) :: varname
   SUBROUTINE get_fill_value(sgsl_file_1,undef_sgsl)
   IMPLICIT NONE
   SAVE
-  CHARACTER (len=filename_max), INTENT(IN) :: sgsl_file_1     
+  CHARACTER (len=*), INTENT(IN) :: sgsl_file_1     
   REAL(KIND=wp), INTENT(OUT)           :: undef_sgsl
-  INTEGER(KIND=ishort)           :: fillval
+  INTEGER(KIND=i2)           :: fillval
   REAL(KIND=wp)                  :: scale_factor
   INTEGER(KIND=i4)               :: ncid
 
@@ -337,9 +330,9 @@ CHARACTER(LEN=80) :: varname
 
    CASE(dem_gl)
    CALL check_netcdf(nf90_open(path = sgsl_file_1 , mode = nf90_nowrite, ncid = ncid))
-print *,'before get_att fillval'
+!print *,'before get_att fillval'
    CALL check_netcdf(nf90_get_att(ncid, 3, "_FillValue", fillval))
-print *,'before get_att scale_factor'
+!print *,'before get_att scale_factor'
    CALL check_netcdf(nf90_get_att(ncid, 3, "scale_factor", scale_factor))
    undef_sgsl = fillval * scale_factor
    CALL check_netcdf(nf90_close(ncid))
@@ -353,7 +346,7 @@ print *,'before get_att scale_factor'
   SUBROUTINE get_varname(sgsl_file_1,varname)
   IMPLICIT NONE
   SAVE
-  CHARACTER (len=filename_max), INTENT(IN) :: sgsl_file_1     
+  CHARACTER (len=*), INTENT(IN) :: sgsl_file_1     
   CHARACTER(LEN=*),INTENT(OUT)   :: varname
   INTEGER(KIND=i4)               :: ncid, type, ndims
   INTEGER(KIND=i4)               :: dimids(2)

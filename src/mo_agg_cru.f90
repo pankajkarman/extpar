@@ -47,7 +47,7 @@ PUBLIC :: agg_cru_data_to_target_grid
 CONTAINS
 
   !> Subroutine to aggregate CRU temperature data to the target grid
-  SUBROUTINE agg_cru_data_to_target_grid(nrows,ncolumns,ntime,it_cl_type)
+  SUBROUTINE agg_cru_data_to_target_grid(nrows,ncolumns,ntime,raw_data_t_id)
   !-------------------------------------------------------------------------------------
   ! list of modules which are used as "input"
     USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
@@ -93,7 +93,7 @@ CONTAINS
      INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
      INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
      INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
-     INTEGER (KIND=i8), INTENT(IN) :: it_cl_type !< integer switch to decide which data set must be used. (CRU fine, CRU coarse)
+     INTEGER (KIND=i8), INTENT(IN) :: raw_data_t_id !< integer switch to decide which data set must be used. (CRU fine, CRU coarse)
 
 
      REAL (KIND=wp) :: undefined            !< undef value
@@ -156,26 +156,26 @@ CONTAINS
       DATA dpm / 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 /
 
        tem_clim_raw = 0.0
-   DO j=1, nrows
-     DO i=1, ncolumns
+       DO j=1, nrows
+       DO i=1, ncolumns
 
-       SELECT CASE(it_cl_type)
+       SELECT CASE(raw_data_t_id)
        CASE(i_t_cru_coarse)
-         DO t=1, ntime
-           tem_clim_raw(i,j) = tem_clim_raw(i,j) +  dpm(t) * cru_raw_data(i,j,t)
-         ENDDO
+        DO t=1, ntime
+          tem_clim_raw(i,j) = tem_clim_raw(i,j) +  dpm(t) * cru_raw_data(i,j,t)
+        ENDDO
 
          tem_clim_raw(i,j) = 273.15 +  tem_clim_raw(i,j) / 365 ! unit in K instead degC, and yearly mean instead of monthly means
 
-       CASE(i_t_cru_fine)
+     CASE(i_t_cru_fine)
          DO t=1, ntime
-           tem_clim_raw(i,j)  =  cru_raw_data(i,j,t)
-           elev_clim_raw(i,j) =  cru_raw_elev(i,j,t)
-         ENDDO
-       END SELECT
+         tem_clim_raw(i,j)  =  cru_raw_data(i,j,t)
+         elev_clim_raw(i,j) =  cru_raw_elev(i,j,t)
+       ENDDO
+     END SELECT
 
-     ENDDO
    ENDDO
+ ENDDO
       
 
 
@@ -244,7 +244,7 @@ CONTAINS
      !  missing over water is 0
 
      ! perform the interpolation
-     SELECT CASE(it_cl_type)
+     SELECT CASE(raw_data_t_id)
      CASE(i_t_cru_fine)
        if (data_sw .gt. 0 .and. data_se .gt. 0 .and.                 &
            data_ne .gt. 0 .and. data_nw .gt. 0) then 
@@ -281,7 +281,7 @@ CONTAINS
      ENDDO ! loop through all target grid elements
 
      ! ELEVATION
-     SELECT CASE(it_cl_type)
+     SELECT CASE(raw_data_t_id)
      CASE(i_t_cru_fine)
      ! loop through all target grid elements
        DO i=1,tg%ie
@@ -339,6 +339,6 @@ CONTAINS
 
 
 
-  END SUBROUTINE agg_cru_data_to_target_grid
+    END SUBROUTINE agg_cru_data_to_target_grid
 
 END MODULE mo_agg_cru

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script runs the Extpar testsuite on Daint
+# This script runs the Extpar testsuite 
 #
 
 # Error function
@@ -10,7 +10,6 @@ exitError()
         echo "ERROR     LOCATION=$0" 1>&2
         exit $1
 }
-
 
 # Code body
 
@@ -22,14 +21,28 @@ cd data
 cd ..
 
 # Copy the executables
-cp ../../bin/*.exe bin
+cp ../../bin/* bin
 
-test -f submit.daint.sh || exitError 1260 "submit script submit.daint.sh does not exist" 
+case "$(hostname)" in
+    daint*)
+	host=daint
+        ;;
+    kesch*)
+        host=kesch
+        ;;
+    mlogin*)
+	host=mistral
+        module unload anaconda3
+        module load anaconda3/bleeding_edge 
+        module unload cdo
+        module load cdo
+	;;
+esac
+test -f submit.$host.sh || exitError 1260 "submit script submit.${host}.sh does not exist" 
 
 echo "Running submit script"
-./submit.daint.sh
+./submit.$host.sh
 echo "Finished with submit script"
-
 
 # echo output to stdout
 test -f testsuite.out || exitError 1261 "output file testsuite.out does not exist"

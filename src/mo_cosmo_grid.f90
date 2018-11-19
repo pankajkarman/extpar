@@ -132,7 +132,7 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       INTEGER                  :: nuin !< unit number
 
       REAL(KIND=wp), PARAMETER :: circum_earth   = 40075160.0_wp ! Earth circumference at equator [m]
-      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_wp ! Radius used for horizon calculation [m]  
+      REAL(KIND=wp), PARAMETER :: horizon_radius =    40000.0_wp ! Radius used for horizon calculation [m]
                                                                      ! (M. Buzzi's recommendation: 40-50 km)
       INTEGER(KIND=i8), PARAMETER :: securi      = 4                 ! Minimum number of points required for horizon computation
 
@@ -196,7 +196,7 @@ SUBROUTINE read_cosmo_domain_namelist(input_namelist_file, &
       ! compute number of additional grid points required in case of lradtopo
       IF (lrad) THEN
         res_in  = dlon * (circum_earth/360.0_wp) ![m]
-        nborder = MAX(INT(horizon_radius/res_in), securi) 
+        nborder = MAX(INT(horizon_radius/res_in,i8), securi) 
       ENDIF
 
       ! put values to data structure COSMO_grid

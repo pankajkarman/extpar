@@ -1,5 +1,6 @@
 OBJ := \
 info_extpar.o \
+mo_logging.o \
 mo_additional_geometry.o \
 mo_agg_albedo.o \
 mo_agg_aot.o \
@@ -12,7 +13,8 @@ mo_agg_ecoclimap.o \
 mo_agg_ndvi.o \
 mo_agg_sgsl.o \
 mo_agg_soil.o \
-mo_agg_topo.o \
+mo_agg_topo_icon.o \
+mo_agg_topo_cosmo.o \
 mo_agg_ahf.o \
 mo_agg_isa.o \
 mo_albedo_data.o \
@@ -46,7 +48,6 @@ mo_glcc_tg_fields.o \
 mo_globcover_data.o \
 mo_globcover_lookup_tables.o \
 mo_globcover_tg_fields.o \
-mo_gme_grid.o \
 mo_grid_structures.o \
 mo_icon_domain.o \
 mo_icon_grid_data.o \
@@ -67,7 +68,6 @@ mo_ndvi_tg_fields.o \
 mo_oro_filter.o \
 mo_physical_constants.o \
 mo_read_extpar_namelists.o \
-mo_search_gmegrid.o \
 mo_search_icongrid.o \
 mo_search_ll_grid.o \
 mo_search_target_grid.o \
@@ -92,13 +92,11 @@ mo_ahf_data.o \
 mo_ahf_output_nc.o \
 mo_ahf_routines.o \
 mo_ahf_tg_fields.o \
+mo_era_output_nc.o \
+mo_era_tg_fields.o \
 mo_isa_data.o \
 mo_isa_output_nc.o \
 mo_isa_routines.o \
 mo_isa_tg_fields.o \
 mo_var_meta_data.o 
-
-GRIBOBJ := \
-mo_extpar_output_grib.o \
-mo_io_grib_api.o 
 

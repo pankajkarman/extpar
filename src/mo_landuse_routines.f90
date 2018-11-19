@@ -23,7 +23,7 @@ MODULE mo_landuse_routines
 USE mo_kind, ONLY: wp, &
                    i8, &
                    i4, &
-                   ishort
+                   i2
 
 USE netcdf,      ONLY :   &
   nf90_open,              &
@@ -104,6 +104,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
                                          i_landuse_data,            &
                                          raw_data_lu_path,          &
                                          raw_data_lu_filename,      &
+                                         ntiles_globcover,          &
                                          ilookup_table_lu,          &
                                          lu_buffer_file,            &
                                          lu_output_file,            &
@@ -118,7 +119,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
   
 ! >mes
   USE mo_globcover_data,   ONLY: max_tiles_lu, ncolumn_tiles, nrow_tiles
-  USE mo_globcover_data,   ONLY: ntiles_globcover
+!  USE mo_globcover_data,   ONLY: ntiles_globcover
 !<mes
   
   CHARACTER (len=filename_max), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
@@ -131,7 +132,7 @@ SUBROUTINE read_namelists_extpar_land_use(namelist_file,            &
 
   CHARACTER (len=filename_max), INTENT(OUT) :: lu_buffer_file !< name for landuse buffer file
   CHARACTER (len=filename_max), INTENT(OUT) :: lu_output_file !< name for landuse output file
-
+  INTEGER, INTENT(OUT) :: ntiles_globcover
 !--
   CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_path_opt        !< path to raw data
   CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_filename_opt !< filename glc2000 raw data
@@ -808,7 +809,7 @@ END SUBROUTINE read_namelists_extpar_land_use
          !< structure with defenition of the raw data grid for the 16 GLOBECOVER tiles
          INTEGER , INTENT(IN) :: ncids_globcover(1:ntiles_globcover)  
          !< ncid for the GLOBCOVER tiles, the netcdf files have to be opened previously
-         INTEGER (KIND=ishort), INTENT(OUT) :: lu_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBCOVER data 
+         INTEGER (KIND=i2), INTENT(OUT) :: lu_block(1:ta_grid%nlon_reg,1:ta_grid%nlat_reg) !< a block of GLOBCOVER data 
 
        !local variables
        INTEGER (KIND=i4) :: globcover_startrow(1:ntiles_globcover) !< startrow indices for each GLOBCOVER tile
@@ -826,7 +827,7 @@ END SUBROUTINE read_namelists_extpar_land_use
        !< indices of target area block for last row of each GLOBCOVER tile
 
 
-       INTEGER (KIND=ishort), ALLOCATABLE :: raw_lu_block(:,:) !< a block with GLOBCOVER data
+       INTEGER (KIND=i2), ALLOCATABLE :: raw_lu_block(:,:) !< a block with GLOBCOVER data
        INTEGER :: varid               !< id of variable
        CHARACTER (LEN=80) :: varname  !< name of variable
 
@@ -856,7 +857,7 @@ END SUBROUTINE read_namelists_extpar_land_use
            IF ((globcover_startrow(k)/=0).AND.(globcover_startcolumn(k)/=0)) THEN
              nrows = globcover_endrow(k) - globcover_startrow(k) + 1
              ncolumns = globcover_endcolumn(k) - globcover_startcolumn(k) + 1
-
+ 
            ALLOCATE (raw_lu_block(1:ncolumns,1:nrows), STAT=errorcode)
              IF(errorcode/=0) CALL abort_extpar('Cant allocate the array raw_lu_block')
 
@@ -1047,16 +1048,16 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
 
 ! <mes
 
-      !----------------------------------------------------------------------------------------------------------------
-      !----------------------------------------------------------------------------------------------------------------
+       !----------------------------------------------------------------------------------------------------------------
+       !----------------------------------------------------------------------------------------------------------------
 
-      !> get one row of globcover raw data
-      SUBROUTINE get_row_globcover_data(path_globcover_file, &
+        !> get one row of globcover raw data
+        SUBROUTINE get_row_globcover_data(path_globcover_file, &
                                           nlon_globcover,      &
                                           data_row,            &
                                           globcover_data_row)
 
-        USE mo_grid_structures, ONLY: reg_lonlat_grid
+       USE mo_grid_structures, ONLY: reg_lonlat_grid
 
         CHARACTER (LEN=filename_max), INTENT(IN) :: path_globcover_file         !< filename with path for globcover raw data
         INTEGER , INTENT(IN) :: nlon_globcover !< number of grid elements in zonal direction for globcover data
@@ -1070,20 +1071,20 @@ USE mo_globcover_data, ONLY : ntiles_globcover,  &          !< GLOBCOVER raw dat
         CHARACTER (LEN=80) :: varname  !< name of variable
         INTEGER :: varid               !< id of variable
 
-        ! open netcdf file
+       ! open netcdf file
         CALL check_netcdf( nf90_open(TRIM(path_globcover_file),NF90_NOWRITE, ncid))
 
         varname = 'GLOBCOVER' ! I know that the globcover data are stored in a variable called 'GLOBCOVER'
 
-        CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
+         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
 
-        CALL check_netcdf(nf90_get_var(ncid, varid,  globcover_data_row,  &
+         CALL check_netcdf(nf90_get_var(ncid, varid,  globcover_data_row,  &
                        start=(/1,data_row/),count=(/nlon_globcover,1/)))
 
-        ! close netcdf file
-        CALL check_netcdf( nf90_close( ncid))
+       ! close netcdf file
+       CALL check_netcdf( nf90_close( ncid))
 
-      END SUBROUTINE get_row_globcover_data
+       END SUBROUTINE get_row_globcover_data
 
       !----------------------------------------------------------------------------------------------------------------
       !> get one row of ecoclimap raw data

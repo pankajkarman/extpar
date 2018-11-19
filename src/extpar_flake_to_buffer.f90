@@ -14,6 +14,8 @@
 !   Several bug fixes and optimizations for ICON search algorithm, 
 !   particularly for the special case of non-contiguous domains; 
 !   simplified namelist control for ICON  
+! V1_14        2014-07-18 Juergen Helmert
+!  Combined COSMO Release
 !
 ! Code Description:
 ! Language: Fortran 2003.
@@ -30,65 +32,29 @@
 !!
 PROGRAM extpar_flake_to_buffer
 
-  !Load the library information data:
-  USE info_extpar, ONLY: info_define, info_readnl, info_print
-
+  USE info_extpar, ONLY: info_print
+  USE mo_logging
+  
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
-  USE mo_grid_structures, ONLY: target_grid_def,   &
-    &                            reg_lonlat_grid,   &
-    &                            rotated_lonlat_grid
-  
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
-  USE mo_grid_structures, ONLY: igrid_gme
 
   USE mo_target_grid_data, ONLY: lon_geo, &
-    &                            lat_geo, &
-    &                            no_raw_data_pixel, &
-    &                            allocate_com_target_fields
-  
+    &                            lat_geo
+
   USE mo_target_grid_data, ONLY: tg
   
   USE mo_target_grid_routines, ONLY: init_target_grid
 
   USE mo_icon_grid_data, ONLY: ICON_grid  !< structure which contains the definition of the ICON grid
  
-  USE  mo_cosmo_grid, ONLY: COSMO_grid, &
-    &                       lon_rot, &
-    &                       lat_rot, &
-    &                       allocate_cosmo_rc, &
-    &                       get_cosmo_grid_info, &
-    &                       calculate_cosmo_domain_coordinates
-
-  USE mo_base_geometry,    ONLY:  geographical_coordinates, &
-    &                             cartesian_coordinates
-
-  USE mo_icon_domain,          ONLY: icon_domain, &
-    &                             grid_cells,               &
-    &                             grid_vertices,            &
-    &                             construct_icon_domain,    &
-    &                             destruct_icon_domain
+  USE  mo_cosmo_grid, ONLY: COSMO_grid
 
   USE mo_io_units,          ONLY: filename_max
-
-  USE mo_exception,         ONLY: message_text, message, finish
-
-  USE mo_utilities_extpar, ONLY: abort_extpar
-  
-  USE mo_additional_geometry,   ONLY: cc2gc,                  &
-    &                            gc2cc,                  &
-    &                            arc_length,             &
-    &                            cos_arc_length,         &
-    &                            inter_section,          &
-    &                            vector_product,         &
-    &                            point_in_polygon_sp
-
-
-  USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
 
   USE mo_flake_routines, ONLY: read_namelists_extpar_flake
 
@@ -116,16 +82,11 @@ PROGRAM extpar_flake_to_buffer
 
   
   IMPLICIT NONE
-  
-  CHARACTER(len=filename_max) :: filename
-  CHARACTER(len=filename_max) :: netcdf_filename
 
-  CHARACTER(len=filename_max) :: input_namelist_file
-  CHARACTER(len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
+  CHARACTER(len=filename_max) :: netcdf_filename
 
   CHARACTER(len=filename_max) :: namelist_grid_def
 
-  CHARACTER (len=filename_max) :: namelist_topo_data_input !< file with input namelist with GLOBE data information
   CHARACTER(len=filename_max) :: input_flake_namelist_file 
   CHARACTER(len=filename_max) :: flake_file
 
@@ -134,57 +95,6 @@ PROGRAM extpar_flake_to_buffer
 
   CHARACTER (len=filename_max) :: flake_buffer_file !< name for flake buffer file
   CHARACTER (len=filename_max) :: flake_output_file !< name for flake output file
-
-
-  INTEGER :: i, ip, ic, in
-
-
-  INTEGER                      :: i_nc       !< number of cells
-  INTEGER                      :: i_ne       !< number of edges
-  INTEGER                      :: i_nv       !< number of vertices
-  INTEGER                      :: nc_p_e     !< number of cells per edge
-  INTEGER                      :: nv_p_c     !< number of vertices per cell
-  INTEGER                      :: ne_p_v     !< number of edges per vertex
-
-  TYPE(icon_domain) , ALLOCATABLE, TARGET :: icon_grid_all(:)
-
-  TYPE(geographical_coordinates) :: tpoint
-
-  INTEGER :: start_id 
-  INTEGER :: nearest_cell_id
-
-  INTEGER :: nj
-  INTEGER :: nb_cell_id
-  TYPE(cartesian_coordinates)  :: neighbour_cc     !> coordinates of a neighbour cell centre in cartesian system
-  REAL(KIND=wp)                :: sp               !> cos arc length of  of geodesic arc with endpoints x0,x1 
-                                                   !> (normalized scalar product of the two points)
-  REAL(KIND=wp)                :: sp_max
-  TYPE(geographical_coordinates) :: target_geo_co  !> target coordinates in geographical system of point for which 
-                                                   !> the nearest ICON grid cell is to be determined
-  TYPE(cartesian_coordinates)  :: target_cc_co     !> target coordinates in cartesian system of point for which 
-                                                   !> the nearest ICON grid cell is to be determined
-
-  INTEGER, ALLOCATABLE :: nearest_cell_ids(:)    !< array with ids of nearest cell for the domains
-  TYPE(cartesian_coordinates), ALLOCATABLE :: polygon(:)
-  TYPE(cartesian_coordinates)              :: point
-  TYPE(cartesian_coordinates)              :: out_point
-  TYPE(geographical_coordinates)           :: out_point_geo
-  TYPE(geographical_coordinates), ALLOCATABLE :: poly_geo(:)
-
-  INTEGER                                  :: inflag
-
-  INTEGER                                  :: vert_index
-  INTEGER                                  :: ivert
-
-  TYPE(cartesian_coordinates), ALLOCATABLE :: test_poly(:)
-  TYPE(cartesian_coordinates)              :: test_point
-  TYPE(geographical_coordinates)           :: test_point_geo
-  TYPE(cartesian_coordinates)              :: test_out_point
-  TYPE(geographical_coordinates)           :: test_out_point_geo
-  TYPE(geographical_coordinates), ALLOCATABLE :: test_poly_geo(:)
-
-  INTEGER :: j,k !< counter
-  INTEGER (KIND=i8) :: icell
 
   REAL (KIND=wp) :: undefined
   INTEGER :: undef_int
@@ -195,13 +105,10 @@ PROGRAM extpar_flake_to_buffer
 
   !--------------------------------------------------------------------------------------
 
-  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
+  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
- ! Print the default information to stdout:
-  CALL info_define ('flake_to_buffer')      ! Pre-define the program name as binary name
-  CALL info_print ()                     ! Print the information to stdout
-
-
+  CALL initialize_logging("extpar_flake_to_buffer.log", stdout_level=debug)
+  CALL info_print ()
 
   namelist_grid_def = 'INPUT_grid_org'
   CALL init_target_grid(namelist_grid_def)
@@ -338,9 +245,6 @@ PROGRAM extpar_flake_to_buffer
     &                                     fr_lake,    &
     &                                     flake_tot_npixel)
 
-
-
-      CASE(igrid_gme) ! GME grid   
 
     END SELECT
 

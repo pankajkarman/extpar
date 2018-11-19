@@ -16,7 +16,7 @@
 !   simplified namelist control for ICON  
 ! V2_0         2013/08/08 Daniel Luethi
 !   Addition of 2 alternative Aerosol Climatologies
-! V4_0         2013/08/17 authors from RHM and Daniel Lüthi
+! V4_0         2013/08/17 authors from RHM and Daniel Lthi
 !   Addition of support for MACv2 aerosol fields
 !
 ! Code Description:
@@ -54,9 +54,9 @@
 !! T. Berntsen, T.F. Berglen, O. Boucher, M. Chin, W. Collins, F. Dentener, 
 !! T. Diehl, R. Easter, J. Feichter, D. Fillmore, S. Ghan, P. Ginoux, S. Gong, 
 !! A. Grini, J. Hendricks, M. Herzog, L. Horowitz, I. Isaksen, T. Iversen, 
-!! A. Kirkevåg, S. Kloster, D. Koch, J.E. Kristjansson, M. Krol, A. Lauer, 
+!! A. Kirkevg, S. Kloster, D. Koch, J.E. Kristjansson, M. Krol, A. Lauer, 
 !! J.F. Lamarque, G. Lesins, X. Liu, U. Lohmann, V. Montanaro, G. Myhre, 
-!! J. Penner, G. Pitari, S. Reddy, Ø. Seland, P. Stier, T. Takemura, and X. Tie:
+!! J. Penner, G. Pitari, S. Reddy, . Seland, P. Stier, T. Takemura, and X. Tie:
 !! An AeroCom initial assessment optical properties in aerosol component modules
 !! of global models, Atmos. Chem. Phys., 6, 1815-1834, 2006.
 !! 
@@ -78,27 +78,18 @@
 !! Kinne, S., D. O'Donnel, P. Stier, S. Kloster, K. Zhang, H. Schmidt, S. Rast,
 !! M. Giorgetta, T. F. Eck, and B. Stevens (2013), 
 !! MAC-v1: A new global aerosol climatology for climate studies, 
-!! J. Adv. Model. Earth Syst., 5, 704–740, doi:10.1002/jame.20035
+!! J. Adv. Model. Earth Syst., 5, 704740, doi:10.1002/jame.20035
 PROGRAM extpar_aot_to_buffer
 
-  ! Load the library information data:
-  USE info_extpar, ONLY: info_define, info_readnl, info_print
-
-  USE mo_kind,              ONLY: wp, &
-                                  i4, &
-                                  i8
-
-  USE mo_grid_structures, ONLY: reg_lonlat_grid,     &
-                                rotated_lonlat_grid, &
-                                target_grid_def
+  USE info_extpar, ONLY: info_print
+  USE mo_logging
+  USE mo_kind,              ONLY: wp, i8
   
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
-  USE mo_grid_structures, ONLY: igrid_gme
 
   USE mo_target_grid_data, ONLY: lon_geo, &
-    &                            lat_geo, &
-    &                            no_raw_data_pixel
+    &                            lat_geo
 
   USE mo_target_grid_data, ONLY: tg
   USE mo_target_grid_routines, ONLY: init_target_grid
@@ -106,59 +97,19 @@ PROGRAM extpar_aot_to_buffer
  
   USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
    
-  USE  mo_cosmo_grid, ONLY: cosmo_grid, &
-     &                       lon_rot, &
-     &                       lat_rot, &
-     &                       allocate_cosmo_rc, &
-     &                       get_cosmo_grid_info, &
-     &                       calculate_cosmo_domain_coordinates
-
-  USE  mo_cosmo_grid, ONLY: allocate_cosmo_rc
-  USE  mo_cosmo_grid, ONLY: calculate_cosmo_target_coordinates
-
-
-  USE mo_base_geometry,    ONLY:  geographical_coordinates, &
-     &                               cartesian_coordinates
-
-  
-  USE mo_icon_domain,          ONLY: icon_domain, &
-    &                            grid_cells,               &
-    &                            grid_vertices,            &
-    &                            construct_icon_domain,    &
-    &                            destruct_icon_domain
-
-  USE mo_icon_domain, ONLY: max_dom
-
+  USE  mo_cosmo_grid, ONLY: cosmo_grid
 
   USE mo_io_units,          ONLY: filename_max
-
-  USE mo_exception,         ONLY: message_text, message, finish
-
-  USE mo_utilities_extpar, ONLY: abort_extpar
-  
-  USE mo_additional_geometry,   ONLY: cc2gc,                  &
-    &                            gc2cc,                  &
-    &                            arc_length,             &
-    &                            cos_arc_length,         &
-    &                            inter_section,          &
-    &                            vector_product,         &
-    &                            point_in_polygon_sp
-
-
-  USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps,rad2deg
 
   USE mo_aot_data, ONLY:  read_namelists_extpar_aerosol
 
   USE mo_aot_data, ONLY : allocate_aot_data, &
     &                      deallocate_aot_data, &
-    &                      read_aot_data_input_namelist, &
     &                      get_dimension_aot_data, &
     &                      get_aot_grid_and_data, &
     &                      lon_aot, &
     &                      lat_aot, &
-    &                      aot_data, &
-    &                      aot_grid, &
-    &                      MAC_data         !------new MACv2-----
+    &                      aot_grid
 
   USE mo_aot_data, ONLY : iaot_type, n_spectr
 
@@ -181,13 +132,7 @@ PROGRAM extpar_aot_to_buffer
   CHARACTER(len=filename_max) :: filename
 
   CHARACTER(len=filename_max) :: namelist_grid_def
-
   CHARACTER(len=filename_max) :: input_namelist_file
-  CHARACTER(len=filename_max) :: input_namelist_cosmo_grid !< file with input namelist with COSMO grid definition
-
-  CHARACTER(len=filename_max) :: input_glc2000_namelist_file 
-  CHARACTER(len=filename_max) :: glc2000_file
-
 
   CHARACTER (len=filename_max) :: raw_data_aot_path        !< path to raw data
   CHARACTER (len=filename_max) :: raw_data_aot_filename !< filename temperature climatology raw data
@@ -195,30 +140,18 @@ PROGRAM extpar_aot_to_buffer
   CHARACTER (len=filename_max) :: aot_buffer_file !< name for aerosol buffer file
   CHARACTER (len=filename_max) :: aot_output_file !< name for aerosol output file
 
-  INTEGER :: i, ilev, ip, iplev, ic, in, iclev, istartlev
-  INTEGER :: nj
-  INTEGER :: j,k !< counter
-  INTEGER :: l,m !< counter
   REAL (KIND=wp) :: undefined
   INTEGER        :: undef_int
 
   !--------------------------------------------------------------------------------------
-  INTEGER (KIND=i8) :: nlon_glc2000 !< number of grid elements in zonal direction for glc2000 data
-  INTEGER (KIND=i8) :: nlat_glc2000 !< number of grid elements in meridional direction for glc2000 data
-  !--------------------------------------------------------------------------------------
 
-  
-   INTEGER (KIND=i8) :: ntype !< number of types of aerosols
-   INTEGER (KIND=i8) :: nrows !< number of rows
-   INTEGER (KIND=i8) :: ncolumns !< number of columns
-   INTEGER (KIND=i8) :: ntime !< number of times
+  INTEGER (KIND=i8) :: ntype !< number of types of aerosols
+  INTEGER (KIND=i8) :: nrows !< number of rows
+  INTEGER (KIND=i8) :: ncolumns !< number of columns
+  INTEGER (KIND=i8) :: ntime !< number of times
 
-
-  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
-
-  ! Print the default information to stdout:
-  CALL info_define ('aot_to_buffer')      ! Pre-define the program name as binary name
-  CALL info_print ()                      ! Print the information to stdout
+  CALL initialize_logging("extpar_aot_to_buffer.log", stdout_level=debug)
+  CALL info_print()
   !--------------------------------------------------------------------------------------------------------
   ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
   ! for th target grid
@@ -231,7 +164,6 @@ PROGRAM extpar_aot_to_buffer
 
   ! get information about aerosol data
   input_namelist_file='INPUT_AOT'
-
 
   CALL read_namelists_extpar_aerosol(input_namelist_file, &
    &                                  iaot_type,    &
@@ -277,9 +209,8 @@ PROGRAM extpar_aot_to_buffer
                                      n_spectr,     &
                                      aot_grid,     &
                                      lon_aot,      &
-                                     lat_aot,      &
-                                     aot_data,     &
-                                     MAC_data)         !------new kinne-----))
+                                     lat_aot)
+
     ! allocate target grid fields for aerosol optical thickness
 
     CALL allocate_aot_target_fields(tg, iaot_type, ntime, ntype, n_spectr)
@@ -298,36 +229,31 @@ PROGRAM extpar_aot_to_buffer
     PRINT *,'call agg_aot_data_to_target_grid'
     CALL  agg_aot_data_to_target_grid(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
 
-    !write out data to buffer
-
     netcdf_filename = TRIM(aot_buffer_file)
-    PRINT *,'write output to ', TRIM(netcdf_filename)
-
-       CALL write_netcdf_buffer_aot(netcdf_filename,      &
-   &                                     tg,              &
-   &                                     undefined,       &
-   &                                     undef_int,       &
-   &                                     lon_geo,         &
-   &                                     lat_geo,         &
-   &                                     ntype,           &
-   &                                     ntime,           &
-   &                                     n_spectr,        &
-   &                                     aot_tg,          &
-   &                                     MAC_aot_tg, &
-   &                                     MAC_ssa_tg, &
-   &                                     MAC_asy_tg, &
-   &                                     iaot_type)
+    CALL logging%info('write BUFFER output to '//TRIM(netcdf_filename), __FILE__, __LINE__)    
+    CALL write_netcdf_buffer_aot(netcdf_filename, &
+         &                       tg,              &
+         &                       undefined,       &
+         &                       undef_int,       &
+         &                       lon_geo,         &
+         &                       lat_geo,         &
+         &                       ntype,           &
+         &                       ntime,           &
+         &                       n_spectr,        &
+         &                       aot_tg,          &
+         &                       MAC_aot_tg,      &
+         &                       MAC_ssa_tg,      &
+         &                       MAC_asy_tg,      &
+         &                       iaot_type)
 
     !write out data
     netcdf_filename =  TRIM(aot_output_file)
-    PRINT *,'tg%igrid_type: ', tg%igrid_type
 
     SELECT CASE(tg%igrid_type)
 
     CASE(igrid_icon) ! ICON GRID
-        PRINT *,'write cosmo output to ',TRIM(aot_output_file)
-
-
+      
+        CALL logging%info('write ICON output to '//TRIM(aot_output_file), __FILE__, __LINE__)
         CALL write_netcdf_icon_grid_aot(netcdf_filename,  &
    &                                     icon_grid,       &
    &                                     tg,              &
@@ -344,11 +270,9 @@ PROGRAM extpar_aot_to_buffer
    &                                     MAC_asy_tg, &
    &                                     iaot_type)
 
+      CASE(igrid_cosmo) ! COSMO grid
 
-
-    CASE(igrid_cosmo) ! COSMO grid
-        PRINT *,'write cosmo output to ',TRIM(aot_output_file)
-
+        CALL logging%info('write COSMO output to '//TRIM(aot_output_file), __FILE__, __LINE__)        
         CALL write_netcdf_cosmo_grid_aot(netcdf_filename, &
    &                                     cosmo_grid,      &
    &                                     tg,              &
@@ -365,15 +289,10 @@ PROGRAM extpar_aot_to_buffer
    &                                     MAC_asy_tg, &
    &                                     iaot_type)
 
-
-        CASE(igrid_gme) ! GME grid   
-
     END SELECT
 
     CALL deallocate_aot_data()
 
-
     PRINT *,'============= extpar_aot_to_buffer done ==============='
   
-
 END PROGRAM extpar_aot_to_buffer

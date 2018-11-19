@@ -1,5 +1,6 @@
 SRC := \
 $(ROOT)/$(SRCDIR)/info_extpar.f90 \
+$(ROOT)/$(SRCDIR)/mo_logging.f90 \
 $(ROOT)/$(SRCDIR)/mo_additional_geometry.f90 \
 $(ROOT)/$(SRCDIR)/mo_ahf_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_ahf_output_nc.f90 \
@@ -16,7 +17,8 @@ $(ROOT)/$(SRCDIR)/mo_agg_ecoclimap.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ndvi.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_sgsl.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_soil.f90 \
-$(ROOT)/$(SRCDIR)/mo_agg_topo.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_topo_icon.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_topo_cosmo.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ahf.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_isa.f90 \
 $(ROOT)/$(SRCDIR)/mo_albedo_data.f90 \
@@ -50,7 +52,6 @@ $(ROOT)/$(SRCDIR)/mo_glcc_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_lookup_tables.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_tg_fields.f90 \
-$(ROOT)/$(SRCDIR)/mo_gme_grid.f90 \
 $(ROOT)/$(SRCDIR)/mo_grid_structures.f90 \
 $(ROOT)/$(SRCDIR)/mo_icon_domain.f90 \
 $(ROOT)/$(SRCDIR)/mo_icon_grid_data.f90 \
@@ -75,7 +76,6 @@ $(ROOT)/$(SRCDIR)/mo_ndvi_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_oro_filter.f90 \
 $(ROOT)/$(SRCDIR)/mo_physical_constants.f90 \
 $(ROOT)/$(SRCDIR)/mo_read_extpar_namelists.f90 \
-$(ROOT)/$(SRCDIR)/mo_search_gmegrid.f90 \
 $(ROOT)/$(SRCDIR)/mo_search_icongrid.f90 \
 $(ROOT)/$(SRCDIR)/mo_search_ll_grid.f90 \
 $(ROOT)/$(SRCDIR)/mo_search_target_grid.f90 \
@@ -83,6 +83,8 @@ $(ROOT)/$(SRCDIR)/mo_sgsl_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_sgsl_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_sgsl_routines.f90 \
 $(ROOT)/$(SRCDIR)/mo_sgsl_tg_fields.f90 \
+$(ROOT)/$(SRCDIR)/mo_era_output_nc.f90 \
+$(ROOT)/$(SRCDIR)/mo_era_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_soil_consistency.f90 \
 $(ROOT)/$(SRCDIR)/mo_soil_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_soil_output_nc.f90 \
@@ -109,8 +111,4 @@ $(ROOT)/$(SRCDIR)/extpar_sgsl_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_flake_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_ahf_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_isa_to_buffer.f90 
-
-GRIBSRC := \
-$(ROOT)/$(SRCDIR)/mo_extpar_output_grib.f90 \
-$(ROOT)/$(SRCDIR)/mo_io_grib_api.f90 
 

@@ -210,8 +210,8 @@ CONTAINS
 !   print*, half_gridp
 
      DO i = 1,ntiles_globcover
-!_br 17.09.14       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    
-       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_path)//TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))    ! GLOBCOVER file is opened 
+       ! open GLOBCOVER file
+       CALL check_netcdf(nf90_open(path =TRIM(raw_data_lu_path)//TRIM(raw_data_lu_filename(i)), mode = nf90_nowrite, ncid = ncid))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lon", dimID_lon))
        CALL check_netcdf(nf90_inq_dimid(ncid,"lat", dimID_lat))
        CALL check_netcdf(nf90_inquire_dimension(ncid,dimID_lon, len = lu_tiles_ncolumns(i)))          
@@ -231,12 +231,12 @@ CONTAINS
        lu_tiles_lon_max(i) = lu_tiles_lon_max(i) + half_gridp !< added, as the GLOBCOVER data
        lu_tiles_lat_min(i) = lu_tiles_lat_min(i) - half_gridp !< is located at the pixel center
        lu_tiles_lat_max(i) = lu_tiles_lat_max(i) + half_gridp
-
+       
        len_lu_lon=lu_tiles_ncolumns(i)
        len_lu_lat=lu_tiles_nrows(i)
-
+#ifdef DEBUG
        print*, 'GLOBCOVER TILE ',ntiles_globcover,': NLON,NLAT ',len_lu_lon,len_lu_lat
-
+#endif
      ENDDO
 
      nc_tiles_lu = lu_tiles_ncolumns(1)

@@ -22,15 +22,14 @@ MODULE mo_landuse_output_nc
 
 
   !> kind parameters are defined in MODULE data_parameters
-  USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
-  USE mo_kind, ONLY: i4
+  USE mo_kind, ONLY: wp, i4, i8
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid
-  USE mo_grid_structures, ONLY: rotated_lonlat_grid
-  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
-  USE mo_grid_structures, ONLY: target_grid_def
+  USE mo_grid_structures, ONLY: igrid_icon,                  &
+                                reg_lonlat_grid,             &
+                                rotated_lonlat_grid,         &
+                                icosahedral_triangular_grid, &
+                                target_grid_def
 
   USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
@@ -237,6 +236,7 @@ MODULE mo_landuse_output_nc
   CALL netcdf_put_var(ncid,fr_land_lu,fr_land_lu_meta,undefined)
 
   ! ice_lu
+  PRINT *,'MAX ICE_LU BUFFER: ', MAXVAL(ICE_LU)
   CALL netcdf_put_var(ncid,ice_lu,ice_lu_meta,undefined)
 
   ! plcov_mx_lu
@@ -676,9 +676,11 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   CALL netcdf_get_var(TRIM(netcdf_filename),lu_class_npixel_meta,lu_class_npixel)
   PRINT *,'lu_class_npixel read'
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),ice_lu_meta,ice_lu)
-  PRINT *,'ice_lu read'
-
+!  IF (tg%igrid_type /= igrid_icon) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),ice_lu_meta,ice_lu)
+    PRINT *,'ice_lu read - MAX ICE_LU BUFFER: ', MAXVAL(ICE_LU)
+!  ENDIF
+  
   CALL netcdf_get_var(TRIM(netcdf_filename),z0_lu_meta,z0_lu)
   PRINT *,'z0_lu read'
 
@@ -822,8 +824,10 @@ END SUBROUTINE read_netcdf_buffer_lu
   CALL netcdf_get_var(TRIM(netcdf_filename),lu_class_npixel_meta,lu_class_npixel)
   PRINT *,'lu_class_npixel read'
 
-  CALL netcdf_get_var(TRIM(netcdf_filename),ice_lu_meta,ice_lu)
-  PRINT *,'ice_lu read'
+  IF (tg%igrid_type /= igrid_icon) THEN
+    CALL netcdf_get_var(TRIM(netcdf_filename),ice_lu_meta,ice_lu)
+    PRINT *,'ice_lu read'
+  ENDIF
 
   CALL netcdf_get_var(TRIM(netcdf_filename),z012_lu_meta,z012_lu)
   PRINT *,'z0_lu read'
@@ -1611,9 +1615,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+  !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
+  !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
+  !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
+  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data
