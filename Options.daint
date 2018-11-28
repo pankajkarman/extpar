@@ -54,14 +54,14 @@ DBGL     =
 DBGI     = 
 
 # NetCDF library
-LIB     += -L/users/bettems/lib/netcdf/netcdf-fortran-4.2/netcdf-fortran_gnu/lib -lnetcdff
-INC     += -I/users/bettems/lib/netcdf/netcdf-fortran-4.2/netcdf-fortran_gnu/include
-LIB     += -L/users/bettems/lib/netcdf/netcdf-4.2.1.1/netcdf_gnu/lib -lnetcdf
-INC     += -I/users/bettems/lib/netcdf/netcdf-4.2.1.1/netcdf_gnu/include
+LIB     = 
+INC     = 
+LIB     = 
+INC     = 
  
 # HDF library
-LIB     += -L/users/bettems/lib/hdf5/hdf5-1.8.15-patch1/hdf5_gnu/lib -lhdf5_hl -lhdf5 -ldl
+LIB     = 
 
 # ZLIB library
-LIB     += -L/users/bettems/lib/zlib/zlib-1.2.7 -lz
-INC     +=
+LIB     =
+INC     =
