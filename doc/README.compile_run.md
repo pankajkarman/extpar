@@ -44,7 +44,7 @@ yet. So binaries are installed in the local extpar directory bin/
 
 You have to load the following modules:
     module load cray-netcdf
-    module swap PrgEnv-cray PrgEng-gnu
+    module swap PrgEnv-cray PrgEnv-gnu
 
 Then simply type "make" to compile with optimization options or
 "make debug" to compile with debug options.
@@ -55,7 +55,7 @@ forget to issue a "make clean" in between.
 
 You have to load the following modules:
     module load netcdf
-    module load PrgEng-gnu
+    module load PrgEnv-gnu
 
 Then simply type "make" to compile with optimization options or
 "make debug" to compile with debug options.

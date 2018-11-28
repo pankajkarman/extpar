@@ -1,5 +1,13 @@
 # Release notes
 
+ ## 5.0.1
+ This is a minor release fixing a few bugs and some documentation.
+
+ * Bug fix to remove too many characters in write statement (mo_logging.f90)
+ * Bug fix for unitialized variable ntiles_globcover (mo_landuse_routines.f90, extpar_consistency_check.f90, and extpar_landuse_to_buffer.f90)
+ * Remove unnecessary libraries in Options.daint
+ * Fix typos in README.compile_run
+
  ## 5.0
  This release represents a merge of the Extpar official version 4.0 code with the DWD-Extpar version 2.10. 
 
