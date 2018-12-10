@@ -1,4 +1,9 @@
 # Release notes
+ 
+ ## 5.0.2
+ This is a minor release containing a bug fix.
+
+ * Bug fix for incorrect subroutine argument usage in mo_agg_isa.f90.  
 
  ## 5.0.1
  This is a minor release fixing a few bugs and some documentation.
