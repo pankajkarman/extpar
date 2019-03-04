@@ -302,7 +302,8 @@ PROGRAM extpar_consistency_check
   USE mo_lsm_output_nc, ONLY: read_netcdf_buffer_lsm
 
   USE mo_extpar_output_nc, ONLY: write_netcdf_icon_grid_extpar, &
-       &                        write_netcdf_cosmo_grid_extpar
+       &                        write_netcdf_cosmo_grid_extpar, &
+       &                        write_cdi_icon_grid_extpar
 
 
   USE mo_lradtopo,   ONLY: read_namelists_extpar_lradtopo
@@ -2493,7 +2494,7 @@ END IF
   
   SELECT CASE(igrid_type)
   CASE(igrid_icon) ! ICON GRID
-    CALL write_netcdf_icon_grid_extpar(TRIM(netcdf_output_filename),&
+    CALL write_cdi_icon_grid_extpar(TRIM(netcdf_output_filename),&
          &                                     icon_grid,                     &
          &                                     tg,                            &
          &                                     isoil_data,                    &
