@@ -1,5 +1,11 @@
 # Release notes
+ ## 5.0.4
+ This is a minor release containing a few bug fixes.
+
+ * Bug fix for problems when soil_type=3 is used.  The code had not been correctly imported from version 4.0  
  
+ * Bug fix adding missing NetCDF get_varid call when more than one GLOBCOVER tile is used.  
+
  ## 5.0.3
  This is a minor release containing a bug fix.  
 
