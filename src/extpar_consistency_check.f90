@@ -161,6 +161,7 @@ PROGRAM extpar_consistency_check
        &        urban_lu,  &
        &        for_d_lu,  &
        &        for_e_lu, &
+       &        skinc_lu, &
        &        emissivity_lu, &
        &        fr_ocean_lu, &
        &        lu_class_fraction,    &
@@ -955,6 +956,7 @@ PROGRAM extpar_consistency_check
           &                                     urban_lu,  &
           &                                     for_d_lu,  &
           &                                     for_e_lu, &
+          &                                     skinc_lu, &
           &                                     emissivity_lu)
 
 
@@ -1364,6 +1366,7 @@ END IF
         urban_lu          = urban_glcc
         for_d_lu          = for_d_glcc
         for_e_lu          = for_e_glcc
+        skinc_lu          = 200.0_wp
         emissivity_lu     = emissivity_glcc
      ENDWHERE
   ENDIF
@@ -1430,7 +1433,7 @@ END IF
   !------------------------------------------------------------------------------------------
   IF (tile_mode < 1) THEN   ! values are kept for ICON because of tile approach
      WHERE (fr_land_lu < 0.5)  ! set vegetation to undefined (0.) for water grid elements
-        ! z0 and emissivity are not set to undefined_lu
+        ! z0, emissivity, and skin_conductivity are not set to undefined_lu
         ice_lu            = undefined_lu
         root_lu           = undefined_lu
         plcov_mn_lu       = undefined_lu
@@ -2498,6 +2501,7 @@ END IF
            !                                     urban_lu,  &
            !                                     for_d_lu,  &
            !                                     for_e_lu, &
+           !                                     skinc_lu, &
            !                                     emissivity_lu, &
            !                                     soiltype_fao, &
            !                                     ndvi_max,  &
@@ -2573,6 +2577,7 @@ END IF
          &                                     urban_lu,                      &
          &                                     for_d_lu,                      &
          &                                     for_e_lu,                      &
+         &                                     skinc_lu,                      &
          &                                     emissivity_lu,                 &
          &                                     lake_depth,                    &
          &                                     fr_lake,                       &
@@ -2654,6 +2659,7 @@ END IF
            &                                     urban_lu,                    &
            &                                     for_d_lu,                    &
            &                                     for_e_lu,                    &
+           &                                     skinc_lu,                    &
            &                                     emissivity_lu,               &
            &                                     lake_depth,                  &
            &                                     fr_lake,                     &
@@ -2736,6 +2742,7 @@ END IF
            &                                     urban_lu,                    &
            &                                     for_d_lu,                    &
            &                                     for_e_lu,                    &
+           &                                     skinc_lu,                    &
            &                                     emissivity_lu,               &
            &                                     lake_depth,                  &
            &                                     fr_lake,                     &
