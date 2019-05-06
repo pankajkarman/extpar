@@ -1,4 +1,4 @@
-!+  Fortran main program to read in NDVI data and aggregate to target grid
+!+  Fortran main program to read in EMISS data and aggregate to target grid
 !
 ! History:
 ! Version      Date       Name
@@ -16,10 +16,10 @@
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
-!> Fortran main program to read in NDVI data and aggregate to target grid
+!> Fortran main program to read in EMISS data and aggregate to target grid
 !>  
 !> \author Hermann Asensio
-PROGRAM extpar_ndvi_to_buffer
+PROGRAM extpar_emiss_to_buffer
 
   USE info_extpar, ONLY: info_print
   USE mo_logging
@@ -45,31 +45,31 @@ PROGRAM extpar_ndvi_to_buffer
     
   USE mo_io_units,          ONLY: filename_max
 
-  USE mo_ndvi_routines, ONLY: read_namelists_extpar_ndvi
+  USE mo_emiss_routines, ONLY: read_namelists_extpar_emiss
 
-  USE mo_ndvi_data, ONLY: ndvi_raw_data_grid, &
-    &                           lon_ndvi, &
-    &                           lat_ndvi, &
-    &                           ntime_ndvi, &
-    &                           allocate_raw_ndvi_fields,&
-    &                           deallocate_ndvi_fields
+  USE mo_emiss_data, ONLY: emiss_raw_data_grid, &
+    &                           lon_emiss, &
+    &                           lat_emiss, &
+    &                           ntime_emiss, &
+    &                           allocate_raw_emiss_fields,&
+    &                           deallocate_emiss_fields
                                
-  USE mo_ndvi_tg_fields, ONLY:  ndvi_max, &
-    &                                ndvi_field_mom, &
-    &                                ndvi_ratio_mom, &
-    &                                allocate_ndvi_target_fields
+  USE mo_emiss_tg_fields, ONLY:  emiss_max, &
+    &                                emiss_field_mom, &
+    &                                emiss_ratio_mom, &
+    &                                allocate_emiss_target_fields
 
-  USE mo_ndvi_routines, ONLY: open_netcdf_NDVI_data, &
-    &                               close_netcdf_NDVI_data, &
-    &                               get_dimension_NDVI_data, &
-    &                               get_NDVI_data_coordinates
+  USE mo_emiss_routines, ONLY: open_netcdf_EMISS_data, &
+    &                               close_netcdf_EMISS_data, &
+    &                               get_dimension_EMISS_data, &
+    &                               get_EMISS_data_coordinates
                                    
 
-  USE mo_agg_ndvi, ONLY: agg_ndvi_data_to_target_grid
+  USE mo_agg_emiss, ONLY: agg_emiss_data_to_target_grid
 
-  USE mo_ndvi_output_nc, ONLY: write_netcdf_buffer_ndvi
-  USE mo_ndvi_output_nc, ONLY: write_netcdf_cosmo_grid_ndvi
-  USE mo_ndvi_output_nc, ONLY: write_netcdf_icon_grid_ndvi
+  USE mo_emiss_output_nc, ONLY: write_netcdf_buffer_emiss
+  USE mo_emiss_output_nc, ONLY: write_netcdf_cosmo_grid_emiss
+  USE mo_emiss_output_nc, ONLY: write_netcdf_icon_grid_emiss
 
   IMPLICIT NONE
 
@@ -78,40 +78,40 @@ PROGRAM extpar_ndvi_to_buffer
 
   CHARACTER(len=filename_max) :: namelist_grid_def
 
-  CHARACTER (len=filename_max) :: namelist_ndvi_data_input !< file with input namelist with NDVI data information
+  CHARACTER (len=filename_max) :: namelist_emiss_data_input !< file with input namelist with EMISS data information
 
-  CHARACTER (len=filename_max) :: raw_data_ndvi_filename !< filename ndvi raw data
-  CHARACTER (len=filename_max) :: path_ndvi_file      !< filename with path for NDVI raw data
-  CHARACTER (len=filename_max) :: netcdf_filename      !< filename for netcdf file with NDVI data on COSMO grid
-  CHARACTER (len=filename_max) :: raw_data_ndvi_path        !< path to raw data
+  CHARACTER (len=filename_max) :: raw_data_emiss_filename !< filename emiss raw data
+  CHARACTER (len=filename_max) :: path_emiss_file      !< filename with path for EMISS raw data
+  CHARACTER (len=filename_max) :: netcdf_filename      !< filename for netcdf file with EMISS data on COSMO grid
+  CHARACTER (len=filename_max) :: raw_data_emiss_path        !< path to raw data
 
-  CHARACTER (len=filename_max) :: ndvi_buffer_file !< name for NDVI buffer file
-  CHARACTER (len=filename_max) :: ndvi_output_file !< name for NDVI output file
+  CHARACTER (len=filename_max) :: emiss_buffer_file !< name for EMISS buffer file
+  CHARACTER (len=filename_max) :: emiss_output_file !< name for EMISS output file
 
 
-  INTEGER (KIND=i4) :: ncid_ndvi  !< netcdf unit file number for NDVI data netcdf file
+  INTEGER (KIND=i4) :: ncid_emiss  !< netcdf unit file number for EMISS data netcdf file
 
-  INTEGER  (KIND=i4) :: nlon_ndvi !< number of grid elements in zonal direction for NDVI data
-  INTEGER  (KIND=i4) :: nlat_ndvi !< number of grid elements in meridional direction for NDVI data
+  INTEGER  (KIND=i4) :: nlon_emiss !< number of grid elements in zonal direction for EMISS data
+  INTEGER  (KIND=i4) :: nlat_emiss !< number of grid elements in meridional direction for EMISS data
 
   INTEGER  (KIND=i4), ALLOCATABLE :: time(:) !< array with time axis values (needed for netcdf cf convention)
 
-  INTEGER (KIND=i4):: nmonth  !< index for month for NDVI data
+  INTEGER (KIND=i4):: nmonth  !< index for month for EMISS data
 
   
-  REAL (KIND=wp) :: dlon_ndvi !< grid point distance in zonal direction (in degrees) for NDVI data
-  REAL (KIND=wp) :: dlat_ndvi !< grid point distance in meridional direction (in degrees) for NDVI data
+  REAL (KIND=wp) :: dlon_emiss !< grid point distance in zonal direction (in degrees) for EMISS data
+  REAL (KIND=wp) :: dlat_emiss !< grid point distance in meridional direction (in degrees) for EMISS data
 
-  REAL (KIND=wp) :: startlon_ndvi !< longitude of lower left grid element for NDVI data 
+  REAL (KIND=wp) :: startlon_emiss !< longitude of lower left grid element for EMISS data 
 
-  REAL (KIND=wp) :: startlat_ndvi !< latitude of lower left grid element for NDVI data
+  REAL (KIND=wp) :: startlat_emiss !< latitude of lower left grid element for EMISS data
 
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
   REAL(KIND=wp) :: undefined !< value to indicate undefined grid elements 
   INTEGER (KIND=i4) :: undef_int   !< value for undefined integer
 
-  CALL initialize_logging("extpar_ndvi_to_buffer.log", stdout_level=debug)
+  CALL initialize_logging("extpar_emiss_to_buffer.log", stdout_level=debug)
   CALL info_print ()
   !--------------------------------------------------------------------------------------------------------
   undef_int = 0 ! set undefined to zero
@@ -129,82 +129,82 @@ PROGRAM extpar_ndvi_to_buffer
   igrid_type = tg%igrid_type
   ! get information on target grid
 
-  ! read namelist for input NDVI data
+  ! read namelist for input EMISS data
 
-  namelist_ndvi_data_input = 'INPUT_NDVI'
-  CALL  read_namelists_extpar_ndvi(namelist_ndvi_data_input, &
-    &                                  raw_data_ndvi_path, &
-    &                                  raw_data_ndvi_filename, &
-    &                                  ndvi_buffer_file, &
-    &                                  ndvi_output_file)
+  namelist_emiss_data_input = 'INPUT_EMISS'
+  CALL  read_namelists_extpar_emiss(namelist_emiss_data_input, &
+    &                                  raw_data_emiss_path, &
+    &                                  raw_data_emiss_filename, &
+    &                                  emiss_buffer_file, &
+    &                                  emiss_output_file)
      
-  path_ndvi_file = TRIM(raw_data_ndvi_path)//TRIM(raw_data_ndvi_filename)
+  path_emiss_file = TRIM(raw_data_emiss_path)//TRIM(raw_data_emiss_filename)
   !HA debug
-  print *, 'after reading namelist for input NDVI data, NDVI raw data are in file:'
-  print *, TRIM(path_ndvi_file)
+  print *, 'after reading namelist for input EMISS data, EMISS raw data are in file:'
+  print *, TRIM(path_emiss_file)
 
        
-  ! open netcdf file with NDVI data
-  CALL open_netcdf_NDVI_data(path_ndvi_file, &
-    &                           ncid_ndvi)
+  ! open netcdf file with EMISS data
+  CALL open_netcdf_EMISS_data(path_emiss_file, &
+    &                           ncid_emiss)
 
 
-   !> inquire dimension information for NDVI raw data 
-   CALL get_dimension_NDVI_data(ncid_ndvi, &
-    &                                nlon_ndvi, &
-    &                                nlat_ndvi, &
-                                    ntime_ndvi)
+   !> inquire dimension information for EMISS raw data 
+   CALL get_dimension_EMISS_data(ncid_emiss, &
+    &                                nlon_emiss, &
+    &                                nlat_emiss, &
+                                    ntime_emiss)
   !HA debug
-  print *, 'after check of dimensions in NDVI raw data file'
-  print *, 'nlon_ndvi, nlat_ndvi: ',nlon_ndvi, nlat_ndvi
-  print *, 'ntime_ndvi: ', ntime_ndvi
+  print *, 'after check of dimensions in EMISS raw data file'
+  print *, 'nlon_emiss, nlat_emiss: ',nlon_emiss, nlat_emiss
+  print *, 'ntime_emiss: ', ntime_emiss
 
-  ALLOCATE(time(ntime_ndvi)) ! this array is needed for netcdf output at the end
-  DO nmonth=1, ntime_ndvi
+  ALLOCATE(time(ntime_emiss)) ! this array is needed for netcdf output at the end
+  DO nmonth=1, ntime_emiss
     time(nmonth) = nmonth
   ENDDO
 
 
-  CALL allocate_raw_ndvi_fields(nlon_ndvi,nlat_ndvi,ntime_ndvi)   
-  CALL allocate_ndvi_target_fields(tg,ntime_ndvi)
+  CALL allocate_raw_emiss_fields(nlon_emiss,nlat_emiss,ntime_emiss)   
+  CALL allocate_emiss_target_fields(tg,ntime_emiss)
 
-  CALL get_NDVI_data_coordinates(ncid_ndvi,      &
-    &                               nlon_ndvi,      &
-    &                               nlat_ndvi,      &
-    &                               startlon_ndvi,  &
-    &                               startlat_ndvi,  &
-    &                               dlon_ndvi,      &
-    &                               dlat_ndvi,      &
-    &                               lon_ndvi,       &
-    &                               lat_ndvi)
+  CALL get_EMISS_data_coordinates(ncid_emiss,      &
+    &                               nlon_emiss,      &
+    &                               nlat_emiss,      &
+    &                               startlon_emiss,  &
+    &                               startlat_emiss,  &
+    &                               dlon_emiss,      &
+    &                               dlat_emiss,      &
+    &                               lon_emiss,       &
+    &                               lat_emiss)
 
   !HA debug
-  print *, 'after getting NDVI data coordinates'
-  print *,'startlon_ndvi: ', startlon_ndvi
-  print *,'startlat_ndvi: ', startlat_ndvi
-  print *,'dlon_ndvi: ', dlon_ndvi
-  print *,'dlat_ndvi: ', dlat_ndvi
-  print *,'lon_ndvi(1) = ',lon_ndvi(1) 
-  print *,'lon_ndvi(nlon_ndvi) = ', lon_ndvi(nlon_ndvi) 
-  ! put the values of the grid definition in the data structure ndvi_raw_data_grid (type ndvi_reg_lonlat_grid)
-  ndvi_raw_data_grid%start_lon_reg= startlon_ndvi
-  ndvi_raw_data_grid%start_lat_reg= startlat_ndvi
-  ndvi_raw_data_grid%dlon_reg= dlon_ndvi
-  ndvi_raw_data_grid%dlat_reg= dlat_ndvi
-  ndvi_raw_data_grid%nlon_reg= nlon_ndvi
-  ndvi_raw_data_grid%nlat_reg= nlat_ndvi
+  print *, 'after getting EMISS data coordinates'
+  print *,'startlon_emiss: ', startlon_emiss
+  print *,'startlat_emiss: ', startlat_emiss
+  print *,'dlon_emiss: ', dlon_emiss
+  print *,'dlat_emiss: ', dlat_emiss
+  print *,'lon_emiss(1) = ',lon_emiss(1) 
+  print *,'lon_emiss(nlon_emiss) = ', lon_emiss(nlon_emiss) 
+  ! put the values of the grid definition in the data structure emiss_raw_data_grid (type emiss_reg_lonlat_grid)
+  emiss_raw_data_grid%start_lon_reg= startlon_emiss
+  emiss_raw_data_grid%start_lat_reg= startlat_emiss
+  emiss_raw_data_grid%dlon_reg= dlon_emiss
+  emiss_raw_data_grid%dlat_reg= dlat_emiss
+  emiss_raw_data_grid%nlon_reg= nlon_emiss
+  emiss_raw_data_grid%nlat_reg= nlat_emiss
 
-  ndvi_raw_data_grid%end_lon_reg= lon_ndvi(nlon_ndvi) ! startlon_ndvi + (nlon_ndvi - 1) * dlon_ndvi
-  ndvi_raw_data_grid%end_lat_reg= lat_ndvi(nlat_ndvi) ! startlat_ndvi - (nlat_ndvi - 1) * dlat_ndvi 
- ! not negative increment, but NDVI latitude goes from north to south
-  print *,'ndvi_raw_data_grid: ',ndvi_raw_data_grid
+  emiss_raw_data_grid%end_lon_reg= lon_emiss(nlon_emiss) ! startlon_emiss + (nlon_emiss - 1) * dlon_emiss
+  emiss_raw_data_grid%end_lat_reg= lat_emiss(nlat_emiss) ! startlat_emiss - (nlat_emiss - 1) * dlat_emiss 
+ ! not negative increment, but EMISS latitude goes from north to south
+  print *,'emiss_raw_data_grid: ',emiss_raw_data_grid
 
-  CALL close_netcdf_NDVI_data(ncid_ndvi)
+  CALL close_netcdf_EMISS_data(ncid_emiss)
 
   ! start aggregation
-  PRINT *,'aggregate NDVI data to target grid'
+  PRINT *,'aggregate EMISS data to target grid'
 
-  CALL agg_ndvi_data_to_target_grid(tg,undefined, path_ndvi_file)
+  CALL agg_emiss_data_to_target_grid(tg,undefined, path_emiss_file)
 
   PRINT *,'aggregation done'
 
@@ -214,23 +214,23 @@ PROGRAM extpar_ndvi_to_buffer
 
     CASE(igrid_icon) ! ICON GRID
 
-      netcdf_filename = TRIM(ndvi_output_file)
+      netcdf_filename = TRIM(emiss_output_file)
       undefined = -500.
       undef_int = -500
 
       PRINT *,'write out ', TRIM(netcdf_filename)
 
-      CALL write_netcdf_icon_grid_ndvi(netcdf_filename,  &
+      CALL write_netcdf_icon_grid_emiss(netcdf_filename,  &
    &                                     icon_grid,         &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime_emiss, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     emiss_max,  &
+   &                                     emiss_field_mom,&
+   &                                     emiss_ratio_mom)
 
 
 
@@ -238,49 +238,49 @@ PROGRAM extpar_ndvi_to_buffer
 
     CASE(igrid_cosmo) ! COSMO grid
     
-      netcdf_filename = TRIM(ndvi_output_file)
+      netcdf_filename = TRIM(emiss_output_file)
       undefined = -500.
       undef_int = -500
 
       PRINT *,'write out ', TRIM(netcdf_filename)
 
 
-      CALL write_netcdf_cosmo_grid_ndvi(netcdf_filename,  &
+      CALL write_netcdf_cosmo_grid_emiss(netcdf_filename,  &
    &                                     cosmo_grid,         &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime_emiss, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     emiss_max,  &
+   &                                     emiss_field_mom,&
+   &                                     emiss_ratio_mom)
 
   END SELECT
 
-  netcdf_filename = TRIM(ndvi_buffer_file)
+  netcdf_filename = TRIM(emiss_buffer_file)
   undefined = -500.
   undef_int = -500
 
   PRINT *,'write out ', TRIM(netcdf_filename)
 
 
-  CALL write_netcdf_buffer_ndvi(netcdf_filename,  &
+  CALL write_netcdf_buffer_emiss(netcdf_filename,  &
    &                                     tg,         &
-   &                                     ntime_ndvi, &
+   &                                     ntime_emiss, &
    &                                     undefined, &
    &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
-   &                                     ndvi_max,  &
-   &                                     ndvi_field_mom,&
-   &                                     ndvi_ratio_mom)
+   &                                     emiss_max,  &
+   &                                     emiss_field_mom,&
+   &                                     emiss_ratio_mom)
 
-  CALL deallocate_ndvi_fields()
+  CALL deallocate_emiss_fields()
 
-  PRINT *,'============= ndvi_to_buffer done ==============='
+  PRINT *,'============= emiss_to_buffer done ==============='
 
 
 
-END PROGRAM extpar_ndvi_to_buffer
+END PROGRAM extpar_emiss_to_buffer
