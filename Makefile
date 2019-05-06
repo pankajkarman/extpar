@@ -32,6 +32,7 @@ TARGETS    := \
   extpar_flake_to_buffer.exe \
   extpar_landuse_to_buffer.exe \
   extpar_ndvi_to_buffer.exe \
+  extpar_emiss_to_buffer.exe \
   extpar_soil_to_buffer.exe \
   extpar_topo_to_buffer.exe \
   extpar_ahf_to_buffer.exe \

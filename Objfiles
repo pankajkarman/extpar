@@ -11,6 +11,7 @@ mo_agg_glcc.o \
 mo_agg_globcover.o \
 mo_agg_ecoclimap.o \
 mo_agg_ndvi.o \
+mo_agg_emiss.o \
 mo_agg_sgsl.o \
 mo_agg_soil.o \
 mo_agg_topo_icon.o \
@@ -65,6 +66,10 @@ mo_ndvi_data.o \
 mo_ndvi_output_nc.o \
 mo_ndvi_routines.o \
 mo_ndvi_tg_fields.o \
+mo_emiss_data.o \
+mo_emiss_output_nc.o \
+mo_emiss_routines.o \
+mo_emiss_tg_fields.o \
 mo_oro_filter.o \
 mo_physical_constants.o \
 mo_read_extpar_namelists.o \
