@@ -52,7 +52,7 @@ REAL (KIND=wp), ALLOCATABLE  :: emiss_field_row(:)      !< field for one row of 
 INTEGER (KIND=i4) :: ntime_emiss = 12 !< number of timesteps (12 for monthly mean values)
 
 REAL (KIND=wp) :: undef_emiss = 0.0  !< undefined value for EMISS data
-REAL (KIND=wp) :: minimal_emiss = 0.09 !< minimal EMISS value bare soil value
+REAL (KIND=wp) :: minimal_emiss = 0.0 !< minimal EMISS value 
 
 
 

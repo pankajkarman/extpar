@@ -259,7 +259,7 @@ END IF
                                 emiss_field_row)
 
                     ! store emiss data for subsequent filling algorithm
-                    emiss_raw_data(1:emiss_raw_data_grid%nlon_reg, row_index) = emiss_field_row(1:emiss_raw_data_grid%nlon_reg)
+         emiss_raw_data(1:emiss_raw_data_grid%nlon_reg, row_index) = emiss_field_row(1:emiss_raw_data_grid%nlon_reg)/1.E3 !scaling factor
 
 
                     column: DO column_index=1, emiss_raw_data_grid%nlon_reg
@@ -298,7 +298,7 @@ END IF
 
                         no_raw_data_pixel(ie,je,ke) = no_raw_data_pixel(ie,je,ke) + 1  
                         ! count raw data pixel within COSMO/ICON grid element
-                        emiss_sum(ie,je,ke)  = emiss_sum(ie,je,ke) + emiss_field_row(column_index) ! sum data values
+                        emiss_sum(ie,je,ke)  = emiss_sum(ie,je,ke) + emiss_field_row(column_index)/1.E3 ! sum data values
                     ENDIF
 
 

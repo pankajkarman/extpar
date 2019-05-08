@@ -479,7 +479,7 @@ CONTAINS
       ENDIF
 
 
-      IF (trim(varname) == 'emiss') THEN     ! here I know that the variable with latitude coordinates is called 'emiss'
+      IF (trim(varname) == 'bbemis_longwave') THEN     ! here I know that the variable with latitude coordinates is called 'emiss'
 
         !print *,'------------------------------------'
         !print *,'ncid,varid,vrname',ncid,varid,trim(varname)
@@ -631,7 +631,7 @@ CONTAINS
       ENDIF
 
 
-      IF (TRIM(varname) == 'emiss') THEN    ! here I know that the variable with latitude coordinates is called 'emiss'
+      IF (TRIM(varname) == 'bbemis_longwave') THEN    ! here I know that the variable with latitude coordinates is called 'emiss'
 
         !print *,'------------------------------------'
         !print *,'ncid,varid,vrname',ncid,varid,trim(varname)
@@ -745,7 +745,7 @@ CONTAINS
       !print *, 'nAtts', nAtts
       !print *,'------------------------------------'
 
-      IF (trim(varname) == 'emiss') THEN   ! here I know that the variable with latitude coordinates is called 'emiss'
+      IF (trim(varname) == 'bbemis_longwavebbemis_longwave') THEN   ! here I know that the variable with latitude coordinates is called 'emiss'
 
         !print *,'------------------------------------'
         !print *,'ncid,varid,vrname',ncid,varid,trim(varname)
