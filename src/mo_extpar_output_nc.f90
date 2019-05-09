@@ -81,6 +81,7 @@ MODULE mo_extpar_output_nc
   USE mo_albedo_data, ONLY: ntime_alb
   USE mo_albedo_data, ONLY: ialb_type, undef_alb_bs
   USE mo_ndvi_data,   ONLY: ntime_ndvi
+  USE mo_emiss_data,   ONLY: ntime_emiss
   USE mo_aot_data,    ONLY: ntype_aot, ntime_aot,n_spectr
   USE mo_aot_data,    ONLY: iaot_type
 
@@ -151,6 +152,7 @@ CONTAINS
        &                                    ndvi_max,            &
        &                                    ndvi_field_mom,      &
        &                                    ndvi_ratio_mom,      &
+       &                                    emiss_field_mom,      &
        &                                    hh_topo,             &
        &                                    stdh_topo,           &
        &                                    aot_tg,              &
@@ -261,6 +263,11 @@ CONTAINS
          &                       ndvi_ratio_mom_meta, &
          &                       def_ndvi_meta
 
+    USE mo_var_meta_data, ONLY: dim_emiss_tg
+    USE mo_var_meta_data, ONLY:  emiss_field_mom_meta, &
+         &                       def_emiss_meta
+
+
     USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
     USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
@@ -347,14 +354,15 @@ CONTAINS
     REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
     REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
     INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data
     REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
     REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
     REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_dry(:,:,:) !< field for soil albedo data
     REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_sat(:,:,:)
+    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
     REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
     REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
     REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
@@ -405,6 +413,7 @@ CONTAINS
     TYPE(dim_meta_info), TARGET :: dim_nclass(1:3)
     TYPE(dim_meta_info), TARGET :: dim_3d_ahf(1:3)
     TYPE(dim_meta_info), TARGET :: dim_3d_ndvi(1:3)
+    TYPE(dim_meta_info), TARGET :: dim_3d_emiss(1:3)
     TYPE(dim_meta_info), TARGET :: dim_4d_aot(1:4)
     TYPE(dim_meta_info), POINTER :: pdiminfo
 
@@ -475,6 +484,11 @@ CONTAINS
     PRINT *,'def_ndvi_meta'
     CALL def_ndvi_meta(tg,ntime_ndvi,dim_2d_cosmo,coordinates,grid_mapping)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+    !define meta information for various EMISS data related variables for netcdf output
+    PRINT *,'def_emiss_meta'
+    CALL def_emiss_meta(tg,ntime_emiss,dim_2d_cosmo,coordinates,grid_mapping)
+    ! dim_emiss_tg, emiss_max_meta, emiss_field_mom_meta, emiss_ratio_mom_meta
 
     ! define meta information for various TOPO data related variables for netcdf output
     PRINT *,'def_topo_meta'
@@ -926,6 +940,11 @@ CONTAINS
          & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ndvi), &
          & ndvi_ratio_mom_meta, &
          & undefined)
+  ! emiss_field_mom
+    CALL netcdf_put_var(ncid,&
+         & emiss_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_emiss), &
+         & emiss_field_mom_meta, &
+         & undefined)
 
     !-----------------------------------------------------------------
     ! aot
@@ -1020,6 +1039,7 @@ CONTAINS
        &                                   ndvi_max,            &
        &                                   ndvi_field_mom,      &
        &                                   ndvi_ratio_mom,      &
+       &                                   emiss_field_mom,      &
        &                                   hh_topo,             &
        &                                   hh_topo_max,         &
        &                                   hh_topo_min,         &       
@@ -1114,6 +1134,10 @@ CONTAINS
          &                         ndvi_ratio_mom_meta,&
          &                         def_ndvi_meta
 
+    USE mo_var_meta_data, ONLY: dim_emiss_tg
+    USE mo_var_meta_data, ONLY:    emiss_field_mom_meta, &
+         &                         def_emiss_meta
+
     USE mo_var_meta_data, ONLY: dim_era_tg
     USE mo_var_meta_data, ONLY: sst_field_meta, &
          &                         wsnow_field_meta,&
@@ -1198,6 +1222,7 @@ CONTAINS
     REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
     REAL (KIND=wp), INTENT(IN) :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
     REAL (KIND=wp), INTENT(IN) :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
     REAL (KIND=wp), INTENT(IN) :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
@@ -1343,6 +1368,10 @@ CONTAINS
     !define meta information for various NDVI data related variables for netcdf output
     CALL def_ndvi_meta(tg,ntime_ndvi,dim_1d_icon)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
+
+    !define meta information for various EMISS data related variables for netcdf output
+    CALL def_emiss_meta(tg,ntime_emiss,dim_1d_icon)
+    ! dim_emiss_tg, emiss_max_meta, emiss_field_mom_meta, emiss_ratio_mom_meta
 
     CALL def_era_meta(tg,ntime_ndvi,dim_1d_icon)
 
@@ -1621,6 +1650,10 @@ CONTAINS
     n=3 ! ndvi_ratio_mom
     CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime_ndvi), &
          &                 ndvi_ratio_mom_meta, undefined)
+
+    n=4 ! emiss_field_mom
+    CALL netcdf_put_var(ncid,emiss_field_mom(1:icon_grid%ncell,1,1,1:ntime_emiss), &
+         &                 emiss_field_mom_meta, undefined)
 
     n=1 ! aot_bc
     CALL netcdf_put_var(ncid,aot_tg(1:icon_grid%ncell,1,1,1,1:ntime_aot), &
