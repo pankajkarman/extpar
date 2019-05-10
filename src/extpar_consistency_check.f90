@@ -2259,19 +2259,19 @@ END IF
   PRINT *,'EMISS data consistency check'
 
   CALL CPU_TIME(timestart)
-  minimal_emiss = 0. 
+  minimal_emiss = 0.8 
   !undef_emiss   = 0.0  ! no vegetation
 
 
   FORALL (t=1:mpy) ! mpy = month per year = 12
      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined EMISS value (0.0) for water grid elements
-        emiss_field_mom(:,:,:,t) = 0.0
+        emiss_field_mom(:,:,:,t) = 0.991
      ELSEWHERE ! fr_land_lu >= 0.5
         WHERE (emiss_max(:,:,:) <= minimal_emiss) ! small EMISS values at land grid elements
-           emiss_field_mom(:,:,:,t) = -1.
+           emiss_field_mom(:,:,:,t) = 0.95 ! bare areas 
         ENDWHERE
         WHERE (emiss_field_mom(:,:,:,t) <= minimal_emiss) ! small EMISS values at land grid elements
-           emiss_field_mom(:,:,:,t) = -1.
+           emiss_field_mom(:,:,:,t) = 0.95 ! bare areas 
         ENDWHERE
      ENDWHERE
   END FORALL
