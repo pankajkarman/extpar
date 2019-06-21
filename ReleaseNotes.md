@@ -1,4 +1,11 @@
 # Release notes
+
+ ## 5.1.1
+ This is a minor release containing a few bug fixes.
+ * Fix read of l_use_glcc landuse calculation for COSMO runs.
+ * Fix unitialized logical flag to trigger scale separation in topography calculation.
+ * Reactivate all cosmo tests from testsuite on Kesch.
+ 
  ## 5.1
  This is an intermediate release containing some bug fixes and some minor developments.  
 
