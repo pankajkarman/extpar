@@ -9,6 +9,7 @@ mo_agg_flake.o \
 mo_agg_glc2000.o \
 mo_agg_glcc.o \
 mo_agg_globcover.o \
+mo_agg_ecci.o \
 mo_agg_ecoclimap.o \
 mo_agg_ndvi.o \
 mo_agg_sgsl.o \
@@ -48,6 +49,9 @@ mo_glcc_tg_fields.o \
 mo_globcover_data.o \
 mo_globcover_lookup_tables.o \
 mo_globcover_tg_fields.o \
+mo_ecci_data.o \
+mo_ecci_lookup_tables.o \
+mo_ecci_tg_fields.o \
 mo_grid_structures.o \
 mo_icon_domain.o \
 mo_icon_grid_data.o \

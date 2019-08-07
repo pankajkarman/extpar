@@ -13,6 +13,7 @@ $(ROOT)/$(SRCDIR)/mo_agg_flake.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_glc2000.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_glcc.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_globcover.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_ecci.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ecoclimap.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ndvi.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_sgsl.f90 \
@@ -52,6 +53,9 @@ $(ROOT)/$(SRCDIR)/mo_glcc_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_lookup_tables.f90 \
 $(ROOT)/$(SRCDIR)/mo_globcover_tg_fields.f90 \
+$(ROOT)/$(SRCDIR)/mo_ecci_data.f90 \
+$(ROOT)/$(SRCDIR)/mo_ecci_lookup_tables.f90 \
+$(ROOT)/$(SRCDIR)/mo_ecci_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_grid_structures.f90 \
 $(ROOT)/$(SRCDIR)/mo_icon_domain.f90 \
 $(ROOT)/$(SRCDIR)/mo_icon_grid_data.f90 \

@@ -55,7 +55,7 @@ PUBLIC :: fr_land_lu, &
 
 
 PUBLIC :: allocate_lu_target_fields, allocate_add_lu_fields
-PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecoclimap
+PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecoclimap, i_lu_ecci
 
 PUBLIC :: fr_land, &
   &        ice, &
@@ -141,7 +141,7 @@ PUBLIC :: allocate_lu_ds_target_fields
        INTEGER, PARAMETER :: i_lu_glc2000   = 2 !< id for landuse data set GLC2000
        INTEGER, PARAMETER :: i_lu_glcc      = 3 !< id for landuse data set GLCC
        INTEGER, PARAMETER :: i_lu_ecoclimap = 4 !< id for landuse data set ecoclimap
-
+       INTEGER, PARAMETER :: i_lu_ecci      = 5 !< id for landuse data set ESA CCI
 CONTAINS
 
 !> allocate fields for TARGET grid
