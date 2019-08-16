@@ -127,10 +127,13 @@ PROGRAM extpar_consistency_check
   USE mo_glc2000_lookup_tables, ONLY: nclass_glc2000
 
   USE mo_globcover_data,   ONLY: max_tiles_lu  !_br 21.02.14 including definition of max_tiles_lu
+  USE mo_ecci_data,   ONLY: max_tiles_lu_ecci  !_br 21.02.14 including definition of max_tiles_lu
 
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover
+  USE mo_ecci_lookup_tables, ONLY: nclass_ecci
 
   USE mo_globcover_lookup_tables, ONLY: get_name_globcover_lookup_tables
+  USE mo_ecci_lookup_tables, ONLY: get_name_ecci_lookup_tables
   USE mo_glcc_lookup_tables, ONLY: get_name_glcc_lookup_tables
   USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap
   USE mo_ecoclimap_lookup_tables, ONLY: get_name_ecoclimap_lookup_tables
@@ -144,7 +147,7 @@ PROGRAM extpar_consistency_check
 
   USE mo_landuse_routines, ONLY: read_namelists_extpar_land_use
 
-  USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc
+  USE mo_lu_tg_fields, ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecci
   USE mo_lu_tg_fields, ONLY :  i_lu_ecoclimap
 
   USE mo_lu_tg_fields, ONLY: fr_land_lu, &
@@ -472,7 +475,11 @@ PROGRAM extpar_consistency_check
   INTEGER :: count_ice2tclim,count_ice2tclim_tile
   INTEGER, PARAMETER :: i_gcv__snow_ice = 22 ! GlobCover land-use class for glaciers
   INTEGER, PARAMETER :: i_gcv_bare_soil = 20 ! GlobCover land-use class for bare-soil
-  
+  INTEGER, PARAMETER :: i_ecci__snow_ice = 38 ! GlobCover land-use class for glaciers
+  INTEGER, PARAMETER :: i_ecci_bare_soil = 34 ! GlobCover land-use class for bare-soil
+    
+
+
   LOGICAL :: lwrite_netcdf  !< flag to enable netcdf output for COSMO
   LOGICAL :: lwrite_grib    !< flag to enable GRIB output for COSMO
   LOGICAL :: lflake_correction !< flag to correct fr_lake and depth_lake near coastlines
@@ -510,7 +517,7 @@ PROGRAM extpar_consistency_check
   CHARACTER (LEN=filename_max) :: path_alb_file
   CHARACTER (LEN=filename_max) :: alb_source, alnid_source, aluvd_source
   CHARACTER (LEN=filename_max) :: namelist_alb_data_input
-  CHARACTER (LEN=filename_max), DIMENSION(1:23) :: glc_class
+  CHARACTER (LEN=filename_max), DIMENSION(1:38) :: glc_class
   INTEGER                      :: tile_mode
   LOGICAL                      :: tile_mask, ltcl_merge
 
@@ -709,6 +716,11 @@ PROGRAM extpar_consistency_check
      CALL get_name_glcc_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
      nclass_lu = nclass_glcc
      lu_data_southern_boundary = -90.0
+  CASE (i_lu_ecci)
+     lu_dataset = 'ESA CCI'
+     CALL get_name_ecci_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
+     nclass_lu = nclass_ecci
+     lu_data_southern_boundary = -90.0 ! No need to capture the Antarctic peninsula
   END SELECT
 
   CALL logging%info('Land use datatset    : '//TRIM(lu_dataset), __FILE__, __LINE__)
@@ -934,7 +946,7 @@ PROGRAM extpar_consistency_check
           &                                     emissivity_lu)
 
 
-  CASE(i_lu_globcover, i_lu_glc2000 )
+  CASE(i_lu_globcover, i_lu_glc2000, i_lu_ecci )
      PRINT *,'read ', TRIM(lu_buffer_file)
      CALL read_netcdf_buffer_lu(lu_buffer_file,  &
           &                                     tg,         &
@@ -960,8 +972,8 @@ PROGRAM extpar_consistency_check
           &                                     emissivity_lu)
 
 
-     PRINT *,'MAX ICE_LU GLOBCOVER: ', MAXVAL(ICE_LU)
-     PRINT *,'MAX lu_class_fraction_22 (ICE) GLOBCOVER: ', MAXVAL(lu_class_fraction(:,:,:,22))
+     PRINT *,'MAX ICE_LU: ', MAXVAL(ICE_LU)
+!     PRINT *,'MAX lu_class_fraction_22 (ICE) GLOBCOVER: ', MAXVAL(lu_class_fraction(:,:,:,22))
 
      !    ice_lu = lu_class_fraction(:,:,:,22)
      !    IF (igrid_type == igrid_icon) THEN
@@ -1384,6 +1396,8 @@ END IF
      lu_class_fraction(:,:,:,21)=ice_lu(:,:,:)
   CASE (i_lu_globcover)
      lu_class_fraction(:,:,:,22)=ice_lu(:,:,:)
+  CASE (i_lu_ecci)
+     lu_class_fraction(:,:,:,38)=ice_lu(:,:,:)
   END SELECT
 !----------------------- FIX for wrong classified Glacier points - Land-Use  --------------------------
 
@@ -1426,7 +1440,42 @@ END IF
         PRINT*,"Number of corrected false glacier points in EXTPAR: ", &
                       count_ice2tclim, " with fraction >= 0.05 (TILE): ",count_ice2tclim_tile
 
-      END IF
+     END IF
+
+      IF (i_landuse_data == i_lu_ecci) THEN
+         count_ice2tclim = 0
+         count_ice2tclim_tile = 0
+        DO k=1,tg%ke
+          DO j=1,tg%je
+            DO i=1,tg%ie
+              t2mclim_hc = MAXVAL(t2m_field(i,j,k,:)) + dtdz_clim *                &
+                         ( hh_topo(i,j,k) + 1.5_wp*stdh_topo(i,j,k) - hsurf_field(i,j,k))
+
+              ! consistency corrections for glaciered points
+              ! a) set soiltype to ice if landuse = ice (already done in extpar for dominant glacier points)
+              !
+              ! a) plausibility check for glacier points based on T2M climatology (if available):
+              !    if the warmest month exceeds 10 deg C, then it is unlikely for glaciers to exist
+
+              IF ( t2mclim_hc > (tmelt + 10.0_wp) ) THEN
+                IF (lu_class_fraction(i,j,k,i_ecci__snow_ice)> 0._wp) count_ice2tclim=count_ice2tclim + 1
+                IF (lu_class_fraction(i,j,k,i_ecci__snow_ice)>= frlndtile_thrhld) THEN
+                   count_ice2tclim_tile = count_ice2tclim_tile + 1  ! Statistics >= frlndtile_thrhld in ICON           
+                ENDIF
+                lu_class_fraction(i,j,k,i_ecci_bare_soil) = lu_class_fraction(i,j,k,i_ecci_bare_soil) + &
+                lu_class_fraction(i,j,k,i_ecci__snow_ice) ! add always wrong ice frac to bare soil
+                lu_class_fraction(i,j,k,i_ecci__snow_ice) = 0._wp ! remove always wrong ice frac
+                ice_lu(i,j,k)  = 0._wp
+              ENDIF ! t2mclim_hc(i,j,k) > tmelt + 10.0_wp
+            ENDDO
+          ENDDO
+        ENDDO
+        
+        PRINT*,"Number of corrected false glacier points in EXTPAR: ", &
+                      count_ice2tclim, " with fraction >= 0.05 (TILE): ",count_ice2tclim_tile
+
+     END IF
+
      
   !------------------------------------------------------------------------------------------
   !------------- land use data consistency  -------------------------------------------------
@@ -2478,6 +2527,51 @@ END IF
                     WRITE (*,'(A33,1X,A85,2X,F8.4)') "Land-Use Fractions for GLOBCOVER class  ", &
                          glc_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
                  ENDDO
+              CASE (i_lu_ecci)
+
+glc_class(1)=   'No data                                        '     ! 1.
+glc_class(2)=   'Cropland, rainfed                              '     ! 2.
+glc_class(3)=   'Herbaceous cover                               '     ! 3.
+glc_class(4)=   'Tree or shrub cover                            '     ! 4.
+glc_class(5)=   'Cropland, irrigated or post-flooding           '     ! 5.
+glc_class(6)=   'Mosaic cropland(>50%)/natural vegetation(<50%) '     ! 6.
+glc_class(7)=   'Mosaic natural vegetation(>50%)/cropland(<50%) '     ! 7.
+glc_class(8)=   'TC, BL, evergreen, closed to open (>15%)       '     ! 8.
+glc_class(9)=   'TC, BL, deciduous, closed to open (>15%)       '     ! 9.
+glc_class(10)=   'TC, BL, deciduous, closed (>40%)               '     ! 10.
+glc_class(11)=   'TC, BL, deciduous, open (15-40%)               '     ! 11.
+glc_class(12)=   'TC, NL, evergreen, closed to open (>15%)       '     ! 12.
+glc_class(13)=   'TC, NL, evergreen, closed (>40%)               '     ! 13.
+glc_class(14)=   'TC, NL, evergreen, open (15-40%)               '     ! 14.
+glc_class(15)=   'TC, NL, deciduous, closed to open (>15%)       '     ! 15.
+glc_class(16)=   'TC, NL, deciduous, closed (>40%)               '     ! 16.
+glc_class(17)=   'TC, NL, deciduous, open (15-40%)               '     ! 17.
+glc_class(18)=   'TC, mixed leaf type (BL and NL)                '     ! 18.
+glc_class(19)=   'Mosaic tree and shrub (>50%)/HC (<50%)         '     ! 19.
+glc_class(20)=   'Mosaic HC (>50%) / tree and shrub (<50%)       '     ! 20.
+glc_class(21)=   'Shrubland                                      '     ! 21.
+glc_class(22)=   'Shrubland evergreen                            '     ! 22.
+glc_class(23)=   'Shrubland deciduous                            '     ! 23.
+glc_class(24)=   'Grassland                                      '     ! 24.
+glc_class(25)=   'Lichens and mosses                             '     ! 25.
+glc_class(26)=   'Sparse vegetation (tree, shrub, HC) (<15%)     '     ! 26.
+glc_class(27)=   'Sparse tree (<15%)                             '     ! 27.
+glc_class(28)=   'Sparse shrub (<15%)                            '     ! 28.
+glc_class(29)=   'Sparse herbaceous cover (<15%)                 '     ! 29.
+glc_class(30)=   'TC, flooded, fresh or brakish water            '     ! 30.
+glc_class(31)=   'TC, flooded, saline water                      '     ! 31.
+glc_class(32)=   'Shrub or HC,flooded,fresh/saline/brakish water '     ! 32.
+glc_class(33)=   'Urban areas                                    '     ! 33.
+glc_class(34)=   'Bare areas                                     '     ! 34.
+glc_class(35)=   'Consolidated bare areas                        '     ! 35.
+glc_class(36)=   'Unconsolidated bare areas                      '     ! 36.
+glc_class(37)=   'Water bodies                                   '     ! 37.
+glc_class(38)=   'Permanent snow and ice                         '     ! 38.
+                 DO i=1,nclass_ecci
+                    WRITE (*,'(A33,1X,A85,2X,F8.4)') "Land-Use Fractions for ESA CCI class  ", &
+                         glc_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
+                 ENDDO
+
               END SELECT
            ENDIF
 

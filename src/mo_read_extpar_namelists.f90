@@ -166,7 +166,7 @@ CONTAINS
     lwrite_netcdf = .TRUE.
     lwrite_grib   = .FALSE.
     ltcl_merge    = .TRUE.
-    l_use_glcc    = .TRUE. ! Assume that GLCC land-use data file exists!
+    l_use_glcc    = .FALSE. ! Assume that GLCC land-use data file exists!
 
     OPEN(NEWUNIT=nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
     READ(nuin, NML=extpar_consistency_check_io, IOSTAT=ierr)
