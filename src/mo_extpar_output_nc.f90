@@ -1734,7 +1734,7 @@ CONTAINS
     CHARACTER (LEN=filename_max) :: md5sum,rawdata_file,env_str
 
     !local variables
-    CHARACTER(len=2)  :: number_Of_Grid_Used_string
+    CHARACTER(len=4)  :: number_Of_Grid_Used_string
     CHARACTER(len=10) :: ydate
     CHARACTER(len=10) :: ytime
     CHARACTER(len=2)  :: cc
@@ -1781,7 +1781,7 @@ CONTAINS
     CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
     global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
 
-    WRITE(number_Of_Grid_Used_string,'(I2)')  icon_grid%number_Of_Grid_Used
+    WRITE(number_Of_Grid_Used_string,'(I4)')  icon_grid%number_Of_Grid_Used
     global_attributes(7)%attname = 'number_of_grid_used'
     global_attributes(7)%attributetext=number_Of_Grid_Used_string
 
