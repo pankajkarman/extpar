@@ -1,4 +1,30 @@
 # Release notes
+
+ ## 5.1.1
+ This is a minor release containing a few bug fixes.
+ * Fix read of l_use_glcc landuse calculation for COSMO runs.
+ * Fix unitialized logical flag to trigger scale separation in topography calculation.
+ * Reactivate all cosmo tests from testsuite on Kesch.
+ 
+ ## 5.1
+ This is an intermediate release containing some bug fixes and some minor developments.  
+
+ * Changes to Jenkins and the automated testing:  
+   - Fix Mistral setup so that code runs on compute nodes instead of login nodes
+   - Fix Mistral setup so that intel compiler can be tested.  Note that only run success
+     is checked for the intel compiler; the results are not yet tested.  
+   - Fix NAG compiler setup so that only compilation, not testing is done, because
+     testing is too time consuming.  
+
+ * Bug fix for iaot_type = 4 (MACv2 aerosols).  The code had not been correctly imported from version 4.0.
+ 
+ * Contributions from DWD including:
+   - DWD versions of the python and shell replacement scripts for ndvi, albedo, and cru
+   - DWD bug fix for the albedo calculation
+   - DWD bug fix for incorrect glacier points
+
+ * New output variable skin conductivity (SKC) developed by Jan-Peter Schulz.  Skin conductivity is calculated from the landuse data.  
+
  ## 5.0.4
  This is a minor release containing a few bug fixes.
 
