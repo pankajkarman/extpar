@@ -478,6 +478,8 @@ PROGRAM extpar_consistency_check
   LOGICAL :: l_use_ahf =.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_sgsl=.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
+  LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
+
   REAL :: lu_data_southern_boundary
 
   REAL(KIND=wp), PARAMETER :: dtdz_clim = -5.e-3_wp  ! -5 K/km!< value to indicate undefined land use grid elements 
@@ -791,7 +793,6 @@ PROGRAM extpar_consistency_check
          glcc_buffer_file, &
          flake_buffer_file, &
          ndvi_buffer_file, &
-         emiss_buffer_file, &
          sst_icon_file, &
          t2m_icon_file, &
          t_clim_dummy_file, &
@@ -818,7 +819,6 @@ PROGRAM extpar_consistency_check
          glcc_buffer_file, &
          flake_buffer_file, &
          ndvi_buffer_file, &
-         emiss_buffer_file, &
          t_clim_dummy_file, &
          aot_buffer_file, &
          alb_buffer_file, &
@@ -1144,8 +1144,11 @@ PROGRAM extpar_consistency_check
        &                                     ndvi_field_mom,&
        &                                     ndvi_ratio_mom)
 
+
+  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
+  if (l_input_emiss) then
   PRINT *,'Read in EMISS data'
-  CALL read_netcdf_buffer_emiss(emiss_buffer_file,  &
+  CALL read_netcdf_buffer_emiss('emiss_BUFFER.nc',  &
        &                                     tg,         &
        &                                     ntime_emiss, &
        &                                     undefined, &
@@ -1153,7 +1156,7 @@ PROGRAM extpar_consistency_check
        &                                     emiss_max,  &
        &                                     emiss_field_mom,&
        &                                     emiss_ratio_mom)
-
+  END IF
 
   PRINT *,'MAX/MIN of ERA-I SST and W_SNOW ',MAXVAL(sst_field),MINVAL(sst_field),MAXVAL(wsnow_field),MINVAL(wsnow_field)
   PRINT *,'MAX/MIN of ERA-I T2M and HSURF ',MAXVAL(t2m_field),MINVAL(t2m_field),MAXVAL(hsurf_field),MINVAL(hsurf_field)
@@ -1189,6 +1192,10 @@ PROGRAM extpar_consistency_check
            &                                     stdh_topo,   &
            &                                     z0_topo,      &
            &                                     vertex_param=vertex_param)
+! Provide also SSO fields, filled with zero
+      theta_topo = 0._wp
+      aniso_topo = 0._wp
+      aniso_topo = 0._wp
     ENDIF
 
   CASE DEFAULT
@@ -1227,6 +1234,10 @@ PROGRAM extpar_consistency_check
                 &                                     slope_ang_topo=slope_ang_topo,     &
                 &                                     horizon_topo=horizon_topo,         &
                 &                                     skyview_topo=skyview_topo)
+! Provide also SSO fields, filled with zero
+      theta_topo = 0._wp
+      aniso_topo = 0._wp
+      aniso_topo = 0._wp
         ENDIF
 
      ELSE
@@ -1254,6 +1265,10 @@ PROGRAM extpar_consistency_check
                 &                                     z0_topo,      &
                 &                                     nhori=nhori)
         ENDIF
+! Provide also SSO fields, filled with zero
+      theta_topo = 0._wp
+      aniso_topo = 0._wp
+      aniso_topo = 0._wp
      ENDIF
 
 
@@ -2251,6 +2266,7 @@ END IF
   !------------- NDVI data consistency ------------------------------------------------------
   !------------------------------------------------------------------------------------------
 
+  if (l_input_emiss) then
   !------------------------------------------------------------------------------------------
   !------------- EMISS data consistency ------------------------------------------------------
   !------------------------------------------------------------------------------------------
@@ -2284,7 +2300,7 @@ END IF
   !------------------------------------------------------------------------------------------
   !------------- EMISS data consistency ------------------------------------------------------
   !------------------------------------------------------------------------------------------
-
+  end if
 
   !------------------------------------------------------------------------------------------
   !-------------TC_L Correction ------------------------------------------------------

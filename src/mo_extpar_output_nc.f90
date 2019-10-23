@@ -317,6 +317,7 @@ CONTAINS
     LOGICAL,               INTENT(IN) :: l_use_isa
     LOGICAL,               INTENT(IN) :: l_use_ahf
     LOGICAL,               INTENT(IN) :: l_use_sgsl
+    LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
     LOGICAL,               INTENT(IN) :: lsso
     LOGICAL,               INTENT(IN) :: lscale_separation
@@ -362,7 +363,7 @@ CONTAINS
     REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
     REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height 
     REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
     REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
@@ -382,9 +383,9 @@ CONTAINS
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
 
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+    REAL(KIND=wp), INTENT(IN)            :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+    REAL(KIND=wp), INTENT(IN)            :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+    REAL(KIND=wp), INTENT(IN)            :: slope_topo(:,:,:) !< sso parameter, mean slope
     REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_asp_topo(:,:,:)   !< lradtopo parameter, slope_aspect
     REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_ang_topo(:,:,:)   !< lradtopo parameter, slope_angle
     REAL(KIND=wp), INTENT(IN), OPTIONAL  :: horizon_topo  (:,:,:,:) !< lradtopo parameter, horizon
@@ -725,22 +726,22 @@ CONTAINS
     CALL netcdf_put_var(ncid,var_real_2d,stdh_topo_meta,undefined)
 
     ! theta_topo
-    IF (lsso) THEN
+!    IF (lsso) THEN
       var_real_2d(:,:) = theta_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,theta_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
     ! aniso_topo
-    IF (lsso) THEN
+!    IF (lsso) THEN
       var_real_2d(:,:) = aniso_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,aniso_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
     ! slope_topo
-    IF (lsso) THEN
+!    IF (lsso) THEN
       var_real_2d(:,:) = slope_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,slope_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
     ! slope_asp_topo
     IF (lrad) THEN
@@ -940,12 +941,15 @@ CONTAINS
          & ndvi_ratio_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_ndvi), &
          & ndvi_ratio_mom_meta, &
          & undefined)
+
+  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
+  if (l_input_emiss) then
   ! emiss_field_mom
     CALL netcdf_put_var(ncid,&
          & emiss_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_emiss), &
          & emiss_field_mom_meta, &
          & undefined)
-
+  end if
     !-----------------------------------------------------------------
     ! aot
     IF (iaot_type == 4) THEN
@@ -1184,6 +1188,7 @@ CONTAINS
     LOGICAL,               INTENT(IN) :: ldeep_soil
     LOGICAL,               INTENT(IN) :: l_use_isa
     LOGICAL,               INTENT(IN) :: l_use_ahf
+    LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
     LOGICAL,               INTENT(IN) :: lsso
     LOGICAL,               INTENT(IN) :: lscale_separation
@@ -1222,7 +1227,7 @@ CONTAINS
     REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: emiss_field_mom(:,:,:,:) !< field for monthly mean emiss data (12 months)
     REAL (KIND=wp), INTENT(IN) :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
     REAL (KIND=wp), INTENT(IN) :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
     REAL (KIND=wp), INTENT(IN) :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
@@ -1588,23 +1593,23 @@ CONTAINS
     n=19 ! stdh_topo
     CALL netcdf_put_var(ncid,stdh_topo(1:icon_grid%ncell,1,1),stdh_topo_meta,undefined)
 
-    IF (lsso) THEN
+!    IF (lsso) THEN
       CALL logging%info('theta_topo', __FILE__, __LINE__)
       n=20 ! theta_topo
       CALL netcdf_put_var(ncid,theta_topo(1:icon_grid%ncell,1,1),theta_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
-    IF (lsso) THEN
+!    IF (lsso) THEN
       CALL logging%info('aniso_topo', __FILE__, __LINE__)
       n=21 ! aniso_topo
       CALL netcdf_put_var(ncid,aniso_topo(1:icon_grid%ncell,1,1),aniso_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
-    IF (lsso) THEN
+!    IF (lsso) THEN
       CALL logging%info('slope_topo', __FILE__, __LINE__)
       n=22 ! slope_topo
       CALL netcdf_put_var(ncid,slope_topo(1:icon_grid%ncell,1,1),slope_topo_meta,undefined)
-    ENDIF
+!    ENDIF
 
     CALL logging%info('crutemp', __FILE__, __LINE__)
     n=23 ! crutemp
@@ -1651,9 +1656,12 @@ CONTAINS
     CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime_ndvi), &
          &                 ndvi_ratio_mom_meta, undefined)
 
+  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
+  if (l_input_emiss) then
     n=4 ! emiss_field_mom
     CALL netcdf_put_var(ncid,emiss_field_mom(1:icon_grid%ncell,1,1,1:ntime_emiss), &
          &                 emiss_field_mom_meta, undefined)
+  end if
 
     n=1 ! aot_bc
     CALL netcdf_put_var(ncid,aot_tg(1:icon_grid%ncell,1,1,1,1:ntime_aot), &

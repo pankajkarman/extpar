@@ -88,7 +88,6 @@ CONTAINS
        glcc_buffer_file,      &
        flake_buffer_file,     &
        ndvi_buffer_file,      &
-       emiss_buffer_file,      &
        sst_icon_file,         &
        t2m_icon_file,         &
        t_clim_buffer_file,    &
@@ -114,7 +113,6 @@ CONTAINS
     CHARACTER (len=filename_max), INTENT(OUT) :: glcc_buffer_file  !< name for glcc buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: flake_buffer_file  !< name for flake buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: ndvi_buffer_file  !< name for ndvi buffer file
-    CHARACTER (len=filename_max), INTENT(OUT) :: emiss_buffer_file  !< name for emiss buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: sst_icon_file  !< name for sst file
     CHARACTER (len=filename_max), INTENT(OUT) :: t2m_icon_file  !< name for sst file
     CHARACTER (len=filename_max), INTENT(OUT) :: t_clim_buffer_file  !< name for t_clim buffer file
@@ -135,7 +133,6 @@ CONTAINS
          &                                 glcc_buffer_file, &
          &                                 flake_buffer_file, &
          &                                 ndvi_buffer_file, &
-         &                                 emiss_buffer_file, &
          &                                 sst_icon_file, &
          &                                 t2m_icon_file, &
          &                                 t_clim_buffer_file, &
@@ -160,7 +157,6 @@ CONTAINS
     glcc_buffer_file = ''
     flake_buffer_file = ''
     ndvi_buffer_file = ''
-    emiss_buffer_file = ''
     t_clim_buffer_file = ''
     aot_buffer_file = ''
     alb_buffer_file = ''
@@ -189,7 +185,6 @@ CONTAINS
     IF(l_use_glcc) CALL check_input_file(TRIM(glcc_buffer_file), __FILE__, __LINE__)
     CALL check_input_file(TRIM(flake_buffer_file), __FILE__, __LINE__)
     CALL check_input_file(TRIM(ndvi_buffer_file), __FILE__, __LINE__)
-    CALL check_input_file(TRIM(emiss_buffer_file), __FILE__, __LINE__)
     CALL check_input_file(TRIM(t_clim_buffer_file), __FILE__, __LINE__)
     CALL check_input_file(TRIM(aot_buffer_file), __FILE__, __LINE__)
     CALL check_input_file(TRIM(alb_buffer_file), __FILE__, __LINE__)
@@ -215,7 +210,6 @@ CONTAINS
        glcc_buffer_file,      &
        flake_buffer_file,     &
        ndvi_buffer_file,      &
-       emiss_buffer_file,      &
        t_clim_buffer_file,    &
        aot_buffer_file,       &
        alb_buffer_file,       &
@@ -241,7 +235,6 @@ CONTAINS
     CHARACTER (len=filename_max), INTENT(OUT) :: flake_buffer_file  !< name for flake buffer file
 
     CHARACTER (len=filename_max), INTENT(OUT) :: ndvi_buffer_file  !< name for ndvi buffer file
-    CHARACTER (len=filename_max), INTENT(OUT) :: emiss_buffer_file  !< name for emiss buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: t_clim_buffer_file  !< name for t_clim buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: aot_buffer_file  !< name for aot buffer file
     CHARACTER (len=filename_max), INTENT(OUT) :: alb_buffer_file  !< name for albedo buffer file
@@ -260,7 +253,6 @@ CONTAINS
          glcc_buffer_file, &
          flake_buffer_file, &
          ndvi_buffer_file, &
-         emiss_buffer_file, &
          t_clim_buffer_file, &
          aot_buffer_file, &
          alb_buffer_file, &
