@@ -478,7 +478,9 @@ PROGRAM extpar_consistency_check
   LOGICAL :: l_use_ahf =.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_sgsl=.FALSE. !< flag if additional urban data are present
   LOGICAL :: l_use_glcc=.FALSE. !< flag if additional glcc data are present
-  LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
+  LOGICAL :: l_use_emiss=.FALSE.!< flag if additional CAMEL emissivity data are present
+  LOGICAL :: l_use_era_sst=.FALSE.!< flag if additional CAMEL emissivity data are present
+  LOGICAL :: l_use_era_t2m=.FALSE.!< flag if additional CAMEL emissivity data are present
 
   REAL :: lu_data_southern_boundary
 
@@ -806,7 +808,7 @@ PROGRAM extpar_consistency_check
          tile_mode,             &
          ltcl_merge,            &
          l_use_glcc              )
-
+  INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
   CASE(igrid_cosmo)
     CALL logging%info('Read INPUT_CHECK for COSMO', __FILE__, __LINE__)
     CALL read_namelists_extpar_check_cosmo(namelist_file, &
@@ -1144,11 +1146,12 @@ PROGRAM extpar_consistency_check
        &                                     ndvi_field_mom,&
        &                                     ndvi_ratio_mom)
 
-
-  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
-  if (l_input_emiss) then
+  namelist_file = 'INPUT_EMISS'
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_emiss)
+  if (l_use_emiss) then
   PRINT *,'Read in EMISS data'
-  CALL read_netcdf_buffer_emiss('emiss_BUFFER.nc',  &
+  emiss_buffer_file = 'emiss_BUFFER.nc'
+  CALL read_netcdf_buffer_emiss(TRIM(emiss_buffer_file),  &
        &                                     tg,         &
        &                                     ntime_emiss, &
        &                                     undefined, &
@@ -2266,7 +2269,7 @@ END IF
   !------------- NDVI data consistency ------------------------------------------------------
   !------------------------------------------------------------------------------------------
 
-  if (l_input_emiss) then
+  if (l_use_emiss) then
   !------------------------------------------------------------------------------------------
   !------------- EMISS data consistency ------------------------------------------------------
   !------------------------------------------------------------------------------------------
