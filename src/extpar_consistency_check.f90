@@ -1267,11 +1267,11 @@ PROGRAM extpar_consistency_check
                 &                                     stdh_topo,   &
                 &                                     z0_topo,      &
                 &                                     nhori=nhori)
-        ENDIF
 ! Provide also SSO fields, filled with zero
       theta_topo = 0._wp
       aniso_topo = 0._wp
       aniso_topo = 0._wp
+        ENDIF
      ENDIF
 
 
