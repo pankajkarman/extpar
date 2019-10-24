@@ -310,6 +310,7 @@ CONTAINS
 
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
+    CHARACTER (len=filename_max)       :: namelist_file !< filename with namelists for for EXTPAR settings for optional output
     TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     INTEGER,               INTENT(IN) :: isoil_data
@@ -317,7 +318,7 @@ CONTAINS
     LOGICAL,               INTENT(IN) :: l_use_isa
     LOGICAL,               INTENT(IN) :: l_use_ahf
     LOGICAL,               INTENT(IN) :: l_use_sgsl
-    LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
+    LOGICAL                           :: l_use_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
     LOGICAL,               INTENT(IN) :: lsso
     LOGICAL,               INTENT(IN) :: lscale_separation
@@ -942,8 +943,9 @@ CONTAINS
          & ndvi_ratio_mom_meta, &
          & undefined)
 
-  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
-  if (l_input_emiss) then
+  namelist_file="INPUT_EMISS"
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_emiss)
+  if (l_use_emiss) then
   ! emiss_field_mom
     CALL netcdf_put_var(ncid,&
          & emiss_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime_emiss), &
@@ -1182,13 +1184,14 @@ CONTAINS
 
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename      !< filename for the netcdf file
+    CHARACTER (len=filename_max)       :: namelist_file !< filename with namelists for for EXTPAR settings for optional output
     TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN) :: tg                    !< target grid description
     INTEGER,               INTENT(IN) :: isoil_data
     LOGICAL,               INTENT(IN) :: ldeep_soil
     LOGICAL,               INTENT(IN) :: l_use_isa
     LOGICAL,               INTENT(IN) :: l_use_ahf
-    LOGICAL :: l_input_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
+    LOGICAL                           :: l_use_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
     LOGICAL,               INTENT(IN) :: lsso
     LOGICAL,               INTENT(IN) :: lscale_separation
@@ -1656,8 +1659,9 @@ CONTAINS
     CALL netcdf_put_var(ncid,ndvi_ratio_mom(1:icon_grid%ncell,1,1,1:ntime_ndvi), &
          &                 ndvi_ratio_mom_meta, undefined)
 
-  INQUIRE(FILE="INPUT_EMISS", EXIST=l_input_emiss)
-  if (l_input_emiss) then
+  namelist_file="INPUT_EMISS"
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_emiss)
+  if (l_use_emiss) then
     n=4 ! emiss_field_mom
     CALL netcdf_put_var(ncid,emiss_field_mom(1:icon_grid%ncell,1,1,1:ntime_emiss), &
          &                 emiss_field_mom_meta, undefined)
