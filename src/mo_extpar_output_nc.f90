@@ -727,22 +727,22 @@ CONTAINS
     CALL netcdf_put_var(ncid,var_real_2d,stdh_topo_meta,undefined)
 
     ! theta_topo
-!    IF (lsso) THEN
+    IF (lsso) THEN
       var_real_2d(:,:) = theta_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,theta_topo_meta,undefined)
-!    ENDIF
+    ENDIF
 
     ! aniso_topo
-!    IF (lsso) THEN
+    IF (lsso) THEN
       var_real_2d(:,:) = aniso_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,aniso_topo_meta,undefined)
-!    ENDIF
+    ENDIF
 
     ! slope_topo
-!    IF (lsso) THEN
+    IF (lsso) THEN
       var_real_2d(:,:) = slope_topo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,slope_topo_meta,undefined)
-!    ENDIF
+    ENDIF
 
     ! slope_asp_topo
     IF (lrad) THEN
