@@ -14,8 +14,8 @@ $(ROOT)/$(SRCDIR)/mo_agg_glc2000.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_glcc.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_globcover.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_ecoclimap.f90 \
-$(ROOT)/$(SRCDIR)/mo_agg_ndvi.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_emiss.f90 \
+$(ROOT)/$(SRCDIR)/mo_agg_ndvi.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_sgsl.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_soil.f90 \
 $(ROOT)/$(SRCDIR)/mo_agg_topo_icon.f90 \
@@ -38,6 +38,10 @@ $(ROOT)/$(SRCDIR)/mo_cru_target_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_ecoclimap_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_ecoclimap_lookup_tables.f90 \
 $(ROOT)/$(SRCDIR)/mo_ecoclimap_tg_fields.f90 \
+$(ROOT)/$(SRCDIR)/mo_emiss_data.f90 \
+$(ROOT)/$(SRCDIR)/mo_emiss_output_nc.f90 \
+$(ROOT)/$(SRCDIR)/mo_emiss_routines.f90 \
+$(ROOT)/$(SRCDIR)/mo_emiss_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_exception.f90 \
 $(ROOT)/$(SRCDIR)/mo_extpar_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_flake_data.f90 \
@@ -74,10 +78,6 @@ $(ROOT)/$(SRCDIR)/mo_ndvi_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_ndvi_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_ndvi_routines.f90 \
 $(ROOT)/$(SRCDIR)/mo_ndvi_tg_fields.f90 \
-$(ROOT)/$(SRCDIR)/mo_emiss_data.f90 \
-$(ROOT)/$(SRCDIR)/mo_emiss_output_nc.f90 \
-$(ROOT)/$(SRCDIR)/mo_emiss_routines.f90 \
-$(ROOT)/$(SRCDIR)/mo_emiss_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_oro_filter.f90 \
 $(ROOT)/$(SRCDIR)/mo_physical_constants.f90 \
 $(ROOT)/$(SRCDIR)/mo_read_extpar_namelists.f90 \
