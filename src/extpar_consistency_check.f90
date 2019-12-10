@@ -1236,10 +1236,6 @@ PROGRAM extpar_consistency_check
                 &                                     slope_ang_topo=slope_ang_topo,     &
                 &                                     horizon_topo=horizon_topo,         &
                 &                                     skyview_topo=skyview_topo)
-! Provide also SSO fields, filled with zero
-      theta_topo = 0._wp
-      aniso_topo = 0._wp
-      aniso_topo = 0._wp
         ENDIF
 
      ELSE
@@ -1266,10 +1262,6 @@ PROGRAM extpar_consistency_check
                 &                                     stdh_topo,   &
                 &                                     z0_topo,      &
                 &                                     nhori=nhori)
-! Provide also SSO fields, filled with zero
-      theta_topo = 0._wp
-      aniso_topo = 0._wp
-      aniso_topo = 0._wp
         ENDIF
      ENDIF
 
@@ -2311,7 +2303,7 @@ END IF
 
   CALL CPU_TIME(timeend)
   timediff = timeend - timestart
-  PRINT *,'EMISS data consitency check, WHERE, done in:  ', timediff
+  PRINT *,'EMISS data consistency check, WHERE, done in:  ', timediff
 
 
   !------------------------------------------------------------------------------------------
