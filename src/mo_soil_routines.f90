@@ -22,7 +22,6 @@ MODULE mo_soil_routines
 
  USE mo_kind, ONLY: wp
  USE mo_kind, ONLY: i4
- USE mo_kind, ONLY: i8
  USE mo_logging
 
 USE netcdf,      ONLY :   &
@@ -31,39 +30,9 @@ USE netcdf,      ONLY :   &
   nf90_inquire,           &
   nf90_inquire_dimension, &
   nf90_inquire_variable,  &
-  nf90_inq_attname,       &
-  nf90_inquire_attribute, &
-  nf90_get_att,           &
   nf90_inquire_dimension, &
-  nf90_inq_varid,         &
   nf90_get_var,           &
-  nf90_noerr,             &
-  nf90_strerror
-
-USE netcdf,      ONLY:    &
-  nf90_create,            &
-  nf90_def_dim,           &
-  nf90_def_var,           &
-  nf90_enddef,            &
-  nf90_redef,             &
-  nf90_put_att,           &
-  nf90_put_var
-
- 
-USE netcdf,      ONLY :   &
-  NF90_CHAR,              &
-  NF90_DOUBLE,            &
-  NF90_FLOAT,             &
-  NF90_INT,               &
-  NF90_BYTE,              &
-  NF90_SHORT
-
-
-USE netcdf,      ONLY :   &
-  NF90_GLOBAL,            &
-  NF90_UNLIMITED,         &
-  NF90_CLOBBER,           &
-  NF90_NOWRITE
+  nf90_nowrite
 
 
 !> abort_extpar defined in MODULE utilities_extpar
@@ -74,9 +43,7 @@ USE mo_io_utilities,     ONLY: check_netcdf
 
 USE mo_io_units,         ONLY: filename_max
 
-USE mo_grid_structures,  ONLY: reg_lonlat_grid
-
-USE mo_soil_data,        ONLY: dsmw_legend, n_unit
+USE mo_soil_data,        ONLY: n_unit
 
 
 IMPLICIT NONE
@@ -185,8 +152,6 @@ END SUBROUTINE read_namelists_extpar_soil
        INTEGER, ALLOCATABLE :: var_dimids(:)       !< id of variable dimensions, vector, maximal dimension ndimension
        INTEGER :: nAtts                            !< number of attributes for a netcdf variable
 
-       INTEGER :: errorcode                        !< error status variable
-
           ! open netcdf file 
        CALL check_netcdf(nf90_open(TRIM(path_soil_file),NF90_NOWRITE, ncid))
 
@@ -195,7 +160,7 @@ END SUBROUTINE read_namelists_extpar_soil
        !; nf90_inquire input: ncid; nf90_inquire output: ndimension, nVars, nGlobalAtts,unlimdimid
        CALL check_netcdf (nf90_inquire(ncid,ndimension, nVars, nGlobalAtts,unlimdimid))
        !print *,'ncid,ndimension, nVars, nGlobalAtts,unlimdimid',ncid,ndimension, nVars, nGlobalAtts,unlimdimid
-       ALLOCATE (var_dimids(ndimension), STAT=errorcode)
+       ALLOCATE (var_dimids(ndimension))
 
 
        !; the dimid in netcdf-files is counted from 1 to ndimension
@@ -291,11 +256,6 @@ END SUBROUTINE read_namelists_extpar_soil
         INTEGER :: nAtts                            !< number of attributes for a netcdf variable
         
         INTEGER :: errorcode                        !< error status variable
-
-
-        INTEGER (KIND=i4) :: n_unit    !< number of soil unit numbers (legend)
-
- 
 
        ! open netcdf file
        CALL check_netcdf( nf90_open(TRIM(path_soil_file),NF90_NOWRITE, ncid))
@@ -393,7 +353,6 @@ END SUBROUTINE read_namelists_extpar_soil
         !> get coordintates, legend and data for soil raw data 
      SUBROUTINE get_deep_soil_data(path_deep_soil_file,start)
         !! here the coordintates, legend and data are read into global variables from the "Soil_data" Module
-        USE mo_soil_data, ONLY: dsmw_grid      !< structure with the definition of the soil raw data grid
         USE mo_soil_data, ONLY: soil_texslo_deep    !< legend for DSMW with texture and slope information
      USE mo_soil_data, ONLY: dsmw_deep_soil_unit !< FAO Digital Soil Map of the World, the values represent the 
                                                     !< soil unit number (see for legend in variable soil_texslo)
@@ -410,10 +369,6 @@ END SUBROUTINE read_namelists_extpar_soil
         INTEGER :: nVars_deep                            !< number of variables in netcdf file
         INTEGER :: nGlobalAtts_deep                      !< number of gloabal Attributes in netcdf file
        INTEGER :: unlimdimid_deep                       !< id of unlimited dimension (e.g. time) in netcdf file
-
-        INTEGER :: dimid_deep                            !< id of dimension
-     CHARACTER (LEN=80) :: dimname               !< name of dimension
-        INTEGER :: length                           !< length of dimension
 
         INTEGER :: varid_deep                            !< id of variable
      CHARACTER (LEN=80) :: varname_deep               !< name of variable

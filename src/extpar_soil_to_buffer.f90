@@ -285,7 +285,6 @@ USE mo_target_grid_routines, ONLY: init_target_grid
               &                   undefined,         &
               &                   soil_texslo,       &
               &                   dsmw_soil_unit,    &
-              &                   n_unit,            &
               &                   dsmw_grid,         &
               &                   lon_soil,          &
               &                   lat_soil,          &
@@ -310,10 +309,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
               &                   undefined,        &
               &                   soil_texslo,      &
               &                   dsmw_soil_unit,   &
-              &                   n_unit,           &
               &                   dsmw_grid,        &
-              &                   lon_soil,         &
-              &                   lat_soil,         & 
               &                   soiltype_fao,     &
               &                   soiltype_hwsd,    &
               &                   fr_land_soil)
@@ -343,7 +339,6 @@ USE mo_target_grid_routines, ONLY: init_target_grid
               &                   undefined,          &
               &                   soil_texslo_deep,   &
               &                   dsmw_deep_soil_unit,&
-              &                   n_unit,             &
               &                   dsmw_grid,          &
               &                   lon_soil,           &
               &                   lat_soil,           &
@@ -364,10 +359,7 @@ USE mo_target_grid_routines, ONLY: init_target_grid
               &                   undefined,          &
               &                   soil_texslo_deep,   &
               &                   dsmw_deep_soil_unit,&
-              &                   n_unit,             &
               &                   dsmw_grid,          &
-              &                   lon_soil,           &
-              &                   lat_soil,           &   
               &                   soiltype_deep,      &
               &                   soiltype_hwsd_s,      & 
               &                   fr_land_soil)
@@ -485,8 +477,6 @@ USE mo_target_grid_routines, ONLY: init_target_grid
  &                                     undefined,          &
  &                                     undefined_integer,  &
  &                                     lon_geo,            &
- &                                     lat_geo,            &
- &                                     fr_land_soil,       &
  &                                     soiltype_fao,       &
  &                                     soiltype_deep = soiltype_deep)
        ELSE
@@ -498,8 +488,6 @@ USE mo_target_grid_routines, ONLY: init_target_grid
  &                                     undefined,          &
  &                                     undefined_integer,  &
  &                                     lon_geo,            &
- &                                     lat_geo,            &
- &                                     fr_land_soil,       &
  &                                     soiltype_fao)
        ENDIF
 

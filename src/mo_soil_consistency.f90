@@ -21,7 +21,7 @@ MODULE mo_soil_consistency
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
                    i4, &
-                   i8
+                   i4
 
 !> abort_extpar defined in MODULE utilities_extpar
 USE mo_utilities_extpar, ONLY: abort_extpar, free_un
@@ -66,13 +66,6 @@ CONTAINS
     REAL(KIND=wp), INTENT(OUT)  :: fr_oc(1:tg%ie,1:tg%je,1:tg%ke) !< fraction oc due to HWSD
     REAL(KIND=wp), INTENT(OUT)  :: fr_bd(1:tg%ie,1:tg%je,1:tg%ke) !< fraction bd due to HWSD
 
-    REAL(KIND=wp)  :: texture(1:tg%ie,1:tg%je,1:tg%ke) ! Texture
-    REAL(KIND=wp)  :: coarse(1:tg%ie,1:tg%je,1:tg%ke) ! Texture
-    REAL(KIND=wp)  :: medium(1:tg%ie,1:tg%je,1:tg%ke) ! Texture
-    REAL(KIND=wp)  :: fine(1:tg%ie,1:tg%je,1:tg%ke) ! Texture
-
-
-!    INTEGER (KIND=i4), INTENT(INOUT), OPTIONAL:: soiltype_deep(:,:,:)!(1:tg%ie,1:tg%je,1:tg%ke)
     REAL(KIND=wp), INTENT(OUT),  OPTIONAL     :: fr_sand_deep(1:tg%ie,1:tg%je,1:tg%ke) !< fraction sand due to HWSD
     REAL(KIND=wp), INTENT(OUT), OPTIONAL      :: fr_silt_deep(1:tg%ie,1:tg%je,1:tg%ke) !< fraction silt due to HWSD
     REAL(KIND=wp), INTENT(OUT), OPTIONAL      :: fr_clay_deep(1:tg%ie,1:tg%je,1:tg%ke) !< fraction clay due to HWSD
@@ -94,34 +87,25 @@ CONTAINS
     CHARACTER (len=filename_max) :: path_HWSD_data_deep
     CHARACTER (len=filename_max) :: path_HWSD_data_extpar
 
-    INTEGER (KIND=i4) :: ic, ic_deep
+    INTEGER (KIND=i4) :: ic
 
     INTEGER, PARAMETER:: n_soil=16102
-    INTEGER           :: HWSD_ID(n_soil),stype
+    INTEGER           :: HWSD_ID(n_soil)
     REAL (KIND=wp)    :: HWSD_SU(n_soil), HWSD_TERRA(n_soil)
 
     INTEGER, PARAMETER:: n_soil_db=48148
     INTEGER           :: i_soil_db
-    INTEGER           :: HWSD_ID_DB(n_soil_db),HWSD_SU_DB(n_soil_db)
+    INTEGER           :: HWSD_SU_DB(n_soil_db)
     INTEGER           :: HWSD_SU_DB_S(n_soil_db)
     INTEGER           :: T_SAND(n_soil_db),T_SILT(n_soil_db),T_CLAY(n_soil_db)
     INTEGER           :: S_SAND(n_soil_db),S_SILT(n_soil_db),S_CLAY(n_soil_db)
     INTEGER (KIND=i4) :: nuin
     INTEGER (KIND=i4) :: i,j,k !<counters
     
-    REAL(KIND=wp)     :: T_OC(n_soil_db),T_BD(n_soil_db),nfac
-    REAL(KIND=wp)     :: S_OC(n_soil_db),S_BD(n_soil_db),nfac_deep
-    CHARACTER*10      :: styp_out
-    
-    REAL(KIND=wp)     :: S,C,OM,D,zsandf,zsiltf,zclayf,zomf, zrog,zrocg, &
-         &               zkw,avG,mvG, lnalpha,lnnm1,lnKs, zporv,         &
-         &               zpwp, zfcap
-    REAL(KIND=wp)     :: S_deep,C_deep,OM_deep,D_deep,                   &
-         &               zsandf_deep,zsiltf_deep,zclayf_deep,            &
-         &               zomf_deep, zrog_deep,zrocg_deep,                &
-         &               zkw_deep,avG_deep,mvG_deep,                     &
-         &               lnalpha_deep,lnnm1_deep,lnKs_deep, zporv_deep,  &
-         &               zpwp_deep, zfcap_deep
+    REAL(KIND=wp)     :: T_OC(n_soil_db),T_BD(n_soil_db)
+    REAL(KIND=wp)     :: S_OC(n_soil_db),S_BD(n_soil_db)
+
+
 
     REAL(KIND=wp),     PARAMETER:: horizon_mid = 65.                    ! horizon mid-point of the subsoil in cm 
     REAL(KIND=wp),     PARAMETER:: minimum     = 0.1
@@ -185,19 +169,12 @@ CONTAINS
 
        print*, 'MIN/MAX soiltype_HWSD : ', MINVAL(soiltype_hwsd), MAXVAL(soiltype_hwsd)
 
-! Reset soil texture
-       texture=0._wp
-       coarse=0._wp
-       fine=0._wp
-       medium=0._wp
-
-
       DO k=1,tg%ke
         DO j=1,tg%je
           DO i=1,tg%ie
             
             ic=soiltype_hwsd(i,j,k)
-            soiltype_hwsd(i,j,k)=HWSD_TERRA(ic)
+            soiltype_hwsd(i,j,k)=INT(HWSD_TERRA(ic))
 !            IF (ldeep_soil) THEN
 !              ic_deep = soiltype_deep(i,j,k)
 !              soiltype_deep(i,j,k) = HWSD_TERRA(ic_deep)
@@ -205,8 +182,6 @@ CONTAINS
             
             DO i_soil_db=1,n_soil_db
               IF(INT(HWSD_SU(ic))==HWSD_SU_DB(i_soil_db)) THEN
-                
-                nfac=(100.0-T_OC(i_soil_db))/100.
                 
                 fr_sand(i,j,k)=T_SAND(i_soil_db)
                 fr_silt(i,j,k)=T_SILT(i_soil_db)
@@ -219,8 +194,6 @@ CONTAINS
               IF (ldeep_soil) THEN
                 IF(INT(HWSD_SU(ic))==HWSD_SU_DB_S(i_soil_db)) THEN
                 
-                  nfac_deep=(100.0-S_OC(i_soil_db))/100.
-                
                   fr_sand_deep(i,j,k)=S_SAND(i_soil_db)
                   fr_silt_deep(i,j,k)=S_SILT(i_soil_db)
                   fr_clay_deep(i,j,k)=S_CLAY(i_soil_db)
@@ -232,18 +205,11 @@ CONTAINS
               
 !              IF(HWSD_TERRA(ic)>0._wp.AND.HWSD_TERRA(ic).ne.12._wp) soiltype_fao(i,j,k)=HWSD_TERRA(ic) ! cities are in landuse data
               
-              IF(HWSD_TERRA(ic)>0._wp.AND.HWSD_TERRA(ic).le.9._wp) soiltype_fao(i,j,k)=HWSD_TERRA(ic)
+              IF(HWSD_TERRA(ic)>0._wp.AND.HWSD_TERRA(ic).le.9._wp) soiltype_fao(i,j,k)=INT(HWSD_TERRA(ic))
               IF(HWSD_TERRA(ic)>9._wp) soiltype_fao(i,j,k)=5 ! for undef soiltypes (<9 and 255) use loam
 
               IF(INT(HWSD_SU(ic))==HWSD_SU_DB(i_soil_db)) EXIT ! leave loop - only first entry will be considered
-              IF (ldeep_soil) THEN
-                IF(INT(HWSD_SU(ic_deep))==HWSD_SU_DB(i_soil_db)) EXIT ! leave loop - only first entry will be considered
-              ENDIF
-
-
             END DO
-                        
-            
           ENDDO
         ENDDO
       ENDDO

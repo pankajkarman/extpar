@@ -50,11 +50,8 @@ MODULE mo_globcover_lookup_tables
 
  !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
-  !> abort_extpar defined in MODULE utilities_extpar
-  USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_io_units,          ONLY: filename_max
 
 IMPLICIT NONE
@@ -590,16 +587,16 @@ REAL (KIND=wp) :: zrs_min_experimental(nclass_globcover) =(/ &
 
 
 !> legend of the globcover vegetation classes
-CHARACTER(len=45) :: globcover_legend(nclass_globcover) = (/&    ! No.
- &  'irrigated croplands                           ' , &    ! 1.         
- &  'rainfed croplands                             ' , &    ! 2.        
- &  'mosaic cropland (50-70%) - vegetation (20-50%)' , &    ! 3.       
- &  'mosaic vegetation (50-70%) - cropland (20-50%)' , &    ! 4.      
- &  'closed broadleaved evergreen forest           ' , &    ! 5.     
- &  'closed broadleaved deciduous forest           ' , &    ! 6.    
- &  'open broadleaved deciduous forest             ' , &    ! 7.   
- &  'closed needleleaved evergreen forest          ' , &    ! 8.  
- &  'open needleleaved decid. or evergr. forest    ' , &    ! 9. 
+CHARACTER(len=46) :: globcover_legend(nclass_globcover) = (/&    ! No.
+ &  'irrigated croplands                           ' , &    ! 1.      
+ &  'rainfed croplands                             ' , &    ! 2.     
+ &  'mosaic cropland (50-70%) - vegetation (20-50%)' , &    ! 3.    
+ &  'mosaic vegetation (50-70%) - cropland (20-50%)' , &    ! 4.   
+ &  'closed broadleaved evergreen forest           ' , &    ! 5.  
+ &  'closed broadleaved deciduous forest           ' , &    ! 6. 
+ &  'open broadleaved deciduous forest             ' , &    ! 7.
+ &  'closed needleleaved evergreen forest          ' , &    ! 8.
+ &  'open needleleaved decid. or evergr. forest    ' , &    ! 9.
  &  'mixed broadleaved and needleleaved forest     ' , &    ! 10.
  &  'mosaic shrubland (50-70%) - grassland (20-50%)' , &    ! 11.        
  &  'mosaic grassland (50-70%) - shrubland (20-50%)' , &    ! 12.       
@@ -666,13 +663,13 @@ CONTAINS
     REAL (KIND=wp), INTENT(OUT) :: lai_mn_lt_globcover(nclass_globcover)  !< lookup table landuse class to minimal LAI
     REAL (KIND=wp), INTENT(OUT) :: lai_mx_lt_globcover(nclass_globcover)  !< lookup table landuse class to maximal LAI
     REAL (KIND=wp), INTENT(OUT) :: rd_lt_globcover(nclass_globcover)      !< lookup table LU class to root depth [m]
-    REAL (KIND=wp), INTENT(OUT) :: skinc_lt_globcover(nclass_globcover)   !< lookup table landuse class to skin conductivity [W m-2 K-1]
+    REAL (KIND=wp), INTENT(OUT) :: skinc_lt_globcover(nclass_globcover)   !< lookup table landuse class to skin conductivity
     REAL (KIND=wp), INTENT(OUT) :: emiss_lt_globcover(nclass_globcover)   !< lookup table LU class to surface thermal emiss.
     REAL (KIND=wp), INTENT(OUT) :: rs_min_lt_globcover(nclass_globcover)  !< lookup table LU class to minimal stomata resis.
 
     ! local variable
     INTEGER :: i !< counter
-    REAL :: arg
+    REAL(KIND=wp) :: arg
 
       SELECT CASE (ilookup_table_globcover)
         CASE(i_extpar_lookup_table)
@@ -711,7 +708,7 @@ CONTAINS
       DO i=1,nclass_globcover
         IF (z0_lt_globcover(i) > 0.) THEN
           arg = z0_lt_globcover(i)
-          lnz0_lt_globcover(i) = ALOG(arg)
+          lnz0_lt_globcover(i) = LOG(arg)
         ENDIF
       ENDDO
 

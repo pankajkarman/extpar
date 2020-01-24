@@ -20,7 +20,7 @@
 !>
 MODULE mo_lradtopo
   
-  USE mo_kind,             ONLY: wp, i8, i4
+  USE mo_kind,             ONLY: wp, i4, i4
   USE mo_utilities_extpar, ONLY: abort_extpar, phi2phirot, rla2rlarot, free_un
   USE mo_cosmo_grid,       ONLY: nborder, res_in, cosmo_grid, lon_rot, lat_rot
   USE mo_grid_structures,  ONLY: target_grid_def
@@ -95,7 +95,7 @@ CONTAINS
     CLOSE(nuin)
 
     !> check values for consistency
-    IF ( nhori > 24_i8 ) THEN
+    IF ( nhori > 24_i4 ) THEN
       WRITE(logging%fileunit,*)' WARNING: *** nhori larger than 24 is not recommended  *** '
     ENDIF
 
@@ -136,8 +136,8 @@ CONTAINS
 
     !> local variables
     INTEGER           :: errorcode
-    INTEGER           :: i, j
-    INTEGER (KIND=i8) :: nsec                !< number of gridpoints per sector (in both x and y dir.)
+    INTEGER (KIND=i4) :: i, j
+    INTEGER (KIND=i4) :: nsec                !< number of gridpoints per sector (in both x and y dir.)
     REAL(KIND=wp)     :: rlon_np, rlat_np, & !< location of true North Pole in rot. coord.
                          rdx, rdy,         & !< distance from the sector center in x and y dir.
                          dhdx, dhdy,       & !< slope in x and y directions resp.
@@ -156,8 +156,6 @@ CONTAINS
 
     !> parameters
     REAL(KIND=wp), PARAMETER :: semimaj = 6378137.0         !< semimajor radius WGS 84
-
-    LOGICAL :: ldebug = .FALSE.
 
     !---------------------------------------------------------------------------
 
@@ -312,7 +310,7 @@ CONTAINS
     ! AnneRoches, 2013, C2SM
 
     !> arguments
-    INTEGER(KIND=i8), INTENT(IN) :: nx, ny     ! gridpoints number in the x and y dir
+    INTEGER(KIND=i4), INTENT(IN) :: nx, ny     ! gridpoints number in the x and y dir
     INTEGER(KIND=i4), INTENT(IN) :: nhori       !  number of sectors
     REAL   (KIND=wp), INTENT(IN) :: h_hres(:,:) ! topography [m]
     REAL   (KIND=wp), INTENT(IN) :: dhres,                 & ! resolution [m] 
@@ -321,7 +319,7 @@ CONTAINS
     REAL   (KIND=wp), INTENT(OUT):: hor(:)               ! horizon angle [deg]
 
     !> local variables
-    INTEGER(KIND=i8) :: x0, y0,    & ! center of the sector in x and y dir resp.
+    INTEGER(KIND=i4) :: x0, y0,    & ! center of the sector in x and y dir resp.
                         i,  j , k, & ! loop indices
                         ngp,       & ! number of gridpoints at each side of the sector center
                         nzstat       ! allocation status
@@ -333,7 +331,7 @@ CONTAINS
                         ho           ! horizon (maximum elevation angle in a portion of the sector)
                                      ! without self-shading [deg]
 
-    INTEGER(KIND=i8), ALLOCATABLE :: xcart(:), ycart(:)
+    INTEGER(KIND=i4), ALLOCATABLE :: xcart(:), ycart(:)
 
     REAL(KIND=wp)   , ALLOCATABLE :: pcr(:,:),    & ! polar coordinates (index1: angle, index2: radius)
          &                           rcr(:,:),    & ! rectangular coord.(index1: x    , index2: y     )
@@ -342,7 +340,7 @@ CONTAINS
          &                           rates(:)       ! slopes between the sector center and the other points of
                                                     ! interest in the sector
 
-    INTEGER(KIND=i8), PARAMETER :: niter = 10 ! number of iterations
+    INTEGER(KIND=i4), PARAMETER :: niter = 10 ! number of iterations
 
     !---------------------------------------------------------------------------
     !---------------------------------------------------------------------------
@@ -354,7 +352,7 @@ CONTAINS
 
     !> allocations
     ALLOCATE( pcr(2,ngp), rcr(2,ngp), xcart(ngp), ycart(ngp), dh(ngp), dn(ngp), rates(ngp), STAT=nzstat )
-    IF ( nzstat /= 0_i8 ) STOP
+    IF ( nzstat /= 0_i4 ) STOP
 
     !> radius for polar coordinates
     DO k = 1, ngp
@@ -405,7 +403,7 @@ CONTAINS
 
     !> cleanup
     DEALLOCATE( pcr, rcr, xcart, ycart, dh, dn, rates, STAT=nzstat )
-    IF ( nzstat /= 0_i8 ) STOP
+    IF ( nzstat /= 0_i4 ) STOP
 
 
   END SUBROUTINE comp_horiz
@@ -435,7 +433,7 @@ CONTAINS
     REAL(KIND=wp), INTENT(OUT)                  :: skyview      ! skyview factor [-]
 
     !> local variables
-    INTEGER(KIND=i8)               :: i, i0, k, ip
+    INTEGER(KIND=i4)               :: i, i0, k, ip
 
     REAL(KIND=wp)                  :: rslope_ang,             & ! slope angle [rad]
          &                            rdeghor,                & ! number of radians per sector [rad]
@@ -454,8 +452,6 @@ CONTAINS
 
 
     REAL(KIND=wp), PARAMETER :: zepsilon = 2.0_wp * pi * 0.01_wp ! security parameter 
-
-    LOGICAL:: ldebug=.FALSE.
 
     !---------------------------------------------------------------------------
     !---------------------------------------------------------------------------

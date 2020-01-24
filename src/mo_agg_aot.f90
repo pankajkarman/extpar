@@ -38,11 +38,8 @@ MODULE mo_agg_aot
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
-
-  !> abort_extpar defined in MODULE utilities_extpar
-  USE mo_utilities_extpar, ONLY: abort_extpar
+  USE mo_kind, ONLY: i4
 
   USE mo_bilinterpol, ONLY:  get_4_surrounding_raw_data_indices, &
     &                        calc_weight_bilinear_interpol, &
@@ -59,15 +56,9 @@ PUBLIC :: agg_aot_data_to_target_grid
   CONTAINS
 
   !> Subroutine to aggregate aerosol optical thickness data to the target grid
-  SUBROUTINE agg_aot_data_to_target_grid(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
+  SUBROUTINE agg_aot_data_to_target_grid(iaot_type,ntime,ntype,n_spectr)
   !-------------------------------------------------------------------------------------
   ! list of modules which are used as "input"
-  USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
-  !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid, rotated_lonlat_grid
-  USE mo_grid_structures, ONLY: igrid_icon, igrid_cosmo
-
-  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
 
   ! USE global data fields (coordinates)
   USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
@@ -89,32 +80,20 @@ PUBLIC :: agg_aot_data_to_target_grid
 
 
   INTEGER (KIND=i4), INTENT(IN) :: iaot_type !< type of AOT source data
-  INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
-  INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
-  INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
-  INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
-  INTEGER (KIND=i8), INTENT(IN) :: n_spectr !< number of spectr new
-  REAL (KIND=wp) :: undefined            !< undef value
- 
-  INTEGER (KIND=i8) :: undefined_integer ! undef value
-  REAL (KIND=wp)    :: default_real
-
+  INTEGER (KIND=i4), INTENT(IN) :: ntype !< number of types of aerosols
+  INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
+  INTEGER (KIND=i4), INTENT(IN) :: n_spectr !< number of spectr new
   INTEGER :: i,j,k,l ! counters
-  INTEGER (KIND=i8) :: ie, je, ke  !  for target grid elements
-
-  REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
-  REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
 
   REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
   REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
       
        
-  INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
-  INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
-  INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
-  INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data 
+  INTEGER (KIND=i4) :: western_column     !< the index of the western_column of raw data 
+  INTEGER (KIND=i4) :: eastern_column     !< the index of the eastern_column of raw data 
+  INTEGER (KIND=i4) :: northern_row       !< the index of the northern_row of raw data 
+  INTEGER (KIND=i4) :: southern_row       !< the index of the southern_row of raw data 
 
-  INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
   ! global data flag
   LOGICAL :: gldata=.TRUE. ! AOT data are global
@@ -223,6 +202,5 @@ PUBLIC :: agg_aot_data_to_target_grid
   ENDDO ! loop through all target grid elements
 
   END SUBROUTINE agg_aot_data_to_target_grid
-
 
 END MODULE mo_agg_aot

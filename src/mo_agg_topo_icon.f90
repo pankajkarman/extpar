@@ -52,7 +52,7 @@
 !> \author Hermann Asensio
 MODULE mo_agg_topo_icon
 
-  USE mo_kind, ONLY: wp, sp, i4, i8
+  USE mo_kind, ONLY: wp, sp, i4, i4
 
   USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_io_units,         ONLY: filename_max
@@ -114,14 +114,11 @@ CONTAINS
     USE mo_topo_sso,  ONLY: auxiliary_sso_parameter_icon, calculate_sso
 
     USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
-    USE mo_grid_structures, ONLY: rotated_lonlat_grid !< Definition of Data Type to describe a rotated lonlat grid
     USE mo_grid_structures, ONLY: target_grid_def  !< Definition of data type with target grid definition
 
     !< This routine converts the components u and v from the real geographical system to the rotated system
-    USE mo_topo_routines, ONLY: get_topo_tile_block_indices
     USE mo_topo_routines, ONLY: open_netcdf_TOPO_tile
     USE mo_topo_routines, ONLY: close_netcdf_TOPO_tile
-    USE mo_topo_routines, ONLY: get_topo_data_parallel
     USE mo_topo_routines, ONLY: get_topo_data_block
     USE mo_topo_routines, ONLY: det_band_gd
 
@@ -134,36 +131,27 @@ CONTAINS
     USE  mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
     ! USE icon domain structure wich contains the ICON coordinates (and parent-child indices etc)
     USE mo_icon_grid_data, ONLY: icon_grid_region
-    ! use additional parameters for height on vertices
-    ! as a test the fields are loaded from a module instead of passing in the subroutine call
-    USE mo_topo_tg_fields, ONLY: add_parameters_domain !< data structure
+
     USE mo_topo_tg_fields, ONLY: vertex_param          !< this structure contains the fields
     !! vertex_param%npixel_vert
     ! USE modules to search in ICON grid
     USE mo_search_icongrid, ONLY:   walk_to_nc, find_nearest_vert
 
-    USE mo_icon_domain,     ONLY: icon_domain
-
     ! structure for geographica coordintaes
     USE mo_base_geometry,   ONLY: geographical_coordinates
     USE mo_base_geometry,   ONLY: cartesian_coordinates
-    USE mo_additional_geometry,   ONLY: cc2gc, gc2cc
+    USE mo_additional_geometry,   ONLY: gc2cc
 
-    USE mo_math_constants, ONLY: pi, rad2deg, deg2rad
+    USE mo_math_constants, ONLY: rad2deg, deg2rad
     USE mo_physical_constants, ONLY: re !< av. radius of the earth [m]
 
-    USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
-         &                        calc_weight_bilinear_interpol, &
-         &                        calc_value_bilinear_interpol
-    !roa >
     USE mo_oro_filter, ONLY: do_orosmooth
-    !roa<
 
 
-    TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles)!< structure with defenition of the raw data grid for the 16/36 GLOBE/ASTER tiles
+    TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles)!< structure w/ def of the raw data grid for the 16/36 GLOBE/ASTER tiles
     TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
-    TYPE(reg_lonlat_grid) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
+    TYPE(reg_lonlat_grid) :: topo_grid !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
     CHARACTER (LEN=filename_max), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe/aster raw data
     LOGICAL, INTENT(IN) :: lsso_param
     !roa>
@@ -194,7 +182,7 @@ CONTAINS
     !< roughness length due to orography
     REAL(wp), INTENT(OUT)          :: fr_land_topo(1:tg%ie,1:tg%je,1:tg%ke)
     !< fraction land
-    INTEGER (i8), INTENT(OUT)      :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)
+    INTEGER (i4), INTENT(OUT)      :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)
     !< number of raw data pixel for a target grid element
 
     REAL(wp), INTENT(OUT), OPTIONAL:: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
@@ -205,7 +193,7 @@ CONTAINS
     REAL (wp)   :: lon_topo(1:nc_tot)   !< longitude coordinates of the GLOBE grid
     REAL (wp)   :: lon_red(nc_tot), lon_diff, lontopo
     REAL (wp)   :: lat_topo(1:nr_tot)   !< latititude coordinates of the GLOBE grid
-    INTEGER(i8) :: nc_tot_p1, nc_red, ijlist(nc_tot)
+    INTEGER(i4) :: nc_tot_p1, nc_red, ijlist(nc_tot)
     INTEGER     :: ncids_topo(1:ntiles)
     !< ncid for the GLOBE/ASTER tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
     INTEGER(i4) :: h_parallel(1:nc_tot)  !< one line with GLOBE/ASTER data
@@ -224,16 +212,16 @@ CONTAINS
     REAL(wp)  :: h22(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
     REAL(wp)  :: hx(1:tg%ie,1:tg%je,1:tg%ke),hy(1:tg%ie,1:tg%je,1:tg%ke)
 
-    INTEGER (i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
+    INTEGER (i4) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
 
     TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
     INTEGER (i4) :: undef_topo
     INTEGER (i4) :: default_topo
-    INTEGER (i8) :: i, j ! counters
-    INTEGER (i8) :: ie, je, ke  ! indices for grid elements
-    INTEGER (i8), ALLOCATABLE :: ie_vec(:), iev_vec(:)  ! indices for target grid elements
-    INTEGER (i8) :: i_vert, j_vert, k_vert ! indeces for ICON grid vertices
-    INTEGER (i8) :: i1, i2
+    INTEGER (i4) :: i, j ! counters
+    INTEGER (i4) :: ie, je, ke  ! indices for grid elements
+    INTEGER (i4), ALLOCATABLE :: ie_vec(:), iev_vec(:)  ! indices for target grid elements
+    INTEGER (i4) :: i_vert, j_vert, k_vert ! indeces for ICON grid vertices
+    INTEGER (i4) :: i1, i2
     INTEGER :: nv ! counter
     INTEGER :: j_n, j_c, j_s ! counter for northern, central and southern row
     INTEGER :: j_new ! counter for swapping indices j_n, j_c, j_s
@@ -245,10 +233,10 @@ CONTAINS
     REAL(wp)  :: znorm, znfi2sum, zarg ! help variables for the estiamtion of the variance
 
     ! Some stuff for OpenMP parallelization
-    INTEGER(i8) :: num_blocks, ib, blk_len, nlon_sub
-    INTEGER(i8) :: istartlon, iendlon, ishift, il
+    INTEGER(i4) :: num_blocks, ib, blk_len, nlon_sub
+    INTEGER(i4) :: istartlon, iendlon, ishift, il
     !$ INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
-    !$ INTEGER (i8), ALLOCATABLE :: start_cell_arr(:)
+    !$ INTEGER (i4), ALLOCATABLE :: start_cell_arr(:)
 
     TYPE(reg_lonlat_grid) :: ta_grid
     !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE/ASTER dataset)
@@ -257,7 +245,7 @@ CONTAINS
     INTEGER :: block_row
     INTEGER :: errorcode !< error status variable
     ! test with walk_to_nc at start
-    INTEGER (i8) :: start_cell_id  !< start cell id
+    INTEGER (i4) :: start_cell_id  !< start cell id
     TYPE(cartesian_coordinates)  :: target_cc_co
     !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
     !variables for GME search
@@ -277,8 +265,8 @@ CONTAINS
     REAL (wp) :: zhp = 10.0_wp    !< height of Prandtl-layer [m]
     REAL (wp) :: z0_topography   !< rougness length according to Erdmann Heise Formula
     CHARACTER (LEN=80) :: varname_topo  !< name of variable for topo data
-    INTEGER(i8) :: ij, np, istart, iend
-    INTEGER(i8) :: max_rawdat_per_cell        ! loop indices for topography filtering
+    INTEGER(i4) :: ij, np, istart, iend
+    INTEGER(i4) :: max_rawdat_per_cell        ! loop indices for topography filtering
     REAL(wp) :: dxrat                                       ! ratio of dy to dx when given in m
     REAL(wp) :: dlon0, hext, coslat, icon_resolution
     REAL(wp) :: wgt, wgtsum   ! filter weights
@@ -427,13 +415,13 @@ CONTAINS
     block_row = 1
 
     ! determine start and end longitude of search
-    istartlon = 1_i8
+    istartlon = 1_i4
     iendlon = nc_tot
     DO i = 1, nc_tot
       point_lon = lon_topo(i)
-      IF (point_lon < tg%minlon) istartlon = i + 1_i8
+      IF (point_lon < tg%minlon) istartlon = i + 1_i4
       IF (point_lon > tg%maxlon) THEN
-        iendlon = i - 1_i8
+        iendlon = i - 1_i4
         EXIT
       ENDIF
     ENDDO
@@ -561,7 +549,7 @@ CONTAINS
           ijlist(ij) = i
           istart = ij-np
           iend   = ij+np
-          DO j = istart-1_i8,iend+1_i8
+          DO j = istart-1_i4,iend+1_i4
             ij = j
             IF (ij > nc_tot) THEN
               ij = ij - nc_tot
@@ -622,12 +610,12 @@ CONTAINS
           IF (tg%maxlon > 179.5_wp) THEN
             ij = nc_red
           ELSE
-            ij = MIN(nc_red,NINT(blk_len/dxrat,i8))
+            ij = MIN(nc_red,NINT(blk_len/dxrat,i4))
           ENDIF
         ENDIF
 
         ! loop over one latitude circle of the raw data
-        columns1: DO il = 1_i8, ij
+        columns1: DO il = 1_i4, ij
           i = ishift+il
           IF (i >= nc_red) THEN
             CYCLE columns1
@@ -655,7 +643,7 @@ CONTAINS
                ie_vec(i))
 
           ! additional get the nearest vertex index for accumulating height values there
-          IF (ie_vec(i) /= 0_i8) THEN
+          IF (ie_vec(i) /= 0_i4) THEN
             CALL  find_nearest_vert(icon_grid_region, &
                  target_cc_co,                  &
                  ie_vec(i),        &
@@ -849,7 +837,6 @@ CONTAINS
     IF (lfilter_oro)  CALL do_orosmooth(tg,                                 &
          &                                      hh_target,        &
          &                                      fr_land_topo,    &
-         &                                      lfilter_oro,      &
          &                                      ilow_pass_oro,    &
          &                                      numfilt_oro,      &
          &                                      eps_filter,       &
@@ -893,7 +880,7 @@ CONTAINS
 
           IF (lsubtract_mean_slope) THEN
             coslat = COS(icon_grid_region%cells%center(ie)%lat)
-            DO ij = 1_i8, MIN(ndata(ie,je,ke),max_rawdat_per_cell)
+            DO ij = 1_i4, MIN(ndata(ie,je,ke),max_rawdat_per_cell)
               hext = 111111.0_wp*coslat*(topo_rawdata(2,ij,ie,je,ke) - &
                    rad2deg*icon_grid_region%cells%center(ie)%lon)*hx(ie,je,ke) + &
                    111111.0_wp*(topo_rawdata(3,ij,ie,je,ke) - rad2deg*icon_grid_region%cells%center(ie)%lat)*hy(ie,je,ke)
@@ -1058,23 +1045,17 @@ CONTAINS
     USE mo_topo_data, ONLY: ntiles     !< there are 16/36 GLOBE/ASTER tiles
     USE mo_topo_data, ONLY: nc_tot     !< number of total GLOBE/ASTER columns at a latitude circle
     USE mo_topo_data, ONLY: nr_tot      !< number of total GLOBE/ASTER rows at a latitude circle
-    !mes >
-    USE mo_topo_data, ONLY: get_fill_value  ! determines the corresponding _FillValue of GLOBE or ASTER
-    USE mo_topo_data, ONLY: max_tiles
-    ! mes <
+
     USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
-    USE mo_grid_structures, ONLY: rotated_lonlat_grid !< Definition of Data Type to describe a rotated lonlat grid
-    USE mo_topo_routines, ONLY: open_netcdf_topo_tile
-    USE mo_topo_routines, ONLY: close_netcdf_topo_tile
-    USE mo_topo_routines, ONLY: get_topo_data_band
     USE mo_topo_routines, ONLY: get_topo_data_block
+
     USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
          &                        calc_weight_bilinear_interpol, &
          &                        calc_value_bilinear_interpol
 
-    TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
-    TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles) !< structure with defenition of the raw data grid for the 16/36 GLOBE/ASTER tiles
-    INTEGER (i4), INTENT(IN)     :: ncids_topo(1:ntiles)  !< ncid for the topo tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
+    TYPE(reg_lonlat_grid), INTENT(IN) :: topo_grid!< structure with defenition of the raw data grid for whole GLOBE/ASTER dataset
+    TYPE(reg_lonlat_grid), INTENT(IN) :: topo_tiles_grid(1:ntiles)!< structure w/ def of the raw data for 16/36 GLOBE/ASTER tiles
+    INTEGER (i4), INTENT(IN) :: ncids_topo(1:ntiles)!< ncid for topo tiles
 
     REAL (wp), INTENT(IN) :: lon_topo(1:nc_tot)   !< longitude coordinates of the GLOBE grid
     REAL (wp), INTENT(IN) :: lat_topo(1:nr_tot)   !< latititude coordinates of the GLOBE grid
@@ -1090,10 +1071,10 @@ CONTAINS
     INTEGER (i4), ALLOCATABLE :: h_block(:,:) !< a block of GLOBE altitude data
     TYPE(reg_lonlat_grid) :: ta_grid
     !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
-    INTEGER (i8) :: western_column     !< the index of the western_column of data to read in
-    INTEGER (i8) :: eastern_column     !< the index of the eastern_column of data to read in
-    INTEGER (i8) :: northern_row       !< the index of the northern_row of data to read in
-    INTEGER (i8) :: southern_row       !< the index of the southern_row of data to read in
+    INTEGER (i4) :: western_column     !< the index of the western_column of data to read in
+    INTEGER (i4) :: eastern_column     !< the index of the eastern_column of data to read in
+    INTEGER (i4) :: northern_row       !< the index of the northern_row of data to read in
+    INTEGER (i4) :: southern_row       !< the index of the southern_row of data to read in
     REAL (wp)   :: bwlon  !< weight for bilinear interpolation
     REAL (wp)   :: bwlat  !< weight for bilinear interpolation
     REAL (wp)   :: topo_point_sw       !< value of the GLOBE raw data pixel south west

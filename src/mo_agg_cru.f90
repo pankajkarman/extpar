@@ -25,11 +25,7 @@ MODULE mo_agg_cru
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
-
-  !> abort_extpar defined in MODULE utilities_extpar
-  USE mo_utilities_extpar, ONLY: abort_extpar
 
   USE mo_bilinterpol, ONLY:  get_4_surrounding_raw_data_indices, &
     &                        calc_weight_bilinear_interpol, &
@@ -49,28 +45,6 @@ CONTAINS
   !> Subroutine to aggregate CRU temperature data to the target grid
   SUBROUTINE agg_cru_data_to_target_grid(nrows,ncolumns,ntime,raw_data_t_id)
   !-------------------------------------------------------------------------------------
-  ! list of modules which are used as "input"
-    USE mo_grid_structures, ONLY: target_grid_def   !< type definition of structure for tg
-    !> data type structures form module GRID_structures
-    USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-      &                            rotated_lonlat_grid
-
-    ! USE structure which contains the definition of the ICON grid
-    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-
-    ! USE structure which contains the definition of the COSMO grid
-    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
-
-
-    USE mo_base_geometry,      ONLY: geographical_coordinates
-    USE mo_base_geometry,      ONLY: cartesian_coordinates
-    USE mo_math_constants,     ONLY: pi, rad2deg, eps
-    USE mo_physical_constants, ONLY: re
-    USE mo_additional_geometry,ONLY: cc2gc,                  &
-      &                              gc2cc
-       
-     USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
-
      ! USE global data fields (coordinates)
      USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
                                      lat_geo !< latitude coordinates of the COSMO grid in the geographical system
@@ -90,46 +64,22 @@ CONTAINS
      USE mo_cru_target_fields, ONLY: crutemp, cruelev
 
                                   
-     INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
-     INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
-     INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
-     INTEGER (KIND=i8), INTENT(IN) :: raw_data_t_id !< integer switch to decide which data set must be used. (CRU fine, CRU coarse)
+     INTEGER (KIND=i4), INTENT(IN) :: nrows !< number of rows
+     INTEGER (KIND=i4), INTENT(IN) :: ncolumns !< number of columns
+     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
+     INTEGER (KIND=i4), INTENT(IN) :: raw_data_t_id !< integer switch to decide which data set must be used. (CRU fine, CRU coarse)
 
 
-     REAL (KIND=wp) :: undefined            !< undef value
-
-     INTEGER (KIND=i8) :: undefined_integer ! undef value
-     REAL (KIND=wp)    :: default_real
-
-     REAL (KIND=wp) :: deg2rad ! degree to radian
-
-
-     INTEGER :: i,j,k,l, t ! counters
-     INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
-
-     INTEGER :: idom  ! counter
-
-     INTEGER :: nlon
-
-     REAL(KIND=wp)   :: point_lon, point_lat
-     TYPE(geographical_coordinates) :: target_geo_co  !< structure for geographical coordinates of raw data pixel
-     TYPE(cartesian_coordinates)  :: target_cc_co     !< coordinates in cartesian system of point 
-                                                      !< for which the nearest ICON grid cell is to be determined
-
-
-     INTEGER        :: k_error     ! error return code
-
-      REAL (KIND=wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
-      REAL (KIND=wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
+     INTEGER :: i,j,k, t ! counters
 
       REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
       REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
       
        
-      INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
-      INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
-      INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
-      INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data 
+      INTEGER (KIND=i4) :: western_column     !< the index of the western_column of raw data 
+      INTEGER (KIND=i4) :: eastern_column     !< the index of the eastern_column of raw data 
+      INTEGER (KIND=i4) :: northern_row       !< the index of the northern_row of raw data 
+      INTEGER (KIND=i4) :: southern_row       !< the index of the southern_row of raw data 
 
       REAL (KIND=wp) :: data_sw
       REAL (KIND=wp) :: data_se
@@ -140,11 +90,6 @@ CONTAINS
 
       ! global data flag
       LOGICAL :: gldata=.TRUE. ! CRU data are global
-
-
-
-
-      INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
 
       REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
       REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation

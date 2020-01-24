@@ -25,7 +25,6 @@ MODULE mo_agg_isa
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
   !> abort_extpar defined in MODULE utilities_extpar
@@ -33,14 +32,12 @@ MODULE mo_agg_isa
 
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-    &                           rotated_lonlat_grid
+  USE mo_grid_structures, ONLY: reg_lonlat_grid
 
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
 
-  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index, &
-    &                          find_rotated_lonlat_grid_element_index
+  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
   USE mo_io_units,       ONLY: filename_max
   USE mo_io_utilities,   ONLY: check_netcdf
 
@@ -52,9 +49,7 @@ MODULE mo_agg_isa
     & nf90_close,             &
     & nf90_inq_varid,         &
     & nf90_get_var,           &
-    & NF90_NOWRITE,           &
-    & nf90_noerr,             &
-    & nf90_strerror
+    & NF90_NOWRITE
 
 
 
@@ -94,21 +89,13 @@ MODULE mo_agg_isa
 ! >mes
     USE mo_isa_routines, ONLY: det_band_isa_data, &
          &                         get_isa_data_block
-
-    ! USE structure which contains the definition of the ICON grid
-    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-
     ! USE structure which contains the definition of the COSMO grid
-    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
-
-    USE mo_math_constants, ONLY: pi, rad2deg, deg2rad, eps
+    USE mo_math_constants, ONLY: deg2rad
     USE mo_physical_constants, ONLY: re
     ! USE global data fields (coordinates)
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system
       &                            lat_geo !< latitude coordinates of the COSMO grid in the geographical system
     USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
-
-
 
      CHARACTER (LEN=filename_max), INTENT(IN) :: isa_file(1:max_tiles_isa)  !< filename isa raw data
      REAL (KIND=wp), INTENT(IN) :: undefined            !< undef value
@@ -117,30 +104,27 @@ MODULE mo_agg_isa
 
 
 
-    INTEGER (KIND=i8), INTENT(OUT) :: isa_tot_npixel(:,:,:)  
+    INTEGER (KIND=i4), INTENT(OUT) :: isa_tot_npixel(:,:,:)  
 !< total number of isa raw data pixels on target grid (dimension (ie,je,ke))
     REAL (KIND=wp), INTENT(OUT)  :: isa_field(:,:,:)   !< urban fraction due to isa land use data
     TYPE(reg_lonlat_grid):: ta_grid ! structure with definition of the target area grid (dlon must be the same for the whole GLO &
 !& BCOVER dataset)
 
-     INTEGER (KIND=i8) :: undefined_integer ! undef value
+     INTEGER (KIND=i4) :: undefined_integer ! undef value
      REAL (KIND=wp)    :: default_real
 
-
-     INTEGER :: i,j,k,l      ! counters
      INTEGER :: nt           ! counter
      INTEGER :: i_col, j_row ! counter
-     INTEGER (KIND=i8) :: i_isa, j_isa
-     INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
-     INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
-     INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
-     INTEGER (KIND=i8) :: i1, i2
+     INTEGER (KIND=i4) :: i_isa, j_isa
+     INTEGER (KIND=i4) :: ie, je, ke  ! indices for target grid elements
+     INTEGER (KIND=i4), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
+     INTEGER (KIND=i4) :: start_cell_id !< ID of starting cell for ICON search
+     INTEGER (KIND=i4) :: i1, i2
 
      REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) 
 !< area weight of all raw data pixels in target grid
      REAL (KIND=wp), ALLOCATABLE:: isa_block(:,:)  ! a block of ISA land use data
 
-     REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
      REAL (KIND=wp)    :: apix      !< area of a raw data pixel
      REAL (KIND=wp)    :: apix_e      !< area of a raw data pixel at equator
 
@@ -305,7 +289,7 @@ MODULE mo_agg_isa
            ENDIF
          ENDIF ! grid type
 
-         isa_data_row(1:nlon) = isa_block(1:nlon,block_row)
+         isa_data_row(1:nlon) = INT(isa_block(1:nlon,block_row)) !type conversion
          apix = apix_e * COS(point_lat * deg2rad) ! area of raw data pixel (in [m**2])
 
          ie_vec(istartlon:iendlon) = 0
@@ -457,16 +441,6 @@ MODULE mo_agg_isa
    ENDDO
    ENDDO
    ENDDO
-
-
-
-
-
   END SUBROUTINE agg_isa_data_to_target_grid
 
-
 END MODULE mo_agg_isa
-
-
-
-

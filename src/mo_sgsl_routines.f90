@@ -16,56 +16,19 @@ MODULE mo_sgsl_routines
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp, &
-       i8, &
        i4, &
        i2
 
-  USE netcdf,      ONLY :   &
-       nf90_open,              &
-       nf90_close,             &
-       nf90_inquire,           &
-       nf90_inquire_dimension, &
-       nf90_inquire_variable,  &
-       nf90_inq_attname,       &
-       nf90_inquire_attribute, &
-       nf90_get_att,           &
-       nf90_inquire_dimension, &
-       nf90_inq_varid,         &
-       nf90_get_var,           &
-       nf90_noerr,             &
-       nf90_strerror
+  USE netcdf,              ONLY: nf90_close,   &
+                                 nf90_get_att, &
+                                 nf90_get_var, &
+                                 nf90_inq_varid, &
+                                 nf90_nowrite, &
+                                 nf90_open
 
-  USE netcdf,      ONLY:     &
-       nf90_create,             &
-       nf90_def_dim,            &
-       nf90_def_var,            &
-       nf90_enddef,             &
-       nf90_redef,              &
-       nf90_put_att,            &
-       nf90_put_var
-
-
-  USE netcdf,      ONLY :    &
-       NF90_CHAR,               &
-       NF90_DOUBLE,             &
-       NF90_REAL,              &
-       NF90_INT,                &
-       NF90_BYTE,               &
-       NF90_SHORT
-
-
-  USE netcdf,      ONLY :    &
-       NF90_GLOBAL,             &
-       NF90_UNLIMITED,          &
-       NF90_CLOBBER,            &
-       NF90_NOWRITE
-
-
-  !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
 
   USE mo_grid_structures,  ONLY: reg_lonlat_grid
-  USE mo_base_geometry,    ONLY: geographical_coordinates
 
   USE mo_io_utilities,     ONLY: check_netcdf
 
@@ -112,7 +75,7 @@ CONTAINS
 
     INTEGER           :: nuin !< unit number
     INTEGER (KIND=i4) :: ierr !< error flag
-    INTEGER :: i, nzylen
+    INTEGER :: nzylen
 
     !> namelist with filenames for orography data output
     NAMELIST /sgsl_io_extpar/ sgsl_buffer_file
@@ -144,9 +107,6 @@ CONTAINS
   !> \author Hermann Asensio
   SUBROUTINE det_sgsl_tiles_grid(sgsl_tiles_grid)
     USE mo_sgsl_data, ONLY : ntiles , &    !< GLOBE raw data has 16 tiles and ASTER has 13
-         idem_type,    &
-         dem_aster,    &
-         dem_gl,       &
          tiles_lon_min, &
          tiles_lon_max, &
          tiles_lat_min, &
@@ -158,9 +118,6 @@ CONTAINS
     !< structure with definition of the raw data grid for the input tiles
 
     INTEGER :: k ! counter
-
-    REAL (KIND=wp) :: lon0
-    REAL (KIND=wp) :: lat0
 
     REAL (KIND=wp) :: dlon
     REAL (KIND=wp) :: dlat
@@ -209,10 +166,6 @@ CONTAINS
          &                        demraw_lon_max
 
     TYPE(reg_lonlat_grid), INTENT(OUT) :: sgsl_grid !< structure with definition of the global data grid of the GLOBE data 
-    INTEGER :: k ! counter
-
-    REAL (KIND=wp) :: lon0
-    REAL (KIND=wp) :: lat0
     REAL (KIND=wp) :: dlon
     REAL (KIND=wp) :: dlat
 
@@ -300,13 +253,6 @@ CONTAINS
        &                                     ta_end_je)
 
     USE mo_sgsl_data, ONLY : ntiles ,     &    !< GLOBE raw data has 16 tiles, ASTER has 36
-         idem_type,    &
-         dem_aster,    &
-         dem_gl,       &
-         tiles_lon_min, &
-         tiles_lon_max, &
-         tiles_lat_min, &
-         tiles_lat_max, &
          tiles_ncolumns,&
          tiles_nrows
 
@@ -334,36 +280,7 @@ CONTAINS
     INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles)   
     !< indices of target area block for last row of each GLOBE tile
 
-
-    INTEGER (KIND=i4) :: index_k !< index of GLOBE tile which contains point_geo
-
-    ! local variables
-
-    INTEGER  :: i          ! index for tiles (i,j,m,n,o)
-    INTEGER  :: j 
-    INTEGER  :: m
-    INTEGER  :: n
-    INTEGER  :: o
-    INTEGER  :: t_i_start 
-    INTEGER  :: t_i_end
-    INTEGER  :: t_j_start
-    INTEGER  :: t_j_end
-
-    REAL  :: lon0_t ! startlon for dummy grid
-    REAL  :: lat0_t ! startlat for dummy grid
-    REAL  :: dlon_t ! dlon for dummy grid
-    REAL  :: dlat_t ! dlat for dummy grid
-
     INTEGER  :: undefined
-
-    REAL (KIND=wp) :: point_lon_coor
-
-    REAL (KIND=wp) :: tb_ll_lon ! longitude coordinate for lower left corner of target block
-    REAL (KIND=wp) :: tb_ll_lat ! longitude coordinate for lower left corner of target block
-
-    REAL (KIND=wp) :: tb_ur_lon ! longitude coordinate for upper right corner of target block
-    REAL (KIND=wp) :: tb_ur_lat ! longitude coordinate for upper right corner of target block
-
 
     INTEGER (KIND=i4) :: startrow ! startrow for tile
     INTEGER (KIND=i4) :: endrow 
@@ -372,14 +289,6 @@ CONTAINS
 
     REAL (KIND=wp) :: dlon
     REAL (KIND=wp) :: dlat
-
-    REAL (KIND=wp) :: stile_ll_lon ! longitude coordinate for lower left corner of subtile
-    REAL (KIND=wp) :: stile_ll_lat ! latitued coordinate for lower left corner of subtile
-
-    REAL (KIND=wp) :: stile_ur_lon ! longitude coordinate for upper right corner of subtile
-    REAL (KIND=wp) :: stile_ur_lat ! latitude coordinate for upper right corner of subtile
-
-
 
     INTEGER :: k
 
@@ -403,19 +312,6 @@ CONTAINS
     ! this defines a "dummy grid" to determine the tile index with a function
     ! lon from -180 to 180 with dlon 90 degrees
     ! lat from 100 to -100 with dlat 50 degrees
-    lon0_t = -180. 
-    lat0_t = 100.
-    dlon_t = 90.
-    dlat_t = 50.
-
-    !       SELECT CASE(idem_type)
-    !       CASE(dem_aster, dem_gl)
-    !        m = 1
-    !        n = 1
-    !        o = ntiles
-    !       END SELECT
-
-
     DO k = 1,ntiles
 
       ! get startcolumn for tile k
@@ -440,7 +336,6 @@ CONTAINS
       IF (endcolumn > tiles_ncolumns(k)) THEN 
         sgsl_endcolumn(k) = tiles_ncolumns(k)
         ! get the end index of the subtile for the target area block
-        stile_ur_lon =  sgsl_tiles_grid(k)%end_lon_reg ! coordinates [degrees]
         ta_end_ie(k) = NINT ((sgsl_tiles_grid(k)%end_lon_reg - ta_grid%start_lon_reg)/dlon) + 1 
         !< index of target area block
       ELSE IF (endcolumn < 1) THEN
@@ -528,13 +423,8 @@ CONTAINS
     USE mo_grid_structures, ONLY: reg_lonlat_grid  !< Definition of Data Type to describe a regular (lonlat) grid
 
     USE mo_sgsl_data, ONLY : ntiles  !< there are 16 GLOBE tiles 
-    USE mo_sgsl_data, ONLY : nc_tot     !< total number of columns in GLOBE data: 43200
-    USE mo_sgsl_data, ONLY : nc_tile    !< number of columns in a GLOBE tile
     ! mes >
     USE mo_sgsl_data, ONLY : get_varname   ! gets the variable name of the elevation 
-    USE mo_sgsl_data, ONLY : idem_type
-    USE mo_sgsl_data, ONLY : dem_aster
-    USE mo_sgsl_data, ONLY : dem_gl
 
     CHARACTER (len=*), INTENT(IN)     :: sgsl_file_1
     ! mes <

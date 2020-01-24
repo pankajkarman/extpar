@@ -22,16 +22,13 @@ MODULE mo_landuse_output_nc
 
 
   !> kind parameters are defined in MODULE data_parameters
-  USE mo_kind, ONLY: wp, i4, i8
+  USE mo_kind, ONLY: wp, i4, i4
 
   !> data type structures form module GRID_structures
   USE mo_grid_structures, ONLY: igrid_icon,                  &
-                                reg_lonlat_grid,             &
                                 rotated_lonlat_grid,         &
-                                icosahedral_triangular_grid, &
                                 target_grid_def
 
-  USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
   USE mo_io_utilities, ONLY: dim_meta_info
@@ -41,12 +38,7 @@ MODULE mo_landuse_output_nc
   USE mo_io_utilities, ONLY: close_netcdf_file
   USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
 
-  USE mo_io_utilities, ONLY: get_date_const_field
   USE mo_io_utilities, ONLY: set_date_mm_extpar_field
-
-  USE mo_io_utilities, ONLY: vartype_int 
-  USE mo_io_utilities, ONLY: vartype_real
-  USE mo_io_utilities, ONLY: vartype_char
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
@@ -63,13 +55,10 @@ MODULE mo_landuse_output_nc
 
   PUBLIC :: write_netcdf_buffer_glc2000
   PUBLIC :: write_netcdf_cosmo_grid_glc2000
-  PUBLIC :: write_netcdf_icon_grid_glc2000
-  PUBLIC :: read_netcdf_buffer_glc2000
 
   
   PUBLIC :: write_netcdf_buffer_glcc
   PUBLIC :: write_netcdf_cosmo_grid_glcc
-  PUBLIC :: write_netcdf_icon_grid_glcc
   PUBLIC :: read_netcdf_buffer_glcc
 
   PUBLIC :: write_netcdf_buffer_lu
@@ -115,7 +104,6 @@ MODULE mo_landuse_output_nc
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_lu_fields_meta
@@ -145,9 +133,9 @@ MODULE mo_landuse_output_nc
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
                                  !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
                                    !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: lu_tot_npixel(:,:,:)  
                                    !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
@@ -168,7 +156,7 @@ MODULE mo_landuse_output_nc
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
@@ -176,8 +164,6 @@ MODULE mo_landuse_output_nc
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
-
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_lu'
 
@@ -194,7 +180,7 @@ MODULE mo_landuse_output_nc
 
 
   ! define meta information for various land use related variables for netcdf output
-  CALL def_lu_fields_meta(tg,nclass_lu,dim_3d_tg,lu_dataset=lu_dataset)
+  CALL def_lu_fields_meta(nclass_lu,dim_3d_tg,lu_dataset=lu_dataset)
   ! dim_lu_tg
   ! fr_land_lu_meta, lu_tot_npixel_meta, &
   !  &       lu_class_fraction_meta, lu_class_npixel_meta, &
@@ -326,12 +312,11 @@ END SUBROUTINE write_netcdf_buffer_lu
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_ecoclimap_fields_meta
 
-  USE mo_var_meta_data, ONLY: dim_ecoclimap_tg,   dim_ecoclimap_tg2 
+  USE mo_var_meta_data, ONLY: dim_ecoclimap_tg
     
 
   USE mo_var_meta_data, ONLY: fr_land_lu_meta, lu_tot_npixel_meta, &
@@ -357,9 +342,9 @@ END SUBROUTINE write_netcdf_buffer_lu
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
                                  !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: lu_class_npixel(:,:,:,:) 
                                  !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: lu_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: lu_tot_npixel(:,:,:)  
                                    !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
@@ -377,11 +362,11 @@ END SUBROUTINE write_netcdf_buffer_lu
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 !gs_24.04.12  
   REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-  INTEGER (KIND=i8) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+  INTEGER (KIND=i4) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+   INTEGER (KIND=i4) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 !>
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
@@ -404,7 +389,7 @@ END SUBROUTINE write_netcdf_buffer_lu
   CALL  def_dimension_info_buffer(tg)
   ! dim_3d_tg
   ! define meta information for various land use related variables for netcdf output
-  CALL def_ecoclimap_fields_meta(tg,ntime,nclass_lu,dim_3d_tg)
+  CALL def_ecoclimap_fields_meta(ntime,nclass_lu,dim_3d_tg)
   
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
@@ -573,8 +558,6 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   SUBROUTINE read_netcdf_buffer_lu(netcdf_filename,  &
     &                                     tg,         &
     &                                     nclass_lu, &
-    &                                     undefined, &
-    &                                     undef_int,   &
     &                                     fr_land_lu, &
     &                                     lu_class_fraction,    &
     &                                     lu_class_npixel, &
@@ -598,14 +581,9 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
     &                         def_dimension_info_buffer
 
 
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-  
-  USE mo_var_meta_data, ONLY: def_lu_fields_meta
+  USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
 
-  USE mo_var_meta_data, ONLY: dim_lu_tg
+  USE mo_var_meta_data, ONLY: def_lu_fields_meta
 
   USE mo_var_meta_data, ONLY: fr_land_lu_meta, lu_tot_npixel_meta, &
     &       lu_class_fraction_meta, lu_class_npixel_meta, &
@@ -622,13 +600,11 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER, INTENT(IN) :: nclass_lu !< number of land use classes 
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(OUT)  :: lu_class_fraction(:,:,:,:)  
                                   !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
                                     !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
                                     !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
@@ -646,10 +622,6 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   REAL (KIND=wp), INTENT(OUT)  :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
 
 
-  ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
-
   WRITE(logging%fileunit,*)'Enter routine read_netcdf_buffer_lu'
 
   !set up dimensions for buffer
@@ -657,7 +629,7 @@ END SUBROUTINE write_netcdf_buffer_ecoclimap
   ! dim_3d_tg
 
   ! define meta information for various land use related variables for netcdf output
-  CALL def_lu_fields_meta(tg,nclass_lu,dim_3d_tg)
+  CALL def_lu_fields_meta(nclass_lu,dim_3d_tg)
   ! dim_lu_tg
   ! fr_land_lu_meta, lu_tot_npixel_meta, &
   !  &       lu_class_fraction_meta, lu_class_npixel_meta, &
@@ -738,8 +710,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   SUBROUTINE read_netcdf_buffer_ecoclimap(netcdf_filename,  &
     &                                     tg,         &
     &                                     nclass_lu, &
-    &                                     undefined, &
-    &                                     undef_int,   &
     &                                     fr_land_lu, &
     &                                     ecoclimap_class_fraction,    &
     &                                     lu_class_npixel, &
@@ -760,14 +730,10 @@ END SUBROUTINE read_netcdf_buffer_lu
     &                         def_dimension_info_buffer
 
 
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-  
+  USE mo_var_meta_data, ONLY:def_com_target_fields_meta  
+
   !gs_23.04.12
   USE mo_var_meta_data, ONLY: def_ecoclimap_fields_meta
-  USE mo_var_meta_data, ONLY: dim_ecoclimap_tg,   dim_ecoclimap_tg2
   !>
 
 !  USE mo_var_meta_data, ONLY: dim_ecoclimap_tg
@@ -786,13 +752,11 @@ END SUBROUTINE read_netcdf_buffer_lu
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
   INTEGER, INTENT(IN) :: nclass_lu !< number of land use classes 
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(OUT)  :: ecoclimap_class_fraction(:,:,:,:)  
                                   !< fraction for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(OUT) :: lu_class_npixel(:,:,:,:) 
                                     !< number of raw data pixels for each lu class on target grid (dim (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(OUT) :: lu_tot_npixel(:,:,:)  
                                     !< total number of lu raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
@@ -808,8 +772,6 @@ END SUBROUTINE read_netcdf_buffer_lu
 
 
   ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
   INTEGER (KIND=i4) :: ntime !< number of times
 
   IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'ECOCLIMAP: read_netcdf_buffer_lu: ', TRIM(netcdf_filename)
@@ -819,7 +781,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! dim_3d_tg
 
   ! define meta information for various land use related variables  for netcdf output
-  CALL def_ecoclimap_fields_meta(tg,ntime,nclass_lu,dim_3d_tg)
+  CALL def_ecoclimap_fields_meta(ntime,nclass_lu,dim_3d_tg)
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
   ! lon_geo_meta and lat_geo_meta
@@ -907,7 +869,6 @@ END SUBROUTINE read_netcdf_buffer_lu
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_glc2000_fields_meta
@@ -931,9 +892,9 @@ END SUBROUTINE read_netcdf_buffer_lu
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
                                  !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
                        !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
                                    !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
@@ -953,7 +914,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
@@ -961,8 +922,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
-
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_glc2000'
 
@@ -975,7 +934,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! dim_3d_tg
 
   ! define meta information for various land use related variables (GLC2000) for netcdf output
-  CALL def_glc2000_fields_meta(tg,nclass_glc2000,dim_3d_tg)
+  CALL def_glc2000_fields_meta(nclass_glc2000,dim_3d_tg)
   ! dim_glc2000_tg
   ! fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
   !  &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
@@ -1095,13 +1054,10 @@ END SUBROUTINE read_netcdf_buffer_lu
     &                                     emissivity_glc2000)
   
 
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
+  USE mo_var_meta_data, ONLY: def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
    
   USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
@@ -1117,8 +1073,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
 
   USE mo_var_meta_data, ONLY: def_glc2000_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glc2000_tg
 
   USE mo_var_meta_data, ONLY: fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
     &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
@@ -1138,9 +1092,9 @@ END SUBROUTINE read_netcdf_buffer_lu
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
                                  !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
                          !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
                                    !< total number of glc2000 raw data pixels on target grid (dimension (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
@@ -1163,10 +1117,9 @@ END SUBROUTINE read_netcdf_buffer_lu
 
   INTEGER :: ncid
   INTEGER :: varid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-  TYPE(dim_meta_info), TARGET :: dim_nclass(1:3)
 
   INTEGER, PARAMETER :: nglob_atts=6
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -1176,7 +1129,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
   CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
 
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_cosmo_grid_glc2000'
 
@@ -1199,7 +1151,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! nc_grid_def_cosmo
 
   ! define meta information for various land use related variables (GLC2000) for netcdf output
-  CALL def_glc2000_fields_meta(tg,nclass_glc2000,dim_2d_cosmo,coordinates,grid_mapping)
+  CALL def_glc2000_fields_meta(nclass_glc2000,dim_2d_cosmo,coordinates,grid_mapping)
   ! dim_glc2000_tg
   ! fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
   !  &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
@@ -1224,7 +1176,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   dim_list(3)%dimname = 'nclass'
   dim_list(3)%dimsize = nclass_glc2000
 
-  dim_nclass = dim_list
 
   undefined_i = undef_int
 
@@ -1321,215 +1272,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   END SUBROUTINE write_netcdf_cosmo_grid_glc2000
   !-----------------------------------------------------------------------
 
-
-  !> netcdf output of GLC2000 derived ICON fields
-  SUBROUTINE write_netcdf_icon_grid_glc2000(netcdf_filename,  &
-    &                                     icon_grid,       &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, &
-    &                                     fr_land_glc2000, &
-    &                                     glc2000_class_fraction,    &
-    &                                     glc2000_class_npixel, &
-    &                                     glc2000_tot_npixel, &
-    &                                     ice_glc2000, &
-    &                                     z0_glc2000, &
-    &                                     root_glc2000, &
-    &                                     plcov_mn_glc2000, &
-    &                                     plcov_mx_glc2000, &
-    &                                     lai_mn_glc2000, &
-    &                                     lai_mx_glc2000, &
-    &                                     rs_min_glc2000, &
-    &                                     urban_glc2000,  &
-    &                                     for_d_glc2000,  &
-    &                                     for_e_glc2000, &
-    &                                     emissivity_glc2000)
-
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
-
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-   
-
-  USE mo_var_meta_data, ONLY:  dim_icon, &
-    &                          def_dimension_info_icon
-
-  USE mo_var_meta_data, ONLY: nc_grid_def_icon, &
-    &                         set_nc_grid_def_icon
-
-  USE mo_var_meta_data, ONLY: def_glc2000_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glc2000_tg
-
-  USE mo_var_meta_data, ONLY: fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
-    &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
-    &       ice_glc2000_meta, z0_glc2000_meta, &
-    &       plcov_mx_glc2000_meta, plcov_mn_glc2000_meta, &
-    &       lai_mx_glc2000_meta, lai_mn_glc2000_meta, &
-    &       rs_min_glc2000_meta, urban_glc2000_meta, &
-    &       for_d_glc2000_meta, for_e_glc2000_meta, &
-    &       emissivity_glc2000_meta, root_glc2000_meta
-
-  CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-  TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
-  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glc2000_class_fraction(:,:,:,:)  
-                                 !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_class_npixel(:,:,:,:) 
-                           !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(IN) :: glc2000_tot_npixel(:,:,:)  
-                                   !< total number of glc2000 raw data pixels on target grid (dim (ie,je,ke))
-  REAL (KIND=wp), INTENT(IN)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
-  REAL (KIND=wp), INTENT(IN)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
-  REAL (KIND=wp), INTENT(IN)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: root_glc2000(:,:,:)    !< root depth due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: plcov_mx_glc2000(:,:,:)!< plant cover maximum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: plcov_mn_glc2000(:,:,:)!< plant cover minimum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: lai_mx_glc2000(:,:,:)  !< Leaf Area Index maximum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: lai_mn_glc2000(:,:,:)  !< Leaf Area Index minimum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: rs_min_glc2000(:,:,:)  !< minimal stomata resistance due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: urban_glc2000(:,:,:)   !< urban fraction due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: for_d_glc2000(:,:,:)   !< deciduous forest (fraction) due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: for_e_glc2000(:,:,:)   !< evergreen forest (fraction) due to glc2000 land use data
-  REAL (KIND=wp), INTENT(IN)  :: emissivity_glc2000(:,:,:) !< longwave emissivity due to glc2000 land use data
-
-
-  ! local variables
-
-
-  INTEGER :: ndims 
-  INTEGER :: ncid
-  INTEGER :: varid
-  INTEGER (KIND=i8) :: undefined_i
-
-  TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-  TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
-  TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
-
-  INTEGER, PARAMETER :: nglob_atts=6
-  TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
-
-  INTEGER :: errorcode !< error status variable
-
-  CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-  CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-
-  INTEGER :: n !< counter
-
-  !-------------------------------------------------------------
-  ! define global attributes
-  CALL set_global_att_glc2000(global_attributes)
-
-  !set up dimensions for buffer
-  CALL  def_dimension_info_buffer(tg)
-  ! dim_3d_tg
-
-  !set up dimensions for ICON grid
-  CALL def_dimension_info_icon(icon_grid)
-  ! dim_icon
-
-  ! define meta information for various land use related variables (GLC2000) for netcdf output
-  CALL def_glc2000_fields_meta(tg,nclass_glc2000,dim_icon)
-  ! dim_glc2000_tg
-  ! fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
-  !  &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
-  !  &       ice_glc2000_meta, z0_glc2000_meta, &
-  !  &       plcov_mx_glc2000_meta, plcov_mn_glc2000_meta, &
-  !  &       lai_mx_glc2000_meta, lai_mn_glc2000_meta, &
-  !  &       rs_min_glc2000_meta, urban_glc2000_meta, &
-  !  &       for_d_glc2000_meta, for_e_glc2000_meta, &
-  !  &       emissivity_glc2000_meta, root_glc2000_meta
-
-  ! define meta information for target field variables lon_geo, lat_geo 
-  CALL def_com_target_fields_meta(dim_icon)
-  ! lon_geo_meta and lat_geo_meta
-
-  ! set mapping parameters for netcdf
-  grid_mapping="lon_lat_on_sphere"
-  coordinates="lon lat"
-
-  CALL set_nc_grid_def_icon(grid_mapping)
-  ! nc_grid_def_icon
-
-
-  !set up dimensions for buffer netcdf output 
-  ndims = 2
-  ALLOCATE(dim_list(1:ndims),STAT=errorcode)
-  IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
-
-  dim_list(1) = dim_icon(1) ! cell
-  dim_list(2)%dimname = 'nclass'
-  dim_list(2)%dimsize = nclass_glc2000
-
-  dim_1d_icon =  dim_icon(1) ! cell
-  dim_2d_icon = dim_list
-
-  undefined_i = undef_int
-
-  !-----------------------------------------------------------------
-   CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
-      &                       dim_list=dim_list,                  &
-      &                       global_attributes=global_attributes, &
-      &                       ncid=ncid)
-  !-----------------------------------------------------------------
-
-   ! lon
-    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
-
-    ! lat
-    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
-
-    !-----------------------------------------------------------------
-    n=1 ! fr_land_glc2000
-    CALL netcdf_put_var(ncid,fr_land_glc2000(1:icon_grid%ncell,1,1),fr_land_glc2000_meta,undefined)
-
-    n=2 ! ice_glc2000
-    CALL netcdf_put_var(ncid,ice_glc2000(1:icon_grid%ncell,1,1),ice_glc2000_meta,undefined)
-
-    n=3 ! plcov_mx_glc2000
-    CALL netcdf_put_var(ncid,plcov_mx_glc2000(1:icon_grid%ncell,1,1),plcov_mx_glc2000_meta,undefined)
-
-    n=4 ! lai_mx_glc2000
-    CALL netcdf_put_var(ncid,lai_mx_glc2000(1:icon_grid%ncell,1,1),lai_mx_glc2000_meta,undefined)
-
-    n=5 ! rs_min_glc2000
-    CALL netcdf_put_var(ncid,rs_min_glc2000(1:icon_grid%ncell,1,1),rs_min_glc2000_meta,undefined)
-
-    n=6 ! urban_glc2000
-    CALL netcdf_put_var(ncid,urban_glc2000(1:icon_grid%ncell,1,1),urban_glc2000_meta,undefined)
-
-    n=7 ! for_d_glc2000
-    CALL netcdf_put_var(ncid,for_d_glc2000(1:icon_grid%ncell,1,1),for_d_glc2000_meta,undefined)
-
-    n=8 ! for_e_glc2000
-    CALL netcdf_put_var(ncid,for_e_glc2000(1:icon_grid%ncell,1,1),for_e_glc2000_meta,undefined)
-
-    n=9 ! emissivity_glc2000
-    CALL netcdf_put_var(ncid, emissivity_glc2000(1:icon_grid%ncell,1,1),emissivity_glc2000_meta,undefined)
-
-    n=10 ! root_glc2000
-    CALL netcdf_put_var(ncid,root_glc2000(1:icon_grid%ncell,1,1),root_glc2000_meta,undefined)
-
-    n=11 ! z0_glc2000
-    CALL netcdf_put_var(ncid,z0_glc2000(1:icon_grid%ncell,1,1),z0_glc2000_meta,undefined)
-
-  !-----------------------------------------------------------------
-  CALL close_netcdf_file(ncid)
-
-
-  END SUBROUTINE write_netcdf_icon_grid_glc2000
-  !-----------------------------------------------------------------------
-
   !----------------------------------------------------------------------- 
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with glc2000 data
@@ -1607,7 +1349,6 @@ END SUBROUTINE read_netcdf_buffer_lu
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_glcc_fields_meta
@@ -1632,9 +1373,9 @@ END SUBROUTINE read_netcdf_buffer_lu
   !< fraction for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
   REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
   !< number of raw data pixels for each glcc class on target grid (dimension (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
   !< total number of glcc raw data pixels on target grid (dimension (ie,je,ke))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data
@@ -1653,7 +1394,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
@@ -1661,8 +1402,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
-
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_glcc'
 
@@ -1675,7 +1414,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! dim_3d_tg
 
   ! define meta information for various land use related variables (GLCC) for netcdf output
-  CALL def_glcc_fields_meta(tg,nclass_glcc,dim_3d_tg)
+  CALL def_glcc_fields_meta(nclass_glcc,dim_3d_tg)
   ! dim_glcc_tg
   ! fr_land_glcc_meta, glcc_tot_npixel_meta, &
   !  &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
@@ -1799,13 +1538,10 @@ END SUBROUTINE read_netcdf_buffer_lu
     &                                     emissivity_glcc)
   
 
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
+  USE mo_var_meta_data, ONLY: def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
    
   USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
@@ -1821,8 +1557,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
 
   USE mo_var_meta_data, ONLY: def_glcc_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glcc_tg
 
   USE mo_var_meta_data, ONLY: fr_land_glcc_meta, glcc_tot_npixel_meta, &
     &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
@@ -1842,9 +1576,9 @@ END SUBROUTINE read_netcdf_buffer_lu
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
   REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
                                  !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
                              !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
                                    !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
@@ -1867,10 +1601,9 @@ END SUBROUTINE read_netcdf_buffer_lu
 
   INTEGER :: ncid
   INTEGER :: varid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-  TYPE(dim_meta_info), TARGET :: dim_nclass(1:3)
 
   INTEGER, PARAMETER :: nglob_atts=6
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -1880,7 +1613,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
   CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
 
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_cosmo_grid_glcc'
 
@@ -1903,7 +1635,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! nc_grid_def_cosmo
 
   ! define meta information for various land use related variables (GLCC) for netcdf output
-  CALL def_glcc_fields_meta(tg,nclass_glcc,dim_2d_cosmo,coordinates,grid_mapping)
+  CALL def_glcc_fields_meta(nclass_glcc,dim_2d_cosmo,coordinates,grid_mapping)
   ! dim_glcc_tg
   ! fr_land_glcc_meta, glcc_tot_npixel_meta, &
   !  &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
@@ -1928,7 +1660,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   dim_list(3)%dimname = 'nclass'
   dim_list(3)%dimsize = nclass_glcc
 
-  dim_nclass = dim_list
 
   undefined_i = undef_int
 
@@ -2025,215 +1756,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   END SUBROUTINE write_netcdf_cosmo_grid_glcc
   !-----------------------------------------------------------------------
 
-  !> netcdf output of GLCC derived ICON fields
-  SUBROUTINE write_netcdf_icon_grid_glcc(netcdf_filename,  &
-    &                                     icon_grid,       &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, &
-    &                                     fr_land_glcc, &
-    &                                     glcc_class_fraction,    &
-    &                                     glcc_class_npixel, &
-    &                                     glcc_tot_npixel, &
-    &                                     ice_glcc, &
-    &                                     z0_glcc, &
-    &                                     root_glcc, &
-    &                                     plcov_mn_glcc, &
-    &                                     plcov_mx_glcc, &
-    &                                     lai_mn_glcc, &
-    &                                     lai_mx_glcc, &
-    &                                     rs_min_glcc, &
-    &                                     urban_glcc,  &
-    &                                     for_d_glcc,  &
-    &                                     for_e_glcc, &
-    &                                     emissivity_glcc)
-
-
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
-
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-   
-
-  USE mo_var_meta_data, ONLY:  dim_icon, &
-    &                          def_dimension_info_icon
-
-  USE mo_var_meta_data, ONLY: nc_grid_def_icon, &
-    &                         set_nc_grid_def_icon
-
-  USE mo_var_meta_data, ONLY: def_glcc_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glcc_tg
-
-  USE mo_var_meta_data, ONLY: fr_land_glcc_meta, glcc_tot_npixel_meta, &
-    &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
-    &       ice_glcc_meta, z0_glcc_meta, &
-    &       plcov_mx_glcc_meta, plcov_mn_glcc_meta, &
-    &       lai_mx_glcc_meta, lai_mn_glcc_meta, &
-    &       rs_min_glcc_meta, urban_glcc_meta, &
-    &       for_d_glcc_meta, for_e_glcc_meta, &
-    &       emissivity_glcc_meta, root_glcc_meta
-
-  CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-  TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
-  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-  REAL (KIND=wp), INTENT(IN)  :: glcc_class_fraction(:,:,:,:)  
-                                 !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_class_npixel(:,:,:,:) 
-                             !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(IN) :: glcc_tot_npixel(:,:,:)  
-                                   !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
-  REAL (KIND=wp), INTENT(IN)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
-  REAL (KIND=wp), INTENT(IN)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
-  REAL (KIND=wp), INTENT(IN)  :: z0_glcc(:,:,:)      !< roughness length due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: root_glcc(:,:,:)    !< root depth due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: plcov_mx_glcc(:,:,:)!< plant cover maximum due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: plcov_mn_glcc(:,:,:)!< plant cover minimum due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: lai_mx_glcc(:,:,:)  !< Leaf Area Index maximum due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: lai_mn_glcc(:,:,:)  !< Leaf Area Index minimum due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: rs_min_glcc(:,:,:)  !< minimal stomata resistance due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: urban_glcc(:,:,:)   !< urban fraction due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: for_d_glcc(:,:,:)   !< deciduous forest (fraction) due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: for_e_glcc(:,:,:)   !< evergreen forest (fraction) due to glcc land use data
-  REAL (KIND=wp), INTENT(IN)  :: emissivity_glcc(:,:,:) !< longwave emissivity due to glcc land use data
-
-
-  ! local variables
-
-
-  INTEGER :: ndims 
-  INTEGER :: ncid
-  INTEGER :: varid
-  INTEGER (KIND=i8) :: undefined_i
-
-  TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-  TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
-  TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
-
-  INTEGER, PARAMETER :: nglob_atts=6
-  TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
-
-  INTEGER :: errorcode !< error status variable
-
-  CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-  CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-
-  INTEGER :: n !< counter
-
-  !-------------------------------------------------------------
-  ! define global attributes
-  CALL set_global_att_glcc(global_attributes)
-
-  !set up dimensions for buffer
-  CALL  def_dimension_info_buffer(tg)
-  ! dim_3d_tg
-
-  !set up dimensions for ICON grid
-  CALL def_dimension_info_icon(icon_grid)
-  ! dim_icon
-
-  ! define meta information for various land use related variables (GLCC) for netcdf output
-  CALL def_glcc_fields_meta(tg,nclass_glcc,dim_icon)
-  ! dim_glcc_tg
-  ! fr_land_glcc_meta, glcc_tot_npixel_meta, &
-  !  &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
-  !  &       ice_glcc_meta, z0_glcc_meta, &
-  !  &       plcov_mx_glcc_meta, plcov_mn_glcc_meta, &
-  !  &       lai_mx_glcc_meta, lai_mn_glcc_meta, &
-  !  &       rs_min_glcc_meta, urban_glcc_meta, &
-  !  &       for_d_glcc_meta, for_e_glcc_meta, &
-  !  &       emissivity_glcc_meta, root_glcc_meta
-
-  ! define meta information for target field variables lon_geo, lat_geo 
-  CALL def_com_target_fields_meta(dim_icon)
-  ! lon_geo_meta and lat_geo_meta
-
-  ! set mapping parameters for netcdf
-  grid_mapping="lon_lat_on_sphere"
-  coordinates="lon lat"
-
-  CALL set_nc_grid_def_icon(grid_mapping)
-  ! nc_grid_def_icon
-
-
-  !set up dimensions for buffer netcdf output 
-  ndims = 2
-  ALLOCATE(dim_list(1:ndims),STAT=errorcode)
-  IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
-
-  dim_list(1) = dim_icon(1) ! cell
-  dim_list(2)%dimname = 'nclass'
-  dim_list(2)%dimsize = nclass_glcc
-
-  dim_1d_icon =  dim_icon(1) ! cell
-  dim_2d_icon = dim_list
-
-  undefined_i = undef_int
-
-  !-----------------------------------------------------------------
-   CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
-      &                       dim_list=dim_list,                  &
-      &                       global_attributes=global_attributes, &
-      &                       ncid=ncid)
-  !-----------------------------------------------------------------
-
-   ! lon
-    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
-
-    ! lat
-    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
-
-    !-----------------------------------------------------------------
-    n=1 ! fr_land_glcc
-    CALL netcdf_put_var(ncid,fr_land_glcc(1:icon_grid%ncell,1,1),fr_land_glcc_meta,undefined)
-
-    n=2 ! ice_glcc
-    CALL netcdf_put_var(ncid,ice_glcc(1:icon_grid%ncell,1,1),ice_glcc_meta,undefined)
-
-    n=3 ! plcov_mx_glcc
-    CALL netcdf_put_var(ncid,plcov_mx_glcc(1:icon_grid%ncell,1,1),plcov_mx_glcc_meta,undefined)
-
-    n=4 ! lai_mx_glcc
-    CALL netcdf_put_var(ncid,lai_mx_glcc(1:icon_grid%ncell,1,1),lai_mx_glcc_meta,undefined)
-
-    n=5 ! rs_min_glcc
-    CALL netcdf_put_var(ncid,rs_min_glcc(1:icon_grid%ncell,1,1),rs_min_glcc_meta,undefined)
-
-    n=6 ! urban_glcc
-    CALL netcdf_put_var(ncid,urban_glcc(1:icon_grid%ncell,1,1),urban_glcc_meta,undefined)
-
-    n=7 ! for_d_glcc
-    CALL netcdf_put_var(ncid,for_d_glcc(1:icon_grid%ncell,1,1),for_d_glcc_meta,undefined)
-
-    n=8 ! for_e_glcc
-    CALL netcdf_put_var(ncid,for_e_glcc(1:icon_grid%ncell,1,1),for_e_glcc_meta,undefined)
-
-    n=9 ! emissivity_glcc
-    CALL netcdf_put_var(ncid, emissivity_glcc(1:icon_grid%ncell,1,1),emissivity_glcc_meta,undefined)
-
-    n=10 ! root_glcc
-    CALL netcdf_put_var(ncid,root_glcc(1:icon_grid%ncell,1,1),root_glcc_meta,undefined)
-
-    n=11 ! z0_glcc
-    CALL netcdf_put_var(ncid,z0_glcc(1:icon_grid%ncell,1,1),z0_glcc_meta,undefined)
-
-  !-----------------------------------------------------------------
-  CALL close_netcdf_file(ncid)
-
-
-  END SUBROUTINE write_netcdf_icon_grid_glcc
-  !-----------------------------------------------------------------------
-
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with glcc data
   SUBROUTINE set_global_att_glcc(global_attributes)
@@ -2282,179 +1804,12 @@ END SUBROUTINE read_netcdf_buffer_lu
   END SUBROUTINE set_global_att_glcc
   !-----------------------------------------------------------------------
 
-  !-----------------------------------------------------------------------
-
-
-
-  !----------------------------------------------------------------------------
-  !----------------------------------------------------------------------------
-
-  !> read GLC2000 derived buffer fields
-    SUBROUTINE read_netcdf_buffer_glc2000(netcdf_filename,  &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     fr_land_glc2000, &
-    &                                     glc2000_class_fraction,    &
-    &                                     glc2000_class_npixel, &
-    &                                     glc2000_tot_npixel, &
-    &                                     ice_glc2000, &
-    &                                     z0_glc2000, &
-    &                                     root_glc2000, &
-    &                                     plcov_mn_glc2000, &
-    &                                     plcov_mx_glc2000, &
-    &                                     lai_mn_glc2000, &
-    &                                     lai_mx_glc2000, &
-    &                                     rs_min_glc2000, &
-    &                                     urban_glc2000,  &
-    &                                     for_d_glc2000,  &
-    &                                     for_e_glc2000, &
-    &                                     emissivity_glc2000)
-
-
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
-
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-  
-  USE mo_var_meta_data, ONLY: def_glc2000_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glc2000_tg
-
-  USE mo_var_meta_data, ONLY: fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
-    &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
-    &       ice_glc2000_meta, z0_glc2000_meta, &
-    &       plcov_mx_glc2000_meta, plcov_mn_glc2000_meta, &
-    &       lai_mx_glc2000_meta, lai_mn_glc2000_meta, &
-    &       rs_min_glc2000_meta, urban_glc2000_meta, &
-    &       for_d_glc2000_meta, for_e_glc2000_meta, &
-    &       emissivity_glc2000_meta, root_glc2000_meta
-
-  !USE mo_io_utilities, ONLY: netcdf_get_var_real_3d, netcdf_get_var_real_4d
-  !USE mo_io_utilities, ONLY: netcdf_get_var_int_3d, netcdf_get_var_int_4d
-
-  USE mo_io_utilities, ONLY: netcdf_get_var
-
-  CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
-  REAL (KIND=wp), INTENT(OUT)  :: glc2000_class_fraction(:,:,:,:)  
-                                  !< fraction for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_class_npixel(:,:,:,:) 
-                            !< number of raw data pixels for each glc2000 class on target grid (dim (ie,je,ke,nclass_glc2000))
-  INTEGER (KIND=i8), INTENT(OUT) :: glc2000_tot_npixel(:,:,:)
-                                    !< total number of glc2000 raw data pixels on target grid (dim (ie,je,ke))
-  REAL (KIND=wp), INTENT(OUT)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
-  REAL (KIND=wp), INTENT(OUT)  :: ice_glc2000(:,:,:)     !< fraction of ice due to glc2000 raw data
-  REAL (KIND=wp), INTENT(OUT)  :: z0_glc2000(:,:,:)      !< roughness length due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: root_glc2000(:,:,:)    !< root depth due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: plcov_mn_glc2000(:,:,:)!< plant cover maximum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: plcov_mx_glc2000(:,:,:)!< plant cover minimum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: lai_mn_glc2000(:,:,:)  !< Leaf Area Index maximum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: lai_mx_glc2000(:,:,:)  !< Leaf Area Index minimum due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: rs_min_glc2000(:,:,:)  !< minimal stomata resistance due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: urban_glc2000(:,:,:)   !< urban fraction due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: for_d_glc2000(:,:,:)   !< deciduous forest (fraction) due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: for_e_glc2000(:,:,:)   !< evergreen forest (fraction) due to glc2000 land use data
-  REAL (KIND=wp), INTENT(OUT)  :: emissivity_glc2000(:,:,:) !< longwave emissivity due to glc2000 land use data
-
-
-  ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
-
-  PRINT *,'ENTER read_netcdf_buffer_glc2000'
-
-
-  !set up dimensions for buffer
-  CALL  def_dimension_info_buffer(tg)
-  ! dim_3d_tg
-
-  ! define meta information for various land use related variables (GLC2000) for netcdf output
-  CALL def_glc2000_fields_meta(tg,nclass_glc2000,dim_3d_tg)
-  ! dim_glc2000_tg
-  ! fr_land_glc2000_meta, glc2000_tot_npixel_meta, &
-  !  &       glc2000_class_fraction_meta, glc2000_class_npixel_meta, &
-  !  &       ice_glc2000_meta, z0_glc2000_meta, &
-  !  &       plcov_mx_glc2000_meta, plcov_mn_glc2000_meta, &
-  !  &       lai_mx_glc2000_meta, lai_mn_glc2000_meta, &
-  !  &       rs_min_glc2000_meta, urban_glc2000_meta, &
-  !  &       for_d_glc2000_meta, for_e_glc2000_meta, &
-  !  &       emissivity_glc2000_meta, root_glc2000_meta
-
-  ! define meta information for target field variables lon_geo, lat_geo 
-  CALL def_com_target_fields_meta(dim_3d_tg)
-  ! lon_geo_meta and lat_geo_meta
-  
-
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'CALL read netcdf data Land Use'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),fr_land_glc2000_meta,fr_land_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'fr_land_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),glc2000_tot_npixel_meta,glc2000_tot_npixel)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'glc2000_tot_npixel read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),glc2000_class_fraction_meta,glc2000_class_fraction)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'glc2000_class_fraction read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),glc2000_class_npixel_meta,glc2000_class_npixel)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'glc2000_class_npixel read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),ice_glc2000_meta,ice_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'ice_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),z0_glc2000_meta,z0_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'z0_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),plcov_mx_glc2000_meta,plcov_mx_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'plcov_mx_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),plcov_mn_glc2000_meta,plcov_mn_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'plcov_mn_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),lai_mx_glc2000_meta,lai_mx_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'lai_mx_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),lai_mn_glc2000_meta,lai_mn_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'lai_mn_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),rs_min_glc2000_meta,rs_min_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'rs_min_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),urban_glc2000_meta,urban_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'urban_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),for_d_glc2000_meta,for_d_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'for_d_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),for_e_glc2000_meta,for_e_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'for_e_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),emissivity_glc2000_meta,emissivity_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'emissivity_glc2000 read'
-
-  CALL netcdf_get_var(TRIM(netcdf_filename),root_glc2000_meta,root_glc2000)
-  IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'root_glc2000 read'
-
-
-  END SUBROUTINE read_netcdf_buffer_glc2000
-  !-----------------------------------------------------------------------
-
-  
   !----------------------------------------------------------------------------
   !----------------------------------------------------------------------------
 
   !> read GLCC derived buffer fields
     SUBROUTINE read_netcdf_buffer_glcc(netcdf_filename,  &
     &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
     &                                     fr_land_glcc, &
     &                                     glcc_class_fraction,    &
     &                                     glcc_class_npixel, &
@@ -2477,14 +1832,8 @@ END SUBROUTINE read_netcdf_buffer_lu
     &                         def_dimension_info_buffer
 
 
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-  
+  USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
   USE mo_var_meta_data, ONLY: def_glcc_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_glcc_tg
 
   USE mo_var_meta_data, ONLY: fr_land_glcc_meta, glcc_tot_npixel_meta, &
     &       glcc_class_fraction_meta, glcc_class_npixel_meta, &
@@ -2502,13 +1851,11 @@ END SUBROUTINE read_netcdf_buffer_lu
 
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(OUT)  :: glcc_class_fraction(:,:,:,:)  
                                   !< fraction for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) 
+  INTEGER (KIND=i4), INTENT(OUT) :: glcc_class_npixel(:,:,:,:) 
                            !< number of raw data pixels for each glcc class on target grid (dim (ie,je,ke,nclass_glcc))
-  INTEGER (KIND=i8), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(OUT) :: glcc_tot_npixel(:,:,:)  
                                     !< total number of glcc raw data pixels on target grid (dim (ie,je,ke))
   REAL (KIND=wp), INTENT(OUT)  :: fr_land_glcc(:,:,:) !< fraction land due to glcc raw data
   REAL (KIND=wp), INTENT(OUT)  :: ice_glcc(:,:,:)     !< fraction of ice due to glcc raw data
@@ -2524,11 +1871,6 @@ END SUBROUTINE read_netcdf_buffer_lu
   REAL (KIND=wp), INTENT(OUT)  :: for_e_glcc(:,:,:)   !< evergreen forest (fraction) due to glcc land use data
   REAL (KIND=wp), INTENT(OUT)  :: emissivity_glcc(:,:,:) !< longwave emissivity due to glcc land use data
 
-
-  ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
-
   WRITE(logging%fileunit,*)'Enter routine read_netcdf_buffer_glcc'
 
 
@@ -2537,7 +1879,7 @@ END SUBROUTINE read_netcdf_buffer_lu
   ! dim_3d_tg
 
   ! define meta information for various land use related variables (GLCC) for netcdf output
-  CALL def_glcc_fields_meta(tg,nclass_glcc,dim_3d_tg)
+  CALL def_glcc_fields_meta(nclass_glcc,dim_3d_tg)
   ! dim_glcc_tg
   ! fr_land_glcc_meta, glcc_tot_npixel_meta, &
   !  &       glcc_class_fraction_meta, glcc_class_npixel_meta, &

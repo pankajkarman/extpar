@@ -24,60 +24,24 @@
 MODULE mo_ahf_routines
 
 USE mo_kind, ONLY: wp, &
-                   sp, &
-                   i8, &
                    i4
 
-USE netcdf,      ONLY :   &
-  nf90_open,              &
-  nf90_close,             &
-  nf90_inquire,           &
-  nf90_inquire_dimension, &
-  nf90_inquire_variable,  &
-  nf90_inq_attname,       &
-  nf90_inquire_attribute, &
-  nf90_get_att,           &
-  nf90_inquire_dimension, &
-  nf90_inq_varid,          &
-  nf90_get_var,            &
-  nf90_noerr,              &
-  nf90_strerror
-
-USE netcdf,      ONLY:     &
-  nf90_create,             &
-  nf90_def_dim,            &
-  nf90_def_var,            &
-  nf90_enddef,             &
-  nf90_redef,              &
-  nf90_put_att,            &
-  nf90_put_var
-
- 
-USE netcdf,      ONLY :   &
-  NF90_CHAR,               &
-  NF90_DOUBLE,             &
-  NF90_FLOAT,              &
-  NF90_INT,                &
-  NF90_BYTE,               &
-  NF90_SHORT
-
-
-USE netcdf,      ONLY :   &
-  NF90_GLOBAL,             &
-  NF90_UNLIMITED,          &
-  NF90_CLOBBER,            &
-  NF90_NOWRITE
-
-
+USE netcdf,  ONLY: nf90_close,   &
+                   nf90_get_att, &
+                   nf90_get_var, &
+                   nf90_inquire, &
+                   nf90_inquire_attribute, &
+                   nf90_inquire_dimension, &
+                   nf90_inquire_variable , &
+                   nf90_inq_attname      , &
+                   nf90_nowrite          , &
+                   nf90_open             , &
+                   nf90_char
 !> abort_extpar defined in MODULE utilities_extpar
 USE mo_utilities_extpar, ONLY: abort_extpar
 
 
 USE mo_io_utilities,     ONLY: check_netcdf
-
-USE mo_grid_structures,  ONLY: reg_lonlat_grid
-
-
 
 IMPLICIT NONE
 
@@ -270,7 +234,6 @@ END SUBROUTINE read_namelists_extpar_ahf
         INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
         INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-        INTEGER :: dimid                            !< id of dimension
         CHARACTER (len=80) :: dimname               !< name of dimension
         INTEGER :: length                           !< length of dimension
 
@@ -399,7 +362,6 @@ END SUBROUTINE read_namelists_extpar_ahf
         INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
         INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-        INTEGER :: dimid                            !< id of dimension
         CHARACTER (len=80) :: dimname               !< name of dimension
         INTEGER :: length                           !< length of dimension
         INTEGER :: dim_lon                           !< length of dimension lon
@@ -524,7 +486,6 @@ END SUBROUTINE read_namelists_extpar_ahf
         INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
         INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-        INTEGER :: dimid                            !< id of dimension
         CHARACTER (len=80) :: dimname               !< name of dimension
         INTEGER :: length                           !< length of dimension
         INTEGER :: dim_lon                           !< length of dimension lon
@@ -659,9 +620,7 @@ END SUBROUTINE read_namelists_extpar_ahf
         INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
         INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-        INTEGER :: dimid                            !< id of dimension
         CHARACTER (len=80) :: dimname               !< name of dimension
-        INTEGER :: length                           !< length of dimension
         INTEGER :: dim_lon                          !< length of dimension lon
         INTEGER :: dim_lat                          !< length of dimension lat
 
@@ -675,11 +634,6 @@ END SUBROUTINE read_namelists_extpar_ahf
         INTEGER :: nAtts                            !< number of attributes for a netcdf variable
         
         INTEGER :: errorcode                        !< error status variable
-        
-        INTEGER :: attnum                           !< counter for attribute number
-        CHARACTER (len=80) :: attname               !< name of attribute
-        CHARACTER (len=80) :: attributetext         !< attribute text
-
         
         IF ( (column_index < 1) .or. (column_index > nlon_ahf)) then
           CALL abort_extpar('column_index out of range')

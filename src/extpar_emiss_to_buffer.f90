@@ -109,12 +109,10 @@ PROGRAM extpar_emiss_to_buffer
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
   REAL(KIND=wp) :: undefined !< value to indicate undefined grid elements 
-  INTEGER (KIND=i4) :: undef_int   !< value for undefined integer
 
   CALL initialize_logging("extpar_emiss_to_buffer.log")
   CALL info_print ()
   !--------------------------------------------------------------------------------------------------------
-  undef_int = 0 ! set undefined to zero
   undefined = -999.0 ! undef vlaue
       
   namelist_grid_def = 'INPUT_grid_org'
@@ -204,7 +202,7 @@ PROGRAM extpar_emiss_to_buffer
   ! start aggregation
   PRINT *,'aggregate EMISS data to target grid'
 
-  CALL agg_emiss_data_to_target_grid(tg,undefined, path_emiss_file)
+  CALL agg_emiss_data_to_target_grid(tg, path_emiss_file)
 
   PRINT *,'aggregation done'
 
@@ -216,7 +214,6 @@ PROGRAM extpar_emiss_to_buffer
 
       netcdf_filename = TRIM(emiss_output_file)
       undefined = -500.
-      undef_int = -500
 
       PRINT *,'write out ', TRIM(netcdf_filename)
 
@@ -225,7 +222,6 @@ PROGRAM extpar_emiss_to_buffer
    &                                     tg,         &
    &                                     ntime_emiss, &
    &                                     undefined, &
-   &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
    &                                     emiss_max,  &
@@ -240,7 +236,6 @@ PROGRAM extpar_emiss_to_buffer
     
       netcdf_filename = TRIM(emiss_output_file)
       undefined = -500.
-      undef_int = -500
 
       PRINT *,'write out ', TRIM(netcdf_filename)
 
@@ -250,9 +245,6 @@ PROGRAM extpar_emiss_to_buffer
    &                                     tg,         &
    &                                     ntime_emiss, &
    &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
    &                                     emiss_max,  &
    &                                     emiss_field_mom,&
    &                                     emiss_ratio_mom)
@@ -261,7 +253,6 @@ PROGRAM extpar_emiss_to_buffer
 
   netcdf_filename = TRIM(emiss_buffer_file)
   undefined = -500.
-  undef_int = -500
 
   PRINT *,'write out ', TRIM(netcdf_filename)
 
@@ -270,7 +261,6 @@ PROGRAM extpar_emiss_to_buffer
    &                                     tg,         &
    &                                     ntime_emiss, &
    &                                     undefined, &
-   &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
    &                                     emiss_max,  &
@@ -280,7 +270,5 @@ PROGRAM extpar_emiss_to_buffer
   CALL deallocate_emiss_fields()
 
   PRINT *,'============= emiss_to_buffer done ==============='
-
-
 
 END PROGRAM extpar_emiss_to_buffer

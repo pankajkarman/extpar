@@ -46,14 +46,13 @@ MODULE mo_topo_data
      nf90_close,             &
      nf90_inquire_dimension, &
      nf90_inquire_variable,  &
-     nf90_inquire_attribute, &     
      nf90_inquire_dimension, &
      nf90_inq_dimid,         &
      nf90_inq_varid,         &
      nf90_get_var,           &
      nf90_get_att,           &
-     NF90_ENOTVAR,           &
-     NF90_NOWRITE, NF90_GLOBAL
+     nf90_enotvar,           &
+     nf90_nowrite
 
 IMPLICIT NONE
 
@@ -146,9 +145,8 @@ CHARACTER(LEN=80) :: varname
   CONTAINS
 
 
-    SUBROUTINE num_tiles(itopo_type, columns, rows, ntiles) ! it gives the value of the number of tiles depending
+    SUBROUTINE num_tiles(columns, rows, ntiles) ! it gives the value of the number of tiles depending
       SAVE
-      INTEGER, INTENT(in):: itopo_type
       INTEGER, INTENT(IN) :: columns
       INTEGER, INTENT(IN) :: rows
       INTEGER, INTENT(OUT):: ntiles           ! if the user chooses GLOBE or ASTER
@@ -159,8 +157,6 @@ CHARACTER(LEN=80) :: varname
       IF (verbose >= idbg_low ) WRITE(logging%fileunit,*) 'number of tiles is: ', ntiles
 
    END SUBROUTINE num_tiles
-
-
 
    SUBROUTINE allocate_topo_data(ntiles)
 ! As it is unknown so far whether GLOBE or ASTER is chosen all parameters must be allocated in a second step.
@@ -321,7 +317,7 @@ CHARACTER(LEN=80) :: varname
     CHARACTER (len=*), INTENT(in) :: topo_file_1
     INTEGER, INTENT(out)           :: undef_topo
 
-    INTEGER :: ncid, varid, attid, status
+    INTEGER :: ncid, varid, status
 
     CALL check_netcdf(nf90_open(path = topo_file_1, mode = nf90_nowrite, ncid = ncid))
     status = nf90_inq_varid(ncid, "altitude", varid)

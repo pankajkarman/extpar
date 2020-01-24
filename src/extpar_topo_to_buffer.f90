@@ -48,7 +48,7 @@ PROGRAM extpar_topo_to_buffer
   USE mo_logging
   
   !> kind parameters are defined in MODULE data_parameters
-  USE mo_kind,                 ONLY: wp, i4, i8
+  USE mo_kind,                 ONLY: wp, i4, i4
 
   USE mo_target_grid_data,     ONLY: lon_geo,           &
        &                             lat_geo,           &
@@ -156,9 +156,9 @@ PROGRAM extpar_topo_to_buffer
   INTEGER (i4), ALLOCATABLE :: topo_endcolumn(:)    !< endcolumn indeces for each GLOBE tile
 
   INTEGER :: k !< counter
-  INTEGER(i8) :: ie !< counter
-  INTEGER(i8) :: je !< counter
-  INTEGER(i8) :: ke !< counter
+  INTEGER(i4) :: ie !< counter
+  INTEGER(i4) :: je !< counter
+  INTEGER(i4) :: ke !< counter
 
   INTEGER (i4) :: igrid_type           !< target grid type, 1 for ICON, 2 for COSMO, 3 for GME grid
 
@@ -268,7 +268,7 @@ PROGRAM extpar_topo_to_buffer
     WRITE(logging%fileunit,*)"   no of tiles per column: ", ntiles_column, " no of tiles per row  ", ntiles_row
   ENDIF
   ! gives back the number of tiles that are available 16 for GLOBE or 36 for ASTER
-  CALL num_tiles(itopo_type, ntiles_column, ntiles_row, ntiles)
+  CALL num_tiles(ntiles_column, ntiles_row, ntiles)
   
   ! need to be allocated after ntiles is known!
   ALLOCATE (topo_startrow(1:ntiles), topo_endrow(1:ntiles),topo_startcolumn(1:ntiles),topo_endcolumn(1:ntiles))
@@ -755,7 +755,6 @@ PROGRAM extpar_topo_to_buffer
            &                           icon_grid,               &
            &                           tg,                      &
            &                           undefined,               &
-           &                           undef_int,               &
            &                           lon_geo,                 &
            &                           lat_geo,                 &
            &                           fr_land_topo,            &
@@ -773,7 +772,6 @@ PROGRAM extpar_topo_to_buffer
            &                           icon_grid,       &
            &                           tg,              &
            &                           undefined,       &
-           &                           undef_int,       &
            &                           lon_geo,         &
            &                           lat_geo,         &
            &                           fr_land_topo,    &
@@ -793,7 +791,6 @@ PROGRAM extpar_topo_to_buffer
              &                            cosmo_grid,                      &
              &                            tg,                              &
              &                            undefined,                       &
-             &                            undef_int,                       &
              &                            lon_geo,                         &
              &                            lat_geo,                         &
              &                            fr_land_topo,                    &
@@ -814,7 +811,6 @@ PROGRAM extpar_topo_to_buffer
              &                            cosmo_grid,                      &
              &                            tg,                              &
              &                            undefined,                       &
-             &                            undef_int,                       &
              &                            lon_geo,                         &
              &                            lat_geo,                         &
              &                            fr_land_topo,                    &
@@ -833,7 +829,6 @@ PROGRAM extpar_topo_to_buffer
              &                            cosmo_grid,            &
              &                            tg,                    &
              &                            undefined,             &
-             &                            undef_int,             &
              &                            lon_geo,               &
              &                            lat_geo,               &
              &                            fr_land_topo,          &
@@ -850,7 +845,6 @@ PROGRAM extpar_topo_to_buffer
              &                            cosmo_grid,      &
              &                            tg,              &
              &                            undefined,       &
-             &                            undef_int,       &
              &                            lon_geo,         &
              &                            lat_geo,         &
              &                            fr_land_topo,    &

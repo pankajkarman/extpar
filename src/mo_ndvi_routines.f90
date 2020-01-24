@@ -18,7 +18,6 @@
 MODULE mo_ndvi_routines
 
   USE mo_kind, ONLY: wp, &
-       i8, &
        i4
 
   USE netcdf,      ONLY :   &
@@ -31,48 +30,14 @@ MODULE mo_ndvi_routines
        nf90_inquire_attribute, &
        nf90_get_att,           &
        nf90_inquire_dimension, &
-       nf90_inq_varid,          &
-       nf90_get_var,            &
-       nf90_noerr,              &
-       nf90_strerror
+       nf90_get_var,           &
+       nf90_char,              &
+       nf90_nowrite
 
-  USE netcdf,      ONLY:     &
-       nf90_create,             &
-       nf90_def_dim,            &
-       nf90_def_var,            &
-       nf90_enddef,             &
-       nf90_redef,              &
-       nf90_put_att,            &
-       nf90_put_var
-
-
-  USE netcdf,      ONLY :   &
-       NF90_CHAR,               &
-       NF90_DOUBLE,             &
-       NF90_FLOAT,              &
-       NF90_INT,                &
-       NF90_BYTE,               &
-       NF90_SHORT
-
-
-  USE netcdf,      ONLY :   &
-       NF90_GLOBAL,             &
-       NF90_UNLIMITED,          &
-       NF90_CLOBBER,            &
-       NF90_NOWRITE
-
-
-  !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
-
 
   USE mo_io_utilities,           ONLY: check_netcdf
   USE mo_io_units,          ONLY: filename_max
-
-
-  USE mo_grid_structures,        ONLY: reg_lonlat_grid
-
-
 
   IMPLICIT NONE
 
@@ -272,7 +237,6 @@ CONTAINS
     INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
     INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-    INTEGER :: dimid                            !< id of dimension
     CHARACTER (len=80) :: dimname               !< name of dimension
     INTEGER :: length                           !< length of dimension
 
@@ -411,7 +375,6 @@ CONTAINS
     INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
     INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-    INTEGER :: dimid                            !< id of dimension
     CHARACTER (len=80) :: dimname               !< name of dimension
     INTEGER :: length                           !< length of dimension
     INTEGER :: dim_lon                           !< length of dimension lon
@@ -547,7 +510,6 @@ CONTAINS
     INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
     INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-    INTEGER :: dimid                            !< id of dimension
     CHARACTER (LEN=80) :: dimname               !< name of dimension
     INTEGER :: length                           !< length of dimension
     INTEGER :: dim_lon                           !< length of dimension lon
@@ -692,9 +654,7 @@ CONTAINS
     INTEGER :: nGlobalAtts                      !< number of gloabal Attributes in netcdf file
     INTEGER :: unlimdimid                       !< id of unlimited dimension (e.g. time) in netcdf file
 
-    INTEGER :: dimid                            !< id of dimension
     CHARACTER (len=80) :: dimname               !< name of dimension
-    INTEGER :: length                           !< length of dimension
     INTEGER :: dim_lon                          !< length of dimension lon
     INTEGER :: dim_lat                          !< length of dimension lat
     INTEGER :: dim_time                         !< length of dimension time
@@ -709,11 +669,6 @@ CONTAINS
     INTEGER :: nAtts                            !< number of attributes for a netcdf variable
 
     INTEGER :: errorcode                        !< error status variable
-
-    INTEGER :: attnum                           !< counter for attribute number
-    CHARACTER (len=80) :: attname               !< name of attribute
-    CHARACTER (len=80) :: attributetext         !< attribute text
-
 
     IF ( (column_index < 1) .or. (column_index > nlon_ndvi)) then
       CALL abort_extpar('column_index out of range')

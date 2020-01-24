@@ -25,48 +25,12 @@ MODULE mo_isa_routines
 
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
-                   i8, &
+                   i4, &
                    i4
 
 USE netcdf,      ONLY :   &
-  nf90_open,              &
-  nf90_close,             &
-  nf90_inquire,           &
-  nf90_inquire_dimension, &
-  nf90_inquire_variable,  &
-  nf90_inq_attname,       &
-  nf90_inquire_attribute, &
-  nf90_get_att,           &
-  nf90_inquire_dimension, &
   nf90_inq_varid,         &
-  nf90_get_var,           &
-  nf90_noerr,             &
-  nf90_strerror
-
-USE netcdf,      ONLY:     &
-  nf90_create,             &
-  nf90_def_dim,            &
-  nf90_def_var,            &
-  nf90_enddef,             &
-  nf90_redef,              &
-  nf90_put_att,            &
-  nf90_put_var
-
- 
-USE netcdf,      ONLY :    &
-  NF90_CHAR,               &
-  NF90_DOUBLE,             &
-  NF90_FLOAT,              &
-  NF90_INT,                &
-  NF90_BYTE,               &
-  NF90_SHORT
-
-
-USE netcdf,      ONLY :    &
-  NF90_GLOBAL,             &
-  NF90_UNLIMITED,          &
-  NF90_CLOBBER,            &
-  NF90_NOWRITE
+  nf90_get_var
 
 
 !> abort_extpar defined in MODULE utilities_extpar
@@ -74,9 +38,7 @@ USE mo_utilities_extpar, ONLY: abort_extpar
 USE mo_io_utilities,     ONLY: check_netcdf
 USE mo_io_units,         ONLY: filename_max
 
-
 USE mo_grid_structures,  ONLY: reg_lonlat_grid
-USE mo_base_geometry,    ONLY: geographical_coordinates
 
 
 IMPLICIT NONE
@@ -154,12 +116,11 @@ END SUBROUTINE read_namelists_extpar_isa
         SUBROUTINE get_dimension_isa_data(nlon_isa, &
                                           nlat_isa)
 
-        USE mo_isa_data,   ONLY: max_tiles_isa,     &
-                                       ntiles_isa, &
-                                       len_isa_lon, len_isa_lat
+        USE mo_isa_data,   ONLY: ntiles_isa, &
+                                 len_isa_lon, len_isa_lat
 
-        INTEGER (KIND=i8), INTENT(OUT) :: nlon_isa !< number of grid elements in zonal direction for isa data
-        INTEGER (KIND=i8), INTENT(OUT) :: nlat_isa !< number of grid elements in meridional direction for isa data
+        INTEGER (KIND=i4), INTENT(OUT) :: nlon_isa !< number of grid elements in zonal direction for isa data
+        INTEGER (KIND=i4), INTENT(OUT) :: nlat_isa !< number of grid elements in meridional direction for isa data
 
         !local variables
         INTEGER, PARAMETER :: nx=129600
@@ -191,8 +152,8 @@ END SUBROUTINE read_namelists_extpar_isa
                                      isa_tiles_lon_min, &
                                      isa_tiles_lon_max
 
-        INTEGER (KIND=i8), INTENT(IN) :: nlon_isa !< number of grid elements in zonal direction for isa data
-        INTEGER (KIND=i8), INTENT(IN) :: nlat_isa !< number of grid elements in meridional direction for isa data
+        INTEGER (KIND=i4), INTENT(IN) :: nlon_isa !< number of grid elements in zonal direction for isa data
+        INTEGER (KIND=i4), INTENT(IN) :: nlat_isa !< number of grid elements in meridional direction for isa data
         REAL (KIND=wp), INTENT(OUT)    :: lon_isa(1:nlon_isa) !< longitude of isa raw data
         REAL (KIND=wp), INTENT(OUT)    :: lat_isa(1:nlat_isa) !< latitude of isa raw data
         TYPE(reg_lonlat_grid), INTENT(OUT) :: isa_grid !< structure with defenition of the raw data grid for the whole GLOB &
@@ -215,7 +176,7 @@ END SUBROUTINE read_namelists_extpar_isa
         REAL (KIND=wp):: dx_glc  ! grid element size of glcover data pixel in zonal direction
         REAL (KIND=wp):: dy_glc  ! grid element size of glcover data pixel in meridional directionon
 
-        INTEGER (KIND=i8) :: jx,jy
+        INTEGER (KIND=i4) :: jx,jy
 
 
         xmin_glc = MINVAL(isa_tiles_lon_min)
@@ -338,8 +299,7 @@ END SUBROUTINE read_namelists_extpar_isa
                                            isa_block)
 
          USE mo_grid_structures,  ONLY: reg_lonlat_grid  ! Definition of DATA Typeto describe a regular lonlat grid
-         USE mo_isa_data,   ONLY: ntiles_isa, &
-                                        nc_tiles_isa
+         USE mo_isa_data,   ONLY: ntiles_isa
          TYPE(reg_lonlat_grid), INTENT(IN)  :: ta_grid !< structure with definition of the target area grid (dlon must be the sam &
 !& e as for the whole ISA dataset)
          TYPE(reg_lonlat_grid), INTENT(IN) :: isa_tiles_grid(1:ntiles_isa) !< structure with defenition of the raw da &
@@ -372,7 +332,7 @@ END SUBROUTINE read_namelists_extpar_isa
 
 
 
-       INTEGER :: i,j,k     ! counter
+       INTEGER :: k     ! counter
        INTEGER :: errorcode !< error status variable
 
        varname = 'ISA'   ! I know that in the ISA netcdf files the isa data is stored in a variable "ISA"
@@ -438,10 +398,6 @@ SUBROUTINE get_isa_tile_block_indices(ta_grid,              &
          &                                  ta_end_je)
 
 USE mo_isa_data, ONLY : ntiles_isa,  &          !< ISA raw data has 6 tiles
-                              isa_tiles_lon_min,  &
-                              isa_tiles_lon_max,  &
-                              isa_tiles_lat_min,  &
-                              isa_tiles_lat_max,  &
                               isa_tiles_ncolumns, &
                               isa_tiles_nrows
 
@@ -467,23 +423,9 @@ USE mo_isa_data, ONLY : ntiles_isa,  &          !< ISA raw data has 6 tiles
        INTEGER (KIND=i4), INTENT(OUT) :: ta_end_je(1:ntiles_isa)   !< indices of target area block for last row of each GLO &
 !& BCOVER tile
 
-       
-       INTEGER (KIND=i4) :: index_k !< index of ISA tile which contains point_geo
-
        ! local variables
 
-       INTEGER  :: i          ! index for tiles (i,j,m,n,o)
-       INTEGER  :: j 
-       INTEGER  :: m
-       INTEGER  :: n
-       INTEGER  :: o
-       INTEGER  :: t_i_start 
-       INTEGER  :: t_i_end
-       INTEGER  :: t_j_start
-       INTEGER  :: t_j_end
        INTEGER  :: undefined
-
-       REAL (KIND=wp) :: point_lon_coor
 
        INTEGER (KIND=i4) :: startrow ! startrow for tile
        INTEGER (KIND=i4) :: endrow 
@@ -585,45 +527,6 @@ USE mo_isa_data, ONLY : ntiles_isa,  &          !< ISA raw data has 6 tiles
 
        !----------------------------------------------------------------------------------------------------------------
        !----------------------------------------------------------------------------------------------------------------
-
-        !> get one row of isa raw data
-        SUBROUTINE get_row_isa_data(path_isa_file, &
-                                          nlon_isa,      &
-                                          data_row,            &
-                                          isa_data_row)
-
-       USE mo_grid_structures, ONLY: reg_lonlat_grid
-
-        CHARACTER (LEN=filename_max), INTENT(IN) :: path_isa_file         !< filename with path for isa raw data
-        INTEGER , INTENT(IN) :: nlon_isa !< number of grid elements in zonal direction for isa data
-        INTEGER , INTENT(IN) :: data_row !< number or row for data to read in
-
-        INTEGER , INTENT(OUT):: isa_data_row(1:nlon_isa)
-
-        !local variables
-        INTEGER :: ncid                             !< netcdf unit file number
-
-        CHARACTER (LEN=80) :: varname  !< name of variable
-        INTEGER :: varid               !< id of variable
-
-       ! open netcdf file
-        CALL check_netcdf( nf90_open(TRIM(path_isa_file),NF90_NOWRITE, ncid))
-
-        varname = 'ISA' ! I know that the isa data are stored in a variable called 'ISA'
-
-         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
-
-         CALL check_netcdf(nf90_get_var(ncid, varid,  isa_data_row,  &
-                       start=(/1,data_row/),count=(/nlon_isa,1/)))
-
-       ! close netcdf file
-       CALL check_netcdf( nf90_close( ncid))
-
-       END SUBROUTINE get_row_isa_data
-
-      !----------------------------------------------------------------------------------------------------------------
-
-
 END MODULE mo_isa_routines
 
 

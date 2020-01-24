@@ -38,7 +38,7 @@ MODULE mo_agg_topo_cosmo
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i4
-  USE mo_kind, ONLY: i8
+  USE mo_kind, ONLY: i4
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_io_units,          ONLY: filename_max
@@ -130,10 +130,10 @@ MODULE mo_agg_topo_cosmo
 !roa<
 
 
-   TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles)!< structure with defenition of the raw data grid for the 16/36 GLOBE/ASTER tiles
+   TYPE(reg_lonlat_grid) :: topo_tiles_grid(1:ntiles)!< structure w/ def of the raw data grid for the 16/36 GLOBE/ASTER tiles
    TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
 
-   TYPE(reg_lonlat_grid) :: topo_grid                !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
+   TYPE(reg_lonlat_grid) :: topo_grid !< structure with defenition of the raw data grid for the whole GLOBE/ASTER dataset
    CHARACTER (LEN=filename_max), INTENT(IN) :: topo_files(1:max_tiles)  !< filenames globe/aster raw data
    LOGICAL, INTENT(IN) :: lsso_param
    LOGICAL, INTENT(IN) :: lscale_separation
@@ -162,13 +162,13 @@ MODULE mo_agg_topo_cosmo
 !< roughness length due to orography
    REAL(KIND=wp), INTENT(OUT)          :: fr_land_topo(1:tg%ie,1:tg%je,1:tg%ke) 
 !< fraction land
-   INTEGER (KIND=i8), INTENT(OUT)      :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)  
+   INTEGER (KIND=i4), INTENT(OUT)      :: no_raw_data_pixel(1:tg%ie,1:tg%je,1:tg%ke)  
 !< number of raw data pixel for a target grid element
 
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: theta_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, angle of principal axis
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: aniso_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, anisotropie factor
    REAL(KIND=wp), INTENT(OUT), OPTIONAL:: slope_target(1:tg%ie,1:tg%je,1:tg%ke) !< sso parameter, mean slope
-   CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: scale_sep_files(1:max_tiles)  !< filenames globe/aster raw scale separated data
+   CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: scale_sep_files(1:max_tiles)!< filenames globe/aster raw separated data
    CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: raw_data_orography_path !< path to raw data !_br 17.09.14
    CHARACTER(LEN=filename_max), INTENT(IN), OPTIONAL :: raw_data_scale_sep_orography_path !< path to raw data !_br 17.09.14
 
@@ -195,7 +195,7 @@ MODULE mo_agg_topo_cosmo
    REAL(KIND=wp)   :: hh1_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of grid element
    REAL(KIND=wp)   :: hh2_target(1:tg%ie,1:tg%je,1:tg%ke)  !< square mean height of grid element
    REAL(KIND=wp)   :: hh2_target_scale(1:tg%ie,1:tg%je,1:tg%ke)  !< square mean scale separated height of grid element
-   REAL(KIND=wp)   :: hh_sqr_diff(1:tg%ie,1:tg%je,1:tg%ke) !<squared difference between the filtered (scale separated) and original topography
+   REAL(KIND=wp)   :: hh_sqr_diff(1:tg%ie,1:tg%je,1:tg%ke) !<squared diff betw. the filtered and original topography
 !roa >
    REAL(KIND=wp)   :: hsmooth(1:tg%ie,1:tg%je,1:tg%ke)  !< mean smoothed height of grid element
 !roa <
@@ -204,13 +204,13 @@ MODULE mo_agg_topo_cosmo
    REAL(KIND=wp)   :: h11(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
    REAL(KIND=wp)   :: h12(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
    REAL(KIND=wp)   :: h22(1:tg%ie,1:tg%je,1:tg%ke) !< help variables
-   INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
+   INTEGER (KIND=i4) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
 
    INTEGER (KIND=i4) :: undef_topo
    INTEGER (KIND=i4) :: default_topo
    INTEGER :: i,j ! counters
-   INTEGER (KIND=i8) :: ie, je, ke  ! indices for grid elements
-   INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), iev_vec(:)  ! indices for target grid elements
+   INTEGER (KIND=i4) :: ie, je, ke  ! indices for grid elements
+   INTEGER (KIND=i4), ALLOCATABLE :: ie_vec(:), iev_vec(:)  ! indices for target grid elements
    INTEGER :: nt      ! counter
    INTEGER :: j_n, j_c, j_s ! counter for northern, central and southern row
    INTEGER :: j_new ! counter for swapping indices j_n, j_c, j_s
@@ -231,7 +231,7 @@ MODULE mo_agg_topo_cosmo
    ! Some stuff for OpenMP parallelization
    INTEGER :: num_blocks, blk_len, istartlon, iendlon, nlon_sub
 !$ INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
-!$ INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
+!$ INTEGER (KIND=i4), ALLOCATABLE :: start_cell_arr(:)
 
    TYPE(reg_lonlat_grid) :: ta_grid 
 !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE/ASTER dataset)
@@ -243,14 +243,6 @@ MODULE mo_agg_topo_cosmo
 
 !< coordinates in cartesian system of point for which the nearest ICON grid cell is to be determined
     !variables for GME search
-   INTEGER :: nip1 ! grid mesh dimension 
-   REAL (KIND=wp)  :: zx,zy,zz ! cartesian coordinates of point
-   REAL (KIND=wp), SAVE  :: spd_t = 1. ! threshold value for scalar product 
-   INTEGER :: kd ! diamond containing point
-   INTEGER :: kj1,kj2   ! nodal indices of nearest grid point
-   ! on entry, kj1 and kj2 are first guess values
-   REAL (KIND=wp), SAVE  :: sp =1.! scalar product between point and nearest GME nodal point
-   LOGICAL :: ldebug=.FALSE.
    LOGICAL :: lskip
    REAL (KIND=wp) :: point_lon_geo       !< longitude coordinate in geographical system of input point 
    REAL (KIND=wp) :: point_lat_geo       !< latitude coordinate in geographical system of input point
@@ -733,7 +725,6 @@ MODULE mo_agg_topo_cosmo
          CALL do_orosmooth(tg,               &
       &                    hh_target,        &
       &                    fr_land_topo,     &
-      &                    lfilter_oro,      &
       &                    ilow_pass_oro,    &
       &                    numfilt_oro,      &
       &                    eps_filter,       &
@@ -957,10 +948,10 @@ MODULE mo_agg_topo_cosmo
        INTEGER (KIND=i4), ALLOCATABLE :: h_block(:,:) !< a block of GLOBE altitude data
        TYPE(reg_lonlat_grid) :: ta_grid 
 !< structure with definition of the target area grid (dlon must be the same as for the whole GLOBE dataset)
-       INTEGER (KIND=i8) :: western_column     !< the index of the western_column of data to read in
-       INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of data to read in
-       INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of data to read in
-       INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of data to read in
+       INTEGER (KIND=i4) :: western_column     !< the index of the western_column of data to read in
+       INTEGER (KIND=i4) :: eastern_column     !< the index of the eastern_column of data to read in
+       INTEGER (KIND=i4) :: northern_row       !< the index of the northern_row of data to read in
+       INTEGER (KIND=i4) :: southern_row       !< the index of the southern_row of data to read in
        REAL (KIND=wp)   :: bwlon  !< weight for bilinear interpolation
        REAL (KIND=wp)   :: bwlat  !< weight for bilinear interpolation
        REAL (KIND=wp)   :: topo_point_sw       !< value of the GLOBE raw data pixel south west

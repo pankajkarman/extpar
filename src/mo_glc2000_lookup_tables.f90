@@ -52,16 +52,10 @@ MODULE mo_glc2000_lookup_tables
 
  !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
-  !> abort_extpar defined in MODULE utilities_extpar
-  USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_io_units,          ONLY: filename_max
 
-
-
-                           
 IMPLICIT NONE
 
 PRIVATE
@@ -132,9 +126,6 @@ REAL (KIND=wp) :: z0c_gme_o(nclass_glc2000)  = (/ &       !< lookup table landus
   &          0.01,       &       ! snow & ice 
   &          1.00,       &       ! artificial surface  
   &          0.         /)        ! undefined
-
-REAL (KIND=wp) :: lnz0c_gme_o(nclass_glc2000)    !< corresponding natural logarithm of z0c_gme_o
-
 
 REAL (KIND=wp) :: zplcmnc_gme_o(nclass_glc2000) = (/ &      !< lookup table landuse class to minimal plant cover
   &         0.80,  &       ! evergreen broadleaf forest   
@@ -346,7 +337,6 @@ REAL (KIND=wp) :: z0c_cosmo_o(nclass_glc2000)  = (/ &       !< lookup table land
   &          1.00,       &       ! artificial surface  
   &          0.         /)        ! undefined
 
-REAL (KIND=wp) :: lnz0c_cosmo_o(nclass_glc2000)    !< corresponding natural logarithm of z0c_gme_o
 REAL (KIND=wp) :: zplcmnc_cosmo_o(nclass_glc2000)  = (/ &      !< lookup table landuse class to minimal plant cover
   &         0.80,  &       ! evergreen broadleaf forest   
   &         0.75,  &       ! deciduous broadleaf closed forest
@@ -550,7 +540,6 @@ REAL (KIND=wp) :: z0c_experimental(nclass_glc2000)   = (/ &       !< lookup tabl
   &          1.00,       &       ! artificial surface  
   &          0.         /)        ! undefined
 
-REAL (KIND=wp) :: lnz0c_experimental(nclass_glc2000)    !< corresponding natural logarithm of z0c_gme_o
 REAL (KIND=wp) :: zplcmnc_experimental(nclass_glc2000)  = (/ &      !< lookup table landuse class to minimal plant cover
   &         0.80,  &       ! evergreen broadleaf forest   
   &         0.75,  &       ! deciduous broadleaf closed forest
@@ -786,7 +775,7 @@ CONTAINS
 
     ! local variable
     INTEGER :: i !< counter
-    REAL :: arg
+    REAL(KIND=wp) :: arg
 
       SELECT CASE (ilookup_table_glc2000)
         CASE(i_gme_lookup_table)
@@ -830,7 +819,7 @@ CONTAINS
       DO i=1,nclass_glc2000
         IF (z0_lt_glc2000(i) > 0.) THEN
           arg = z0_lt_glc2000(i)
-          lnz0_lt_glc2000(i) = ALOG(arg)
+          lnz0_lt_glc2000(i) = LOG(arg)
         ENDIF
       ENDDO
 
@@ -947,10 +936,5 @@ CONTAINS
           END IF
 
   END  SUBROUTINE glc2000_look_up
-
-
-
-
-
 
 END MODULE mo_glc2000_lookup_tables

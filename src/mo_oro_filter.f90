@@ -21,7 +21,7 @@ MODULE mo_oro_filter
 
   !###
   !> kind parameters are defined in MODULE data_parameters
-  USE mo_kind, ONLY: wp, i8, i4
+  USE mo_kind, ONLY: wp, i4, i4
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar,      ONLY: abort_extpar,           &
@@ -187,7 +187,6 @@ CONTAINS
   SUBROUTINE do_orosmooth   (tg,                                 &
        &                                      hh_target,        &
        &                                      fr_land_topo,    &
-       &                                      lfilter_oro,      &
        &                                      ilow_pass_oro,    &
        &                                      numfilt_oro,      &
        &                                      eps_filter,       &
@@ -204,7 +203,6 @@ CONTAINS
     TYPE(target_grid_def), INTENT(IN)      :: tg              !< !< structure with target grid description
     REAL(KIND=wp), INTENT(IN)   :: hh_target(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
     REAL(KIND=wp), INTENT(IN)   :: fr_land_topo(1:tg%ie,1:tg%je,1:tg%ke)  !< mean height of target grid element
-    LOGICAL, INTENT(IN) :: lfilter_oro  !< oro smoothing to be performed? (TRUE/FALSE) 
     INTEGER(KIND=i4), INTENT(IN) :: ilow_pass_oro            !< type of oro smoothing and 
     !  stencil width (1,4,5,6,8)
     INTEGER(KIND=i4), INTENT(IN) :: numfilt_oro              !< number of applications of the filter
@@ -221,7 +219,7 @@ CONTAINS
     REAL(KIND=wp), INTENT(INOUT) :: hsmooth(1:tg%ie,1:tg%je,1:tg%ke)   !< mean smoothed height of target grid element
 
     !> local variables
-    INTEGER(KIND=i8)             :: ndim, ie, je, ie_ext_hf, je_ext_hf, &
+    INTEGER(KIND=i4)             :: ndim, ie, je, ie_ext_hf, je_ext_hf, &
          ile, iri, jlo, jup
     INTEGER(KIND=i4)             :: hfwidth, hfw_m_nb, errorcode,       &
          n, nit, nfrl
@@ -428,8 +426,8 @@ CONTAINS
           hfwidth = 6
         END SELECT
         hfw_m_nb = hfwidth 
-        ie_ext_hf = INT(tg%ie + 2*hfw_m_nb  ,i8)
-        je_ext_hf = INT(tg%je + 2*hfw_m_nb ,i8)
+        ie_ext_hf = INT(tg%ie + 2*hfw_m_nb  ,i4)
+        je_ext_hf = INT(tg%je + 2*hfw_m_nb ,i4)
         DO n = 1, numfilt_oro
           CALL hfilter_orography( ncutoff=ilow_pass_oro, lhf_mask=.FALSE., &
                tg=tg, ie_ext_hf=ie_ext_hf,              &
@@ -534,10 +532,10 @@ CONTAINS
       DO ie = 1, tg%ie
         IF ((fr_land_topo(ie,je,1) < 0.5) .AND.  &
              (hh_target(ie,je,1) <= zhmax_sea)) THEN
-          ile = MAX (1_i8,ie-1_i8)
-          iri = MIN (ie+1_i8,tg%ie)
-          jlo = MAX (1_i8,je-1_i8)
-          jup = MIN (je+1_i8,tg%je)
+          ile = MAX (1_i4,ie-1_i4)
+          iri = MIN (ie+1_i4,tg%ie)
+          jlo = MAX (1_i4,je-1_i4)
+          jup = MIN (je+1_i4,tg%je)
           nfrl = 0
           IF (fr_land_topo(ile,jlo,1 ) < 0.5) nfrl = nfrl + 1
           IF (fr_land_topo(ie ,jlo,1 ) < 0.5) nfrl = nfrl + 1
@@ -595,7 +593,7 @@ CONTAINS
 
     ! local variables
     INTEGER :: errorcode !< error status variable
-    INTEGER (KIND=i8) :: ie, je, ke  ! indices for grid elements
+    INTEGER (KIND=i4) :: ie, je, ke  ! indices for grid elements
 
     REAL(KIND=wp) :: zdh_x1, zdh_x2, zdh_y1, zdh_y2, zdh_max               
 
@@ -662,7 +660,7 @@ CONTAINS
 
     ! Parameterlist
 
-    INTEGER (KIND=i8), INTENT(IN)    ::   &
+    INTEGER (KIND=i4), INTENT(IN)    ::   &
          ndim         ! dimension of xy_vec
 
     REAL    (KIND=wp)   , INTENT(IN)    ::   &
@@ -677,7 +675,7 @@ CONTAINS
          o(ndim),  p(ndim),  q(ndim),  r(ndim),  s(ndim),  t(ndim),    &
          u(ndim),  v(ndim),  w(ndim),  x(ndim)
 
-    INTEGER (KIND=i8)                :: n
+    INTEGER (KIND=i4)                :: n
 
     !------------------------------------------------------------------------------
     !- End of header -
@@ -813,7 +811,7 @@ CONTAINS
 
     ! Parameterlist
 
-    INTEGER (KIND=i8), INTENT(IN)    :: ndim         ! dimension of xy_vec
+    INTEGER (KIND=i4), INTENT(IN)    :: ndim         ! dimension of xy_vec
 
     REAL    (KIND=wp), INTENT(INOUT) :: xy_vec(ndim) ! one dimensional vector to be filtered
 
@@ -827,7 +825,7 @@ CONTAINS
          &                              phi(ndim), & ! filter increment
          &                              h(ndim)      ! for intermediate storage
 
-    INTEGER (KIND=i8)                :: n
+    INTEGER (KIND=i4)                :: n
 
     !> Specify RHS of equation
 
@@ -922,8 +920,8 @@ CONTAINS
     INTEGER (KIND=i4), INTENT(IN)     :: ncutoff
     LOGICAL, INTENT(IN)               :: lhf_mask
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
-    INTEGER (KIND=i8), INTENT(IN)     :: ie_ext_hf
-    INTEGER (KIND=i8), INTENT(IN)     :: je_ext_hf
+    INTEGER (KIND=i4), INTENT(IN)     :: ie_ext_hf
+    INTEGER (KIND=i4), INTENT(IN)     :: je_ext_hf
     INTEGER (KIND=i4), INTENT(IN)     :: hfw_m_nb
     INTEGER (KIND=i4), INTENT(IN)     :: hfwidth
 
@@ -936,7 +934,7 @@ CONTAINS
     ! Local variables
     REAL (KIND=wp), ALLOCATABLE       :: ff_tmp(:,:)
     INTEGER (KIND=i4)                 :: errorcode
-    INTEGER (KIND=i8)                 :: i, j
+    INTEGER (KIND=i4)                 :: i, j
 
     ! Allocate and set temporary field
     ALLOCATE( ff_tmp(ie_ext_hf,je_ext_hf), STAT = errorcode )

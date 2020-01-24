@@ -108,10 +108,8 @@ PROGRAM extpar_albedo_to_buffer
   REAL (KIND=wp) :: startlat_alb !< latitude of lower left grid element for albedo data
 
   REAL(KIND=wp) :: undefined !< value to indicate undefined grid elements 
-  INTEGER (KIND=i4) :: undef_int   !< value for undefined integer
 
   !local variables
-  undef_int = -500
   undefined = -999.0_wp ! undef vlaue
   namelist_grid_def = 'INPUT_grid_org'
   namelist_alb_data_input = 'INPUT_ALB'
@@ -201,7 +199,7 @@ PROGRAM extpar_albedo_to_buffer
   WRITE(logging%fileunit,*)'============= allocate fields =================='
   WRITE(logging%fileunit,*) ''
 
-  CALL allocate_raw_alb_fields(nlon_alb,nlat_alb,ntime_alb)   
+  CALL allocate_raw_alb_fields(nlon_alb,nlat_alb)   
   CALL allocate_alb_target_fields(tg,ntime_alb,ialb_type)
   
   !-------------------------------------------------------------------------------
@@ -302,7 +300,6 @@ PROGRAM extpar_albedo_to_buffer
          &                            tg,         &
          &                            ntime_alb, &
          &                            undefined, &
-         &                            undef_int,   &
          &                            lon_geo,     &
          &                            lat_geo, &
          &                            alb_dry=alb_dry, &
@@ -312,7 +309,6 @@ PROGRAM extpar_albedo_to_buffer
          &                            tg,         &
          &                            ntime_alb, &
          &                            undefined, &
-         &                            undef_int,   &
          &                            lon_geo,     &
          &                            lat_geo, &
          &                            alb_field_mom=alb_field_mom, &
@@ -323,7 +319,6 @@ PROGRAM extpar_albedo_to_buffer
          &                            tg,         &
          &                            ntime_alb, &
          &                            undefined, &
-         &                            undef_int,   &
          &                            lon_geo,     &
          &                            lat_geo, &
          &                            alb_field_mom=alb_field_mom)
@@ -337,7 +332,7 @@ PROGRAM extpar_albedo_to_buffer
   WRITE(logging%fileunit,*) ''
 
   CALL deallocate_raw_alb_fields
-  CALL deallocate_alb_target_fields(ialb_type)
+  CALL deallocate_alb_target_fields()
 
   WRITE(logging%fileunit,*) ''
   WRITE(logging%fileunit,*)'============= albedo_to_buffer done ============='

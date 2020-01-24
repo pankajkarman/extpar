@@ -16,8 +16,7 @@ MODULE mo_glc2000_data
 
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
-                   i4, &
-                   i8
+                   i4
 
 !> abort_extpar defined in MODULE utilities_extpar
 USE mo_utilities_extpar, ONLY: abort_extpar
@@ -48,8 +47,8 @@ CONTAINS
   !> allocate raw data fields
   SUBROUTINE allocate_raw_glc2000_fields(nrows,ncolumns)
   IMPLICIT NONE
-  INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
-  INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
+  INTEGER (KIND=i4), INTENT(IN) :: nrows !< number of rows
+  INTEGER (KIND=i4), INTENT(IN) :: ncolumns !< number of columns
 
   INTEGER :: errorcode !< error status variable
 
@@ -72,7 +71,6 @@ CONTAINS
   USE mo_lu_tg_fields, ONLY: fr_land_lu,       &
   &                          ice_lu,           &
   &                          z0_lu,            &
-  &                          z0_tot,           &
   &                          root_lu,          &
   &                          plcov_mn_lu,      &
   &                          plcov_mx_lu,      &
@@ -83,7 +81,6 @@ CONTAINS
   &                          for_d_lu,         &
   &                          for_e_lu,         &
   &                          emissivity_lu,    &
-  &                          fr_ocean_lu,      &
   &                          lu_class_fraction,&
   &                          lu_class_npixel,  &
   &                          lu_tot_npixel                            

@@ -24,7 +24,7 @@
 !> \author Hermann Asensio
 MODULE mo_topo_output_nc
 
-  USE mo_kind, ONLY: wp, i4, i8
+  USE mo_kind, ONLY: wp, i4, i4
 
   USE mo_grid_structures, ONLY: rotated_lonlat_grid, &
        &                        icosahedral_triangular_grid, &
@@ -143,8 +143,8 @@ CONTAINS
 
     INTEGER :: errorcode !< error status variable
 
-    INTEGER (KIND=i8) :: istart, iend, jstart, jend
-    INTEGER (KIND=i8) :: tmp_nlon, tmp_nlat
+    INTEGER (KIND=i4) :: istart, iend, jstart, jend
+    INTEGER (KIND=i4) :: tmp_nlon, tmp_nlat
 
     WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_topo'
 
@@ -332,7 +332,6 @@ CONTAINS
        &                                     cosmo_grid,      &
        &                                     tg,              &
        &                                     undefined,       &
-       &                                     undef_int,       &
        &                                     lon_geo,         &
        &                                     lat_geo,         &
        &                                     fr_land_topo,    &
@@ -353,7 +352,6 @@ CONTAINS
     TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
@@ -389,7 +387,7 @@ CONTAINS
     CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
     CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
 
-    INTEGER(KIND=i8) :: istart, iend, jstart, jend
+    INTEGER(KIND=i4) :: istart, iend, jstart, jend
 
     WRITE(logging%fileunit,*)'Enter routine write_netcdf_cosmo_grid_topo'
 
@@ -550,7 +548,6 @@ CONTAINS
        &                                     icon_grid,      &
        &                                     tg,             &
        &                                     undefined,      &
-       &                                     undef_int,      &
        &                                     lon_geo,        &
        &                                     lat_geo,        &
        &                                     fr_land_topo,   &
@@ -568,7 +565,6 @@ CONTAINS
     TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 
@@ -783,8 +779,6 @@ CONTAINS
   !> read netcdf file for the fields derived from GLOBE data from the buffer 
   SUBROUTINE read_netcdf_buffer_topo(netcdf_filename, &
        &                             tg,              &
-       &                             undefined,       &  
-       &                             undef_int,       &
        &                             fr_land_topo,    &
        &                             hh_topo,         &
        &                             stdh_topo,       &
@@ -806,9 +800,6 @@ CONTAINS
     TYPE(target_grid_def), INTENT(IN)     :: tg !< structure with target grid description
     INTEGER(KIND=i4),INTENT(IN),OPTIONAL  :: nhori    
     LOGICAL,         INTENT(IN),OPTIONAL  :: lrad  
-
-    REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
 
     REAL(KIND=wp), INTENT(OUT)  :: hh_topo(:,:,:)  !< mean height 
     REAL(KIND=wp), INTENT(OUT)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height

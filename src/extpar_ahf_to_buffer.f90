@@ -107,7 +107,6 @@ PROGRAM extpar_ahf_to_buffer
   INTEGER (KIND=i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
   REAL(KIND=wp) :: undefined !< value to indicate undefined grid elements 
-  INTEGER (KIND=i4) :: undef_int   !< value for undefined integer
 
   namelist_grid_def = 'INPUT_grid_org'
   namelist_ahf_data_input = 'INPUT_AHF'
@@ -126,7 +125,6 @@ PROGRAM extpar_ahf_to_buffer
   WRITE(logging%fileunit,*) '============= init grid and read namelist======='
   WRITE(logging%fileunit,*) ''
 
-  undef_int = 0 ! set undefined to zero
   undefined = -999.0 ! undef vlaue
       
   CALL init_target_grid(namelist_grid_def)
@@ -231,7 +229,6 @@ PROGRAM extpar_ahf_to_buffer
 
       netcdf_filename = TRIM(ahf_output_file)
       undefined = -500.
-      undef_int = -500
 
       IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'write out ', TRIM(netcdf_filename)
 
@@ -239,7 +236,6 @@ PROGRAM extpar_ahf_to_buffer
    &                                     icon_grid,         &
    &                                     tg,         &
    &                                     undefined, &
-   &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo,   &
    &                                     ahf_field)
@@ -252,7 +248,6 @@ PROGRAM extpar_ahf_to_buffer
     
       netcdf_filename = TRIM(ahf_output_file)
       undefined = -500.
-      undef_int = -500
 
       IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'write out ', TRIM(netcdf_filename)
 
@@ -261,16 +256,12 @@ PROGRAM extpar_ahf_to_buffer
    &                                     cosmo_grid,         &
    &                                     tg,         &
    &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
    &                                     ahf_field)
 
   END SELECT
 
   netcdf_filename = TRIM(ahf_buffer_file)
   undefined = -500.
-  undef_int = -500
 
   IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'write out ', TRIM(netcdf_filename)
 
@@ -278,7 +269,6 @@ PROGRAM extpar_ahf_to_buffer
   CALL write_netcdf_buffer_ahf(netcdf_filename,  &
    &                                     tg,         &
    &                                     undefined, &
-   &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
    &                                     ahf_field)
@@ -296,4 +286,3 @@ PROGRAM extpar_ahf_to_buffer
   WRITE(logging%fileunit,*) '============= start ahf_to_buffer =============='
 
 END PROGRAM extpar_ahf_to_buffer
-

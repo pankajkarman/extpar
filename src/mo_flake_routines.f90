@@ -16,7 +16,7 @@ MODULE mo_flake_routines
 
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
-                   i8, &
+                   i4, &
                    i4
 
 USE netcdf,      ONLY :   &
@@ -24,49 +24,15 @@ USE netcdf,      ONLY :   &
   nf90_close,             &
   nf90_inquire,           &
   nf90_inquire_dimension, &
-  nf90_inquire_variable,  &
-  nf90_inq_attname,       &
-  nf90_inquire_attribute, &
-  nf90_get_att,           &
   nf90_inquire_dimension, &
   nf90_inq_varid,          &
   nf90_get_var,            &
-  nf90_noerr,              &
-  nf90_strerror
-
-USE netcdf,      ONLY:     &
-  nf90_create,             &
-  nf90_def_dim,            &
-  nf90_def_var,            &
-  nf90_enddef,             &
-  nf90_redef,              &
-  nf90_put_att,            &
-  nf90_put_var
-
- 
-USE netcdf,      ONLY :   &
-  NF90_CHAR,               &
-  NF90_DOUBLE,             &
-  NF90_FLOAT,              &
-  NF90_INT,                &
-  NF90_BYTE,               &
-  NF90_SHORT
-
-
-USE netcdf,      ONLY :   &
-  NF90_GLOBAL,             &
-  NF90_UNLIMITED,          &
-  NF90_CLOBBER,            &
-  NF90_NOWRITE
+  nf90_nowrite
 
 
 !> abort_extpar defined in MODULE utilities_extpar
-USE mo_utilities_extpar, ONLY: abort_extpar
 USE mo_io_utilities,           ONLY: check_netcdf
 USE mo_io_units,          ONLY: filename_max
-
-USE mo_grid_structures,        ONLY: reg_lonlat_grid
-USE mo_base_geometry,          ONLY: geographical_coordinates
 
 IMPLICIT NONE
 
@@ -126,8 +92,8 @@ END SUBROUTINE read_namelists_extpar_flake
 
 
         CHARACTER (len=*), INTENT(in) :: path_flake_file         !< filename with path for flake raw data
-        INTEGER (KIND=i8), INTENT(out) :: nlon_flake !< number of grid elements in zonal direction for flake data
-        INTEGER (KIND=i8), INTENT(out) :: nlat_flake !< number of grid elements in meridional direction for flake data
+        INTEGER (KIND=i4), INTENT(out) :: nlon_flake !< number of grid elements in zonal direction for flake data
+        INTEGER (KIND=i4), INTENT(out) :: nlat_flake !< number of grid elements in meridional direction for flake data
 
         !local variables
         INTEGER :: ncid                             !< netcdf unit file number
@@ -179,8 +145,8 @@ END SUBROUTINE read_namelists_extpar_flake
        USE mo_grid_structures, ONLY: reg_lonlat_grid
 
         CHARACTER (len=*), INTENT(in) :: path_flake_file         !< filename with path for flake raw data
-        INTEGER (KIND=i8), INTENT(in) :: nlon_flake !< number of grid elements in zonal direction for flake data
-        INTEGER (KIND=i8), INTENT(in) :: nlat_flake !< number of grid elements in meridional direction for flake data
+        INTEGER (KIND=i4), INTENT(in) :: nlon_flake !< number of grid elements in zonal direction for flake data
+        INTEGER (KIND=i4), INTENT(in) :: nlat_flake !< number of grid elements in meridional direction for flake data
         REAL (KIND=wp), INTENT(out)    :: lon_flake(1:nlon_flake) !< longitude of flake raw data
         REAL (KIND=wp), INTENT(out)    :: lat_flake(1:nlat_flake) !< latitude of flake raw data
         TYPE(reg_lonlat_grid), INTENT(OUT) :: flake_grid 
@@ -224,67 +190,5 @@ END SUBROUTINE read_namelists_extpar_flake
        END SUBROUTINE get_lonlat_flake_data
 
         !----------------------------------------------------------------------------------------------------------------
-        !----------------------------------------------------------------------------------------------------------------  
-        !> get one row of flake raw data 
-        SUBROUTINE get_row_flake_data(path_flake_file, &
-                                          nlon_flake, &
-                                          data_row, &
-                                          flake_data_row)
-
-       USE mo_grid_structures, ONLY: reg_lonlat_grid
-
-        CHARACTER (len=*), INTENT(in) :: path_flake_file         !< filename with path for flake raw data
-        INTEGER , INTENT(in) :: nlon_flake !< number of grid elements in zonal direction for flake data
-        INTEGER , INTENT(in) :: data_row !< number or row for data to read in
-
-        INTEGER , INTENT(OUT) :: flake_data_row(1:nlon_flake)
-
-
-        !local variables
-        INTEGER :: ncid                             !< netcdf unit file number
-
-        CHARACTER (LEN=80) :: varname  !< name of variable
-        INTEGER :: varid               !< id of variable
-
-       ! open netcdf file 
-        CALL check_netcdf( nf90_open(TRIM(path_flake_file),NF90_NOWRITE, ncid))
-
-        varname = 'DEPTH_LK' ! I know that the lake depth data are stored in a variable called 'DEPTH_LK'
-
-         CALL check_netcdf( nf90_inq_varid(ncid, TRIM(varname), varid))
-
-         CALL check_netcdf(nf90_get_var(ncid, varid,  flake_data_row,  &
-                       start=(/1,data_row/),count=(/nlon_flake,1/)))
-
-       ! close netcdf file 
-       CALL check_netcdf( nf90_close( ncid))
-
-       END SUBROUTINE get_row_flake_data
-
-      !----------------------------------------------------------------------------------------------------------------
-      !----------------------------------------------------------------------------------------------------------------
-      !> open netcdf-file and get netcdf unit file number
-      SUBROUTINE open_netcdf_flake(path_flake_file, &
-                                        ncid)
-        CHARACTER (len=*), INTENT(in) :: path_flake_file         !< filename with path to GLOBE tile
-        INTEGER, INTENT(out) :: ncid                             !< netcdf unit file number
-
-        ! open netcdf file 
-         CALL check_netcdf( nf90_open(TRIM(path_flake_file),NF90_NOWRITE, ncid))
-
-      END SUBROUTINE open_netcdf_flake
-
-      !> close netcdf-file 
-      SUBROUTINE close_netcdf_flake(ncid)
-         INTEGER, INTENT(in) :: ncid                             !< netcdf unit file number
-
-        ! close netcdf file 
-        CALL check_netcdf( nf90_close( ncid))
-
-       END SUBROUTINE close_netcdf_flake
-
-       !----------------------------------------------------------------------------------------------------------------
-       !----------------------------------------------------------------------------------------------------------------
-
 
 END MODULE mo_flake_routines

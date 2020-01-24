@@ -83,7 +83,7 @@ PROGRAM extpar_aot_to_buffer
 
   USE info_extpar, ONLY: info_print
   USE mo_logging
-  USE mo_kind,              ONLY: wp, i8
+  USE mo_kind,              ONLY: wp, i4
   
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
@@ -143,18 +143,18 @@ PROGRAM extpar_aot_to_buffer
   CHARACTER (len=filename_max) :: aot_output_file !< name for aerosol output file
 
   REAL (KIND=wp) :: undefined
-  INTEGER        :: undef_int
 
-  INTEGER (KIND=i8) :: ntype !< number of types of aerosols
-  INTEGER (KIND=i8) :: nrows !< number of rows
-  INTEGER (KIND=i8) :: ncolumns !< number of columns
-  INTEGER (KIND=i8) :: ntime !< number of times
+  !--------------------------------------------------------------------------------------
+
+  INTEGER (KIND=i4) :: ntype !< number of types of aerosols
+  INTEGER (KIND=i4) :: nrows !< number of rows
+  INTEGER (KIND=i4) :: ncolumns !< number of columns
+  INTEGER (KIND=i4) :: ntime !< number of times
 
   !local variables
   input_namelist_file='INPUT_AOT'
   namelist_grid_def = 'INPUT_grid_org'
   undefined = -999.0_wp
-  undef_int = -999
 
   CALL initialize_logging("extpar_aot_to_buffer.log")
   CALL info_print()
@@ -262,7 +262,7 @@ PROGRAM extpar_aot_to_buffer
   WRITE(logging%fileunit,*)'============= start aggregation ================'
   WRITE(logging%fileunit,*) ''
 
-  CALL  agg_aot_data_to_target_grid(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
+  CALL  agg_aot_data_to_target_grid(iaot_type,ntime,ntype,n_spectr)
 
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------
@@ -276,7 +276,6 @@ PROGRAM extpar_aot_to_buffer
   CALL write_netcdf_buffer_aot(netcdf_filename, &
       &                       tg,              &
       &                       undefined,       &
-      &                       undef_int,       &
       &                       lon_geo,         &
       &                       lat_geo,         &
       &                       ntype,           &
@@ -299,16 +298,12 @@ PROGRAM extpar_aot_to_buffer
      &                                     icon_grid,       &
      &                                     tg,              &
      &                                     undefined,       &
-     &                                     undef_int,       &
      &                                     lon_geo,         &
      &                                     lat_geo,         &
      &                                     ntype,           &
      &                                     ntime,           &
      &                                     n_spectr,        &
      &                                     aot_tg,          &
-     &                                     MAC_aot_tg, &
-     &                                     MAC_ssa_tg, &
-     &                                     MAC_asy_tg, &
      &                                     iaot_type)
 
      CASE(igrid_cosmo) ! COSMO grid
@@ -317,7 +312,6 @@ PROGRAM extpar_aot_to_buffer
      &                                    cosmo_grid,      &
      &                                    tg,              &
      &                                    undefined,       &
-     &                                    undef_int,       &
      &                                    lon_geo,         &
      &                                    lat_geo,         &
      &                                    ntype,           &

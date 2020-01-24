@@ -16,12 +16,10 @@ MODULE mo_albedo_output_nc
   
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
+  USE mo_kind, ONLY: i4
   USE mo_kind, ONLY: i4
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: rotated_lonlat_grid
-  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
   USE mo_grid_structures, ONLY: target_grid_def
 
   USE mo_io_utilities, ONLY: netcdf_attributes
@@ -31,7 +29,6 @@ MODULE mo_albedo_output_nc
   USE mo_io_utilities, ONLY: netcdf_put_var
   USE mo_io_utilities, ONLY: open_new_netcdf_file
   USE mo_io_utilities, ONLY: close_netcdf_file
-  USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
 
   USE mo_io_utilities, ONLY: set_date_mm_extpar_field
 
@@ -44,9 +41,6 @@ MODULE mo_albedo_output_nc
   PRIVATE
 
   PUBLIC :: write_netcdf_buffer_alb
-  PUBLIC :: write_netcdf_cosmo_grid_alb
-  PUBLIC :: write_netcdf_icon_grid_alb
-
   PUBLIC :: read_netcdf_buffer_alb
 
   CONTAINS
@@ -55,7 +49,6 @@ MODULE mo_albedo_output_nc
    &                                     tg,         &
    &                                     ntime, &
    &                                     undefined, &
-   &                                     undef_int,   &
    &                                     lon_geo,     &
    &                                     lat_geo, &
    &                                     alb_field_mom, &
@@ -84,7 +77,6 @@ MODULE mo_albedo_output_nc
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
     REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
@@ -96,9 +88,9 @@ MODULE mo_albedo_output_nc
     ! local variables
     ! local variables
     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate  
+    INTEGER (KIND=i4) :: dataDate  
 !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+   INTEGER (KIND=i4) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
     INTEGER :: ndims  
     INTEGER :: ncid
@@ -131,7 +123,7 @@ MODULE mo_albedo_output_nc
     CALL def_com_target_fields_meta(dim_3d_tg)
     ! lon_geo_meta and lat_geo_meta
     !define albedo meta information, related variables for netcdf output
-    CALL def_alb_meta(tg,ntime,dim_3d_tg)
+    CALL def_alb_meta(ntime,dim_3d_tg)
 
     ALLOCATE(time(1:ntime),STAT=errorcode)
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
@@ -194,348 +186,7 @@ MODULE mo_albedo_output_nc
 
    END SUBROUTINE write_netcdf_buffer_alb
    !-----------------------------------------------------------------
-   !-----------------------------------------------------------------
-   !-----------------------------------------------------------------
 
-
-
-   SUBROUTINE write_netcdf_cosmo_grid_alb(netcdf_filename,  &
-   &                                     cosmo_grid,         &
-   &                                     tg,         &
-   &                                     ntime, &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     alb_field_mom, &
-   &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom, &
-   &                                     alb_dry, &
-   &                                     alb_sat)
-
-    
-    USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
-    &                           set_nc_grid_def_cosmo
-
-    USE mo_var_meta_data, ONLY: dim_rlon_cosmo, &
-    &                         dim_rlat_cosmo, &
-    &                         dim_2d_cosmo,   &
-    &                         rlon_meta,      &
-    &                         rlat_meta,      &
-    &                         def_dimension_info_cosmo
-
-    USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
-
-    USE mo_var_meta_data, ONLY: def_dimension_info_buffer
-
-    USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
-
-    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
-      &                         alnid_field_mom_meta, &
-      &                         aluvd_field_mom_meta, &
-      &                         alb_dry_meta, &
-      &                         alb_sat_meta, &
-      &                         def_alb_meta
-
-    CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-    TYPE(rotated_lonlat_grid), INTENT(IN)  :: COSMO_grid      !< structure which contains the definition of the COSMO grid
-    TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
-    REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
-    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: aluvd_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_dry(:,:,:)
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: alb_sat(:,:,:)
-
-    ! local variables
-     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate 
- !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
-
-!
-
-    INTEGER :: ndims  
-    INTEGER :: ncid
-    INTEGER :: varid
-
-    TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-    
-    INTEGER, PARAMETER :: nglob_atts=6
-    TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
-
-    CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-    CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-
-
-    INTEGER :: errorcode !< error status variable
-
-    INTEGER :: n !< counter
-
-    WRITE(logging%fileunit,*)'ENTER write_netcdf_cosmo_grid_alb'
-    WRITE(logging%fileunit,*)'set_global_att_alb'
-
-    !-------------------------------------------------------------
-    ! define global attributes
-    CALL set_global_att_alb(global_attributes)
-
-    !set up dimensions for buffer
-    CALL  def_dimension_info_buffer(tg)
-    ! dim_3d_tg
-    
-    !set up dimensions for COSMO grid
-    CALL def_dimension_info_cosmo(cosmo_grid)
-    ! dim_rlon_cosmo, dim_rlat_cosmo, dim_2d_cosmo, rlon_meta, rlat_meta
-
-    ! set mapping parameters for netcdf
-    grid_mapping="rotated_pole"
-    coordinates="lon lat"
-    CALL set_nc_grid_def_cosmo(cosmo_grid,grid_mapping)
-    ! nc_grid_def_cosmo
-    IF (verbose >= idbg_low) WRITE(logging%fileunit,*)'def_com_target_fields_meta'
-    ! define meta information for target field variables lon_geo, lat_geo 
-    CALL def_com_target_fields_meta(dim_2d_cosmo,coordinates,grid_mapping)
-    ! lon_geo_meta and lat_geo_meta
-
-
-    !define albedo meta information, related variables for netcdf output
-    CALL def_alb_meta(tg,ntime,dim_2d_cosmo,coordinates,grid_mapping)
-
-    ALLOCATE(time(1:ntime),STAT=errorcode)
-    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
-    DO n=1,ntime
-      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
-      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
-    ENDDO
-
-    ! set up dimensions for netcdf output 
-    ndims = 3
-    ALLOCATE(dim_list(1:ndims),STAT=errorcode)
-    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
-    dim_list(1) = dim_rlon_cosmo(1) ! rlon
-    dim_list(2) = dim_rlat_cosmo(1) ! rlat
-    dim_list(3)%dimname = 'time'
-    dim_list(3)%dimsize = ntime
-
-   !-----------------------------------------------------------------
-    IF (verbose >= idbg_low) WRITE(logging%fileunit,*)' CALL open_new_netcdf_file'
-    CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
-      &                       dim_list=dim_list,                  &
-      &                       global_attributes=global_attributes, &
-      &                       time=time,          &
-      &                       ncid=ncid)
-    !-----------------------------------------------------------------
-
-    ! rlon
-    IF (verbose >= idbg_low) WRITE(logging%fileunit,*)'put rlon to netcdf'
-    CALL netcdf_put_var(ncid,lon_rot(1:cosmo_grid%nlon_rot),rlon_meta,undefined)
-
-    IF (verbose >= idbg_low) WRITE(logging%fileunit,*)'put rlat to netcdf'
-    ! rlat
-    CALL netcdf_put_var(ncid,lat_rot(1:cosmo_grid%nlat_rot),rlat_meta,undefined)
-
-    ! alb_field_mom
-    IF (PRESENT(alb_field_mom)) THEN
-      CALL netcdf_put_var(ncid,&
-                       & alb_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
-                       & alb_field_mom_meta, &
-                       & undefined)
-    ENDIF
-
-    ! alnid_field_mom
-    IF (PRESENT(alnid_field_mom)) THEN
-      CALL netcdf_put_var(ncid,&
-                       & alnid_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
-                       & alnid_field_mom_meta, &
-                       & undefined)
-    ENDIF
-
-    ! aluvd_field_mom
-    IF (PRESENT(aluvd_field_mom)) THEN
-      CALL netcdf_put_var(ncid,&
-                       & aluvd_field_mom(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1:ntime), &
-                       & aluvd_field_mom_meta, &
-                       & undefined)
-    ENDIF
-
-    ! alb_dry
-    IF (PRESENT(alb_dry)) THEN
-      CALL netcdf_put_var(ncid,&
-                       & alb_dry(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
-                       & alb_dry_meta, &
-                       & undefined)
-    ENDIF
-
-    IF (PRESENT(alb_sat)) THEN
-      CALL netcdf_put_var(ncid,&
-                       & alb_sat(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
-                       & alb_sat_meta, &
-                       & undefined)
-    ENDIF
-
-
-    !-----------------------------------------------------------------
-    CALL netcdf_def_grid_mapping(ncid, nc_grid_def_cosmo, varid)
-
-    CALL close_netcdf_file(ncid)
-
-
-   END SUBROUTINE write_netcdf_cosmo_grid_alb
-   !-----------------------------------------------------------------
-   !-----------------------------------------------------------------
-   !-----------------------------------------------------------------
-
-
-   SUBROUTINE write_netcdf_icon_grid_alb(netcdf_filename,  &
-   &                                     icon_grid,         &
-   &                                     tg,         &
-   &                                     ntime, &
-   &                                     undefined, &
-   &                                     undef_int,   &
-   &                                     lon_geo,     &
-   &                                     lat_geo, &
-   &                                     alb_field_mom, &
-   &                                     alnid_field_mom, &
-   &                                     aluvd_field_mom)
-
-    USE mo_var_meta_data, ONLY: dim_icon, &
-     &                          def_dimension_info_icon
-
-    USE mo_var_meta_data, ONLY: set_nc_grid_def_icon
-
-    USE mo_var_meta_data, ONLY: def_dimension_info_buffer
-
-    USE mo_var_meta_data, ONLY: lon_geo_meta, &
-      &                         lat_geo_meta, &
-      &                         def_com_target_fields_meta  
-
-    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
-      &                         alnid_field_mom_meta, &
-      &                         aluvd_field_mom_meta, &
-      &                         def_alb_meta
-
-
-
-    CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-    TYPE(icosahedral_triangular_grid), INTENT(IN)  :: icon_grid      !< structure which contains the definition of the ICON grid
-    TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times of input data (12 monthly mean values)
-    REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
-    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
-
-    ! local variables
-     REAL (KIND=wp),ALLOCATABLE :: time(:) !< time variable
-    INTEGER (KIND=i8) :: dataDate 
- !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-   INTEGER (KIND=i8) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
-
-    INTEGER :: ndims 
-    INTEGER :: ncid
-
-    TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-    TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
-    
-    INTEGER, PARAMETER :: nglob_atts=6
-    TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
-
-    CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-
-    INTEGER :: errorcode !< error status variable
-
-    INTEGER :: n !< counter
-
-    WRITE(logging%fileunit,*)'Enter routine write_netcdf_icon_grid_alb'
-
-    IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'set_global_att_alb'
-
-    !-------------------------------------------------------------
-    ! define global attributes
-    CALL set_global_att_alb(global_attributes)
-
-    !set up dimensions for buffer
-    CALL  def_dimension_info_buffer(tg)
-    ! dim_3d_tg
-    
-
-    !set up dimensions for ICON grid
-    CALL def_dimension_info_icon(icon_grid)
-    ! dim_icon
-    dim_1d_icon = dim_icon(1) ! cell
-
-    
-    ! set mapping parameters for netcdf
-    grid_mapping="lon_lat_on_sphere"
-    CALL set_nc_grid_def_icon(grid_mapping)
-
-    IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'def_soil_meta'
-
-    IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'def_com_target_fields_meta'
-    ! define meta information for target field variables lon_geo, lat_geo 
-    CALL def_com_target_fields_meta(dim_1d_icon)
-    ! lon_geo_meta and lat_geo_meta
-
-    !define albedo meta information, related variables for netcdf output
-    CALL def_alb_meta(tg,ntime,dim_1d_icon)
-
-    ALLOCATE(time(1:ntime),STAT=errorcode)
-    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array time')
-    DO n=1,ntime
-      CALL set_date_mm_extpar_field(n,dataDate,dataTime)
-      time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
-    ENDDO
-
-
-    ! set up dimensions for netcdf output 
-    ndims = 2
-    ALLOCATE(dim_list(1:ndims),STAT=errorcode)
-    IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
-    dim_list(1) =  dim_icon(1) ! cell
-    dim_list(2)%dimname = 'time'
-    dim_list(2)%dimsize = ntime
-
-     !-----------------------------------------------------------------
-    IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)' CALL open_new_netcdf_file'
-    CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
-        &                       dim_list=dim_list,                  &
-        &                       global_attributes=global_attributes, &
-        &                       time=time,          &
-        &                       ncid=ncid)
-    !-----------------------------------------------------------------
-
-    ! lon
-    CALL netcdf_put_var(ncid,lon_geo(1:icon_grid%ncell,1,1),lon_geo_meta,undefined)
-
-    ! lat
-    CALL netcdf_put_var(ncid,lat_geo(1:icon_grid%ncell,1,1),lat_geo_meta,undefined)
-
-    ! alb_field_mom
-    CALL netcdf_put_var(ncid,alb_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
-       &                 alb_field_mom_meta, undefined)
-
-    ! alnid_field_mom
-    CALL netcdf_put_var(ncid,alnid_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
-       &                 alnid_field_mom_meta, undefined)
-
-    ! aluvd_field_mom
-    CALL netcdf_put_var(ncid,aluvd_field_mom(1:icon_grid%ncell,1,1,1:ntime), &
-       &                 aluvd_field_mom_meta, undefined)
-
-    CALL close_netcdf_file(ncid)
-
-   END SUBROUTINE write_netcdf_icon_grid_alb
-
-   !----------------------------------------------------------------------- 
-   !-----------------------------------------------------------------
-   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with albedo data
   SUBROUTINE set_global_att_alb(global_attributes)
 
@@ -595,8 +246,6 @@ MODULE mo_albedo_output_nc
   SUBROUTINE read_netcdf_buffer_alb(netcdf_filename,  &
    &                                     tg,         &
    &                                     ntime, &
-   &                                     undefined, &
-   &                                     undef_int,   &
    &                                     alb_field_mom, &
    &                                     alnid_field_mom, &
    &                                     aluvd_field_mom, &
@@ -621,8 +270,6 @@ MODULE mo_albedo_output_nc
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
     INTEGER (KIND=i4), INTENT(OUT) :: ntime !< number of times of input data (12 monthly mean values)
-    REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
     REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alb_field_mom(:,:,:,:) !< field for monthly mean albedo data (12 months)
     REAL (KIND=wp), INTENT(OUT), OPTIONAL :: alnid_field_mom(:,:,:,:)
     REAL (KIND=wp), INTENT(OUT), OPTIONAL :: aluvd_field_mom(:,:,:,:)
@@ -643,7 +290,7 @@ MODULE mo_albedo_output_nc
     ! lon_geo_meta and lat_geo_meta
 
     !define albedo meta information, related variables for netcdf output
-    CALL def_alb_meta(tg,ntime,dim_3d_tg)
+    CALL def_alb_meta(ntime,dim_3d_tg)
 
     IF (verbose >= idbg_low ) THEN
       WRITE(logging%fileunit,*)'CALL read netcdf data ALB'
@@ -674,6 +321,5 @@ MODULE mo_albedo_output_nc
 
 
    END SUBROUTINE read_netcdf_buffer_alb
-   !-----------------------------------------------------------------
 
 END Module mo_albedo_output_nc

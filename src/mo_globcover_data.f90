@@ -21,7 +21,7 @@ MODULE mo_globcover_data
 !> kind parameters are defined in MODULE data_parameters
 USE mo_kind, ONLY: wp, &
                    i4, &
-                   i8
+                   i4
 
 !> abort_extpar defined in MODULE utilities_extpar
 USE mo_utilities_extpar, ONLY: abort_extpar
@@ -37,35 +37,12 @@ USE mo_io_units,           ONLY:  filename_max
 USE netcdf,       ONLY :     &
      nf90_open,              &
      nf90_close,             &
-     nf90_inquire,           &
      nf90_inquire_dimension, &
-     nf90_inquire_variable,  &
-     nf90_inq_attname,       &
-     nf90_inquire_attribute, &
-     nf90_get_att,           &
      nf90_inquire_dimension, &
      nf90_inq_dimid,         &
      nf90_inq_varid,         &
      nf90_get_var,           &
-     nf90_noerr,             &
-     nf90_strerror,          &
-     nf90_create,            &
-     nf90_def_dim,           &
-     nf90_def_var,           &
-     nf90_enddef,            &
-     nf90_redef,             &
-     nf90_put_att,           &
-     nf90_put_var,           &
-     NF90_CHAR,              &
-     NF90_DOUBLE,            &
-     NF90_FLOAT,             &
-     NF90_INT,               &
-     NF90_BYTE,              &
-     NF90_SHORT,             &
-     NF90_GLOBAL,            &
-     NF90_UNLIMITED,         &
-     NF90_CLOBBER,           &
-     NF90_NOWRITE
+     nf90_nowrite
 
 ! <mes
 
@@ -118,8 +95,6 @@ REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lon_min(:)
 REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lon_max(:)
 REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lat_min(:)
 REAL(KIND=wp), ALLOCATABLE    :: lu_tiles_lat_max(:)
-REAL(KIND=wp), ALLOCATABLE    :: raw_lu_line(:)
-REAL(KIND=wp), ALLOCATABLE    :: raw_lu_block(:,:)
 ! <mes
 
 CONTAINS
@@ -127,8 +102,8 @@ CONTAINS
   !> allocate raw data fields
   SUBROUTINE allocate_raw_globcover_fields(nrows,ncolumns)
   IMPLICIT NONE
-  INTEGER (KIND=i8), INTENT(IN) :: nrows !< number of rows
-  INTEGER (KIND=i8), INTENT(IN) :: ncolumns !< number of columns
+  INTEGER (KIND=i4), INTENT(IN) :: nrows !< number of rows
+  INTEGER (KIND=i4), INTENT(IN) :: ncolumns !< number of columns
 
   INTEGER :: errorcode !< error status variable
 
@@ -190,6 +165,8 @@ CONTAINS
                                   lu_tiles_lat_min,       &
                                   lu_tiles_lat_max,       &
                                   nc_tiles_lu)
+
+
    IMPLICIT NONE
    SAVE
    CHARACTER (len=filename_max),INTENT(IN) :: raw_data_lu_path
@@ -199,9 +176,7 @@ CONTAINS
    REAL(KIND=wp), INTENT(OUT)   :: lu_tiles_lat_min(1:ntiles_globcover)
    REAL(KIND=wp), INTENT(OUT)   :: lu_tiles_lat_max(1:ntiles_globcover)
    INTEGER(KIND=i4), INTENT(OUT):: nc_tiles_lu
-   CHARACTER(len=2)    :: num
-   CHARACTER(len=80)   :: path
-   INTEGER(KIND=i4)    :: i, errorcode        ! i is a counter, errorcode is used to check if allocation was successful
+   INTEGER(KIND=i4)    :: i        ! i is a counter
    INTEGER(KIND=i4)    :: ncid
    INTEGER(KIND=i4)    :: dimID_lat, dimID_lon, varID_lat, varID_lon                  
    REAL(KIND=wp)       :: half_gridp          ! distance of half a grid point as the grid point is centered on a GLOBCOVER pixel

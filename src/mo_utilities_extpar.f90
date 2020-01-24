@@ -81,7 +81,7 @@
 !!
 MODULE  mo_utilities_extpar
 
-  USE mo_kind,     ONLY: wp, i4, i8
+  USE mo_kind,     ONLY: wp, i4, i4
   USE mo_logging
   USE mo_io_units, ONLY: filename_max
   
@@ -203,10 +203,9 @@ CONTAINS
   !! Method:
   !!   Transformation formulas for converting between these two systems.
   !!
-  FUNCTION  phirot2phi ( phirot, rlarot, polphi, pollam, polgam )
+  FUNCTION  phirot2phi ( phirot, rlarot, polphi, polgam )
 
     REAL (KIND=wp), INTENT (IN)      ::    polphi !< latitude of the rotated north pole
-    REAL (KIND=wp), INTENT (IN)      ::    pollam !< longitude of the rotated north pole
     REAL (KIND=wp), INTENT (IN)      ::    phirot !< latitude in the rotated system
     REAL (KIND=wp), INTENT (IN)      ::    rlarot !< longitude in the rotated system
 
@@ -502,7 +501,6 @@ CONTAINS
          zsinpol, zcospol, zlonp, zlat, zarg1, zarg2, znorm
 
     REAL (KIND=wp)                       ::    &
-         zrpi18 = 57.2957795_wp,       & !
          zpir18 = 0.0174532925_wp
 
     !------------------------------------------------------------------------------
@@ -570,7 +568,6 @@ CONTAINS
 
     INTEGER ::    i, j
     REAL (KIND=wp)                       ::    &
-         zrpi18 = 57.2957795_wp,       & !
          zpir18 = 0.0174532925_wp
 
     !------------------------------------------------------------------------------
@@ -646,7 +643,6 @@ CONTAINS
          zsinpol, zcospol, zlonp, zlat, zarg1, zarg2, znorm
 
     REAL (KIND=wp)                       ::    &
-         zrpi18 = 57.2957795_wp,       & !
          zpir18 = 0.0174532925_wp
 
     !------------------------------------------------------------------------------
@@ -711,7 +707,6 @@ CONTAINS
 
     INTEGER                 ::    i, j
     REAL (KIND=wp)                       ::    &
-         zrpi18 = 57.2957795_wp,       & !
          zpir18 = 0.0174532925_wp
 
     !------------------------------------------------------------------------------
@@ -776,6 +771,7 @@ CONTAINS
     ! Local variables
 
     REAL (KIND=wp)                       ::    &
+
          zrpi18 = 57.2957795_wp,       & ! conversion from radians to degrees
          zsmall = 0.001_wp
 
@@ -889,7 +885,7 @@ CONTAINS
 
     ! Subroutine arguments:
     ! ---------------------
-    INTEGER (KIND=i8), INTENT (IN) ::  &
+    INTEGER (KIND=i4), INTENT (IN) ::  &
          ie_in,  je_in,         & ! horizontal dimensions of field_in
          ie_out, je_out           ! dimensions of field_out
 
@@ -905,15 +901,9 @@ CONTAINS
 
     ! Local scalars:
     ! -------------
-    INTEGER (KIND=i8) ::  i, j
-
-    INTEGER (KIND=i4) ::  nbdext
+    INTEGER (KIND=i4) ::  i, j
 
     !------------------------------------------------------------------------------
-
-
-
-    nbdext    = nextlines
 
     field_out = 0.0
 
@@ -1008,7 +998,7 @@ CONTAINS
 
     ! Subroutine arguments:
     ! ---------------------
-    INTEGER (KIND=i8), INTENT(IN) :: &
+    INTEGER (KIND=i4), INTENT(IN) :: &
          ie_in, je_in            ! Dimensions of the field to be filtered
 
     INTEGER (KIND=i4), INTENT(IN) :: &
@@ -1023,12 +1013,12 @@ CONTAINS
 
     ! Local scalars:
     ! -------------
-    INTEGER (KIND=i8)  ::  &
+    INTEGER (KIND=i4)  ::  &
          ilow, iup,           & !
          jlow, jup,           & !
          i, j,                & !  Loop indices
-         istart, iend,        &
-         jstart, jend
+         iend,        &
+         jend
 
     INTEGER (KIND=i4) ::  &
          l, nfw_m_nb
@@ -1037,7 +1027,6 @@ CONTAINS
     ! -------------------------
     REAL    (KIND=wp   ) ::  &
          field_tmp (ie_in, je_in), &
-         field_tmp2(ie_in, je_in), &
          zfwnp(-nflt_width:nflt_width),   & ! filter weights for n-point filter
          zfw3p(-1:1)                        ! filter weights for 3-point filter
 
@@ -1045,9 +1034,7 @@ CONTAINS
 
     nfw_m_nb = nflt_width 
 
-    istart = 1 
     iend   = ie_in - 2*nfw_m_nb 
-    jstart = 1 
     jend   = je_in - 2*nfw_m_nb 
 
     ! filter weights for n-point filter

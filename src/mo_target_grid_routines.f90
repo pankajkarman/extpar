@@ -23,7 +23,7 @@
 !>
 MODULE mo_target_grid_routines
 
-  USE mo_kind, ONLY: wp, i4, i8
+  USE mo_kind, ONLY: wp, i4, i4
   USE mo_io_units, ONLY: filename_max
   USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_logging
@@ -41,20 +41,13 @@ MODULE mo_target_grid_routines
 
   USE mo_read_extpar_namelists, ONLY: read_namelists_extpar_grid_def
 
-  USE mo_math_constants,  ONLY: pi, pi_2, dbl_eps, rad2deg, deg2rad
-  USE mo_grid_structures, ONLY: target_grid_def 
-  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
+  USE mo_math_constants,  ONLY: rad2deg, deg2rad
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
 
   USE mo_icon_grid_data, ONLY: icon_grid !< structure which contains the definition of the ICON grid
   USE mo_icon_grid_data, ONLY: icon_grid_region
   USE mo_icon_grid_data, ONLY: icon_dom_def
-  USE mo_icon_grid_data, ONLY: nvertex_per_cell
-
-
-  USE mo_icon_domain, ONLY: construct_icon_domain
-  USE mo_icon_domain, ONLY: max_dom
 
   USE mo_icon_grid_routines, ONLY: get_icon_grid_info
   USE mo_icon_grid_routines, ONLY: get_icon_domain_info
@@ -69,7 +62,6 @@ MODULE mo_target_grid_routines
   USE mo_target_grid_data, ONLY: tg
   USE mo_target_grid_data, ONLY: lon_geo
   USE mo_target_grid_data, ONLY: lat_geo
-  USE mo_target_grid_data, ONLY: no_raw_data_pixel
   USE mo_target_grid_data, ONLY: allocate_com_target_fields
   USE mo_target_grid_data, ONLY: search_res
 
@@ -87,7 +79,7 @@ MODULE mo_target_grid_routines
 
   LOGICAL :: lzrad, lonadj
 
-  INTEGER(i8) :: i1,i2,ii,i1s,i1e,i2s,i2e
+  INTEGER(i4) :: i1,i2,ii,i1s,i1e,i2s,i2e
   REAL(wp)    :: d1,d2
   REAL(wp), ALLOCATABLE :: auxlon(:,:)
 
@@ -120,7 +112,7 @@ MODULE mo_target_grid_routines
        CASE(igrid_icon) ! ICON GRID
 
          CALL get_icon_grid_info(domain_def_namelist,tg,icon_grid,icon_coor_file)
-         CALL get_icon_domain_info(icon_grid,icon_coor_file,icon_dom_def)
+         CALL get_icon_domain_info(icon_coor_file,icon_dom_def)
          CALL init_icon_grid(icon_dom_def)
 
        CASE(igrid_cosmo) ! COSMO grid
@@ -174,11 +166,11 @@ MODULE mo_target_grid_routines
        i2s =  -90*search_res
        i2e =   90*search_res
        ALLOCATE(tg%search_index(i1s:i1e,i2s:i2e))
-       tg%search_index(:,:) = 0_i8
+       tg%search_index(:,:) = 0_i4
        DO i=1,tg%ie
          i1 = NINT(lon_geo(i,j,k)*search_res)
          i2 = NINT(lat_geo(i,j,k)*search_res)
-         IF (tg%search_index(i1,i2) == 0_i8) THEN
+         IF (tg%search_index(i1,i2) == 0_i4) THEN
            tg%search_index(i1,i2) = i
          ELSE ! determine which point is closer to the target point
            ii = tg%search_index(i1,i2)
@@ -250,7 +242,4 @@ MODULE mo_target_grid_routines
 
   END SUBROUTINE init_target_grid
 
-
 END MODULE mo_target_grid_routines
-
-

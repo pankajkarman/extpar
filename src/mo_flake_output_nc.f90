@@ -19,34 +19,22 @@ MODULE mo_flake_output_nc
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
   USE mo_logging
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid
   USE mo_grid_structures, ONLY: rotated_lonlat_grid
   USE mo_grid_structures, ONLY: icosahedral_triangular_grid
   USE mo_grid_structures, ONLY: target_grid_def
 
-  USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
-
   USE mo_io_utilities, ONLY: dim_meta_info
-
-  USE mo_io_utilities, ONLY: vartype_int 
-  USE mo_io_utilities, ONLY: vartype_real
-  USE mo_io_utilities, ONLY: vartype_char
-
   USE mo_io_utilities, ONLY: netcdf_put_var
   USE mo_io_utilities, ONLY: open_new_netcdf_file
   USE mo_io_utilities, ONLY: close_netcdf_file
-  USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
-
-  USE mo_flake_data, ONLY: flake_depth_undef !< default value for undefined lake depth
 
   IMPLICIT NONE
 
@@ -78,7 +66,6 @@ MODULE mo_flake_output_nc
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_flake_fields_meta
@@ -95,20 +82,19 @@ MODULE mo_flake_output_nc
 
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)  
+  INTEGER (KIND=i4), INTENT(IN) :: flake_tot_npixel(:,:,:)  
                                    !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
   ! local variables
 
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
   INTEGER, PARAMETER :: nglob_atts=6
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
   INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_flake'
 
@@ -183,17 +169,13 @@ MODULE mo_flake_output_nc
     &                                     flake_tot_npixel)
 
   
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
+  USE mo_var_meta_data, ONLY: def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
    
-  USE mo_var_meta_data, ONLY: nc_grid_def_cosmo, &
-    &                         set_nc_grid_def_cosmo
+  USE mo_var_meta_data, ONLY: set_nc_grid_def_cosmo                             
     
   USE mo_var_meta_data, ONLY: dim_rlon_cosmo, &
     &                         dim_rlat_cosmo, &
@@ -220,15 +202,14 @@ MODULE mo_flake_output_nc
   
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)
+  INTEGER (KIND=i4), INTENT(IN) :: flake_tot_npixel(:,:,:)
                                    !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
 
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER :: varid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
   INTEGER, PARAMETER :: nglob_atts=6
@@ -237,7 +218,6 @@ MODULE mo_flake_output_nc
   INTEGER :: errorcode !< error status variable
   CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
   CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'Enter write_netcdf_cosmo_grid_flake'
 
@@ -330,22 +310,17 @@ MODULE mo_flake_output_nc
     &                                     flake_tot_npixel)
 
 
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
-
+  USE mo_var_meta_data, ONLY: def_dimension_info_buffer
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
    
 
   USE mo_var_meta_data, ONLY:  dim_icon, &
     &                          def_dimension_info_icon
 
-  USE mo_var_meta_data, ONLY: nc_grid_def_icon, &
-    &                         set_nc_grid_def_icon
-
+  USE mo_var_meta_data, ONLY: set_nc_grid_def_icon
   USE mo_var_meta_data, ONLY: def_flake_fields_meta
 
 
@@ -363,21 +338,19 @@ MODULE mo_flake_output_nc
   
   REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(IN) :: flake_tot_npixel(:,:,:)
+  INTEGER (KIND=i4), INTENT(IN) :: flake_tot_npixel(:,:,:)
                                    !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
 
 
   ! local variables
 
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   INTEGER :: ndims  
   INTEGER :: ncid
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-  TYPE(dim_meta_info), TARGET :: dim_2d_icon(1:2)
-  TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
 
   INTEGER, PARAMETER :: nglob_atts=6
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -385,10 +358,6 @@ MODULE mo_flake_output_nc
   INTEGER :: errorcode !< error status variable
 
   CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-  CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-
-  INTEGER :: n !< counter
-
   !-------------------------------------------------------------
   ! define global attributes
   CALL set_global_att_flake(global_attributes)
@@ -411,7 +380,6 @@ MODULE mo_flake_output_nc
 
   ! set mapping parameters for netcdf
   grid_mapping="lon_lat_on_sphere"
-  coordinates="lon lat"
 
   CALL set_nc_grid_def_icon(grid_mapping)
   ! nc_grid_def_icon
@@ -423,7 +391,6 @@ MODULE mo_flake_output_nc
   IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
 
   dim_list(1) = dim_icon(1) ! cell
-  dim_1d_icon =  dim_icon(1) ! cell
 
    CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
       &                       dim_list=dim_list,                  &
@@ -514,23 +481,15 @@ MODULE mo_flake_output_nc
 
   !> read FLAKE derived buffer fields
     SUBROUTINE read_netcdf_buffer_flake(netcdf_filename,  &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
     &                                     lake_depth, &
     &                                     fr_lake,    &
     &                                     flake_tot_npixel)
 
 
-  USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                         def_dimension_info_buffer
+  USE mo_var_meta_data, ONLY: dim_3d_tg
 
 
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
-  
+  USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
   USE mo_var_meta_data, ONLY: def_flake_fields_meta
 
 
@@ -545,17 +504,11 @@ MODULE mo_flake_output_nc
   USE mo_io_utilities, ONLY: netcdf_get_var
 
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
-  TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
   REAL (KIND=wp), INTENT(OUT)  :: lake_depth(:,:,:) !< lake depth
   REAL (KIND=wp), INTENT(OUT)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-  INTEGER (KIND=i8), INTENT(OUT) :: flake_tot_npixel(:,:,:)
+  INTEGER (KIND=i4), INTENT(OUT) :: flake_tot_npixel(:,:,:)
                                     !< total number of flake raw data pixels on target grid (dimension (ie,je,ke))
 
-  ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
 
   WRITE(logging%fileunit,*)'ENTER read_netcdf_buffer_flake'
 

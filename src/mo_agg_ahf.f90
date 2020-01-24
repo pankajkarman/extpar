@@ -25,25 +25,10 @@ MODULE mo_agg_ahf
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i4
-  USE mo_kind, ONLY: i8
+  USE mo_kind, ONLY: i4
 
-
-  !> abort_extpar defined in MODULE utilities_extpar
-  USE mo_utilities_extpar, ONLY: abort_extpar
-
-
-
-  USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-    &                           rotated_lonlat_grid, &
-    &                           target_grid_def, &
-    &                           icosahedral_triangular_grid
-
+  USE mo_grid_structures, ONLY: target_grid_def
   USE mo_grid_structures, ONLY: igrid_icon
-  USE mo_grid_structures, ONLY: igrid_cosmo
-
-  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index, &
-    &                          find_rotated_lonlat_grid_element_index
-
   USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
 IMPLICIT NONE
@@ -63,27 +48,15 @@ PUBLIC :: agg_ahf_data_to_target_grid
                                lat_ahf
                                
        USE mo_ahf_tg_fields, ONLY: ahf_field
-
-
-
-
        USE mo_ahf_routines, ONLY: open_netcdf_AHF_data, &
                                    close_netcdf_AHF_data, &
-                                   get_one_row_AHF_data, &
-                                   get_pixel_AHF_data
+                                   get_one_row_AHF_data
 
        USE mo_target_grid_data, ONLY: lon_geo, &
                                       lat_geo, &
                                       no_raw_data_pixel
         
-    USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
-
-       ! USE structure which contains the definition of the COSMO grid
-       USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO 
-
-
-      ! USE structure which contains the definition of the ICON grid
-      USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
+      USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
       USE mo_bilinterpol, ONLY: get_4_surrounding_raw_data_indices, &
                                 calc_weight_bilinear_interpol, &
@@ -109,12 +82,12 @@ PUBLIC :: agg_ahf_data_to_target_grid
 
        REAL (KIND=wp) :: default_value
 
-    INTEGER (KIND=i8) :: ie   !< index value for longitude
-    INTEGER (KIND=i8)  :: je   !< index value for latitude
-    INTEGER (KIND=i8)  :: ke   !< counter
-    INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
-    INTEGER (KIND=i8) :: i,j,k !< counter
-    INTEGER (KIND=i8) :: i1, i2
+    INTEGER (KIND=i4) :: ie   !< index value for longitude
+    INTEGER (KIND=i4)  :: je   !< index value for latitude
+    INTEGER (KIND=i4)  :: ke   !< counter
+    INTEGER (KIND=i4) :: start_cell_id !< ID of starting cell for ICON search
+    INTEGER (KIND=i4) :: i,j,k !< counter
+    INTEGER (KIND=i4) :: i1, i2
 
     INTEGER :: row_index !< counter for AHF data row
     INTEGER :: column_index !< counter for AHF data column
@@ -127,13 +100,6 @@ PUBLIC :: agg_ahf_data_to_target_grid
 
      REAL (KIND=wp) ::  ahf_sum(1:tg%ie,1:tg%je,1:tg%ke) !< field of target grid with sum of AHF values
 
-    INTEGER (KIND=i4) :: point_rot_lon_index          !< longitude index of point for rotated lon-lat grid
-    INTEGER (KIND=i4) :: point_rot_lat_index          !< latitude index of point for rotated lon-lat grid
-
-    
-    INTEGER (KIND=i4) :: point_reg_lon_index          !< longitude index of point for regular lon-lat grid
-    INTEGER (KIND=i4) :: point_reg_lat_index          !< latitude index of point for regular lon-lat grid
-
     INTEGER (KIND=i4) :: nlon_reg !< number of columns
     INTEGER (KIND=i4) :: nlat_reg !< number of rows
 
@@ -142,10 +108,10 @@ PUBLIC :: agg_ahf_data_to_target_grid
 
     REAL(KIND=wp)   :: point_lon, point_lat
          
-   INTEGER (KIND=i8) :: western_column     !< the index of the western_column of raw data 
-   INTEGER (KIND=i8) :: eastern_column     !< the index of the eastern_column of raw data 
-   INTEGER (KIND=i8) :: northern_row       !< the index of the northern_row of raw data 
-   INTEGER (KIND=i8) :: southern_row       !< the index of the southern_row of raw data 
+   INTEGER (KIND=i4) :: western_column     !< the index of the western_column of raw data 
+   INTEGER (KIND=i4) :: eastern_column     !< the index of the eastern_column of raw data 
+   INTEGER (KIND=i4) :: northern_row       !< the index of the northern_row of raw data 
+   INTEGER (KIND=i4) :: southern_row       !< the index of the southern_row of raw data 
 
     REAL (KIND=wp) :: bwlon !< weight for bilinear interpolation
     REAL (KIND=wp) :: bwlat !< weight for bilinear interpolation
@@ -156,13 +122,6 @@ PUBLIC :: agg_ahf_data_to_target_grid
     REAL (KIND=wp)   :: ahf_point_nw       !< value of the AHF raw data pixel north west
 
     REAL (KIND=wp)   :: target_value
-
-
-    ! matrix to save search results
-
-    INTEGER (KIND=i8) :: map_ie(ahf_raw_data_grid%nlon_reg, ahf_raw_data_grid%nlat_reg)
-    INTEGER (KIND=i8) :: map_je(ahf_raw_data_grid%nlon_reg, ahf_raw_data_grid%nlat_reg)
-    INTEGER (KIND=i8) :: map_ke(ahf_raw_data_grid%nlon_reg, ahf_raw_data_grid%nlat_reg)
 
     ! buffer for ahf data 
     REAL (KIND=wp)   :: ahf_raw_data(ahf_raw_data_grid%nlon_reg, ahf_raw_data_grid%nlat_reg)
@@ -295,9 +254,6 @@ END IF
                                             &      je,      &
                                             &      ke)
 
-                       map_ie(column_index, row_index) = ie
-                       map_je(column_index, row_index) = je
-                       map_ke(column_index, row_index) = ke
 
                     IF ((ie /= 0).AND.(je/=0).AND.(ke/=0))THEN
 

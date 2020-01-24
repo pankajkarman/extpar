@@ -18,50 +18,23 @@
 !
 MODULE mo_cru_data
 
-  USE mo_kind,             ONLY: wp, i4, i8
+  USE mo_kind,             ONLY: wp, i4
   USE mo_logging          
   USE mo_utilities_extpar, ONLY: abort_extpar
   USE mo_io_units,         ONLY: filename_max  
   USE mo_io_utilities,     ONLY: check_netcdf
   USE mo_grid_structures,  ONLY: reg_lonlat_grid
+  USE netcdf,              ONLY: &
+                                 nf90_close,    &
+                                 nf90_get_att,  &
+                                 nf90_get_var,  &
+                                 nf90_inquire,  &
+                                 nf90_inquire_dimension, &
+                                 nf90_inquire_variable,  &
+                                 nf90_inq_varid,&
+                                 nf90_nowrite,  &
+                                 nf90_open
   
-  USE netcdf,     ONLY :   &
-       nf90_open,              &
-       nf90_close,             &
-       nf90_inquire,           &
-       nf90_inquire_dimension, &
-       nf90_inquire_variable,  &
-       nf90_inq_attname,       &
-       nf90_inquire_attribute, &
-       nf90_get_att,           &
-       nf90_inquire_dimension, &
-       nf90_inq_varid,          &
-       nf90_get_var,            &
-       nf90_noerr,              &
-       nf90_strerror
-
-  USE netcdf,     ONLY:     &
-       nf90_create,             &
-       nf90_def_dim,            &
-       nf90_def_var,            &
-       nf90_enddef,             &
-       nf90_redef,              &
-       nf90_put_att,            &
-       nf90_put_var
-
-  USE netcdf,     ONLY :   &
-       NF90_CHAR,               &
-       NF90_DOUBLE,             &
-       NF90_FLOAT,              &
-       NF90_INT,                &
-       NF90_BYTE,               &
-       NF90_SHORT
-  
-  USE netcdf,     ONLY :   &
-       NF90_GLOBAL,             &
-       NF90_UNLIMITED,          &
-       NF90_CLOBBER,            &
-       NF90_NOWRITE
 
   IMPLICIT NONE
 
@@ -99,7 +72,7 @@ CONTAINS
        &                                  t_clim_output_file)
 
     CHARACTER (len=*), INTENT(IN)  :: namelist_file !< filename with namelists for for EXTPAR settings
-    INTEGER (i8),      INTENT(OUT) :: it_cl_type    !< integer switch to choose a land use raw data set
+    INTEGER (i4),      INTENT(OUT) :: it_cl_type    !< integer switch to choose a land use raw data set
     ! 1 CRU fine (new), 2 CRU coarse (old) temperature climatology
     CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_path        !< path to raw data
     CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_filename    !< filename temperature climatology raw data
@@ -149,9 +122,9 @@ CONTAINS
   !> subroutine to allocate aot data fields
   SUBROUTINE allocate_cru_data(nrows,ncolumns,ntime)
     IMPLICIT NONE
-    INTEGER (i8), INTENT(IN) :: nrows !< number of rows
-    INTEGER (i8), INTENT(IN) :: ncolumns !< number of columns
-    INTEGER (i8), INTENT(IN) :: ntime !< number of times
+    INTEGER (i4), INTENT(IN) :: nrows !< number of rows
+    INTEGER (i4), INTENT(IN) :: ncolumns !< number of columns
+    INTEGER (i4), INTENT(IN) :: ntime !< number of times
 
     INTEGER :: errorcode !< error status variable
 
@@ -204,9 +177,9 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER (LEN=*), INTENT(IN)  ::  cru_filename  !< filename aot raw data
 
-    INTEGER (i8), INTENT(OUT) :: nrows !< number of rows
-    INTEGER (i8), INTENT(OUT) :: ncolumns !< number of columns
-    INTEGER (i8), INTENT(OUT) :: ntime !< number of times
+    INTEGER (i4), INTENT(OUT) :: nrows !< number of rows
+    INTEGER (i4), INTENT(OUT) :: ncolumns !< number of columns
+    INTEGER (i4), INTENT(OUT) :: ntime !< number of times
 
 
     !local variables
@@ -253,20 +226,16 @@ CONTAINS
   SUBROUTINE get_cru_grid_and_data(cru_filename,   &
        raw_data_t_id,    &
        nrows,         &
-       ncolumns,      &
-       ntime)
+       ncolumns)
 
 
-    USE mo_cru_target_fields, ONLY: i_t_cru_fine, &
-         &                              i_t_cru_coarse
+    USE mo_cru_target_fields, ONLY: i_t_cru_coarse
 
     IMPLICIT NONE
     CHARACTER (LEN=*), INTENT(IN) :: cru_filename  !< filename aot raw data
-    INTEGER (i8), INTENT(IN) :: raw_data_t_id    !< gives the data id (CRU fine (1) and CRU coarse (2))
-    INTEGER (i8), INTENT(IN) :: nrows !< number of rows
-    INTEGER (i8), INTENT(IN) :: ncolumns !< number of columns
-    INTEGER (i8), INTENT(IN) :: ntime !< number of times
-
+    INTEGER (i4), INTENT(IN) :: raw_data_t_id    !< gives the data id (CRU fine (1) and CRU coarse (2))
+    INTEGER (i4), INTENT(IN) :: nrows !< number of rows
+    INTEGER (i4), INTENT(IN) :: ncolumns !< number of columns
     ! the 'output' is via global variables, \TODO maybe change this i/o
 
     !local variables
@@ -343,8 +312,6 @@ CONTAINS
       cru_raw_data = cru_raw_data * scale_factor
     END SELECT
 
-
-
     cru_grid%start_lon_reg = lon_cru(1)
     cru_grid%end_lon_reg = lon_cru(ncolumns)
     cru_grid%start_lat_reg = lat_cru(1)
@@ -354,15 +321,8 @@ CONTAINS
     cru_grid%nlon_reg = ncolumns
     cru_grid%nlat_reg = nrows
 
-
-
-
     ! close netcdf file 
     CALL check_netcdf( nf90_close(ncid))
-
-
-
-
 
   END SUBROUTINE get_cru_grid_and_data
 
@@ -386,7 +346,5 @@ CONTAINS
     DEALLOCATE (cru_raw_elev,STAT=errorcode)
     IF(errorcode.NE.0) CALL abort_extpar('Cant deallocate the array cru_raw_elev')
   END SUBROUTINE deallocate_cru_data
-
-
 
 END MODULE mo_cru_data

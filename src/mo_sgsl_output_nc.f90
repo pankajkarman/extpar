@@ -15,24 +15,19 @@ MODULE mo_sgsl_output_nc
   
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
   USE mo_logging
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid
-  USE mo_grid_structures, ONLY: rotated_lonlat_grid
-  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
   USE mo_grid_structures, ONLY: target_grid_def
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
 
-  USE mo_cosmo_grid,      ONLY: cosmo_grid, nborder
+  USE mo_cosmo_grid,      ONLY: cosmo_grid
   USE mo_icon_grid_data,  ONLY: ICON_grid
 
   USE mo_sgsl_data,       ONLY: idem_type
 
-  USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
   USE mo_io_utilities, ONLY: dim_meta_info
@@ -40,11 +35,6 @@ MODULE mo_sgsl_output_nc
   USE mo_io_utilities, ONLY: netcdf_put_var
   USE mo_io_utilities, ONLY: open_new_netcdf_file
   USE mo_io_utilities, ONLY: close_netcdf_file
-  USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
-
-  USE mo_io_utilities, ONLY: vartype_int 
-  USE mo_io_utilities, ONLY: vartype_real
-  USE mo_io_utilities, ONLY: vartype_char
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
@@ -69,21 +59,16 @@ MODULE mo_sgsl_output_nc
      &                                  igrid_type,    &
      &                                  lon_geo,       &
      &                                  lat_geo,       &
-     &                                  sgsl,          &
-     &                                  vertex_param)
+     &                                  sgsl)
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, dim_4d_tg,    &
     &                          def_dimension_info_buffer
 
-   USE mo_sgsl_tg_fields, ONLY: add_parameters_domain
-
    USE mo_var_meta_data, ONLY: lon_geo_meta, &
      &                         lat_geo_meta, &
-     &                         no_raw_data_pixel_meta, &
      &                         def_com_target_fields_meta  
      
    USE mo_var_meta_data, ONLY: def_sgsl_meta
-   USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
    USE mo_var_meta_data, ONLY: sgsl_meta
    
@@ -97,33 +82,17 @@ MODULE mo_sgsl_output_nc
 
    REAL(KIND=wp), INTENT(IN)  :: sgsl(:,:,:)  !< subgrid-scale slope parameter 
 
-   TYPE(add_parameters_domain), INTENT(IN), OPTIONAL :: vertex_param  !< additional external parameters for ICON domain
-
    ! local variables
-  INTEGER :: n_3d_real = 0 !< number of 3D real variables
-  INTEGER :: n_3d_real_buffer_cell = 0 !< number of 3D real variables wich are defined as mean of the cell
-  INTEGER :: n_3d_real_buffer_vertex = 0 !< number of 3D real variables wich are defined on the vertices of the cell
-
-
-
-  INTEGER :: n_3d_int = 0 !< number of 3D integer variables
-
   INTEGER :: ndims 
   INTEGER :: ncid
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-
-  INTEGER :: nvertex !< total number of vertices
-
 
   INTEGER, PARAMETER :: nglob_atts=6
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
 
-  INTEGER :: n !< counter
-
-  INTEGER (KIND=i8) :: istart, iend, jstart, jend
-  INTEGER (KIND=i8) :: tmp_nlon, tmp_nlat
+  INTEGER (KIND=i4) :: istart, iend, jstart, jend
 
   WRITE(logging%fileunit,*)'Enter routine write_netcdf_buffer_sgsl'
 
@@ -269,25 +238,15 @@ MODULE mo_sgsl_output_nc
   !> read netcdf file for the fields derived from GLOBE data from the buffer 
    SUBROUTINE read_netcdf_buffer_sgsl(netcdf_filename,&
      &                                 tg,             &
-     &                                 undefined,      &  
-     &                                 undef_int,      &
-     &                                 sgsl,           &
-     &                                 vertex_param)
+     &                                 sgsl)
 
 
    USE mo_var_meta_data, ONLY: dim_3d_tg, &
-    &                          dim_4d_tg, &
     &                         def_dimension_info_buffer
-
-   USE mo_sgsl_tg_fields, ONLY: add_parameters_domain
-
-   USE mo_var_meta_data, ONLY: lon_geo_meta, &
-     &                         lat_geo_meta, &
-     &                         no_raw_data_pixel_meta, &
-     &                         def_com_target_fields_meta  
+    
+   USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
      
    USE mo_var_meta_data, ONLY: def_sgsl_meta
-   USE mo_var_meta_data, ONLY: dim_buffer_cell, dim_buffer_vertex
 
    USE mo_var_meta_data, ONLY: sgsl_meta
 
@@ -297,20 +256,8 @@ MODULE mo_sgsl_output_nc
    CHARACTER (len=*), INTENT(IN)         :: netcdf_filename !< filename for the netcdf file
    TYPE(target_grid_def), INTENT(IN)     :: tg !< structure with target grid description
 
-   REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-   INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
 
    REAL(KIND=wp), INTENT(OUT)  :: sgsl(:,:,:)  !< mean height 
-
-   TYPE(add_parameters_domain), INTENT(INOUT), OPTIONAL :: vertex_param  !< additional external parameters for ICON domain
-
-   ! local variables
-
-   INTEGER :: nvertex !< total number of vertices
-
-  INTEGER :: errorcode !< error status variable
-
-  INTEGER :: n !< counter
 
 
   IF (verbose >= idbg_low ) WRITE(logging%fileunit,*)'Call routine def_dimension_info_buffer'

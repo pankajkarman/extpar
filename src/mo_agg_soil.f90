@@ -28,25 +28,17 @@
 !> \author Hermann Asensio
 MODULE mo_agg_soil
 
-  USE mo_kind, ONLY: wp, i8, i4
+  USE mo_kind, ONLY: wp, i4, i4
 
-  USE mo_utilities_extpar, ONLY: abort_extpar
-
-  USE mo_soil_data,       ONLY: dsmw_legend
-  USE mo_soil_data,       ONLY: default_soiltype, soiltype_ice, soiltype_water
+  USE mo_soil_data,       ONLY: default_soiltype
   USE mo_soil_data,       ONLY: FAO_data, HWSD_data, HWSD_map, soil_data
-
   USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-       &                            rotated_lonlat_grid, &
-       &                            target_grid_def
-
-  USE mo_grid_structures, ONLY: igrid_icon
-  USE mo_grid_structures, ONLY: igrid_cosmo
-
-  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index, &
-       &                          find_rotated_lonlat_grid_element_index
+       &                        target_grid_def, &
+       &                        igrid_icon,      &
+       &                        igrid_cosmo
   USE mo_logging
 
+  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
 
   IMPLICIT NONE
 
@@ -62,7 +54,6 @@ CONTAINS
        &                   undefined,            &
        &                   soil_texslo,          &
        &                   dsmw_soil_unit,       &
-       &                   n_unit,               &
        &                   dsmw_grid,            &
        &                   lon_soil,             &
        &                   lat_soil,             &
@@ -73,22 +64,10 @@ CONTAINS
     USE mo_soil_data,        ONLY: dsmw_legend
 
     USE mo_target_grid_data, ONLY: no_raw_data_pixel
-    USE mo_target_grid_data, ONLY: lon_geo
     USE mo_target_grid_data, ONLY: lat_geo
     USE mo_target_grid_data, ONLY: search_res !< resolution of ICON grid search index list
 
-    USE mo_icon_domain,     ONLY: icon_domain
-    USE mo_grid_structures, ONLY: rotated_lonlat_grid
-    USE mo_grid_structures, ONLY: icosahedral_triangular_grid
-
     USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
-
-    ! USE structure which contains the definition of the COSMO grid
-    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
-
-    ! USE structure which contains the definition of the ICON grid
-    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-
 
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
 
@@ -96,7 +75,6 @@ CONTAINS
     TYPE(dsmw_legend), INTENT(IN) :: soil_texslo(:)  !< legend for DSMW with texture and slope information, (1:n_unit)
     INTEGER (i4), INTENT(IN) :: dsmw_soil_unit(:,:) 
     !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
-    INTEGER, INTENT(IN) :: n_unit   !< number of soil units
     TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid 
     !< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
 
@@ -113,8 +91,6 @@ CONTAINS
 
     ! varibles with results of aggregation
     REAL (wp)       :: texture(tg%ie,tg%je,tg%ke)  !< mean texture on COSMO grid
-    REAL (wp)       :: slope(tg%ie,tg%je,tg%ke)    !< mean slope on COSMO grid
-    REAL (wp)       :: land(tg%ie,tg%je,tg%ke)    !< land fraction on COSMO grid
 
     ! utility variables and intermediate results
     REAL (wp)       :: Z_texture(tg%ie,tg%je,tg%ke)!< sum of texture values
@@ -127,7 +103,6 @@ CONTAINS
     INTEGER (i4) :: I_ice(tg%ie,tg%je,tg%ke)    !< number of ice pixels
     INTEGER (i4) :: I_rock(tg%ie,tg%je,tg%ke)   !< number of rock pixels
     INTEGER (i4) :: I_salt(tg%ie,tg%je,tg%ke)   !< number of salt pixels
-    INTEGER (i4) :: I_dunes(tg%ie,tg%je,tg%ke)  !< number of dunes/sand pixels
     INTEGER (i4) :: I_hist(tg%ie,tg%je,tg%ke)   !< number of histosol pixels
     INTEGER (i4) :: I_nodata(tg%ie,tg%je,tg%ke) !< number of nodata pixels
     INTEGER (i4) :: I_slope(tg%ie,tg%je,tg%ke)  !< number of pixels with defined slope
@@ -137,29 +112,18 @@ CONTAINS
 
     INTEGER (i4) :: undefined_integer
 
-    INTEGER :: ir ! counter
-    INTEGER :: jr ! counter
-    INTEGER (i8) :: ie  ! counter for grid element index
-    INTEGER (i8) :: je  ! counter for grid element index
-    INTEGER (i8) :: ke ! counter for grid element index
-    INTEGER (i8) :: i1, i2
+    INTEGER (i4) :: ir ! counter
+    INTEGER (i4) :: jr ! counter
+    INTEGER (i4) :: ie  ! counter for grid element index
+    INTEGER (i4) :: je  ! counter for grid element index
+    INTEGER (i4) :: ke ! counter for grid element index
+    INTEGER (i4) :: i1, i2
 
     REAL (wp) :: lon_pixel ! longitude coordinate of raw data pixel
     REAL (wp) :: lat_pixel ! latitude coordinate of raw data pixel
 
-    REAL (wp) :: lon_target ! longitude coordinate of target grid element
-    REAL (wp) :: lat_target ! latitude coordinate of target grid element
-
-    INTEGER  (i8) :: point_rot_lon_index !< longitude index of point for rotated lon-lat grid
-    INTEGER  (i8) :: point_rot_lat_index !< latitude index of point for rotated lon-lat grid
-
-    INTEGER (i4) :: soil_ir ! index of raw data pixel (lon axis)
-    INTEGER (i4) :: soil_jr ! index of raw data pixel (lat axis)
-
     INTEGER (i4) :: soil_unit      ! soil unit number
-    INTEGER (i4) :: soil_unit_deep ! soil unit number
     INTEGER (i4) :: soil_code      ! soil code number
-    INTEGER (i4) :: soil_code_deep ! soil code number
 
     REAL (wp) :: zcoarse ! help variables
     REAL (wp) :: zmedium
@@ -174,7 +138,7 @@ CONTAINS
     REAL (wp) :: zmix
 
     REAL (wp) :: zsoil ! help variable
-    INTEGER (i8) :: itex ! help variable
+    INTEGER (i4) :: itex ! help variable
     INTEGER (i4) :: isoil ! help variable
 
     INTEGER (i4)  :: dominant_part !< dominant part (undefined, sea or textured soil) for target grid element)
@@ -190,7 +154,7 @@ CONTAINS
 
     REAL (wp) :: bound_north_cosmo !< northern boundary for COSMO target domain
     REAL (wp) :: bound_south_cosmo !< southern boundary for COSMO target domain
-    INTEGER (i8) :: start_cell_id !< ID of starting cell for ICON search
+    INTEGER (i4) :: start_cell_id !< ID of starting cell for ICON search
 
     !undefined_integer= NINT(undefined)
 
@@ -198,8 +162,6 @@ CONTAINS
 
     no_raw_data_pixel = undefined_integer
     texture = undefined
-    slope = undefined
-    land = undefined
 
     !zw = undefined
     Z_texture = undefined
@@ -213,7 +175,6 @@ CONTAINS
     I_ice = undefined_integer
     I_rock = undefined_integer
     I_salt = undefined_integer
-    I_dunes = undefined_integer
     I_hist = undefined_integer
     I_nodata = undefined_integer
     I_slope = undefined_integer
@@ -222,6 +183,7 @@ CONTAINS
     I_undef_t = undefined_integer 
 
     start_cell_id = 1
+
 
 
     SELECT CASE(tg%igrid_type)
@@ -459,7 +421,6 @@ END SELECT
   SELECT CASE (soil_data)
   CASE(FAO_data, HWSD_map)
     texture = -99.           ! undefined flag
-    slope   = -99.           ! undefined flag
     fr_land_soil = -99.      ! undefined flag
     soiltype_fao = -99       ! undefined flag
   END SELECT
@@ -487,21 +448,6 @@ END SELECT
               texture(ie,je,ke) = -9009.
             ENDIF
 
-            ! slope for target grid element from soil data
-            !----------------------------------------------------------------------------------------------
-            IF (I_undef_s(ie,je,ke) >  dominant_part) then ! undefined soil part
-              slope(ie,je,ke)   = 1.  ! set to default 
-            ENDIF
-
-            IF (I_lake(ie,je,ke) > dominant_part) then ! water pixel 
-              slope(ie,je,ke)   = 0.  
-            ENDIF
-
-            IF (I_slope(ie,je,ke) >  dominant_part) then ! defined soil part
-              slope(ie,je,ke)   = Z_slope(ie,je,ke)/real(I_slope(ie,je,ke))
-            ENDIF
-            !----------------------------------------------------------------------------------------------
-            ! slope for target grid element from soil data
 
             ! texture information for target grid element
             !----------------------------------------------------------------------------------------------
@@ -605,29 +551,12 @@ END SELECT
        &                             undefined,          &
        &                             soil_texslo,        &
        &                             dsmw_soil_unit,     &
-       &                             n_unit,             &
        &                             dsmw_grid,          &
-       &                             lon_soil,           &
-       &                             lat_soil,           &
        &                             soiltype_fao,       &
        &                             soiltype_hwsd,       &
        &                             fr_land_soil)
 
-
-
-
     USE mo_soil_data,       ONLY: dsmw_legend
-
-    USE mo_icon_domain,     ONLY: icon_domain
-    USE mo_grid_structures, ONLY: rotated_lonlat_grid
-    USE mo_grid_structures, ONLY: icosahedral_triangular_grid
-
-    ! USE structure which contains the definition of the COSMO grid
-    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
-
-    ! USE structure which contains the definition of the ICON grid
-    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-
 
     USE mo_target_grid_data, ONLY: no_raw_data_pixel
     USE mo_target_grid_data, ONLY: lon_geo
@@ -639,13 +568,9 @@ END SELECT
     TYPE(dsmw_legend), INTENT(IN) :: soil_texslo(:)  !< legend for DSMW with texture and slope information, (1:n_unit)
     INTEGER (i4), INTENT(IN) :: dsmw_soil_unit(:,:) 
     !< FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
-    INTEGER, INTENT(IN) :: n_unit   !< number of soil units
     TYPE(reg_lonlat_grid), INTENT(IN) :: dsmw_grid 
     !< structure with defenition of the raw data grid for the FAO Digital Soil Map of the World
 
-    REAL (wp), INTENT(IN)  :: lon_soil(:)          
-    !< longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
-    REAL (wp), INTENT(IN)  :: lat_soil(:)          
     !< latitude coordinates of the soil grid in the geographical (lonlat) system, dimension (nlat_reg)
     INTEGER(i4), INTENT(INOUT) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
     INTEGER(i4), INTENT(INOUT) :: soiltype_hwsd(:,:,:) !< store HWSD soil IDs
@@ -656,26 +581,19 @@ END SELECT
 
     ! varibles with results of aggregation
     REAL (wp)       :: texture(tg%ie,tg%je,tg%ke)!< texture values
-    REAL (wp)       :: slope(tg%ie,tg%je,tg%ke)  !< slope values
-    REAL (wp)       :: land(tg%ie,tg%je,tg%ke)
 
     INTEGER (i4) :: undefined_integer
 
-    INTEGER :: ir ! counter
-    INTEGER :: jr ! counter
-    INTEGER (i8) :: ie  ! counter for grid element index
-    INTEGER (i8) :: je  ! counter for grid element index
-    INTEGER (i8) :: ke ! counter for grid element index
-
-    REAL (wp) :: lon_pixel ! longitude coordinate of raw data pixel
-    REAL (wp) :: lat_pixel ! latitude coordinate of raw data pixel
+    INTEGER (i4) :: ie  ! counter for grid element index
+    INTEGER (i4) :: je  ! counter for grid element index
+    INTEGER (i4) :: ke ! counter for grid element index
 
     REAL (wp) :: lon_target ! longitude coordinate of target grid element
     REAL (wp) :: lat_target ! latitude coordinate of target grid element
 
 
-    INTEGER (i8) :: soil_ir ! index of raw data pixel (lon axis)
-    INTEGER (i8) :: soil_jr ! index of raw data pixel (lat axis)
+    INTEGER (i4) :: soil_ir ! index of raw data pixel (lon axis)
+    INTEGER (i4) :: soil_jr ! index of raw data pixel (lat axis)
 
     INTEGER (i4) :: soil_unit      ! soil unit number
     INTEGER (i4) :: soil_code      ! soil code number
@@ -693,7 +611,7 @@ END SELECT
     REAL (wp) :: zmix
 
     REAL (wp) :: zsoil ! help variable
-    INTEGER (i8) :: itex ! help variable
+    INTEGER (i4) :: itex ! help variable
     INTEGER (i4) :: isoil ! help variable
 
     INTEGER (i4) :: ocean          ! < soil code for ocean
@@ -746,14 +664,14 @@ END SELECT
 !!$    no_data_flag = 255
 !!$    dunes = 11
     CASE(FAO_data)
-      ocean = -9.
-      inland_water = -9000.
-      glacier_ice = -9001.
-      rock = -9002.
-      salt = -9003.
-      histosols = -9004.
-      no_data_flag = -9009.
-      dunes = -9005.
+      ocean = -9
+      inland_water = -9000
+      glacier_ice = -9001
+      rock = -9002
+      salt = -9003
+      histosols = -9004
+      no_data_flag = -9009
+      dunes = -9005
     END SELECT
 
     ! loop over target grid
@@ -789,7 +707,6 @@ END SELECT
             !PRINT *,'find_reg_lonlat_grid_element_index done'
             IF ((soil_ir == 0).or.(soil_jr == 0) ) then ! problem, target grid element outside raw data grid
               texture(ie,je,ke) = -9. ! ocean
-              slope(ie,je,ke) = 0.
             ELSE
 
               SELECT CASE(soil_data)
@@ -832,7 +749,6 @@ END SELECT
 
                 dsmwcode: IF(soil_code == ABS(INT(inland_water))) THEN ! inland water
                   texture(ie,je,ke) = inland_water
-                  slope(ie,je,ke) = 0.
                   IF (PRESENT(fr_land_soil)) THEN
                     fr_land_soil(ie,je,ke) = 0. ! water point
                   ENDIF
@@ -887,10 +803,8 @@ END SELECT
                   ! zsteep  = soil_texslo(soil_unit)%steep
                 ELSEIF(soil_code == 9009) THEN ! no data flag FAO
                   texture(ie,je,ke) = no_data_flag
-                  slope(ie,je,ke) = 0.
                 ELSEIF(soil_code == -9999) THEN ! no data flag HWSD
                   texture(ie,je,ke) = no_data_flag
-                  slope(ie,je,ke) = 0.
                   !---------------------------------------------------------------------------------------------- 
                 ELSE
                   zcoarse = soil_texslo(soil_unit)%tex_coarse ! get texture from legend
@@ -943,9 +857,6 @@ END SELECT
                   ELSE
                     zmix = 0.0
                   ENDIF
-                  slope(ie,je,ke) = zmix  ! slope(ie,je,ke) = zmix / 1 ! only one raw data pixel
-                ELSE
-                  slope(ie,je,ke)   = 0.
                 ENDIF
 
               ENDIF ! ocean

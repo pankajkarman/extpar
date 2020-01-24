@@ -27,7 +27,6 @@ MODULE mo_agg_glc2000
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
   !> abort_extpar defined in MODULE utilities_extpar
@@ -36,16 +35,12 @@ MODULE mo_agg_glc2000
 
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid, &
-    &                           rotated_lonlat_grid
-  
   USE mo_grid_structures, ONLY: igrid_icon
   USE mo_grid_structures, ONLY: igrid_cosmo
 
-  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index, &
-    &                          find_rotated_lonlat_grid_element_index
-  USE mo_io_units,          ONLY: filename_max
-  USE mo_io_utilities, ONLY: check_netcdf
+  USE mo_search_ll_grid, ONLY: find_reg_lonlat_grid_element_index
+  USE mo_io_units,       ONLY: filename_max
+  USE mo_io_utilities,   ONLY: check_netcdf
 
   USE mo_search_target_grid, ONLY: find_nearest_target_grid_element
 
@@ -55,9 +50,7 @@ MODULE mo_agg_glc2000
     & nf90_close,             &
     & nf90_inq_varid,         &
     & nf90_get_var,           &
-    & NF90_NOWRITE,           &
-    & nf90_noerr,             &
-    & nf90_strerror
+    & NF90_NOWRITE
 
   
 
@@ -108,8 +101,6 @@ MODULE mo_agg_glc2000
     &                          lat_glc2000
 
   USE mo_glc2000_lookup_tables, ONLY: name_lookup_table_glc2000
-  USE mo_glc2000_lookup_tables, ONLY: i_cosmo_lookup_table,  &
-    &                                 i_experimental_lookup_table
   USE mo_glc2000_lookup_tables, ONLY: init_glc2000_lookup_tables, &
     &                                 get_name_glc2000_lookup_tables
   USE mo_glc2000_lookup_tables, ONLY:   z0_lt_glc2000, lnz0_lt_glc2000, plc_mn_lt_glc2000, plc_mx_lt_glc2000, & 
@@ -118,13 +109,7 @@ MODULE mo_agg_glc2000
 
   USE mo_glc2000_lookup_tables, ONLY: glc2000_look_up
 
-    ! USE structure which contains the definition of the ICON grid
-    USE  mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-
-    ! USE structure which contains the definition of the COSMO grid
-    USE  mo_cosmo_grid, ONLY: COSMO_grid !< structure which contains the definition of the COSMO grid
-
-    USE mo_math_constants, ONLY: pi, rad2deg, deg2rad, eps
+    USE mo_math_constants, ONLY: deg2rad
     USE mo_physical_constants, ONLY: re
     ! USE global data fields (coordinates)
     USE mo_target_grid_data, ONLY: lon_geo, & !< longitude coordinates of the COSMO grid in the geographical system 
@@ -139,10 +124,10 @@ MODULE mo_agg_glc2000
      INTEGER, INTENT(IN) :: nclass_glc2000 !< GLC2000 has 23 classes for the land use description
      REAL (KIND=wp), INTENT(OUT)  :: glc2000_class_fraction(:,:,:,:)  !< fraction for each glc2000 class on target grid 
 
-    INTEGER (KIND=i8), INTENT(OUT) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each class on target grid
+    INTEGER (KIND=i4), INTENT(OUT) :: glc2000_class_npixel(:,:,:,:) !< number of raw data pixels for each class on target grid
 
 
-    INTEGER (KIND=i8), INTENT(OUT) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid 
+    INTEGER (KIND=i4), INTENT(OUT) :: glc2000_tot_npixel(:,:,:)  !< total number of glc2000 raw data pixels on target grid 
 
 
     REAL (KIND=wp), INTENT(OUT)  :: fr_land_glc2000(:,:,:) !< fraction land due to glc2000 raw data
@@ -158,29 +143,22 @@ MODULE mo_agg_glc2000
     REAL (KIND=wp), INTENT(OUT)  :: for_d_glc2000(:,:,:)   !< deciduous forest (fraction) due to glc2000 land use data
     REAL (KIND=wp), INTENT(OUT)  :: for_e_glc2000(:,:,:)   !< evergreen forest (fraction) due to glc2000 land use data
     REAL (KIND=wp), INTENT(OUT)  :: emissivity_glc2000(:,:,:) !< longwave emissivity due to glc2000 land use da
-
-
-
      
-     INTEGER (KIND=i8) :: undefined_integer ! undef value
+     INTEGER (KIND=i4) :: undefined_integer ! undef value
      REAL (KIND=wp)    :: default_real
 
 
-     INTEGER :: i,j,k,l ! counters
+     INTEGER :: l ! counters
      INTEGER :: i_col, j_row ! counter
-     INTEGER (KIND=i8) :: i_lu, j_lu
-     INTEGER (KIND=i8) :: ie, je, ke  ! indices for target grid elements
-     INTEGER (KIND=i8), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
-     INTEGER (KIND=i8) :: start_cell_id !< ID of starting cell for ICON search
-     INTEGER (KIND=i8) :: i1, i2
+     INTEGER (KIND=i4) :: i_lu, j_lu
+     INTEGER (KIND=i4) :: ie, je, ke  ! indices for target grid elements
+     INTEGER (KIND=i4), ALLOCATABLE :: ie_vec(:), je_vec(:), ke_vec(:)  ! indices for target grid elements
+     INTEGER (KIND=i4) :: start_cell_id !< ID of starting cell for ICON search
+     INTEGER (KIND=i4) :: i1, i2
 
-     INTEGER :: idom  ! counter
-
-     INTEGER (KIND=i8) :: ndata(1:tg%ie,1:tg%je,1:tg%ke)  !< number of raw data pixel with land point
      REAL (KIND=wp)    :: a_weight(1:tg%ie,1:tg%je,1:tg%ke) !< area weight of all raw data pixels in target grid
      REAL (KIND=wp)    :: a_class(1:tg%ie,1:tg%je,1:tg%ke,1:nclass_glc2000) !< area for each land use class grid  
      
-     REAL (KIND=wp)    :: latw      !< latitude weight (for area weighted mean)
      REAL (KIND=wp)    :: apix      !< area of a raw data pixel
      REAL (KIND=wp)    :: apix_e      !< area of a raw data pixel at equator
 
@@ -226,7 +204,7 @@ MODULE mo_agg_glc2000
      ! Some stuff for OpenMP parallelization
      INTEGER :: num_blocks, ib, il, blk_len, istartlon, iendlon, nlon_sub, ishift
 !$   INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
-!$   INTEGER (KIND=i8), ALLOCATABLE :: start_cell_arr(:)
+!$   INTEGER (KIND=i4), ALLOCATABLE :: start_cell_arr(:)
 
      apix_e  = re * re * deg2rad* ABS(glc2000_grid%dlon_reg) * deg2rad * ABS(glc2000_grid%dlat_reg) 
 ! area of GLC2000 raw data pixel at equator
@@ -241,7 +219,6 @@ MODULE mo_agg_glc2000
      glc2000_class_fraction = default_real
      glc2000_class_npixel   = undefined_integer
      glc2000_tot_npixel = undefined_integer
-     ndata = undefined_integer
      emissivity_glc2000 = 0.0
      fr_land_glc2000 = 0.0
      ice_glc2000 = 0.0
@@ -664,11 +641,6 @@ MODULE mo_agg_glc2000
     ! close netcdf file 
     call check_netcdf( nf90_close(ncid_glc2000))
 
-
-
   END SUBROUTINE agg_glc2000_data_to_target_grid
 
-
 END MODULE mo_agg_glc2000
-
-

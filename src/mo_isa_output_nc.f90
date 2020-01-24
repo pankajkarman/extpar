@@ -29,16 +29,11 @@ MODULE mo_isa_output_nc
 
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
-  USE mo_kind, ONLY: i8
   USE mo_kind, ONLY: i4
 
   !> data type structures form module GRID_structures
-  USE mo_grid_structures, ONLY: reg_lonlat_grid
-  USE mo_grid_structures, ONLY: rotated_lonlat_grid
-  USE mo_grid_structures, ONLY: icosahedral_triangular_grid
   USE mo_grid_structures, ONLY: target_grid_def
 
-  USE mo_io_utilities, ONLY: var_meta_info
   USE mo_io_utilities, ONLY: netcdf_attributes
 
   USE mo_io_utilities, ONLY: dim_meta_info
@@ -46,12 +41,6 @@ MODULE mo_isa_output_nc
   USE mo_io_utilities, ONLY: netcdf_put_var
   USE mo_io_utilities, ONLY: open_new_netcdf_file
   USE mo_io_utilities, ONLY: close_netcdf_file
-  USE mo_io_utilities, ONLY: netcdf_def_grid_mapping
-
-
-  USE mo_io_utilities, ONLY: vartype_int 
-  USE mo_io_utilities, ONLY: vartype_real
-  USE mo_io_utilities, ONLY: vartype_char
 
   !> abort_extpar defined in MODULE utilities_extpar
   USE mo_utilities_extpar, ONLY: abort_extpar
@@ -85,12 +74,9 @@ MODULE mo_isa_output_nc
 
   USE mo_var_meta_data, ONLY: lon_geo_meta, &
     &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
     &                         def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_isa_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_isa_tg
 
   USE mo_var_meta_data, ONLY: isa_tot_npixel_meta, &
     isa_field_meta
@@ -105,7 +91,7 @@ MODULE mo_isa_output_nc
   REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
 !& lass_lu))
 !& ion (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(IN) :: isa_tot_npixel(:,:,:)  !< total number of isa raw data pixels on target grid (dimension (ie,je,k &
+  INTEGER (KIND=i4), INTENT(IN) :: isa_tot_npixel(:,:,:)  !< total number of isa raw data pixels on target grid (dimension (ie,je,k &
 !& e))
   REAL (KIND=wp), INTENT(IN)  :: isa_field(:,:,:)   !< urban fraction due to isa data
 
@@ -113,7 +99,7 @@ MODULE mo_isa_output_nc
   ! local variables
   INTEGER :: ndims  
   INTEGER :: ncid
-  INTEGER (KIND=i8) :: undefined_i
+  INTEGER (KIND=i4) :: undefined_i
 
   TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
@@ -121,8 +107,6 @@ MODULE mo_isa_output_nc
   TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
   INTEGER :: errorcode !< error status variable
-
-  INTEGER :: n !< counter
 
   PRINT *,'ENTER write_netcdf_buffer_isa'
 
@@ -138,7 +122,7 @@ MODULE mo_isa_output_nc
   ! dim_3d_tg
 
   ! define meta information for various land use related variables for netcdf output
-  CALL def_isa_fields_meta(tg,dim_3d_tg)
+  CALL def_isa_fields_meta(dim_3d_tg)
 
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)
@@ -183,7 +167,6 @@ END SUBROUTINE write_netcdf_buffer_isa
   !> set global attributes for netcdf with is data
   !SUBROUTINE set_global_att_lu(i_landuse_data,ilookup_table_lu,global_attributes)
   SUBROUTINE set_global_att_isa(global_attributes)
-    USE mo_io_units, ONLY: filename_max
     !USE mo_isa_tg_fields, ONLY :  i_isa
     TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
 
@@ -234,8 +217,6 @@ END SUBROUTINE write_netcdf_buffer_isa
 
   SUBROUTINE read_netcdf_buffer_isa(netcdf_filename,  &
     &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
     &                                     isa_field,  &
     &                                     isa_tot_npixel)
 
@@ -244,14 +225,10 @@ END SUBROUTINE write_netcdf_buffer_isa
     &                         def_dimension_info_buffer
 
 
-  USE mo_var_meta_data, ONLY: lon_geo_meta, &
-    &                         lat_geo_meta, &
-    &                         no_raw_data_pixel_meta, &
-    &                         def_com_target_fields_meta  
+
+   USE mo_var_meta_data, ONLY: def_com_target_fields_meta  
   
   USE mo_var_meta_data, ONLY: def_isa_fields_meta
-
-  USE mo_var_meta_data, ONLY: dim_isa_tg
 
   USE mo_var_meta_data, ONLY:  isa_tot_npixel_meta,isa_field_meta
 
@@ -259,18 +236,11 @@ END SUBROUTINE write_netcdf_buffer_isa
 
   CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
   TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-  REAL(KIND=wp), INTENT(OUT)          :: undefined       !< value to indicate undefined grid elements 
-  INTEGER, INTENT(OUT)                :: undef_int       !< value to indicate undefined grid elements
 !& class_lu))
 !& sion (ie,je,ke,nclass_lu))
-  INTEGER (KIND=i8), INTENT(OUT) :: isa_tot_npixel(:,:,:)  !< total number of isa raw data pixels on target grid (dimension (ie,je, &
+  INTEGER (KIND=i4), INTENT(OUT) :: isa_tot_npixel(:,:,:)  !< total number of isa raw data pixels on target grid (dimension (ie,je, &
 !& ke))
   REAL (KIND=wp), INTENT(OUT)  :: isa_field(:,:,:)   !< urban fraction due to isa data
-
-
-  ! local variables
-  INTEGER :: errorcode !< error status variable
-  INTEGER :: n !< counter
 
   PRINT *,'ENTER read_netcdf_buffer_isa'
 
@@ -279,7 +249,7 @@ END SUBROUTINE write_netcdf_buffer_isa
   ! dim_3d_tg
 
   ! define meta information for various isa related variables for netcdf output
-  CALL def_isa_fields_meta(tg,dim_3d_tg)
+  CALL def_isa_fields_meta(dim_3d_tg)
 
   ! define meta information for target field variables lon_geo, lat_geo 
   CALL def_com_target_fields_meta(dim_3d_tg)

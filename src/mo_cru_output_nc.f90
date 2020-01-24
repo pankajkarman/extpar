@@ -17,25 +17,19 @@
 !> \author Hermann Asensio
 MODULE mo_cru_output_nc
   
-  USE mo_kind, ONLY: wp, i4, i8
+  USE mo_kind,            ONLY: wp
   USE mo_logging
 
-  USE mo_grid_structures, ONLY: reg_lonlat_grid,             &
-       &                        rotated_lonlat_grid,         &
+  USE mo_grid_structures, ONLY: rotated_lonlat_grid,         &
        &                        icosahedral_triangular_grid, &
        &                        target_grid_def
 
-  USE mo_io_utilities, ONLY: var_meta_info,        &      
-       &                     netcdf_attributes,    &
+  USE mo_io_utilities, ONLY: netcdf_attributes,    &
        &                     dim_meta_info,        &
-       &                     vartype_int,          &
-       &                     vartype_real,         & 
-       &                     vartype_char,         &
-       &                     netcdf_put_var,       &
        &                     netcdf_get_var,       &       
        &                     open_new_netcdf_file, &
-       &                     close_netcdf_file,    &
-       &                     netcdf_def_grid_mapping
+       &                     netcdf_put_var,       &
+       &                     close_netcdf_file
 
   USE mo_utilities_extpar, ONLY: abort_extpar
 
@@ -47,9 +41,7 @@ MODULE mo_cru_output_nc
        &                      def_cruelev_meta,           &
        &                      lon_geo_meta,               &
        &                      lat_geo_meta,               &
-       &                      no_raw_data_pixel_meta,     &
        &                      def_com_target_fields_meta, &
-       &                      nc_grid_def_cosmo,          &
        &                      set_nc_grid_def_cosmo,      &
        &                      dim_rlon_cosmo,             &
        &                      dim_rlat_cosmo,             &
@@ -59,7 +51,6 @@ MODULE mo_cru_output_nc
        &                      def_dimension_info_cosmo,   &
        &                      dim_icon,                   &
        &                      def_dimension_info_icon,    &
-       &                      nc_grid_def_icon,           &
        &                      set_nc_grid_def_icon
 
   USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
@@ -79,7 +70,6 @@ CONTAINS
   SUBROUTINE write_netcdf_buffer_cru(netcdf_filename,   &
        &                                     tg,        &
        &                                     undefined, &
-       &                                     undef_int, &
        &                                     lon_geo,   &
        &                                     lat_geo,   &
        &                                     crutemp,   &
@@ -88,7 +78,6 @@ CONTAINS
     CHARACTER (len=*), INTENT(IN)     :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     REAL(wp), INTENT(IN)         :: undefined       !< value to indicate undefined grid elements
-    INTEGER, INTENT(IN)               :: undef_int       !< value to indicate undefined grid elements
     REAL (wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL(wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
@@ -104,8 +93,6 @@ CONTAINS
     TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
     INTEGER :: errorcode !< error status variable
-
-    INTEGER :: n !< counter
 
     !-------------------------------------------------------------
     ! define global attributes
@@ -166,7 +153,6 @@ CONTAINS
        &                                     cosmo_grid,       &
        &                                     tg,         &
        &                                     undefined, &
-       &                                     undef_int,   &
        &                                     lon_geo,     &
        &                                     lat_geo, &
        &                                     crutemp, &
@@ -176,7 +162,6 @@ CONTAINS
     TYPE(rotated_lonlat_grid), INTENT(IN) :: cosmo_grid !< structure which contains the definition of the COSMO grid
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     REAL(wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL(wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
@@ -185,12 +170,8 @@ CONTAINS
 
     INTEGER :: ndims
     INTEGER :: ncid
-    INTEGER :: varid
 
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-
-    TYPE(dim_meta_info), TARGET :: dim_2d_buffer(1:2)
-
 
     INTEGER, PARAMETER :: nglob_atts=6
     TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
@@ -199,8 +180,6 @@ CONTAINS
 
     CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
     CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
-
-    INTEGER :: n !< counter
 
     !-------------------------------------------------------------
     ! define global attributes
@@ -241,7 +220,6 @@ CONTAINS
     dim_list(1) = dim_rlon_cosmo(1) ! rlon
     dim_list(2) = dim_rlat_cosmo(1) ! rlat
 
-    dim_2d_buffer(1:2) = dim_2d_cosmo
 
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
          &                       dim_list=dim_list,                  &
@@ -267,8 +245,6 @@ CONTAINS
     CALL netcdf_put_var(ncid,lat_geo(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
          &                 lat_geo_meta,undefined)
 
-    n=1 ! crutemp
-
     ! crutemp
     CALL netcdf_put_var(ncid,crutemp(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1), &
          &                crutemp_meta,undefined)
@@ -288,7 +264,6 @@ CONTAINS
        &                                     icon_grid,       &
        &                                     tg,         &
        &                                     undefined, &
-       &                                     undef_int,   &
        &                                     lon_geo,     &
        &                                     lat_geo, &
        &                                     crutemp, &
@@ -298,31 +273,23 @@ CONTAINS
     TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     REAL(wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
     REAL (wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
     REAL (wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
     REAL(wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
     REAL(wp), OPTIONAL, INTENT(IN)  :: cruelev(:,:,:)  !< cru elevation , cruelev(ie,je,ke)
     ! local variables
 
-    INTEGER :: n_1d_real = 0 !< number of 1D real variables
-
     INTEGER :: ndims
     INTEGER :: ncid
 
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-    TYPE(dim_meta_info), TARGET :: dim_icon_cell(1:1)
-
 
     INTEGER, PARAMETER :: nglob_atts=6
     TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
     CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-    CHARACTER (len=80):: coordinates  !< netcdf attribute coordinates
 
     INTEGER :: errorcode !< error status variable
-
-    INTEGER :: n !< counter
 
     !-------------------------------------------------------------
     ! define global attributes
@@ -351,7 +318,6 @@ CONTAINS
 
     ! set mapping parameters for netcdf
     grid_mapping="lon_lat_on_sphere"
-    coordinates="lon lat"
 
     CALL set_nc_grid_def_icon(grid_mapping)
     ! nc_grid_def_icon
@@ -362,7 +328,6 @@ CONTAINS
     IF (errorcode /= 0 ) CALL abort_extpar('Cant allocate array dim_list')
 
     dim_list = dim_icon(1) ! cell
-    dim_icon_cell = dim_icon(1) ! cell
 
     !-----------------------------------------------------------------
     CALL open_new_netcdf_file(netcdf_filename=TRIM(netcdf_filename),   &
@@ -446,11 +411,6 @@ CONTAINS
     TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     REAL(wp), INTENT(OUT)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
     REAL(wp), OPTIONAL, INTENT(OUT)  :: cruelev(:,:,:)  !< cru elevation , cruelev(ie,je,ke)
-
-    ! local variables
-    INTEGER :: errorcode !< error status variable
-
-    INTEGER :: n !< counter
 
     !-------------------------------------------------------------
 

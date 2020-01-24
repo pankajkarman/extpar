@@ -17,7 +17,6 @@ MODULE mo_sgsl_tg_fields
   !> kind parameters are defined in MODULE data_parameters
   USE mo_kind, ONLY: wp
   USE mo_kind, ONLY: i4
-  USE mo_kind, ONLY: i8
 
 
   !> abort_extpar defined in MODULE utilities_extpar
@@ -44,7 +43,7 @@ MODULE mo_sgsl_tg_fields
 
   TYPE add_parameters_domain
      REAL(KIND=wp), ALLOCATABLE     :: sgsl_vert(:,:,:)   !< height on vertex
-     INTEGER (KIND=i8), ALLOCATABLE :: npixel_vert(:,:,:) !< number of raw data pixel corresponding to vertex
+     INTEGER (KIND=i4), ALLOCATABLE :: npixel_vert(:,:,:) !< number of raw data pixel corresponding to vertex
   END TYPE add_parameters_domain
 
   TYPE(add_parameters_domain) :: vertex_param  !< additional external parameters for ICON domain

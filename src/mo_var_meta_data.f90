@@ -42,7 +42,7 @@
 !> \author Hermann Asensio
 MODULE mo_var_meta_data
  
-  USE mo_kind, ONLY: i4, i8
+  USE mo_kind, ONLY: i4, i4
 
   USE mo_io_utilities, ONLY: dim_meta_info, var_meta_info, &
        &                     vartype_int, vartype_real,    &
@@ -251,7 +251,6 @@ MODULE mo_var_meta_data
 
   TYPE(var_meta_info)  :: rlon_meta !< additional information for variable
   TYPE(var_meta_info)  :: rlat_meta !< additional information for variable
-  TYPE(var_meta_info)  :: nhori_meta !< additional information for variable
 
   TYPE(var_meta_info)  :: clon_meta !< additional information for variable
   TYPE(var_meta_info)  :: clat_meta !< additional information for variable
@@ -466,20 +465,6 @@ MODULE mo_var_meta_data
       dim_3d_cosmo(2) = dim_rlat_cosmo(1)
       dim_3d_cosmo(3) = dim_nhori_cosmo(1)
       
-      ! set meta information for variable nhori
-      
-      nhori_meta%varname = 'nhori'
-      nhori_meta%n_dim = 1
-      nhori_meta%diminfo => dim_nhori_cosmo
-      nhori_meta%vartype = vartype_int !INTEGER variable
-      nhori_meta%standard_name = c_undef !_br 08.04.14
-      nhori_meta%long_name =  "number of sectors"
-      nhori_meta%shortName = c_undef
-      nhori_meta%stepType = 'instant'
-      nhori_meta%units =  "-"
-      nhori_meta%grid_mapping = c_undef
-      nhori_meta%coordinates = c_undef
-      nhori_meta%data_set = c_undef
     ENDIF
 
 
@@ -904,9 +889,8 @@ MODULE mo_var_meta_data
     
   END SUBROUTINE def_soil_meta
 
-  SUBROUTINE def_alb_meta(tg,ntime,diminfo,coordinates,grid_mapping)
+  SUBROUTINE def_alb_meta(ntime,diminfo,coordinates,grid_mapping)
 
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -1030,11 +1014,10 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_alb_meta
 
   !> define meta information for AHF data for netcdf output
-  SUBROUTINE def_ahf_meta(tg,diminfo,coordinates,grid_mapping)
+  SUBROUTINE def_ahf_meta(diminfo,coordinates,grid_mapping)
 
     USE mo_ahf_data, ONLY : iahf_type !_br 15.04.16
 
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
@@ -1076,11 +1059,10 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_ahf_meta
 
   !> define meta information for  landuse target fields
-  SUBROUTINE def_isa_fields_meta(tg,diminfo,coordinates,grid_mapping)
+  SUBROUTINE def_isa_fields_meta(diminfo,coordinates,grid_mapping)
 
     USE mo_isa_data, ONLY : isa_type !_br 15.04.16
 
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid mapping
@@ -1159,8 +1141,7 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_isa_fields_meta
 
   !> define meta information for NDVI data for netcdf output
-  SUBROUTINE def_ndvi_meta(tg,ntime,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_ndvi_meta(ntime,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -1271,8 +1252,7 @@ MODULE mo_var_meta_data
 
 
   !> define meta information for EMISS data for netcdf output
-  SUBROUTINE def_emiss_meta(tg,ntime,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_emiss_meta(ntime,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -1383,8 +1363,7 @@ MODULE mo_var_meta_data
 
 
   !> define meta information for SST data for netcdf output
-  SUBROUTINE def_era_meta(tg,ntime,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_era_meta(ntime,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -1480,17 +1459,16 @@ MODULE mo_var_meta_data
 
 
   !> define dimensions and meta information for variable aot_tg for netcdf output
-  SUBROUTINE def_aot_tg_meta(tg,ntime,ntype,diminfo,coordinates,grid_mapping,n_spectr)
+  SUBROUTINE def_aot_tg_meta(ntime,ntype,diminfo,coordinates,grid_mapping,n_spectr)
     
     USE mo_aot_data, ONLY : iaot_type
 
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
-    INTEGER (KIND=i8), INTENT(IN) :: ntime !< number of times
-    INTEGER (KIND=i8), INTENT(IN) :: ntype !< number of types of aerosols
+    INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
+    INTEGER (KIND=i4), INTENT(IN) :: ntype !< number of types of aerosols
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
     CHARACTER (len=80), OPTIONAL :: grid_mapping !< netcdf attribute grid map
-    INTEGER (KIND=i8),  OPTIONAL :: n_spectr !< number of spectral new
+    INTEGER (KIND=i4),  OPTIONAL :: n_spectr !< number of spectral new
 
     ! local variables
     INTEGER  :: n_dim, &      !< number of dimensions
@@ -1788,8 +1766,7 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_com_target_fields_meta
 
   !> define meta information for GLC2000 target fields
-  SUBROUTINE def_glc2000_fields_meta(tg,nclass_glc2000,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_glc2000_fields_meta(nclass_glc2000,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4) :: nclass_glc2000 !< GLC2000 has 23 classes for the land use description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -2075,8 +2052,7 @@ MODULE mo_var_meta_data
   END SUBROUTINE def_glc2000_fields_meta
 
     !> define meta information for GLCC target fields
-  SUBROUTINE def_glcc_fields_meta(tg,nclass_glcc,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_glcc_fields_meta(nclass_glcc,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4) :: nclass_glcc !< GLCC has 23 classes for the land use description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (len=80), OPTIONAL :: coordinates  !< netcdf attribute coordinates
@@ -2364,8 +2340,7 @@ MODULE mo_var_meta_data
 
   
   !> define meta information for  landuse target fields
-  SUBROUTINE def_lu_fields_meta(tg,nclass_lu,diminfo,lu_dataset,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_lu_fields_meta(nclass_lu,diminfo,lu_dataset,coordinates,grid_mapping)
     INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< Number of classes for the land use description
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
     CHARACTER (LEN=*), OPTIONAL :: lu_dataset !< name of landuse data set
@@ -2700,8 +2675,7 @@ MODULE mo_var_meta_data
 
   
 
-  SUBROUTINE def_ecoclimap_fields_meta(tg,ntime,nclass_lu,diminfo,coordinates,grid_mapping)
-    TYPE(target_grid_def), INTENT(IN) :: tg !< structure with target grid description
+  SUBROUTINE def_ecoclimap_fields_meta(ntime,nclass_lu,diminfo,coordinates,grid_mapping)
     INTEGER (KIND=i4), INTENT(IN) :: ntime !< number of times
     INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< 
     TYPE(dim_meta_info),TARGET :: diminfo(:)     !< pointer to dimensions of variable
@@ -3444,13 +3418,12 @@ MODULE mo_var_meta_data
     ! local variables
     INTEGER  :: n_dim      !< number of dimensions
     CHARACTER (len=80) :: gridmp
-    CHARACTER (len=80) :: coord, coordhor, dataset
+    CHARACTER (len=80) :: coord, dataset
     INTEGER (KIND=i4), PARAMETER  :: dem_aster = 2
     INTEGER (KIND=i4), PARAMETER  :: dem_gl = 1
 
     gridmp = c_undef
     coord = c_undef
-    coordhor = c_undef
     dataset = c_undef
     SELECT CASE(idem_type)
       CASE(dem_aster)
@@ -3571,4 +3544,3 @@ MODULE mo_var_meta_data
  END SUBROUTINE set_nc_grid_def_icon
 
 END MODULE mo_var_meta_data
-
