@@ -32,96 +32,91 @@
 !!
 PROGRAM extpar_cru_to_buffer
 
-  USE info_extpar, ONLY: info_print
   USE mo_logging
-  
-  USE mo_kind, ONLY: wp, i8, i4
+  USE info_extpar,              ONLY: info_print
+  USE mo_io_units,              ONLY: filename_max
+  USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures, ONLY: igrid_icon,          &
-       &                        igrid_cosmo
+  USE mo_grid_structures,       ONLY: igrid_icon, &
+       &                              igrid_cosmo
 
+  USE mo_target_grid_routines,  ONLY: init_target_grid
 
-  USE mo_target_grid_data, ONLY: tg,                &
-       &                         lon_geo,           &
-       &                         lat_geo
+  USE mo_target_grid_data,      ONLY: tg, &
+       &                              lon_geo, &
+       &                              lat_geo
 
-  USE mo_target_grid_routines, ONLY: init_target_grid
+  USE mo_icon_grid_data,        ONLY: ICON_grid
 
-  USE mo_icon_grid_data, ONLY: ICON_grid !< structure which contains the definition of the ICON grid
+  USE mo_cosmo_grid,            ONLY: COSMO_grid
 
-  USE  mo_cosmo_grid, ONLY: COSMO_grid
+  USE mo_cru_data,              ONLY: read_namelists_extpar_t_clim, &
+       &                              allocate_cru_data, &
+       &                              deallocate_cru_data, &
+       &                              get_dimension_cru_data, &
+       &                              get_cru_grid_and_data
 
-  USE mo_io_units,          ONLY: filename_max
+  USE mo_cru_target_fields,     ONLY: allocate_cru_target_fields,&
+       &                              crutemp, &
+       &                              cruelev,      &
+       &                              i_t_cru_fine, &
+       &                              i_t_cru_coarse
 
-  USE mo_utilities_extpar, ONLY: abort_extpar
+  USE mo_agg_cru,               ONLY: agg_cru_data_to_target_grid
 
-  USE mo_cru_data, ONLY: read_namelists_extpar_t_clim, &
-       &                 allocate_cru_data, &
-       &                 deallocate_cru_data, &
-       &                 get_dimension_cru_data, &
-       &                 get_cru_grid_and_data, &
-       &                 cru_grid
-
-  USE mo_cru_target_fields, ONLY: allocate_cru_target_fields,&
-       &                          crutemp, &
-       &                          cruelev,      &
-       &                          i_t_cru_fine, &
-       &                          i_t_cru_coarse
-
-  USE mo_agg_cru, ONLY: agg_cru_data_to_target_grid
-
-  USE mo_cru_output_nc, ONLY: write_netcdf_buffer_cru, &
-       &                         write_netcdf_cosmo_grid_cru, &
-       &                         write_netcdf_icon_grid_cru  
+  USE mo_cru_output_nc,         ONLY: write_netcdf_buffer_cru, &
+       &                              write_netcdf_cosmo_grid_cru, &
+       &                              write_netcdf_icon_grid_cru  
 
   IMPLICIT NONE
 
-  CHARACTER(len=filename_max) :: filename
-  CHARACTER(len=filename_max) :: netcdf_filename
+  CHARACTER(len=filename_max)  :: filename, &
+       &                          netcdf_filename, &
+       &                          namelist_file, &
+       &                          namelist_grid_def, &
+       &                          raw_data_t_clim_path, &     !< path to raw data
+       &                          raw_data_t_clim_filename, & !< filename temperature climatology raw data
+       &                          t_clim_buffer_file = '' , &!< name for temperature climatology buffer
+       &                          t_clim_output_file = '' !< name for temperature climatology output file
 
-  CHARACTER(len=filename_max) :: namelist_file
-  CHARACTER(len=filename_max) :: namelist_grid_def
+  INTEGER (KIND=i4)           :: raw_data_t_id, & !< integer switch to choose a land use raw data set
+       &                         nrows, & !< number of rows
+       &                         ncolumns, & !< number of columns
+       &                         ntime, & !< number of times
+       &                         igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
 
-  INTEGER (i8):: raw_data_t_id !< integer switch to choose a land use raw data set
-  !! 1 CRU (fine), 2 CRU (coarse)
-
-  CHARACTER (len=filename_max) :: raw_data_t_clim_path     !< path to raw data
-  CHARACTER (len=filename_max) :: raw_data_t_clim_filename !< filename temperature climatology raw data
-
-  CHARACTER (len=filename_max) :: t_clim_buffer_file = '' !< name for temperature climatology buffer
-  CHARACTER (len=filename_max) :: t_clim_output_file = '' !< name for temperature climatology output file
-
-  REAL (wp) :: undefined
-  INTEGER :: undef_int
+  REAL (KIND=wp)              :: undefined
 
   !--------------------------------------------------------------------------------------
+  namelist_grid_def = 'INPUT_grid_org'
+  namelist_file = 'INPUT_TCLIM'
+  undefined = -999.0_wp
 
-  INTEGER (i8) :: nrows !< number of rows
-  INTEGER (i8) :: ncolumns !< number of columns
-  INTEGER (i8) :: ntime !< number of times
-
-
-  INTEGER (i4) :: igrid_type  !< target grid type, 1 for ICON, 2 for COSMO
-
-  CALL initialize_logging("extpar_cru_to_buffer.log", stdout_level=debug)
+  CALL initialize_logging("extpar_cru_to_buffer.log")
   CALL info_print ()
+
+  !--------------------------------------------------------------------------
+  !--------------------------------------------------------------------------
+  CALL logging%info( '')
+  CALL logging%info( '============= start cru_to_buffer ==============')
+  CALL logging%info( '')
+  !--------------------------------------------------------------------------
+  !--------------------------------------------------------------------------
+  CALL logging%info( '')
+  CALL logging%info( '============= init grid and read namelist=======')
+  CALL logging%info( '')
 
   !--------------------------------------------------------------------------------------------------------
   ! get information on target grid, allocate target fields with coordinates and determin the coordinates 
   ! for th target grid
 
-  namelist_grid_def = 'INPUT_grid_org'
   CALL  init_target_grid(namelist_grid_def)
 
-  PRINT *,'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
-
   igrid_type = tg%igrid_type
-
   !------------------------------------------------------------------------------------
 
   ! get information about temperature climatology data
 
-  namelist_file = 'INPUT_TCLIM'
   CALL  read_namelists_extpar_t_clim(namelist_file, &
        raw_data_t_id, &
        raw_data_t_clim_path, &
@@ -131,155 +126,157 @@ PROGRAM extpar_cru_to_buffer
 
   filename = TRIM(raw_data_t_clim_path) // TRIM(raw_data_t_clim_filename)
 
-  PRINT *, 'CRU raw data filename ',TRIM(filename)
-
   ! inquire dimensions
-
   CALL  get_dimension_cru_data(filename,     &
        &                          nrows,        &
        &                          ncolumns,     &
        &                          ntime)
 
-  PRINT *, 'nrows: ',nrows
-  PRINT *, 'ncolumns: ',ncolumns
-  PRINT *, 'ntime: ',ntime
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+
+  CALL logging%info( '')
+  CALL logging%info('============= allocate fields ==================')
+  CALL logging%info( '')
 
   CALL allocate_cru_data(nrows,ncolumns,ntime)
+  ! allocate target grid fields for aerosol optical thickness
+  CALL allocate_cru_target_fields(tg)
 
+  !--------------------------------------------------------------------------
+  !--------------------------------------------------------------------------
+
+  CALL logging%info( '')
+  CALL logging%info( '============= get grid and data ===============')
+  CALL logging%info( '')
 
   ! read in aot raw data
   CALL get_cru_grid_and_data(filename,     &
        &                     raw_data_t_id,   &
        &                     nrows,        &
-       &                     ncolumns,     &
-       &                     ntime)
-
-  PRINT *, 'cru_grid: ', cru_grid
-
-  PRINT *, 'target grid tg: ',tg%ie, tg%je, tg%ke, tg%minlon, tg%maxlon, tg%minlat, tg%maxlat
-
-  ! allocate target grid fields for aerosol optical thickness
-
-  CALL allocate_cru_target_fields(tg)
-
-
-  undefined = -999.0_wp
-  undef_int = -999
+       &                     ncolumns)
 
   crutemp  = undefined  ! set target grid values to undefined
   cruelev  = undefined
 
-  PRINT *,'call agg_cru_data_to_target_grid ...'
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+
+  CALL logging%info( '')
+  CALL logging%info('============= start aggregation ================')
+  CALL logging%info( '')
+
   CALL  agg_cru_data_to_target_grid(nrows,ncolumns,ntime,raw_data_t_id)
-  PRINT *,'... aggregation done'
+
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+
+  CALL logging%info( '')
+  CALL logging%info('============= write data to netcdf==============')
+  CALL logging%info( '')
 
   !write out data
   filename = TRIM(t_clim_output_file)
 
   SELECT CASE(igrid_type)
 
-  CASE(igrid_icon) ! ICON GRID
+    CASE(igrid_icon) ! ICON GRID
 
-    IF (t_clim_output_file == '') THEN
-      CALL abort_extpar('CRU ICON output filename not defined.')
-    ELSE
-      PRINT *, 'Write CRU aggregated data for ICON to '//TRIM(t_clim_output_file)
-    ENDIF
-    
-    netcdf_filename = TRIM(t_clim_output_file)
+      IF (t_clim_output_file == '') THEN
+        CALL logging%error('CRU ICON output filename not defined.',__FILE__,__LINE__)
+      ENDIF
+      
+      netcdf_filename = TRIM(t_clim_output_file)
 
-    SELECT CASE (raw_data_t_id)
-    CASE(i_t_cru_coarse)
+      SELECT CASE (raw_data_t_id)
 
-      CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
-           &                          icon_grid,        &
-           &                          tg,               &
-           &                          undefined,        &
-           &                          undef_int,        &
-           &                          lon_geo,          &
-           &                          lat_geo,          &
-           &                          crutemp)
+        CASE(i_t_cru_coarse)
 
-    CASE(i_t_cru_fine)
+          CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
+               &                          icon_grid,        &
+               &                          tg,               &
+               &                          undefined,        &
+               &                          lon_geo,          &
+               &                          lat_geo,          &
+               &                          crutemp)
 
-      CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
-           &                          icon_grid,        &
-           &                          tg,               &
-           &                          undefined,        &
-           &                          undef_int,        &
-           &                          lon_geo,          &
-           &                          lat_geo,          &
-           &                          crutemp,          &
-           &                          cruelev=cruelev)
+        CASE(i_t_cru_fine)
 
-    END SELECT
+          CALL write_netcdf_icon_grid_cru(netcdf_filename,  &
+               &                          icon_grid,        &
+               &                          tg,               &
+               &                          undefined,        &
+               &                          lon_geo,          &
+               &                          lat_geo,          &
+               &                          crutemp,          &
+               &                          cruelev=cruelev)
 
-  CASE(igrid_cosmo) ! COSMO grid
+      END SELECT
 
-    netcdf_filename = TRIM(t_clim_output_file)
-    PRINT *,'write out ', TRIM(netcdf_filename)
+    CASE(igrid_cosmo) ! COSMO grid
 
-    SELECT CASE (raw_data_t_id)
-    CASE(i_t_cru_coarse)
-      CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
-           &                                     cosmo_grid,       &
-           &                                     tg,         &
-           &                                     undefined, &
-           &                                     undef_int,   &
-           &                                     lon_geo,     &
-           &                                     lat_geo, &
-           &                                     crutemp)
+      netcdf_filename = TRIM(t_clim_output_file)
+
+      SELECT CASE (raw_data_t_id)
+        CASE(i_t_cru_coarse)
+          CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
+               &                                     cosmo_grid,       &
+               &                                     tg,         &
+               &                                     undefined, &
+               &                                     lon_geo,     &
+               &                                     lat_geo, &
+               &                                     crutemp)
 
 
-    CASE(i_t_cru_fine)
-      CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
-           &                                     cosmo_grid,       &
-           &                                     tg,         &
-           &                                     undefined, &
-           &                                     undef_int,   &
-           &                                     lon_geo,     &
-           &                                     lat_geo, &
-           &                                     crutemp, &
-           &                                     cruelev=cruelev)
+        CASE(i_t_cru_fine)
+          CALL write_netcdf_cosmo_grid_cru(netcdf_filename,  &
+               &                                     cosmo_grid,       &
+               &                                     tg,         &
+               &                                     undefined, &
+               &                                     lon_geo,     &
+               &                                     lat_geo, &
+               &                                     crutemp, &
+               &                                     cruelev=cruelev)
 
-    END SELECT
-
+      END SELECT
   END SELECT
 
   IF (t_clim_buffer_file == '') THEN
-    CALL abort_extpar('CRU buffer output filename not defined.')
-  ELSE
-    PRINT *, 'Write CRU aggregated data buffer to '//TRIM(t_clim_buffer_file)
+    CALL logging%error('CRU buffer output filename not defined.',__FILE__,__LINE__)
   ENDIF
 
   netcdf_filename = TRIM(t_clim_buffer_file)
 
   SELECT CASE (raw_data_t_id)
-  CASE(i_t_cru_coarse)
-    CALL write_netcdf_buffer_cru(netcdf_filename,  &
-         &                       tg,         &
-         &                       undefined, &
-         &                       undef_int,   &
-         &                       lon_geo,     &
-         &                       lat_geo, &
-         &                       crutemp)
+    CASE(i_t_cru_coarse)
+      CALL write_netcdf_buffer_cru(netcdf_filename,  &
+           &                       tg,         &
+           &                       undefined, &
+           &                       lon_geo,     &
+           &                       lat_geo, &
+           &                       crutemp)
 
-  CASE(i_t_cru_fine)
-    CALL write_netcdf_buffer_cru(netcdf_filename,  &
-         &                       tg,         &
-         &                       undefined, &
-         &                       undef_int,   &
-         &                       lon_geo,     &
-         &                       lat_geo, &
-         &                       crutemp, &
-         &                       cruelev=cruelev)
+    CASE(i_t_cru_fine)
+      CALL write_netcdf_buffer_cru(netcdf_filename,  &
+           &                       tg,         &
+           &                       undefined, &
+           &                       lon_geo,     &
+           &                       lat_geo, &
+           &                       crutemp, &
+           &                       cruelev=cruelev)
 
   END SELECT
 
+  !-------------------------------------------------------------------------------
+  !-------------------------------------------------------------------------------
+
+  CALL logging%info( '')
+  CALL logging%info('============= deallocate fields ==============')
+  CALL logging%info( '')
+
   CALL deallocate_cru_data()
 
-  PRINT *,'============= cru_to_buffer done ==============='
-
+  CALL logging%info( '')
+  CALL logging%info('============= cru_to_buffer done =============')
+  
 END PROGRAM extpar_cru_to_buffer
-
-
