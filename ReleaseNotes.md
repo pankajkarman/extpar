@@ -1,4 +1,9 @@
 # Release notes
+ ## 5.2.1
+ This is a minor release containing a bug fix and a small feature addition.
+ * Bug fix for ICON/COSMO file- and variable name mismatch in topography calculation
+ * Add Extpar version number (pulled from git release number) to output NetCDF file
+ 
  ## 5.2
  This is an intermediate release introducing extpar_emiss_to_buffer, an improved logging, enhanced error checking during I/O and a lot of clean-up and formatting
 
