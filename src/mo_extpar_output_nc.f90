@@ -51,7 +51,8 @@ MODULE mo_extpar_output_nc
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-  USE info_extpar,              ONLY: INFO_RevisionHash, INFO_CodeIsModified
+  USE info_extpar,              ONLY: INFO_RevisionHash, INFO_CodeIsModified, &
+       &                              INFO_PackageName
                                 
   USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
        &                              icosahedral_triangular_grid, &
@@ -386,7 +387,7 @@ MODULE mo_extpar_output_nc
 
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
 
-    INTEGER, PARAMETER :: nglob_atts=10
+    INTEGER, PARAMETER :: nglob_atts=11
     TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
     INTEGER :: errorcode !< error status variable
 
@@ -1177,7 +1178,7 @@ MODULE mo_extpar_output_nc
     INTEGER (KIND=i4) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i4) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
-    INTEGER, PARAMETER :: nglob_atts=8
+    INTEGER, PARAMETER :: nglob_atts=9
     TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
 
     INTEGER :: errorcode !< error status variable
@@ -1638,7 +1639,7 @@ MODULE mo_extpar_output_nc
 
 
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:8)
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:9)
     TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type,isoil_data
     INTEGER env_len, status
@@ -1689,18 +1690,21 @@ MODULE mo_extpar_output_nc
     global_attributes(5)%attname = 'history'
     global_attributes(5)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
 
-    global_attributes(6)%attname = 'comment'
+    global_attributes(6)%attname = 'version'
+    global_attributes(6)%attributetext = TRIM(INFO_PackageName)
+
+    global_attributes(7)%attname = 'comment'
     CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
-    global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
+    global_attributes(7)%attributetext='binaries in '//TRIM(env_str)
 
     WRITE(number_Of_Grid_Used_string,'(I4)')  icon_grid%number_Of_Grid_Used
-    global_attributes(7)%attname = 'number_of_grid_used'
-    global_attributes(7)%attributetext=number_Of_Grid_Used_string
+    global_attributes(8)%attname = 'number_of_grid_used'
+    global_attributes(8)%attributetext=number_Of_Grid_Used_string
 
     CALL decode_uuid (icon_grid%uuidOfHGrid, uuid) 
 
-    global_attributes(8)%attname = 'uuidOfHGrid'
-    global_attributes(8)%attributetext=icon_grid%uuidOfHGrid
+    global_attributes(9)%attname = 'uuidOfHGrid'
+    global_attributes(9)%attributetext=icon_grid%uuidOfHGrid
 
 !!$    open(1,file='rawdata_checksum.md5',status='unknown')
 !!$
@@ -1719,7 +1723,7 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:10)
+    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:11)
     CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
     CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
     INTEGER,          INTENT(IN) :: isoil_data
@@ -1791,10 +1795,13 @@ MODULE mo_extpar_output_nc
 #endif
 
     global_attributes(9)%attname = 'version'
-    global_attributes(9)%attributetext = TRIM(INFO_RevisionHash)//" ("//TRIM(INFO_CodeIsModified)//")"
+    global_attributes(9)%attributetext = TRIM(INFO_PackageName)
 
-    global_attributes(10)%attname = 'Conventions'
-    global_attributes(10)%attributetext = 'CF-1.5'
+    global_attributes(10)%attname = 'Revision Hash'
+    global_attributes(10)%attributetext = TRIM(INFO_RevisionHash)//" ("//TRIM(INFO_CodeIsModified)//")"
+
+    global_attributes(11)%attname = 'Conventions'
+    global_attributes(11)%attributetext = 'CF-1.5'
 
 
   END SUBROUTINE set_global_att_extpar
