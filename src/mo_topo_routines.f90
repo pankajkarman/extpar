@@ -35,9 +35,10 @@ MODULE mo_topo_routines
 
   USE mo_grid_structures,       ONLY: reg_lonlat_grid
   USE mo_base_geometry,         ONLY: geographical_coordinates
-  USE mo_topo_data,             ONLY: ntiles ,        &    !< GLOBE raw data has 16 tiles and ASTER has 13
-       &                              max_tiles,      &
+
+  USE mo_topo_data,             ONLY: max_tiles, &
        &                              nc_tile,       &
+       &                              ntiles ,        &    !< GLOBE raw data has 16 tiles and ASTER has 13
        &                              tiles_lon_min,  &
        &                              tiles_lon_max,  &
        &                              tiles_lat_min,  &
@@ -69,8 +70,7 @@ MODULE mo_topo_routines
        &    get_topo_tile_block_indices,     &
        &    open_netcdf_topo_tile,           &
        &    close_netcdf_topo_tile,          &
-       &    get_topo_data_band,              &
-       &    get_topo_data_parallel
+       &    get_topo_data_band
 
   PUBLIC :: det_band_gd, get_topo_data_block,get_topo_data_block_cosmo
 
@@ -82,54 +82,84 @@ MODULE mo_topo_routines
   SUBROUTINE read_namelists_extpar_orography(namelist_file,          &
        &                                     raw_data_orography_path,&
        &                                     topo_files,             &  !mes>
+       &                                     sgsl_files,             &
        &                                     ntiles_column,          &
        &                                     ntiles_row,             &
        &                                     itopo_type,             &
-       &                                     lsso_param,             &  !mes<
-       &                                     lsubtract_mean_slope,   &  !mes<
+       &                                     lcompute_sgsl,          &
+       &                                     lpreproc_oro,           &
+       &                                     lsso_param,             &
+       &                                     lsubtract_mean_slope,   &
        &                                     orography_buffer_file,  &
-       &                                     orography_output_file)
+       &                                     orography_output_file,  &
+       &                                     sgsl_buffer_file)
 
 
-    CHARACTER (LEN=*), INTENT(IN)  :: namelist_file !< filename with namelists for for EXTPAR settings
+    CHARACTER (LEN=*), INTENT(IN)     :: namelist_file !< filename with namelists for for EXTPAR settings
     ! orography
-    CHARACTER (LEN=1024), INTENT(OUT) :: raw_data_orography_path        !< path to raw data
-    CHARACTER (LEN=1024), INTENT(OUT) :: topo_files(1:max_tiles)        !< filenames globe raw data
+    CHARACTER (LEN=1024), INTENT(OUT) :: raw_data_orography_path, &        !< path to raw data
+         &                               topo_files(1:max_tiles), &        !< filenames globe raw data
+         &                               sgsl_files(1:max_tiles)
+
     INTEGER (KIND=i4), INTENT(OUT)    :: ntiles_column, &      !< number of tile columns
          &                               ntiles_row, &         !< number of tile rows
          &                               itopo_type
 
     LOGICAL, INTENT(OUT)              :: lsso_param, &
+         &                               lcompute_sgsl, &
+         &                               lpreproc_oro, &
          &                               lsubtract_mean_slope
 
     CHARACTER (len=1024), INTENT(OUT) :: orography_buffer_file, &!< name for orography buffer file
-         &                               orography_output_file   !< name for orography output file
+         &                               orography_output_file, &!< name for orography output file
+         &                               sgsl_buffer_file        !< name for sgsl output file
 
     INTEGER(KIND=i4)                  :: nuin, ierr, nzylen
     
+    !> namelist for enable/disable subgrid-slope (SGSL)calculation
+    NAMELIST /oro_runcontrol/      lcompute_sgsl
+    
+    !> namelist with information on orography data input
+    NAMELIST /orography_raw_data/  itopo_type, lsso_param, lsubtract_mean_slope, &
+         &                         raw_data_orography_path, ntiles_column, ntiles_row, & 
+         &                         topo_files
+       
     !> namelist with filenames for orography data output
     NAMELIST /orography_io_extpar/ orography_buffer_file, orography_output_file
 
-    !> namelist with information on orography data input
-    NAMELIST /orography_raw_data/ itopo_type, lsso_param, lsubtract_mean_slope, &
-         &                        raw_data_orography_path, ntiles_column, ntiles_row, topo_files
+    !> namelist with filenames for subgrid-slope (SGSL) data output
+    NAMELIST /sgsl_io_extpar/      sgsl_files, sgsl_buffer_file, lpreproc_oro
 
     nuin = free_un()  ! function free_un returns free Fortran unit number
+
     OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
     IF (ierr /= 0) THEN
       WRITE(message_text,*)'Cannot open ', TRIM(namelist_file)
       CALL logging%error(message_text,__FILE__, __LINE__) 
     ENDIF
 
+    READ(nuin, NML=oro_runcontrol, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('Cannot read in namelist oro_runcontrol',__FILE__, __LINE__) 
+    ENDIF
+
     READ(nuin, NML=orography_io_extpar, IOSTAT=ierr)
     IF (ierr /= 0) THEN
       CALL logging%error('Cannot read in namelist orography_io_extpar',__FILE__, __LINE__) 
     ENDIF
+
     READ(nuin, NML=orography_raw_data, IOSTAT=ierr)
     IF (ierr /= 0) THEN
       CALL logging%error('Cannot read in namelist orography_raw_data',__FILE__, __LINE__) 
     ENDIF
 
+    IF (lcompute_sgsl) THEN
+      READ(nuin, NML=sgsl_io_extpar, IOSTAT=ierr)
+      IF (ierr /= 0) THEN
+        CALL logging%error('Cannot read in namelist sgsl_io_extpar',__FILE__, __LINE__) 
+      ENDIF
+    ENDIF
+    
     CLOSE(nuin, IOSTAT=ierr)
     IF (ierr /= 0) THEN
       WRITE(message_text,*)'Cannot close ', TRIM(namelist_file)
@@ -554,62 +584,6 @@ MODULE mo_topo_routines
     call check_netcdf( nf90_close( ncid))
 
   END SUBROUTINE close_netcdf_TOPO_tile
-
-  !----------------------------------------------------------------------------------------------------------------
-
-  !> get globe data on a single circle of latitude
-  SUBROUTINE get_topo_data_parallel(mlat,       &
-       &                            ncids_topo, &
-       &                            h_parallel)
-
-
-    INTEGER(KIND=i4) , INTENT(IN)  :: mlat, &  !< global index of raw data line
-         &                            ncids_topo(1:ntiles)
-    !< ncid for the GLOBE tiles, the netcdf files have to be opened by a previous call of open_netcdf_GLOBE_tile
-    INTEGER (KIND=i4), INTENT(OUT) :: h_parallel(1:nc_tot)     !< GLOBE altitude data along a parallel
-
-    ! local variables
-    INTEGER(KIND=i4)               :: tile_start, &
-         &                            tile_end, &
-         &                            tile_row, &
-         &                            varid, &    !< id of variable
-         &                            k, &  !< counter
-         &                            os, & !< counter
-         &                            nt ! counter
-
-    CHARACTER (LEN=80)            :: varname  !< name of variable
-
-    varname = 'altitude'  ! I know that in the GLOBE netcdf files the height data are stored in a variable "altitude"
-
-    SELECT CASE(mlat)
-      CASE (1:4800)
-        tile_start = 1    ! GLOBE TILE A, or 1
-        tile_row   = mlat ! row in the Tiles A, B, C, D
-      CASE (4801:10800)
-        tile_start = 5    ! GLOBE TILE E, or 5
-        tile_row   = mlat - 4800  ! row in the tiles E, F, G, H
-      CASE (10801:16800)
-        tile_start = 9    ! GLOBE TILE I, or 9
-        tile_row   = mlat - 10800 ! row in the tiles I, J, K, L
-      CASE (16801:21600)
-        tile_start = 13
-        tile_row   = mlat - 16800 ! row in the tiles M, N, O, P
-      CASE DEFAULT
-        CALL logging%error('get_topo_data_parallel: mlat not in data range of TOPO tiles',__FILE__,__LINE__)
-    END SELECT
-
-    tile_end = tile_start + 3 ! numbering of GLOBE tiles
-    nt = 0
-    DO k=tile_start,tile_end
-      nt = nt + 1 ! count the number of tiles
-      CALL check_netcdf(nf90_inq_varid(ncids_topo(k),TRIM(varname),varid)) ! get the varid of the altitude variable
-      CALL check_netcdf(nf90_get_var(ncids_topo(k), varid,  h_tile_row, & ! get the data of one tile row
-           &    start=(/1,tile_row/),count=(/nc_tile,1/)))
-      os = (nt-1) * nc_tile ! offset for array with data along latitude circle
-      h_parallel(os+1:os+nc_tile) = h_tile_row(1:nc_tile)
-    ENDDO
-
-  END SUBROUTINE get_topo_data_parallel
 
   !> get GLOBE data block for a given target area from the tile block indices
   SUBROUTINE get_topo_data_block(str_topo,     &   !mes ><

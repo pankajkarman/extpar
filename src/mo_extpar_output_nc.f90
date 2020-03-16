@@ -365,11 +365,6 @@ MODULE mo_extpar_output_nc
       CALL def_topo_meta(dim_2d_cosmo,itopo_type,coordinates=coordinates,grid_mapping=grid_mapping)
     ENDIF
 
-    !define meta information for subgrid-scale slope data related variables for netcdf output
-    IF (l_use_sgsl) THEN
-      CALL def_sgsl_meta(dim_2d_cosmo,itopo_type,coordinates,grid_mapping)
-    ENDIF
-
     ! define dimensions and meta information for variable aot_tg for netcdf output
     CALL def_aot_tg_meta(ntime_aot,ntype_aot,dim_2d_cosmo,coordinates,grid_mapping)
     ! dim_aot_tg and aot_tg_meta
