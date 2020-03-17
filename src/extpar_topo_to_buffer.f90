@@ -257,11 +257,6 @@ PROGRAM extpar_topo_to_buffer
          &                                  lscale_separation)
   ENDIF
 
-  IF (lscale_separation .AND. itopo_type == 2) THEN
-    lscale_separation = .FALSE.
-    CALL logging%warning('Scale separation can only be used with GLOBE as raw topography')
-  ENDIF
-
   CALL read_namelists_extpar_lradtopo(namelist_lrad,lradtopo,nhori)
 
   ! get information on target grid
@@ -277,6 +272,26 @@ PROGRAM extpar_topo_to_buffer
     lradtopo    = .FALSE.
     lfilter_oro = .FALSE.
   END IF
+
+  IF (lscale_separation .AND. itopo_type == 2) THEN
+    lscale_separation = .FALSE.
+    CALL logging%warning('Scale separation can only be used with GLOBE as raw topography')
+  ENDIF
+
+  IF (igrid_type == igrid_cosmo) THEN ! cosmo grid
+    IF (itopo_type == 1 .AND. &
+    &  (cosmo_grid%dlon_rot <= 0.01 .OR. cosmo_grid%dlat_rot <= 0.01 )) &
+    &  THEN
+      CALL logging%warning('GLOBE raw topography data is used for horizontal grid &
+           & resolution smaller than 1km')
+    ENDIF
+  ELSE !icon grid
+    IF (itopo_type == 1 ) THEN
+      CALL logging%warning('GLOBE raw topography should not be used for &
+           & horizontal grid resolution smaller than 1km -> please check &
+           & your icon grid to fulfill this condition.')
+    ENDIF
+  ENDIF
 
   CALL read_namelists_extpar_orosmooth(namelist_oro_smooth,  &
        &                               lfilter_oro,          &
