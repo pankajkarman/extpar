@@ -106,8 +106,8 @@ elif [[ $type_of_test == dwd ]]; then
     # python and cdo executables 
     binary_alb=extpar_alb_to_buffer.sh
 
-    ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_0044_R19B07_L_BUFFER.nc .
-    ln -sf ${icon_grid_dir}/ei_an1986-2015_0044_R19B07_L_BUFFER.nc .
+    ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc .
+    ln -sf ${icon_grid_dir}/ei_an1986-2015_domain2_DOM01_BUFFER.nc .
     
     # GRID_SUBSET for non-global icon grids use in cdo and python scripts
     $ncks -v clat,clon,cell_area,clon_vertices,clat_vertices ${icon_grid_dir}/${icon_grid_file} GRID_SUBSET.nc
@@ -130,7 +130,8 @@ elif [[ $type_of_test == ecmwf ]]; then
     # GRID_SUBSET for non-global icon grids use in cdo and python scripts
     $ncks -v clat,clon,cell_area,clon_vertices,clat_vertices ${icon_grid_dir}/${icon_grid_file} GRID_SUBSET.nc
 
-# unknown test
+#unknown test
+
 else
 
     # exit script in case of unknown host
