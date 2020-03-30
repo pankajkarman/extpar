@@ -3,15 +3,19 @@ import logging
 import os
 import sys
 import subprocess
-import numpy as np
 import xarray as xr
 
-import INPUT_ALB as IA
-import INPUT_GRID as IG
-import io_utilities as io_utils
+import INPUT_ALB as ia
+import INPUT_GRID as ig
+import utilities as utils
 import shell_wrapper as sw
-#import grid_def
+import grid_def
+import buffer as buffer
+import metadata as metadata
 
+# OpenMP threads for CDO
+omp  = 8                  # OpenMP threads for CDO
+grid = 'grid_description' # name for grid description file
 
 # initialize logger
 logging.basicConfig(filename='extpar_alb_to_buffer.log',\
@@ -20,45 +24,73 @@ logging.basicConfig(filename='extpar_alb_to_buffer.log',\
                     filemode='w')
                     
 
-logging.info( '============= start alb_to_buffer ==============')
+logging.info( '============= start extpar_alb_to_buffer =======')
 logging.info( '')
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info( '')
-logging.info( '============= setup grid =======================')
+logging.info( '============= init grid ========================')
 logging.info( '')
 
-#if (IG.itype_grid == 1):
-#    #icon grid to do
-#elif(IG.itype_grid == 2):
-#    cosmo_grid= grid_def.construct_cosmo_grid()
+if (ig.igrid_type == 1):
+    grid=ig.icon_grid
+elif(ig.igrid_type == 2):
+    tg= grid_def.CosmoGrid()
+    tg.create_grid_description(grid)
+
+else:
+    logging.error(f'igrid_type {igrid_type} does not exist. Use 1 (Icon) or 2 (Cosmo) instead!')
+    exit(1)
+
+raw_data_alb   = utils.clean_path(ia.raw_data_path, ia.raw_data_alb)
+raw_data_aluvd = utils.clean_path(ia.raw_data_path, ia.raw_data_aluvd)
+raw_data_alnid = utils.clean_path(ia.raw_data_path, ia.raw_data_alnid)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= remap to target grid =============')
+logging.info( '')
 
 
-io_utils.check_existence(IA.raw_data_path, IA.raw_data_alb)
-io_utils.check_existence(IA.raw_data_path, IA.raw_data_aluvd)
-io_utils.check_existence(IA.raw_data_path, IA.raw_data_alnid)
-
-omp=1
-
-if os.path.exists("weights.nc"):
-    os.remove("weights.nc")
+utils.remove("weights.nc")
 
 # calculate weights
-sw.launch_shell('cdo','-f', 'nc2','-P', omp,f'gendis,{IA.grid_spec}',IA.raw_data_alb, 'weights.nc')
+#sw.launch_shell('cdo','-f', 'nc4','-P', omp,f'gendis,{grid}',ia.raw_data_alb, 'weights.nc')
+#
+## regrid 1
+#sw.launch_shell('cdo','-f', 'nc4','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
+#                f'-remap,{grid},weights.nc',raw_data_alb, 'alb-dis.nc')
+## regrid 2
+#sw.launch_shell('cdo','-f', 'nc4','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
+#                f'-remap,{grid},weights.nc',raw_data_alnid, 'alnid-dis.nc')
+## regrid 3
+#sw.launch_shell('cdo','-f', 'nc4','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
+#                f'-remap,{grid},weights.nc',raw_data_aluvd, 'aluvd-dis.nc')
 
-# regrid 1
-sw.launch_shell('cdo','-f', 'nc2','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
-                f'-remap,{IA.grid_spec},weights.nc',IA.raw_data_alb, 'alb-dis.nc')
-# regrid 2
-sw.launch_shell('cdo','-f', 'nc2','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
-                f'-remap,{IA.grid_spec},weights.nc',IA.raw_data_alnid, 'alnid-dis.nc')
-# regrid 3
-sw.launch_shell('cdo','-f', 'nc2','-P', omp,f'setrtoc,-1000000,0.02,0.02', \
-                f'-remap,{IA.grid_spec},weights.nc',IA.raw_data_aluvd, 'aluvd-dis.nc')
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= initialize MetaData classes ======')
+logging.info( '')
 
+lat_meta=metadata.LatMeta()
+lon_meta=metadata.LonMeta()
 
-# read the cdo processed data and retrieve all attributes needed
+albedo_meta=metadata.AlbMeta()
 
-alb=xr.open_dataset('alb-dis.nc')
-albni=xr.open_dataset('alnid-dis.nc')
-albuv=xr.open_dataset('aluv-dis.nc')
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= write to buffer file =============')
+logging.info( '')
+#
+if (ig.igrid_type == 1):
+    buffer.write_icon(ia.buffer_alb)
+elif(ig.igrid_type == 2):
+    buffer.write_cosmo(ia.buffer_alb, tg)
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= extpar_alb_to_buffer done ========')
+logging.info( '')

@@ -5,8 +5,7 @@ raw_data_alb="month_alb_new.nc"
 raw_data_path=""
 raw_data_aluvd="month_aluvd_new.nc"
 raw_data_alnid="month_alnid_new.nc"
-buffer_alb=""
-grid_spec="grid_spec.txt"
+buffer_alb="alb-dis_BUFFER.nc"
 
 
 
