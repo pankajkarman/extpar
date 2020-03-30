@@ -29,6 +29,7 @@ $(ROOT)/$(SRCDIR)/mo_albedo_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_aot_data.f90 \
 $(ROOT)/$(SRCDIR)/mo_aot_output_nc.f90 \
 $(ROOT)/$(SRCDIR)/mo_aot_target_fields.f90 \
+$(ROOT)/$(SRCDIR)/mo_array_cache.f90 \
 $(ROOT)/$(SRCDIR)/mo_base_geometry.f90 \
 $(ROOT)/$(SRCDIR)/mo_bilinterpol.f90 \
 $(ROOT)/$(SRCDIR)/mo_cosmo_grid.f90 \
@@ -100,7 +101,9 @@ $(ROOT)/$(SRCDIR)/mo_topo_routines.f90 \
 $(ROOT)/$(SRCDIR)/mo_topo_sso.f90 \
 $(ROOT)/$(SRCDIR)/mo_topo_tg_fields.f90 \
 $(ROOT)/$(SRCDIR)/mo_utilities_extpar.f90 \
+$(ROOT)/$(SRCDIR)/mo_util_mmap_cache.f90 \
 $(ROOT)/$(SRCDIR)/mo_var_meta_data.f90 \
+$(ROOT)/$(SRCDIR)/util_mmap_cache.c \
 $(ROOT)/$(SRCDIR)/extpar_alb_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_landuse_to_buffer.f90 \
 $(ROOT)/$(SRCDIR)/extpar_aot_to_buffer.f90 \

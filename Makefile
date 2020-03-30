@@ -53,7 +53,7 @@ endif
 
 # dynamically generated dependency file
 DEPF       := .depend
-IGN        := --ignore netcdf --ignore omp_lib --ignore iso_fortran_env
+IGN        := --ignore netcdf --ignore omp_lib --ignore f90_unix --ignore iso_fortran_env --ignore iso_c_binding
 
 # if machine is not defined, try to determine it
 ifndef MACH
@@ -111,14 +111,14 @@ info :
 opt :
 	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 info depend
 	@for target in $(TARGETS) ; do \
-     echo "generating target $$target" ; \
+           echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $$target ; \
    done
 
 debug :
 	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 info depend
 	@for target in $(TARGETS) ; do \
-     echo "generating target $$target" ; \
+           echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $$target ; \
    done
 
@@ -136,6 +136,10 @@ clean :
 %.o : %.f90
 	@echo "compiling $(patsubst %.o,%.f90,$(notdir $@))"
 	@$(F90) -c $(PFLAGS) $(FFLAGS) $(INC) -o $@ $(ROOT)/$(SRCDIR)/$(patsubst %.o,%.f90,$(notdir $@))
+
+%.o : %.c
+	@echo "compiling $(patsubst %.o,%.c,$(notdir $@))"
+	@$(CC) -c $(CFLAGS) -o $@ $(ROOT)/$(SRCDIR)/$(patsubst %.o,%.c,$(notdir $@))
 
 # include dynamically generated dependency file
 -include $(ROOT)/$(DEPF)

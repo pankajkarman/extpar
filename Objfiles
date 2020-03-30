@@ -25,6 +25,7 @@ mo_albedo_tg_fields.o \
 mo_aot_data.o \
 mo_aot_output_nc.o \
 mo_aot_target_fields.o \
+mo_array_cache.o \
 mo_base_geometry.o \
 mo_bilinterpol.o \
 mo_cosmo_grid.o \
@@ -90,6 +91,7 @@ mo_topo_routines.o \
 mo_topo_sso.o \
 mo_topo_tg_fields.o \
 mo_utilities_extpar.o \
+mo_util_mmap_cache.o \
 mo_ahf_data.o \
 mo_ahf_output_nc.o \
 mo_ahf_routines.o \
@@ -100,5 +102,5 @@ mo_isa_data.o \
 mo_isa_output_nc.o \
 mo_isa_routines.o \
 mo_isa_tg_fields.o \
-mo_var_meta_data.o 
-
+mo_var_meta_data.o \
+util_mmap_cache.o

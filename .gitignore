@@ -6,6 +6,7 @@
 *.exe
 *.pyc
 .depend*
+.fconfig
 *.dSYM
 test/testsuite/work
 *.out
