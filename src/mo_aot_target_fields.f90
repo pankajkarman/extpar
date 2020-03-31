@@ -72,7 +72,7 @@ MODULE mo_aot_target_fields
       IF(errorcode /= 0) CALL logging%error('Cant allocate the array MAC_asy_tg',__FILE__,__LINE__)
       MAC_asy_tg = 0.0_wp
 
-      ALLOCATE(aot_tg(0,0,0,0,0))
+      ALLOCATE(aot_tg(0,0,0,0,0), STAT=errorcode)
       
     ELSE
 
@@ -80,7 +80,7 @@ MODULE mo_aot_target_fields
       IF(errorcode /= 0) CALL logging%error('Cant allocate the array aot_tg',__FILE__,__LINE__)
       aot_tg = 0.0_wp
 
-      ALLOCATE(MAC_aot_tg(0,0,0,0), MAC_ssa_tg(0,0,0,0), MAC_asy_tg(0,0,0,0))
+      ALLOCATE(MAC_aot_tg(0,0,0,0), MAC_ssa_tg(0,0,0,0), MAC_asy_tg(0,0,0,0), STAT=errorcode)
 
     ENDIF
 
