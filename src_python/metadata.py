@@ -1,60 +1,88 @@
+import numpy as np
+'''
+Module providing the Meta-Data classes for the buffer file,
+it contains:
+
+    -Parent:Coordinates -> Child: Lon, Lat
+
+    -Parent:AlbMeta -> Child: AL, NI, UV
+
+Meta-Data that is shared amongs all fields of an Extpar class is defined in
+the parent class, for example CoordsMeta 
+Meta-Data that is only valid for one specific field is defined in the respective
+child class
+
+The following Meta-Data is required during the write_*d_fields functions:
+    -name ( string)
+    -short ( string)
+    -standard ( string)
+    -long ( string)
+    -type ( basic datatype (float, integer,...)
+    -dim ( dictionary for all dimensions of fields, ie is the last index)
+'''
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# Coordinates
+# ->Lon
+# ->Lat
 class CoordsMeta:
     def __init__(self):         
         self.type=np.float32
-        self.dimensions={1: 'ke'
-                         2: 'je'
-                         3: 'ie'}
+        self.dim={0: 'ke',
+                  1: 'je',
+                  2: 'ie'}
 
-        self.lat=self.LatMeta()
-        self.lon=self.LonMeta()
+class Lon(CoordsMeta):
+    def __init__(self):         
+        super().__init__()
+        self.name='LON'
+        self.short='lon'
+        self.standard= 'longitude'
+        self.long= 'geographical longitude'
+        self.units= 'degrees_east'
 
-    class LonMeta:
-        def __init__(self):         
-            self.short='lon'
-            self.standard= 'longitude'
-            self.long= 'geographical longitude'
-            self.units= 'degrees_east'
-
-    class LatMeta:
-        def __init__(self):         
-            self.short='lat'
-            self.standard= 'latitude'
-            self.long= 'geographical latitude'
-            self.units= 'degrees_north'
+class Lat(CoordsMeta):
+    def __init__(self):         
+        super().__init__()
+        self.name='LAT'
+        self.short='lat'
+        self.standard= 'latitude'
+        self.long= 'geographical latitude'
+        self.units= 'degrees_north'
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# Albedo
+# ->AL
+# ->NI
+# ->UV
 
 class AlbMeta:
     def __init__(self):
         self.type=np.float32
-        self.dimensions={ 1: 'time'
-                          2: 'ke' 
-                          3: 'je'
-                          4: 'ie'}
         self.units='%'
-        self.number_of_fields=3
+        self.dim={ 0: 'time',
+                   1: 'ke', 
+                   2: 'je',
+                   3: 'ie'}
 
-        self.subfields=[]
-        self.subfields.append(self.AL())
-        self.subfields.append(self.NI())
-        self.subfields.append(self.UV())
+class AL(AlbMeta):
+    def __init__(self):         
+        super().__init__()
+        self.name='ALB_DIF12'
+        self.long='Albedo'
+        self.orig='al'
 
-        class AL
-            def __init__(self):         
-                self.name='ALB_DIF12'
-                self.long='Albedo'
-                self.orig='al'
-
-        class NI
-            def __init__(self):         
-                self.name='ALNID12'
-                self.long='NI_Albedo'
-                self.orig='alnid'
-                
-        class UV
-            def __init__(self):         
-                self.name='ALUVD12'
-                self.long='UV_Albedo'
-                self.orig='aluvd'
-
-
-
-
+class NI(AlbMeta):
+    def __init__(self):         
+        super().__init__()
+        self.name='ALNID12'
+        self.long='NI_Albedo'
+        self.orig='alnid'
+        
+class UV(AlbMeta):
+    def __init__(self):         
+        super().__init__()
+        self.name='ALUVD12'
+        self.long='UV_Albedo'
+        self.orig='aluvd'

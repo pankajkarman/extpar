@@ -1,10 +1,36 @@
+import math
 import INPUT_GRID as ig
 import numpy as np
-import math
+'''
+Module providing classes and functions for COSMO grids,
+it contains:
+    -class CosmoGrid: grid definition from namelist
+'''
 
 class CosmoGrid:
+    '''
+    store all Cosmo grid information and provide functions related to
 
+    member functions:
+        
+        -__init__
+        
+        -create_grid_description
+        
+        -lon_rot
+
+        -lat_rot
+        
+        -latlon_cosmo_to_latlon_regular
+
+        -rlarot2rla
+
+        -phirot2phi
+    '''
     def __init__(self):
+
+        '''init from namelist INPUT_GRID.py'''
+
         self.pollon=ig.pollon
         self.pollat=ig.pollat
         self.startlon_tot=ig.startlon_tot
@@ -18,8 +44,13 @@ class CosmoGrid:
 
     def create_grid_description(self,name):
         '''
-        create grid description for cdo
+        write grid description required for cdo
+        
+        grid decription has name "name"
+        it contains all required information
+        about the grid needed for the interpolation using CDO
         '''
+
         with open(name,'w') as f:
         
             f.write(f'gridtype  = projection\n')
@@ -36,31 +67,35 @@ class CosmoGrid:
             f.write(f'grid_north_pole_latitude  = {self.pollat}\n') 
     
     def lon_rot(self):
+
+       '''return array with rotated longitude values'''
+
        lon = np.empty(self.ie_tot)
 
        for i in range(self.ie_tot):
-           lon[i] = self.startlon_tot + i*self.dlon
-           print('lon')
-           print(lon[i])
+           lon[i] = self.startlon_tot + i * self.dlon
 
        return lon
 
 
     def lat_rot(self):
+
+       '''return array with rotated latitude values'''
+
        lat = np.empty([self.je_tot])
 
        for j in range(self.je_tot):
-           lat[j] = self.startlat_tot + j*self.dlat
-           print('lat')
-           print(lat[j])
+           lat[j] = self.startlat_tot + j * self.dlat
 
        return lat
 
     def latlon_cosmo_to_latlon_regular(self):
         '''
-        lon and lat geo are stored in j,i order for netCDF
-        '''
+        return array(je_tot,ie_tot) with the regular lat/lon values
 
+        CAUTION: lon and lat geo are stored in j,i-order, because the netCDF
+        requires this index-order
+        '''
         lat_cosmo=self.lat_rot()
         lon_cosmo=self.lon_rot()
 
@@ -76,7 +111,12 @@ class CosmoGrid:
         return lat_reg,lon_reg
 
     def rlarot2rla(self,phirot, rlarot, polphi, pollam): 
+        '''
+        convert rotated longitude to regular longitude
 
+        functions taken from Fortran module "mo_utilities_extpar.f90"
+        results of function are cross-validated with cartopy coordinate transformation
+        '''
 
         zrpi18 = 57.29577951308232
         zpir18 = 0.017453292519943295
@@ -109,6 +149,12 @@ class CosmoGrid:
 
 
     def phirot2phi(self,phirot,rlarot,polphi,pollam): 
+        '''
+        convert rotated latitude to regular latitude
+
+        functions taken from Fortran module "mo_utilities_extpar.f90"
+        results of function are cross-validated with cartopy coordinate transformation
+        '''
 
         zrpi18 = 57.29577951308232
         zpir18 = 0.017453292519943295
