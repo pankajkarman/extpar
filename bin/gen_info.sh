@@ -18,6 +18,7 @@ code_version=$(git describe --tags $(git rev-list --tags --max-count=1) | cut -d
 # parse command line arguments
 fconfig="$1"
 srcdir="$2"
+builddir="${3-${srcdir}}"
 
 # check if file is available
 if [ ! -f "${srcdir}/info_extpar.f90.in" ] ; then
@@ -80,7 +81,7 @@ sed -e "s|\(INFO_PackageName *= *\)'.*'|\1'""${INFO_PackageName}""'|g
         s|\(INFO_CompileTime *= *\)'.*'|\1'""${INFO_CompileTime}""'|g
         s|\(INFO_CompileMachine *= *\)'.*'|\1'""${INFO_CompileMachine}""'|g
         s|\(INFO_StartTime *= *\)'.*'|\1'""${INFO_StartTime}""'|g
-        s|\(INFO_BinaryName *= *\)'.*'|\1'""${INFO_BinaryName}""'|g" ${srcdir}/info_extpar.f90.in > ${srcdir}/info_extpar.f90 
+        s|\(INFO_BinaryName *= *\)'.*'|\1'""${INFO_BinaryName}""'|g" ${srcdir}/info_extpar.f90.in > ${builddir}/info_extpar.f90
 
 exit 0
 

@@ -1,0 +1,204 @@
+# Path to the root source directory:
+srcdir:= @srcdir@
+
+# Relative paths to the directories with the source files:
+subdirs:= src
+
+# Path to the directory with the Fortran module files:
+moddir:= mod
+
+# Relative path to the directory with the resulting executables:
+bindir:= bin
+
+# Paths to the installation directories:
+prefix= @prefix@
+exec_prefix= @exec_prefix@
+
+# Package tarname:
+PACKAGE_TARNAME= @PACKAGE_NAME@-@PACKAGE_VERSION@
+
+# Compilers and utilities:
+SHELL= @SHELL@
+FC= @FC@
+PYTHON= @PYTHON@
+DEPLIST= ${PYTHON} $(srcdir)/mkhelper/deplist.py
+DEPGEN= ${PYTHON} $(srcdir)/mkhelper/depgen.py --src-root='@srcdir@' --pp-enable --pp-eval-expr \
+        --pp-inc-flag='@FCINCFLAG_PP@' --pp-inc-order='@FCINCORDER_PP@' --pp-macro-flag='@FCDEF_PP@' \
+        --fc-enable --fc-mod-ext='@FCMODEXT@.proxy' --fc-mod-upper='@FCMODUC@' --fc-inc-flag='@FCINCFLAG@' \
+        --fc-inc-order='@FCINCORDER@' --fc-mod-dir-flag='@FCMODOUT@' --fc-external-mods='f90_unix,omp_lib,netcdf'
+MODCMP= ${PYTHON} $(srcdir)/mkhelper/fortmodcmp.py
+INSTALL= @INSTALL@
+GIT= git
+TAR= tar
+BZIP2 = bzip2
+
+# Fortran compiler flags:
+FCFLAGS= @FCFLAGS@
+makefile_FCFLAGS:= @FCMODINC@$(moddir) @FCMODOUT@$(moddir) @NETCDF_FCFLAGS@
+DEPGEN_FCFLAGS:= @DEPGEN_FCFLAGS@
+
+# Linker flags and libraries:
+LDFLAGS= @LDFLAGS@
+LIBS= @NETCDF_FCLIBS@ @LIBS@
+
+# Silent rule prefixes:
+V= @DEFAULT_VERBOSITY@
+ifeq ($(V), 0)
+silent_DEPGEN=  @echo "  DEPGEN  " $@;
+silent_FC=      @echo "  FC      " $@;
+silent_FCLD=    @echo "  FCLD    " $@;
+silent_GEN=     @echo "  GEN     " $@;
+silent_MKDIR=   @echo "  MKDIR   " $(@D);
+endif
+
+# Path suffixes (i.e. without $(srcdir) prefix) of the source files:
+src_roots:= $(addprefix $(srcdir)/,$(subdirs))
+f90_files:= $(patsubst $(srcdir)/%,%,$(shell find $(src_roots) -name '*.f90'))
+
+# Dependency files:
+dep_files:= $(addsuffix .d,$(f90_files))
+
+# Stamp files of the building subdirectories:
+dir_files= $(addsuffix .dirstamp, $(sort $(dir $(dep_files)))) $(moddir)/.dirstamp $(bindir)/.dirstamp
+
+# Selective search path:
+vpath %.f90 $(srcdir)
+
+# Disable built-in suffix rules:
+.SUFFIXES:
+# Delete partially updated files:
+.DELETE_ON_ERROR:
+# Targets not associated with files:
+.PHONY: all depend dummy-depend mostlyclean clean distclean \
+        install sanitize-mod-proxies force-create-info dist
+# Targets that do not need the inclusion of the dependency files:
+NO_INC_TARGETS:= depend dummy-depend mostlyclean clean distclean dist
+# Keep directory stamps:
+.PRECIOUS: $(dir_files)
+
+prog_names:=                 \
+    extpar_alb_to_buffer     \
+    extpar_aot_to_buffer     \
+    extpar_consistency_check \
+    extpar_cru_to_buffer     \
+    extpar_flake_to_buffer   \
+    extpar_landuse_to_buffer \
+    extpar_ndvi_to_buffer    \
+    extpar_soil_to_buffer    \
+    extpar_topo_to_buffer    \
+    extpar_ahf_to_buffer     \
+    extpar_isa_to_buffer     \
+    extpar_emiss_to_buffer
+
+# Another option is to use the value from the configure script
+# (i.e. EXEEXT surrounded with @):
+EXEEXT:= .exe
+prog_files:= $(addprefix $(bindir)/,$(addsuffix $(EXEEXT),$(prog_names)))
+
+# Default rule:
+all: $(prog_files)
+
+# Explicit dependency generation rule:
+depend: $(dep_files)
+
+# Delete the results of compilation and linking:
+mostlyclean:
+	rm -f $(addsuffix .@OBJEXT@,$(basename $(f90_files))) info_extpar.@OBJEXT@
+	rm -f $(moddir)/*.@FCMODEXT@ $(moddir)/*.@FCMODEXT@.proxy
+	rm -f $(prog_files)
+
+# Delete files generated at the building stage:
+clean: mostlyclean
+	rm -f info_extpar.f90
+
+# Delete everything generated at the configure stage (and clean the created
+# directories if they are empty):
+distclean: clean
+	rm -f $(dep_files)
+	rm -f $(dir_files)
+	@for dir in $(bindir) $(moddir) $(subdirs); do \
+	  if test -d "$$dir"; then \
+	    echo "find '$$dir' -type d -empty -delete"; \
+	    find "$$dir" -type d -empty -delete; \
+	  fi; \
+	done
+	rm -f config.log config.status Makefile
+
+# Installation rules:
+install: $(prog_files)
+	$(INSTALL) -d $(DESTDIR)@bindir@ && $(INSTALL) $^ $(DESTDIR)@bindir@
+
+# Tarball creation rule:
+dist:
+	@if test ! -e @top_srcdir@/.git; then echo "'@top_srcdir@' is not a git repository" >&2; exit 1; fi
+	$(GIT) -C @top_srcdir@ archive --prefix=$(PACKAGE_TARNAME)/ --format tar -o @abs_top_builddir@/$(PACKAGE_TARNAME).tar HEAD
+	rm -f $(PACKAGE_TARNAME).tar.bz2 && BZIP2=$${BZIP2--9} $(BZIP2) $(PACKAGE_TARNAME).tar
+
+
+prog_rule = $(bindir)/$(1)$$(EXEEXT): $$(filter %.@OBJEXT@,$$(shell $(DEPLIST) -t src/$(1).@OBJEXT@ -f Makefile $$(dep_files))) | $$(dir_files)
+$(foreach name,$(prog_names),$(eval $(call prog_rule,$(name))))
+
+$(prog_files):
+	$(silent_FCLD)$(FC) -o $@ $(makefile_FCFLAGS) $(FCFLAGS) $(LDFLAGS) $^ $(LIBS)
+
+
+# Fortran compilation rule:
+%.@OBJEXT@: %.f90 | $(dir_files)
+	$(silent_FC)$(FC) -o $@ -c $(makefile_FCFLAGS) $(FCFLAGS) @FCFLAGS_f90@ $<
+
+# Fortran module file rule:
+$(moddir)/%.@FCMODEXT@.proxy:| sanitize-mod-proxies
+	@if test -z '$<'; then \
+	  echo "Cannot find Fortran source file providing module '$(basename $(@F:.proxy=))'." >&2; \
+	else \
+	  if test ! -f '$(@:.proxy=)'; then rm -f '$<'; $(MAKE) '$<'; fi; \
+	  if cmp '$@' '$(@:.proxy=)' >/dev/null 2>&1 || $(MODCMP) '$@' '$(@:.proxy=)' @FC_VENDOR@ 2>/dev/null; then :; \
+	  else cp '$(@:.proxy=)' '$@' 2>/dev/null; fi; \
+	fi
+
+# Delete all Fortran module proxy files that do not have an existing module to
+# be a proxy of, i.e. if <filename>.proxy exists but <filename> does not,
+# delete <filename>.proxy:
+sanitize-mod-proxies:
+	@rm -f $(filter-out $(addsuffix .proxy,$(wildcard $(moddir)/*.@FCMODEXT@)),$(wildcard $(moddir)/*.@FCMODEXT@.proxy))
+
+# Info source file generation rule:
+@abs_builddir@/info_extpar.f90: force-create-info
+	$(silent_GEN):;{ \
+	  echo 'Compiler command : $(FC)' && \
+	  echo 'Compiler version : @FC_VENDOR@ @FC_VERSION@' && \
+	  echo 'Compiler includes: @NETCDF_FCFLAGS@' && \
+	  echo 'Compiler flags   : $(FCFLAGS)' && \
+	  echo 'Linker command   : $(FC)' && \
+	  echo 'Linker version   : @FC_VENDOR@ @FC_VERSION@' && \
+	  echo 'Linker flags     : $(FCFLAGS) $(LDFLAGS)' && \
+	  echo 'Linker libraries : $(LIBS)'; \
+	} >.fconfig && \
+	$(srcdir)/bin/gen_info.sh .fconfig '$(srcdir)/src' . || exit 1; \
+	rm -f .fconfig && test -f $@
+
+@abs_builddir@/info_extpar.@OBJEXT@: mod/mo_logging.@FCMODEXT@.proxy
+mod/info_extpar.@FCMODEXT@.proxy: @abs_builddir@/info_extpar.@OBJEXT@
+
+# Directory creation rule:
+%/.dirstamp:
+	$(silent_MKDIR)@MKDIR_P@ $(@D) && touch $@
+
+# Fortran dependency generation rule:
+%.f90.d: %.f90 Makefile | $(dir_files)
+	$(silent_DEPGEN)$(DEPGEN) -o $@ --obj-name $(@:.f90.d=.@OBJEXT@) -i $< -- $(DEPGEN_FCFLAGS) $(makefile_FCFLAGS) $(FCFLAGS)
+
+# Dummy dependency file generation rule (called by config.status): 
+dummy-depend: | $(dir_files)
+	@for file in $(dep_files); do \
+	  test -e "$$file" || touch "$$file"; \
+	done
+
+current_targets:= $(strip $(MAKECMDGOALS))
+ifeq (,$(current_targets))
+current_targets:= all
+endif
+
+ifneq (,$(filter-out $(NO_INC_TARGETS),$(current_targets)))
+include $(dep_files)
+endif
