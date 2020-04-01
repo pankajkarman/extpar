@@ -589,6 +589,8 @@ INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
 PYTHON
+CDI_FCLIBS
+CDI_FCFLAGS
 NETCDF_FCLIBS
 NETCDF_FCFLAGS
 DEFAULT_VERBOSITY
@@ -658,6 +660,9 @@ enable_openmp
 with_netcdf_root
 with_netcdf_include
 with_netcdf_lib
+with_cdi_root
+with_cdi_include
+with_cdi_lib
 '
       ac_precious_vars='build_alias
 host_alias
@@ -668,6 +673,8 @@ LDFLAGS
 LIBS
 NETCDF_FCFLAGS
 NETCDF_FCLIBS
+CDI_FCFLAGS
+CDI_FCLIBS
 PYTHON'
 
 
@@ -1293,6 +1300,10 @@ Optional Packages:
   --with-netcdf-include=DIR
                           search path for NetCDF headers [NETCDF_ROOT/include]
   --with-netcdf-lib=DIR   search path for NetCDF libraries [NETCDF_ROOT/lib]
+  --with-cdi-root=CDI_ROOT
+                          root search path for CDI headers and libraries
+  --with-cdi-include=DIR  search path for CDI headers [CDI_ROOT/include]
+  --with-cdi-lib=DIR      search path for CDI libraries [CDI_ROOT/lib]
 
 Some influential environment variables:
   FC          Fortran compiler command
@@ -1304,6 +1315,9 @@ Some influential environment variables:
               exact Fortran compiler flags enabling NetCDF
   NETCDF_FCLIBS
               exact linker flags enabling NetCDF when linking with Fortran
+              compiler
+  CDI_FCFLAGS exact Fortran compiler flags enabling CDI
+  CDI_FCLIBS  exact linker flags enabling CDI when linking with Fortran
               compiler
   PYTHON      Python interpreter command
 
@@ -3000,26 +3014,26 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $acx_cv_fc_rpath_flag" >&5
 $as_echo "$acx_cv_fc_rpath_flag" >&6; }
 
-   extpar_L_args=
+   acx_L_args=
    asx_extract_args_args="$LDFLAGS $LIBS"
    asx_extract_args_args=`$as_echo "$asx_extract_args_args" | sed 's%''-L[ ]*''%_ASX_EXTRACT_ARGS_MARKER_%g'`
    for asx_extract_args_arg in $asx_extract_args_args; do
      case $asx_extract_args_arg in #(
   _ASX_EXTRACT_ARGS_MARKER_*) :
     asx_extract_args_value=`$as_echo "$asx_extract_args_arg" | sed 's%^_ASX_EXTRACT_ARGS_MARKER_%%'`
-        as_fn_append extpar_L_args " $asx_extract_args_value" ;; #(
+        as_fn_append acx_L_args " $asx_extract_args_value" ;; #(
   *) :
      ;;
 esac
    done
-   for extpar_L_arg in $extpar_L_args; do
+   for acx_L_arg in $acx_L_args; do
      case ' '$LDFLAGS' ' in #(
-  *' '"$acx_cv_fc_rpath_flag$extpar_L_arg"' '*) :
+  *' '"$acx_cv_fc_rpath_flag$acx_L_arg"' '*) :
      ;; #(
   ' '' ') :
-    as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$extpar_L_arg" ;; #(
+    as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$acx_L_arg" ;; #(
   *) :
-    as_fn_append LDFLAGS ' '; as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$extpar_L_arg" ;;
+    as_fn_append LDFLAGS ' '; as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$acx_L_arg" ;;
 esac
    done
    acx_shlib_rpath_flags_check_result=no
@@ -3049,11 +3063,11 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 fi
 
-extpar_libsearch_flags='-L'
+acx_libsearch_flags='-L'
 if test "x$enable_rpaths" = xyes; then :
-  as_fn_append extpar_libsearch_flags " '$acx_cv_fc_rpath_flag'"
+  as_fn_append acx_libsearch_flags " '$acx_cv_fc_rpath_flag'"
 fi
-eval "set dummy $extpar_libsearch_flags"; shift
+eval "set dummy $acx_libsearch_flags"; shift
 
 # Check whether --with-netcdf-root was given.
 if test "${with_netcdf_root+set}" = set; then :
@@ -3104,6 +3118,61 @@ fi
     as_fn_append acx_fc_NetCDF_lib_search_args "${acx_flag}${with_netcdf_lib}" ;; #(
   *) :
     as_fn_append acx_fc_NetCDF_lib_search_args " "; as_fn_append acx_fc_NetCDF_lib_search_args "${acx_flag}${with_netcdf_lib}" ;;
+esac
+         done
+fi
+
+
+
+# Check whether --with-cdi-root was given.
+if test "${with_cdi_root+set}" = set; then :
+  withval=$with_cdi_root;
+fi
+
+
+# Check whether --with-cdi-include was given.
+if test "${with_cdi_include+set}" = set; then :
+  withval=$with_cdi_include;
+else
+  if ${with_cdi_root+:} false; then :
+  with_cdi_include="${with_cdi_root}/include"
+fi
+fi
+
+
+      if ${with_cdi_include+:} false; then :
+  for acx_flag in "$FCMODINC"; do
+           case " "$acx_fc_CDI_inc_search_args" " in #(
+  *" ""${acx_flag}${with_cdi_include}"" "*) :
+     ;; #(
+  " "" ") :
+    as_fn_append acx_fc_CDI_inc_search_args "${acx_flag}${with_cdi_include}" ;; #(
+  *) :
+    as_fn_append acx_fc_CDI_inc_search_args " "; as_fn_append acx_fc_CDI_inc_search_args "${acx_flag}${with_cdi_include}" ;;
+esac
+         done
+fi
+
+
+# Check whether --with-cdi-lib was given.
+if test "${with_cdi_lib+set}" = set; then :
+  withval=$with_cdi_lib;
+else
+  if ${with_cdi_root+:} false; then :
+  with_cdi_lib="${with_cdi_root}/lib"
+fi
+fi
+
+
+      if ${with_cdi_lib+:} false; then :
+  for acx_flag in "$@"; do
+           case " "$acx_fc_CDI_lib_search_args" " in #(
+  *" ""${acx_flag}${with_cdi_lib}"" "*) :
+     ;; #(
+  " "" ") :
+    as_fn_append acx_fc_CDI_lib_search_args "${acx_flag}${with_cdi_lib}" ;; #(
+  *) :
+    as_fn_append acx_fc_CDI_lib_search_args " "; as_fn_append acx_fc_CDI_lib_search_args "${acx_flag}${with_cdi_lib}" ;;
 esac
          done
 fi
@@ -3374,6 +3443,136 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 
 FCFLAGS=$acx_save_FCFLAGS
+
+acx_save_FCFLAGS=$FCFLAGS
+CDI_FCFLAGS=${CDI_FCFLAGS-$acx_fc_CDI_inc_search_args}
+FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran module MO_CDI" >&5
+$as_echo_n "checking for Fortran module MO_CDI... " >&6; }
+if ${acx_cv_fc_module_MO_CDI+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.$ac_ext <<_ACEOF
+      program main
+      use mo_cdi
+      end
+_ACEOF
+if ac_fn_fc_try_compile "$LINENO"; then :
+  acx_cv_fc_module_MO_CDI=yes
+else
+  acx_cv_fc_module_MO_CDI=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $acx_cv_fc_module_MO_CDI" >&5
+$as_echo "$acx_cv_fc_module_MO_CDI" >&6; }
+   if test "x$acx_cv_fc_module_MO_CDI" = xyes; then :
+  acx_fc_lib_search=VLISTDEFVARTIMETYPE
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker flags enabling Fortran function $acx_fc_lib_search" >&5
+$as_echo_n "checking for linker flags enabling Fortran function $acx_fc_lib_search... " >&6; }
+   if { as_var=acx_cv_fc_lib_func_`$as_echo "$acx_fc_lib_search" | $as_tr_sh`; eval \${$as_var+:} false; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat > conftest.$ac_ext <<_ACEOF
+      program main
+      use mo_cdi, only: vlistDefVarTimetype
+      implicit none
+      integer :: a, b, c
+      call vlistDefVarTimetype(a, b, c)
+      end
+_ACEOF
+      acx_save_LIBS=$LIBS
+      if ${CDI_FCLIBS+:} false; then :
+  set dummy "$CDI_FCLIBS"
+else
+  set dummy ''  "$acx_fc_CDI_lib_search_args -lcdi_f2003" "$acx_fc_CDI_lib_search_args -lcdi_f2003 -lcdi"
+fi
+      shift
+      for acx_libs in "$@"; do
+        LIBS="$acx_libs $acx_save_LIBS"
+        if ac_fn_fc_try_link "$LINENO"; then :
+  eval acx_cv_fc_lib_func_`$as_echo "$acx_fc_lib_search" | $as_tr_sh`=\$acx_libs
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+        if { as_var=acx_cv_fc_lib_func_`$as_echo "$acx_fc_lib_search" | $as_tr_sh`; eval \${$as_var+:} false; }; then :
+  break
+fi
+      done
+      rm -f conftest.$ac_ext
+      LIBS=$acx_save_LIBS
+fi
+
+   if { as_var=acx_cv_fc_lib_func_`$as_echo "$acx_fc_lib_search" | $as_tr_sh`; eval \${$as_var+:} false; }; then :
+  if test -n "`eval 'as_val=${'acx_cv_fc_lib_func_\`$as_echo "$acx_fc_lib_search" | $as_tr_sh\`'};$as_echo "$as_val"'`"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: `eval 'as_val=${'acx_cv_fc_lib_func_\`$as_echo "$acx_fc_lib_search" | $as_tr_sh\`'};$as_echo "$as_val"'`" >&5
+$as_echo "`eval 'as_val=${'acx_cv_fc_lib_func_\`$as_echo "$acx_fc_lib_search" | $as_tr_sh\`'};$as_echo "$as_val"'`" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: none needed" >&5
+$as_echo "none needed" >&6; }
+fi
+      CDI_FCLIBS=$acx_cv_fc_lib_func_VLISTDEFVARTIMETYPE
+      acx_have_netcdf=yes
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
+$as_echo "unknown" >&6; }
+      { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "unable to find linker flags enabling Fortran function $acx_fc_lib_search
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Fortran module 'MO_CDI' is not available
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+FCFLAGS=$acx_save_FCFLAGS
+
+acx_save_FCFLAGS=$FCFLAGS; FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+acx_save_LIBS=$LIBS; LIBS="$CDI_FCLIBS $acx_save_LIBS"
+acx_cdi_formats="grb:CDI_FILETYPE_GRB grb2:CDI_FILETYPE_GRB2 nc:CDI_FILETYPE_NC
+                 nc2:CDI_FILETYPE_NC2 nc4:CDI_FILETYPE_NC4
+                 nc4c:CDI_FILETYPE_NC4C nc5:CDI_FILETYPE_NC5
+                 srv:CDI_FILETYPE_SRV ext:CDI_FILETYPE_EXT ieg:CDI_FILETYPE_IEG"
+for acx_cdi_format in $acx_cdi_formats; do
+  acx_cdi_format_name=`echo "$acx_cdi_format" | cut -d: -f1`
+  acx_cdi_format_ID=`echo "$acx_cdi_format" | cut -d: -f2`
+  acx_cache_var_name="acx_cv_cdi_have_$acx_cdi_format_name"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CDI supports file format '$acx_cdi_format_name'" >&5
+$as_echo_n "checking whether CDI supports file format '$acx_cdi_format_name'... " >&6; }
+if eval \${$acx_cache_var_name+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$acx_cache_var_name=unknown"
+     if test "x$cross_compiling" = xno; then :
+  cat > conftest.$ac_ext <<_ACEOF
+      program main
+      use mo_cdi, only: cdiHaveFiletype, $acx_cdi_format_ID
+      write(*, "(i0)") cdiHaveFiletype($acx_cdi_format_ID)
+      end
+_ACEOF
+if ac_fn_fc_try_link "$LINENO"; then :
+  acx_exec_result=`./conftest$ac_exeext 2>/dev/null`
+           if test $? -eq 0; then :
+  if test $acx_exec_result -eq 1; then :
+  eval "$acx_cache_var_name=yes"
+else
+  eval "$acx_cache_var_name=no"
+fi
+fi
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+fi
+eval ac_res=\$$acx_cache_var_name
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+done
+FCFLAGS=$acx_save_FCFLAGS; LIBS=$acx_save_LIBS
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for python" >&5
 $as_echo_n "checking for python... " >&6; }

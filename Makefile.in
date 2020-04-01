@@ -34,12 +34,12 @@ BZIP2 = bzip2
 
 # Fortran compiler flags:
 FCFLAGS= @FCFLAGS@
-makefile_FCFLAGS:= @FCMODINC@$(moddir) @FCMODOUT@$(moddir) @NETCDF_FCFLAGS@
+makefile_FCFLAGS:= @FCMODINC@$(moddir) @FCMODOUT@$(moddir) @NETCDF_FCFLAGS@ @CDI_FCFLAGS@
 DEPGEN_FCFLAGS:= @DEPGEN_FCFLAGS@
 
 # Linker flags and libraries:
 LDFLAGS= @LDFLAGS@
-LIBS= @NETCDF_FCLIBS@ @LIBS@
+LIBS= @NETCDF_FCLIBS@ @CDI_FCLIBS@ @LIBS@
 
 # Silent rule prefixes:
 V= @DEFAULT_VERBOSITY@
@@ -167,7 +167,7 @@ sanitize-mod-proxies:
 	$(silent_GEN):;{ \
 	  echo 'Compiler command : $(FC)' && \
 	  echo 'Compiler version : @FC_VENDOR@ @FC_VERSION@' && \
-	  echo 'Compiler includes: @NETCDF_FCFLAGS@' && \
+	  echo 'Compiler includes: @NETCDF_FCFLAGS@ @CDI_FCFLAGS@' && \
 	  echo 'Compiler flags   : $(FCFLAGS)' && \
 	  echo 'Linker command   : $(FC)' && \
 	  echo 'Linker version   : @FC_VENDOR@ @FC_VERSION@' && \

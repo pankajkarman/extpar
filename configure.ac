@@ -61,18 +61,19 @@ AS_VAR_IF([enable_silent_rules], [yes],
 dnl Generate RPATH flags:
 AS_VAR_IF([enable_rpaths], [yes],
   [ACX_SHLIB_FC_RPATH_FLAG
-   ASX_EXTRACT_ARGS([extpar_L_args], ["$LDFLAGS $LIBS"], ['-L@<:@ @:>@*'])
-   for extpar_L_arg in $extpar_L_args; do
+   ASX_EXTRACT_ARGS([acx_L_args], ["$LDFLAGS $LIBS"], ['-L@<:@ @:>@*'])
+   for acx_L_arg in $acx_L_args; do
      ASX_VAR_APPEND_UNIQ([LDFLAGS],
-       ["$acx_cv_fc_rpath_flag$extpar_L_arg"], [' '])
+       ["$acx_cv_fc_rpath_flag$acx_L_arg"], [' '])
    done
    ACX_SHLIB_RPATH_FLAGS_CHECK])
 
-extpar_libsearch_flags='-L'
+acx_libsearch_flags='-L'
 AS_VAR_IF([enable_rpaths], [yes],
-  [AS_VAR_APPEND([extpar_libsearch_flags], [" '$acx_cv_fc_rpath_flag'"])])
-eval "set dummy $extpar_libsearch_flags"; shift
+  [AS_VAR_APPEND([acx_libsearch_flags], [" '$acx_cv_fc_rpath_flag'"])])
+eval "set dummy $acx_libsearch_flags"; shift
 ACX_LANG_PACKAGE_INIT([NetCDF], ["$FCMODINC"], ["$@"])
+ACX_LANG_PACKAGE_INIT([CDI], ["$FCMODINC"], ["$@"])
 
 AS_VAR_IF([enable_openmp], [yes],
   [ACX_LANG_OPENMP_FLAG(
@@ -103,8 +104,55 @@ ACX_FC_MODULE_CHECK([netcdf],
 [[      use netcdf, only: nf90_open, NF90_NOWRITE
       implicit none
       integer :: status, ncid
-      status = nf90_open('conftest.nc', NF90_NOWRITE, ncid)]])])], [])
+      status = nf90_open('conftest.nc', NF90_NOWRITE, ncid)]])])])
 FCFLAGS=$acx_save_FCFLAGS
+
+dnl Check for CDI
+acx_save_FCFLAGS=$FCFLAGS
+CDI_FCFLAGS=${CDI_FCFLAGS-$acx_fc_CDI_inc_search_args}
+FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+ACX_FC_MODULE_CHECK([mo_cdi],
+  [ACX_LANG_LIB_SEARCH([CDI_FCLIBS], [vlistDefVarTimetype],
+     [ASX_PREPEND_LDFLAGS([$acx_fc_CDI_lib_search_args],
+        [-lcdi_f2003], [-lcdi_f2003 -lcdi])],
+     [CDI_FCLIBS=$acx_cv_fc_lib_func_VLISTDEFVARTIMETYPE
+      acx_have_netcdf=yes], [],
+     [AC_LANG_PROGRAM([],
+[[      use mo_cdi, only: vlistDefVarTimetype
+      implicit none
+      integer :: a, b, c
+      call vlistDefVarTimetype(a, b, c)]])])])
+FCFLAGS=$acx_save_FCFLAGS
+
+dnl Check for file formats supported by CDI.
+acx_save_FCFLAGS=$FCFLAGS; FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+acx_save_LIBS=$LIBS; LIBS="$CDI_FCLIBS $acx_save_LIBS"
+acx_cdi_formats="grb:CDI_FILETYPE_GRB grb2:CDI_FILETYPE_GRB2 nc:CDI_FILETYPE_NC
+                 nc2:CDI_FILETYPE_NC2 nc4:CDI_FILETYPE_NC4
+                 nc4c:CDI_FILETYPE_NC4C nc5:CDI_FILETYPE_NC5
+                 srv:CDI_FILETYPE_SRV ext:CDI_FILETYPE_EXT ieg:CDI_FILETYPE_IEG"
+for acx_cdi_format in $acx_cdi_formats; do
+  acx_cdi_format_name=`echo "$acx_cdi_format" | cut -d: -f1`
+  acx_cdi_format_ID=`echo "$acx_cdi_format" | cut -d: -f2`
+  acx_cache_var_name="acx_cv_cdi_have_$acx_cdi_format_name"
+  AC_CACHE_CHECK([whether CDI supports file format '$acx_cdi_format_name'],
+    [$acx_cache_var_name],
+    [AS_VAR_SET([$acx_cache_var_name], [unknown])
+     AS_VAR_IF([cross_compiling], [no],
+       [AC_LINK_IFELSE([AC_LANG_PROGRAM([],
+[[      use mo_cdi, only: cdiHaveFiletype, $acx_cdi_format_ID
+      write(*, "(i0)") cdiHaveFiletype($acx_cdi_format_ID)]])],
+          [acx_exec_result=`./conftest$ac_exeext 2>/dev/null`
+           AS_IF([test $? -eq 0],
+             [AS_IF([test $acx_exec_result -eq 1],
+                [AS_VAR_SET([$acx_cache_var_name], [yes])],
+                [AS_VAR_SET([$acx_cache_var_name], [no])])])])])])
+done
+FCFLAGS=$acx_save_FCFLAGS; LIBS=$acx_save_LIBS
+dnl Here we can check whether the format is supported and do something.
+dnl For example, we can check whether NC is supported and emit a warning:
+dnl    AS_IF([test x"$acx_cv_cdi_have_nc" != xyes],
+dnl      [AC_MSG_WARN([CDI does not support file format 'nc'])])
 
 dnl Check for PYTHON
 AC_ARG_VAR([PYTHON], [Python interpreter command])dnl
