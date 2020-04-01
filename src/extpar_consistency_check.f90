@@ -2351,10 +2351,8 @@ PROGRAM extpar_consistency_check
          &                                     ldeep_soil,                    &
          &                                     itopo_type,                    &
          &                                     lsso_param,                    &
-         &                                     lscale_separation,             &
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
-         &                                     TRIM(y_orofilter),             &
          &                                     fill_value_real,               &
          &                                     fill_value_int,                &
          &                                     TRIM(name_lookup_table_lu),    &
@@ -2387,7 +2385,6 @@ PROGRAM extpar_consistency_check
          &                                     theta_topo,                    &
          &                                     aniso_topo,                    &
          &                                     slope_topo,                    &
-         &                                     vertex_param,                  &
          &                                     aot_tg,                        &
          &                                     crutemp,                       &
          &                                     alb_field_mom,                 &
