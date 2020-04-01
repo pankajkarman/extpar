@@ -149,8 +149,8 @@ elif(igrid_type == 2):
     buffer_file = buffer.init_netcdf(ia.buffer_alb,tg.je_tot,tg.ie_tot)
 
 # write lat/lon
-buffer.write_3d_field(buffer_file,lat, lat_meta)
 buffer.write_3d_field(buffer_file,lon, lon_meta)
+buffer.write_3d_field(buffer_file,lat, lat_meta)
 
 # write albedo fields
 buffer.write_4d_field(buffer_file,al, al_meta)
