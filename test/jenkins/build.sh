@@ -9,15 +9,34 @@ case "$(hostname)" in
         module load cray-netcdf
         module list
         make clean
-        make
+        make &> compile.log
         ;;
     kesch*)
-        module load PrgEnv-gnu
-        module load netcdf
+        export MODULEPATH=$MODULEPATH:/oprusers/owm/modules/RH7.5/modulefiles
+        module load PE/17.06
+        module load gcc
+        module load netcdf/4.4.1.1-gmvolf-17.02
+        module load cdo
         module list
         make clean
-        make
+        echo compile extpar...
+        make &> compile.log
+        echo          ...done
+        echo See compile.log for more information!
+
         ;;
+    tsa*)
+        source /oprusers/osm/.opr_setup_dir
+        export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
+        module load PrgEnv-gnu/19.2
+        module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
+        make clean
+        echo compile extpar...
+        make &> compile.log
+        echo          ...done
+        echo See compile.log for more information!
+        ;;
+
     # DKRZ machines    
     mlogin*)
         if [[ -r /sw/rhel6-x64/etc/profile.mistral ]]
@@ -40,12 +59,16 @@ case "$(hostname)" in
                 module unload gcc
                 module load gcc/6.2.0
                 module unload intel
-                module load intel/18.0.2
+                module load intel/18.0.4
                 ;;
         esac
         module list
         make clean
-        make
+        echo compile extpar...
+        make &> compile.log
+        echo          ...done
+        echo See compile.log for more information!
+
         ;;
 esac 
 

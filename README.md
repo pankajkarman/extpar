@@ -12,7 +12,7 @@ In order to run Extpar, raw data files for the external parameter variables are 
 A full documentation of code can be found in the [manual](doc/user_and_implementation_manual.pdf)
 
 # Getting started
-For compilation instructions see: [README.compile_run](doc/README.compile_run)
+For compilation instructions see: [README.compile_run](doc/README.compile_run.md)
 
 Once you have a compiled version, there are several sample run scripts available in the run_scripts folder of this repository.  You should be able to adapt one of these for your needs.  
 
