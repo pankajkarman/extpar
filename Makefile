@@ -91,7 +91,7 @@ default : opt
 
 depend :
 	@echo "generating dependencies"
-	@echo $(SRC)
+#	@echo $(SRC)
 	@$(ROOT)/bin/sfmakedepend --case down --longpath $(INC) $(IGN) --file $(ROOT)/$(DEPF) $(SRC)
 
 info :
@@ -113,14 +113,14 @@ opt :
 	@for target in $(TARGETS) ; do \
            echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile OPT=1 $$target ; \
-   done
+	done
 
 debug :
 	@$(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 info depend
 	@for target in $(TARGETS) ; do \
            echo "generating target $$target" ; \
 	   $(MAKE) -C $(OBJDIR) -f $(ROOT)/Makefile DEBUG=1 $$target ; \
-   done
+	done
 
 clean :
 	-rm -f $(DEPF) $(DEPF).old $(OBJDIR)/* $(BINDIR)/extpar_*.exe

@@ -69,7 +69,7 @@ INFO_CompileMachine="${creation_host}"
 INFO_StartTime=""
 INFO_BinaryName=""
 
-# replace the placeholders in info_int2lm.f90 with the correct strings
+# replace the placeholders in info_extpar.f90 with the correct strings
 sed -e "s|\(INFO_PackageName *= *\)'.*'|\1'""${INFO_PackageName}""'|g
         s|\(INFO_RepositoryURL *= *\)'.*'|\1'""${INFO_RepositoryURL}""'|g
         s|\(INFO_LastCommitDate *= *\)'.*'|\1'""${INFO_LastCommitDate}""'|g

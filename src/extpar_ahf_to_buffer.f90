@@ -144,7 +144,7 @@ PROGRAM extpar_ahf_to_buffer
     &                                nlat_ahf)
 
   CALL allocate_raw_ahf_fields(nlon_ahf,nlat_ahf)   
-  CALL allocate_ahf_target_fields(tg)
+  CALL allocate_ahf_target_fields(tg, l_use_array_cache=.FALSE.)
 
   CALL get_AHF_data_coordinates(ncid_ahf,      &
     &                               nlon_ahf,      &

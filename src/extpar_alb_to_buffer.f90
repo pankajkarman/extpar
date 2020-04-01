@@ -155,7 +155,7 @@ PROGRAM extpar_albedo_to_buffer
   CALL logging%info( '')
 
   CALL allocate_raw_alb_fields(nlon_alb,nlat_alb)   
-  CALL allocate_alb_target_fields(tg,ntime_alb,ialb_type)
+  CALL allocate_alb_target_fields(tg,ntime_alb,ialb_type, l_use_array_cache=.FALSE.)
   
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------

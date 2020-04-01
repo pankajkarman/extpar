@@ -108,7 +108,8 @@ MODULE mo_read_extpar_namelists
        &                                      number_special_points, &
        &                                      tile_mode,             &
        &                                      ltcl_merge,            &
-       &                                      l_use_glcc              )
+       &                                      l_use_glcc,            &
+       &                                      l_use_array_cache      )
 
     CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
 
@@ -131,7 +132,8 @@ MODULE mo_read_extpar_namelists
     INTEGER(KIND=i4),INTENT(OUT)              :: number_special_points, i_lsm_data, &
          &                                       tile_mode
 
-    LOGICAL,INTENT(OUT)                       :: lwrite_netcdf, lwrite_grib, ltcl_merge, l_use_glcc
+    LOGICAL,INTENT(OUT)                       :: lwrite_netcdf, lwrite_grib, &
+         &                                       ltcl_merge, l_use_glcc, l_use_array_cache
 
     !local variables
     INTEGER(KIND=i4)                          :: nuin, ierr
@@ -158,28 +160,30 @@ MODULE mo_read_extpar_namelists
          &                                 number_special_points, &
          &                                 tile_mode, &
          &                                 ltcl_merge, &
-         &                                 l_use_glcc
+         &                                 l_use_glcc, &
+         &                                 l_use_array_cache 
 
 
     CALL logging%info('Enter routine: read_namelists_extpar_check_icon')
 
     orography_buffer_file = ''
-    soil_buffer_file = ''   
-    lu_buffer_file = ''
-    glcc_buffer_file = ''
-    flake_buffer_file = ''
-    ndvi_buffer_file = ''
-    t_clim_buffer_file = ''
-    aot_buffer_file = ''
-    alb_buffer_file = ''
-    sst_icon_file = ''
-    t2m_icon_file = ''
-    tile_mode = 0
-    lwrite_netcdf = .TRUE.
-    lwrite_grib   = .FALSE.
-    ltcl_merge    = .TRUE.
-    l_use_glcc    = .TRUE. ! Assume that GLCC land-use data file exists!
-
+    soil_buffer_file      = ''   
+    lu_buffer_file        = ''
+    glcc_buffer_file      = ''
+    flake_buffer_file     = ''
+    ndvi_buffer_file      = ''
+    t_clim_buffer_file    = ''
+    aot_buffer_file       = ''
+    alb_buffer_file       = ''
+    sst_icon_file         = ''
+    t2m_icon_file         = ''
+    tile_mode             = 0
+    lwrite_netcdf         = .TRUE.
+    lwrite_grib           = .FALSE.
+    ltcl_merge            = .TRUE.
+    l_use_glcc            = .TRUE.    ! Assume that GLCC land-use data file exists!
+    l_use_array_cache     = .FALSE.   ! Might be slower, but required for really high resolution
+    
     OPEN(NEWUNIT=nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
     IF (ierr /= 0) THEN
       WRITE(message_text,*)'Cannot open ', TRIM(namelist_file)

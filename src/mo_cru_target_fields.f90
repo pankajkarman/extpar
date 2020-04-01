@@ -14,7 +14,7 @@
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
-!> Fortran module for CRU near surface climatology data on target grid for external parameters 
+!> Fortran module for CRU near surface climatology data on target grid for external parameters
 !> \author Hermann Asensio
 MODULE mo_cru_target_fields
 
@@ -34,8 +34,8 @@ MODULE mo_cru_target_fields
        &    meta_crutemp, meta_cruelev,&
        &    i_t_cru_fine,i_t_cru_coarse
 
-  REAL (KIND=wp), ALLOCATABLE :: crutemp(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke) 
-       &                         crutemp2(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke) 
+  REAL (KIND=wp), ALLOCATABLE :: crutemp(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
+       &                         crutemp2(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
        &                         cruelev(:,:,:) !< cru climatological temperature , cruelev(ie,je,ke)
 
   TYPE(var_meta_info)         :: meta_crutemp, meta_cruelev
@@ -50,31 +50,49 @@ MODULE mo_cru_target_fields
   !! the target grid for the GME has 3 dimension (ie,je,jd),
   !! the target grid for the COSMO model has 2 dimension (ie,je)
   !! the target grid for the ICON model has 1 dimension (ne)
-  !! depending of the target model the second and third dimension of the target fields should be 
+  !! depending of the target model the second and third dimension of the target fields should be
   !! allocated with the length 1
-  SUBROUTINE allocate_cru_target_fields(tg)
+  SUBROUTINE allocate_cru_target_fields(tg, l_use_array_cache)
 
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
+    LOGICAL, INTENT(in)               :: l_use_array_cache
+
     INTEGER                           :: errorcode !< error status variable
 
     CALL logging%info('Enter routine: allocate_cru_target_fields')
 
-    ALLOCATE (crutemp(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('crutemp', crutemp, [tg%ie,tg%je,tg%ke])
+else
+   allocate(crutemp(tg%ie,tg%je,tg%ke), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array crutemp',__FILE__,__LINE__)
     crutemp = 0.0
 
-    ALLOCATE (crutemp2(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('crutemp2', crutemp2, [tg%ie,tg%je,tg%ke])
+else
+   allocate(crutemp2(tg%ie,tg%je,tg%ke), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array crutemp',__FILE__,__LINE__)
     crutemp2 = 0.0
 
-    ALLOCATE (cruelev(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('cruelev', cruelev, [tg%ie,tg%je,tg%ke])
+else
+   allocate(cruelev(tg%ie,tg%je,tg%ke), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array cruelev',__FILE__,__LINE__)
     cruelev = 0.0
 
 
     meta_crutemp%varname = 'tem_clim'
     meta_crutemp%n_dim = 3
-    ALLOCATE (meta_crutemp%diminfo(meta_crutemp%n_dim), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('meta_crutemp%diminfo', meta_crutemp%diminfo, [meta_crutemp%n_dim])
+else
+   allocate(meta_crutemp%diminfo(meta_crutemp%n_dim), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_crutemp%diminfo',__FILE__,__LINE__)
 
     meta_crutemp%diminfo(1)%dimname = 'ie'
@@ -90,7 +108,11 @@ MODULE mo_cru_target_fields
 
     meta_cruelev%varname = 'elev_clim'
     meta_cruelev%n_dim = 3
-    ALLOCATE (meta_cruelev%diminfo(meta_cruelev%n_dim), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('meta_cruelev%diminfo', meta_cruelev%diminfo, [meta_cruelev%n_dim])
+else
+   allocate(meta_cruelev%diminfo(meta_cruelev%n_dim), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_cruelev%diminfo',__FILE__,__LINE__)
 
     meta_cruelev%diminfo(1)%dimname = 'ie'

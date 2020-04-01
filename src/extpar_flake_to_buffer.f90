@@ -138,7 +138,7 @@ PROGRAM extpar_flake_to_buffer
   CALL logging%info( '============= allocate fields ==================')
   CALL logging%info( '')
 
-  CALL allocate_flake_target_fields(tg)
+  CALL allocate_flake_target_fields(tg, l_use_array_cache=.FALSE.)
 
   CALL allocate_raw_flake_fields(nlat_flake,nlon_flake)
 

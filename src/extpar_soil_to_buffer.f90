@@ -230,7 +230,7 @@ PROGRAM extpar_soil_to_buffer
   lat_soil = lat_full(lat_low:lat_hig)
 
   CALL get_soil_data(path_soil_file,start)
-  CALL allocate_soil_target_fields(tg, ldeep_soil)
+  CALL allocate_soil_target_fields(tg, ldeep_soil, l_use_array_cache=.FALSE.)
 
   !--------------------------------------------------------------------------------------------------------
 

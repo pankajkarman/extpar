@@ -205,7 +205,7 @@ PROGRAM extpar_aot_to_buffer
   CALL allocate_aot_data(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
 
   ! allocate target grid fields for aerosol optical thickness
-  CALL allocate_aot_target_fields(tg, iaot_type, ntime, ntype, n_spectr)
+  CALL allocate_aot_target_fields(tg, iaot_type, ntime, ntype, n_spectr, l_use_array_cache=.FALSE.)
 
   !--------------------------------------------------------------------------
   !--------------------------------------------------------------------------

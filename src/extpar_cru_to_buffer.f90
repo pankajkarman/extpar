@@ -141,7 +141,7 @@ PROGRAM extpar_cru_to_buffer
 
   CALL allocate_cru_data(nrows,ncolumns,ntime)
   ! allocate target grid fields for aerosol optical thickness
-  CALL allocate_cru_target_fields(tg)
+  CALL allocate_cru_target_fields(tg, l_use_array_cache=.FALSE.)
 
   !--------------------------------------------------------------------------
   !--------------------------------------------------------------------------

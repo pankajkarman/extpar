@@ -145,7 +145,7 @@ PROGRAM extpar_emiss_to_buffer
   ENDDO
 
   CALL allocate_raw_emiss_fields(nlon_emiss,nlat_emiss,ntime_emiss)   
-  CALL allocate_emiss_target_fields(tg,ntime_emiss)
+  CALL allocate_emiss_target_fields(tg,ntime_emiss,l_use_array_cache=.FALSE.)
 
   CALL get_EMISS_data_coordinates(ncid_emiss,      &
     &                               nlon_emiss,      &

@@ -9,7 +9,7 @@
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
-!> Fortran module for EMISS data on target grid for external parameters 
+!> Fortran module for EMISS data on target grid for external parameters
 !> \author Hermann Asensio
 MODULE mo_emiss_tg_fields
 
@@ -37,29 +37,44 @@ MODULE mo_emiss_tg_fields
 
   CONTAINS
 
-  !> allocate fields for GLOBE target data 
-  SUBROUTINE allocate_emiss_target_fields(tg,nt)
-
-    IMPLICIT NONE
+  !> allocate fields for GLOBE target data
+  SUBROUTINE allocate_emiss_target_fields(tg, nt, l_use_array_cache)
 
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
     INTEGER (KIND=i4), INTENT(in)     :: nt !< number of timesteps (12 for monthly mean values)
-
+    LOGICAL, INTENT(in)               :: l_use_array_cache
+    
     INTEGER(KIND=i4)                  :: errorcode !< error status variable
-      
-    ALLOCATE (emiss_field(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+
+if (l_use_array_cache) then
+   call allocate_cached('emiss_field', emiss_field, [tg%ie,tg%je,tg%ke])
+else
+   allocate(emiss_field(tg%ie,tg%je,tg%ke), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array emiss_field',__FILE__,__LINE__)
     emiss_field = 0.0
 
-    ALLOCATE (emiss_max(1:tg%ie,1:tg%je,1:tg%ke), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('emiss_max', emiss_max, [tg%ie,tg%je,tg%ke])
+else
+   allocate(emiss_max(tg%ie,tg%je,tg%ke), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array emiss_max',__FILE__,__LINE__)
     emiss_max = 0.0
 
-    ALLOCATE (emiss_field_mom(1:tg%ie,1:tg%je,1:tg%ke,1:nt), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('emiss_field_mom', emiss_field_mom, [tg%ie,tg%je,tg%ke,nt])
+else
+   allocate(emiss_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array emiss_field_mom',__FILE__,__LINE__)
     emiss_field_mom = 0.0
 
-    ALLOCATE (emiss_ratio_mom(1:tg%ie,1:tg%je,1:tg%ke,1:nt), STAT=errorcode)
+if (l_use_array_cache) then
+   call allocate_cached('emiss_ratio_mom', emiss_ratio_mom, [tg%ie,tg%je,tg%ke,nt])
+else
+   allocate(emiss_ratio_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array emiss_ratio_mom',__FILE__,__LINE__)
     emiss_ratio_mom = 0.0
 
