@@ -7,52 +7,53 @@ it contains:
     -class CosmoGrid: grid definition from namelist
 '''
 
+
 class CosmoGrid:
     '''
     store all Cosmo grid information and provide functions related to
 
     member functions:
-        
+
         -__init__
-        
+
         -create_grid_description
-        
+
         -lon_rot
 
         -lat_rot
-        
+
         -latlon_cosmo_to_latlon_regular
 
         -rlarot2rla
 
         -phirot2phi
     '''
+
     def __init__(self):
 
         '''init from namelist INPUT_GRID.py'''
 
-        self.pollon=ig.pollon
-        self.pollat=ig.pollat
-        self.startlon_tot=ig.startlon_tot
-        self.startlat_tot=ig.startlat_tot
-        self.dlon=ig.dlon
-        self.dlat=ig.dlat
-        self.ie_tot=ig.ie_tot
-        self.je_tot=ig.je_tot
-        self.gridsize=ig.ie_tot * ig.je_tot
-
+        self.pollon = ig.pollon
+        self.pollat = ig.pollat
+        self.startlon_tot = ig.startlon_tot
+        self.startlat_tot = ig.startlat_tot
+        self.dlon = ig.dlon
+        self.dlat = ig.dlat
+        self.ie_tot = ig.ie_tot
+        self.je_tot = ig.je_tot
+        self.gridsize = ig.ie_tot * ig.je_tot
 
     def create_grid_description(self,name):
         '''
         write grid description required for cdo
-        
+
         grid decription has name "name"
         it contains all required information
         about the grid needed for the interpolation using CDO
         '''
 
         with open(name,'w') as f:
-        
+
             f.write(f'gridtype  = projection\n')
             f.write(f'gridsize  = {self.gridsize}\n')
             f.write(f'xsize     = {self.ie_tot}\n')
@@ -65,29 +66,28 @@ class CosmoGrid:
             f.write(f'grid_mapping_name = rotated_latitude_longitude\n')
             f.write(f'grid_north_pole_longitude = {self.pollon}\n') 
             f.write(f'grid_north_pole_latitude  = {self.pollat}\n') 
-    
+
     def lon_rot(self):
 
-       '''return array with rotated longitude values'''
+        '''return array with rotated longitude values'''
 
-       lon = np.empty(self.ie_tot)
+        lon = np.empty(self.ie_tot)
 
-       for i in range(self.ie_tot):
-           lon[i] = self.startlon_tot + i * self.dlon
+        for i in range(self.ie_tot):
+            lon[i] = self.startlon_tot + i * self.dlon
 
-       return lon
-
+        return lon
 
     def lat_rot(self):
 
-       '''return array with rotated latitude values'''
+        '''return array with rotated latitude values'''
 
-       lat = np.empty([self.je_tot])
+        lat = np.empty([self.je_tot])
 
-       for j in range(self.je_tot):
-           lat[j] = self.startlat_tot + j * self.dlat
+        for j in range(self.je_tot):
+            lat[j] = self.startlat_tot + j * self.dlat
 
-       return lat
+        return lat
 
     def latlon_cosmo_to_latlon_regular(self):
         '''
@@ -96,18 +96,25 @@ class CosmoGrid:
         CAUTION: lon and lat geo are stored in j,i-order, because the netCDF
         requires this index-order
         '''
-        lat_cosmo=self.lat_rot()
-        lon_cosmo=self.lon_rot()
+        lat_cosmo = self.lat_rot()
+        lon_cosmo = self.lon_rot()
 
-        lat_reg=np.empty([self.je_tot,self.ie_tot])
-        lon_reg=np.empty([self.je_tot,self.ie_tot])
+        lat_reg = np.empty([self.je_tot,self.ie_tot])
+        lon_reg = np.empty([self.je_tot,self.ie_tot])
 
         for j in range(self.je_tot):
             for i in range(self.ie_tot):
 
-               lon_reg[j,i] = self.rlarot2rla(lat_cosmo[j], lon_cosmo[i], self.pollat, self.pollon)
-               lat_reg[j,i] = self.phirot2phi(lat_cosmo[j], lon_cosmo[i], self.pollat, self.pollon)
-        
+                lon_reg[j,i] = self.rlarot2rla(lat_cosmo[j], 
+                                               lon_cosmo[i], 
+                                               self.pollat, 
+                                               self.pollon)
+
+                lat_reg[j,i] = self.phirot2phi(lat_cosmo[j], 
+                                               lon_cosmo[i], 
+                                               self.pollat, 
+                                               self.pollon)
+
         return lat_reg,lon_reg
 
     def rlarot2rla(self,phirot, rlarot, polphi, pollam): 
@@ -115,52 +122,57 @@ class CosmoGrid:
         convert rotated longitude to regular longitude
 
         functions taken from Fortran module "mo_utilities_extpar.f90"
-        results of function are cross-validated with cartopy coordinate transformation
+        results of function are cross-validated 
+        with cartopy coordinate transformation
         '''
 
         zrpi18 = 57.29577951308232
         zpir18 = 0.017453292519943295
 
-        zsinpol = math.sin (zpir18 * polphi)
-        zcospol = math.cos (zpir18 * polphi)
+        zsinpol = math.sin(zpir18 * polphi)
+        zcospol = math.cos(zpir18 * polphi)
 
         zlampol = zpir18 * pollam
         zphis   = zpir18 * phirot
 
         if (rlarot > 180.0): 
-          zrlas = rlarot - 360.0
+            zrlas = rlarot - 360.0
         else:
             zrlas = rlarot
 
-        zrlas   = zpir18 * zrlas
+        zrlas = zpir18 * zrlas
 
-        zarg1   = math.sin (zlampol) * (-zsinpol * math.cos(zrlas) * math.cos(zphis) + \
-                  zcospol * math.sin(zphis)) - math.cos(zlampol) * math.sin(zrlas) * math.cos(zphis)
+        zarg1   = (math.sin(zlampol) * (-zsinpol * math.cos(zrlas) * 
+                                        math.cos(zphis) +
+                                        zcospol * math.sin(zphis)) -
+                   math.cos(zlampol) * math.sin(zrlas) * math.cos(zphis))
 
-        zarg2   = math.cos(zlampol) * (-zsinpol * math.cos(zrlas) * math.cos(zphis) +  \
-                  zcospol * math.sin(zphis)) + math.sin(zlampol) * math.sin(zrlas) * math.cos(zphis)
+        zarg2   = (math.cos(zlampol) * (-zsinpol * math.cos(zrlas) * 
+                                        math.cos(zphis) +
+                                        zcospol * math.sin(zphis)) +
+                   math.sin(zlampol) * math.sin(zrlas) * math.cos(zphis))
 
         if (zarg2 == 0.0): 
             zarg2 = 1.0E-20
 
         rla = zrpi18 * math.atan2(zarg1,zarg2)
-        
+
         return rla
 
-
-    def phirot2phi(self,phirot,rlarot,polphi,pollam): 
+    def phirot2phi(self, phirot, rlarot, polphi, pollam): 
         '''
         convert rotated latitude to regular latitude
 
         functions taken from Fortran module "mo_utilities_extpar.f90"
-        results of function are cross-validated with cartopy coordinate transformation
+        results of function are cross-validated 
+        with cartopy coordinate transformation
         '''
 
         zrpi18 = 57.29577951308232
         zpir18 = 0.017453292519943295
 
-        zsinpol     = math.sin (zpir18 * polphi)
-        zcospol     = math.cos (zpir18 * polphi)
+        zsinpol     = math.sin(zpir18 * polphi)
+        zcospol     = math.cos(zpir18 * polphi)
 
         zphis       = zpir18 * phirot
 
@@ -171,8 +183,9 @@ class CosmoGrid:
 
         zrlas       = zpir18 * zrlas
 
-        zarg  = zcospol * math.cos (zphis) * math.cos (zrlas) + zsinpol * math.sin (zphis)
+        zarg  = (zcospol * math.cos(zphis) * math.cos(zrlas) +
+                 zsinpol * math.sin(zphis))
 
-        phi  = zrpi18 * math.asin (zarg)
+        phi = zrpi18 * math.asin(zarg)
 
         return phi

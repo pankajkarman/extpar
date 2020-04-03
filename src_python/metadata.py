@@ -9,8 +9,8 @@ it contains:
 
 Meta-Data that is shared amongs all fields of an Extpar class is defined in
 the parent class, for example CoordsMeta 
-Meta-Data that is only valid for one specific field is defined in the respective
-child class
+Meta-Data that is only valid for one specific field is defined 
+in the respective child class
 
 The following Meta-Data is required during the write_*d_fields functions:
     -name ( string)
@@ -26,30 +26,34 @@ The following Meta-Data is required during the write_*d_fields functions:
 # Coordinates
 # ->Lon
 # ->Lat
+
+
 class CoordsMeta:
     def __init__(self):         
-        self.type=np.float32
-        self.dim={0: 'ke',
-                  1: 'je',
-                  2: 'ie'}
+        self.type = np.float32
+        self.dim = {0: 'ke',
+                    1: 'je',
+                    2: 'ie'}
+
 
 class Lon(CoordsMeta):
     def __init__(self):         
         super().__init__()
-        self.name='LON'
-        self.short='lon'
-        self.standard= 'longitude'
-        self.long= 'geographical longitude'
-        self.units= 'degrees_east'
+        self.name = 'LON'
+        self.short = 'lon'
+        self.standard = 'longitude'
+        self.long = 'geographical longitude'
+        self.units = 'degrees_east'
+
 
 class Lat(CoordsMeta):
     def __init__(self):         
         super().__init__()
-        self.name='LAT'
-        self.short='lat'
-        self.standard= 'latitude'
-        self.long= 'geographical latitude'
-        self.units= 'degrees_north'
+        self.name = 'LAT'
+        self.short = 'lat'
+        self.standard = 'latitude'
+        self.long = 'geographical latitude'
+        self.units = 'degrees_north'
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 # Albedo
@@ -57,32 +61,36 @@ class Lat(CoordsMeta):
 # ->NI
 # ->UV
 
+
 class AlbMeta:
     def __init__(self):
-        self.type=np.float32
-        self.units='%'
-        self.dim={ 0: 'time',
-                   1: 'ke', 
-                   2: 'je',
-                   3: 'ie'}
+        self.type = np.float32
+        self.units = '%'
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+
 
 class AL(AlbMeta):
     def __init__(self):         
         super().__init__()
-        self.name='ALB_DIF12'
-        self.long='Albedo'
-        self.orig='al'
+        self.name = 'ALB_DIF12'
+        self.long = 'Albedo'
+        self.orig = 'al'
+
 
 class NI(AlbMeta):
     def __init__(self):         
         super().__init__()
-        self.name='ALNID12'
-        self.long='NI_Albedo'
-        self.orig='alnid'
-        
+        self.name = 'ALNID12'
+        self.long = 'NI_Albedo'
+        self.orig = 'alnid'
+
+
 class UV(AlbMeta):
     def __init__(self):         
         super().__init__()
-        self.name='ALUVD12'
-        self.long='UV_Albedo'
-        self.orig='aluvd'
+        self.name = 'ALUVD12'
+        self.long = 'UV_Albedo'
+        self.orig = 'aluvd'

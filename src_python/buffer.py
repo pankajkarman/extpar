@@ -7,7 +7,7 @@ import numpy as np
 Module providing functions to write the buffer file,
 it contains:
     -init_netcdf: create buffer file and init dimensions for albedo
-    
+
     -open_netcdf: open netcdf, if exception occurs exit extpar
 
     -close_netcdf: close netcdf, if exception occurs exit extpar
@@ -16,7 +16,8 @@ it contains:
 
     -write_4d_field: write 4d field to buffer file
 '''
-    
+
+
 def init_netcdf(buffer_name,len_je, len_ie):
     '''
     create netcdf and init dimensions
@@ -27,21 +28,24 @@ def init_netcdf(buffer_name,len_je, len_ie):
     # create extpar BUFFER
     buffer = open_netcdf(buffer_name)
 
-    buffer.createDimension('ie',len_ie )
+    buffer.createDimension('ie',len_ie)
     buffer.createDimension('je',len_je)
     buffer.createDimension('ke', 1)
     buffer.createDimension('time', None)
     buffer.createDimension('mlev', 1)
 
     extpar_time = buffer.createVariable('time', np.float32, ('time',))
-    extpar_time[:] = np.array([11110101, 11110201, 11110301, 11110401, 11110501, 11110601,
-                               11110701, 11110801, 11110901, 11111001,  11111101, 11111201],
+    extpar_time[:] = np.array([11110101, 11110201, 11110301,
+                               11110401, 11110501, 11110601,
+                               11110701, 11110801, 11110901,
+                               11111001,  11111101, 11111201],
                               dtype=np.float32)
 
     extpar_mlev = buffer.createVariable('mlev', np.float32, ('mlev',))
     extpar_mlev[:] = np.array([1], dtype=np.float32)
 
     return buffer
+
 
 def open_netcdf(buffer_name):
     '''
@@ -57,6 +61,7 @@ def open_netcdf(buffer_name):
 
     return buffer
 
+
 def close_netcdf(buffer):
     '''
     close netcdf-file buffer
@@ -67,6 +72,7 @@ def close_netcdf(buffer):
         logging.error('Could not close netCDF', exc_info=True)
         sys.exit(1)
 
+
 def write_3d_field(buffer,field_3d, meta):
     '''
     write 3d field to buffer
@@ -76,10 +82,10 @@ def write_3d_field(buffer,field_3d, meta):
     the metadata for each variable is stored in meta
     meta is defined in module metadata
     '''
-    netcdf_var = buffer.createVariable(meta.name, \
-                                     meta.type, \
-                                     (meta.dim[0],meta.dim[1], \
-                                     meta.dim[2]))
+    netcdf_var = buffer.createVariable(meta.name,
+                                       meta.type,
+                                       (meta.dim[0],meta.dim[1],
+                                        meta.dim[2]))
 
     netcdf_var.standard_name = meta.long
     netcdf_var.long_name = meta.long
@@ -93,7 +99,7 @@ def write_3d_field(buffer,field_3d, meta):
 
     logging.info(f'3D-field {meta.name} written')
 
-    
+
 def write_4d_field(buffer,field_4d, meta):
     '''
     write 4d field to buffer
@@ -103,11 +109,10 @@ def write_4d_field(buffer,field_4d, meta):
     the metadata for each variable is stored in meta
     meta is defined in module metadata
     '''
-    netcdf_var = buffer.createVariable(meta.name, \
-                                     meta.type, \
-                                     (meta.dim[0],meta.dim[1], \
-                                     meta.dim[2],meta.dim[3])
-                                     )
+    netcdf_var = buffer.createVariable(meta.name,
+                                       meta.type,
+                                       (meta.dim[0],meta.dim[1],
+                                        meta.dim[2],meta.dim[3]))
 
     netcdf_var.standard_name = meta.long
     netcdf_var.long_name = meta.long
