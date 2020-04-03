@@ -7,6 +7,8 @@ it contains:
 
     -Parent:AlbMeta -> Child: AL, NI, UV
 
+    -Parent:NdviMeta-> Child: NDVI, NdviMax, NdviMrat
+
 Meta-Data that is shared amongs all fields of an Extpar class is defined in
 the parent class, for example CoordsMeta 
 Meta-Data that is only valid for one specific field is defined 
@@ -39,8 +41,8 @@ class CoordsMeta:
 class Lon(CoordsMeta):
     def __init__(self):         
         super().__init__()
-        self.name = 'LON'
-        self.short = 'lon'
+        self.name = 'lon'
+        self.short = '_'
         self.standard = 'longitude'
         self.long = 'geographical longitude'
         self.units = 'degrees_east'
@@ -49,8 +51,8 @@ class Lon(CoordsMeta):
 class Lat(CoordsMeta):
     def __init__(self):         
         super().__init__()
-        self.name = 'LAT'
-        self.short = 'lat'
+        self.name = 'lat'
+        self.short = '-'
         self.standard = 'latitude'
         self.long = 'geographical latitude'
         self.units = 'degrees_north'
@@ -94,3 +96,49 @@ class UV(AlbMeta):
         self.name = 'ALUVD12'
         self.long = 'UV_Albedo'
         self.orig = 'aluvd'
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# NDVI
+# ->NDVI
+# ->NdviMax
+# ->NdviMrat
+
+
+class NdviMeta:
+    def __init__(self):
+        self.type = np.float32
+        self.units = '_'
+        self.standard = '_'
+        self.short = '_'
+
+
+class NDVI(NdviMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+        self.name = 'NDVI'
+        self.long = 'monthly mean NDVI climatology 1998-2003'
+
+
+class NdviMax(NdviMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'ke', 
+                     1: 'je',
+                     2: 'ie'}
+        self.name = 'NDVI_MAX'
+        self.long = 'NDVI yearly maximum for climatology 1998-2003'
+
+
+class NdviMrat(NdviMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+        self.name = 'NDVI_MRAT'
+        self.long = 'monthly proportion of actual value/maximum NDVI'
