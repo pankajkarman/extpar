@@ -1,12 +1,15 @@
 # Autoreconf stage files:
 /autom4te.cache
+/src/config.h.in~
 
 # Configure stage files:
+*.c.d
 *.f90.d
 .dirstamp
 /Makefile
 /config.log
 /config.status
+/src/config.h
 
 # Build stage files:
 *.o

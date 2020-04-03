@@ -20,6 +20,23 @@ AC_ARG_ENABLE([openmp],
      [enable OpenMP support @<:@default=no@:>@])], [],
   [enable_openmp=no])
 
+AC_PROG_CC
+AC_LANG([C])
+dnl Supporting ISO C89 means that the following header files are available:
+dnl stdlib.h, stdio.h, math.h, time.h, ctype.h, string.h, signal.h, limits.h
+dnl errno.h, ctype.h assert.h.
+AS_VAR_IF([ac_cv_prog_cc_c89], [no],
+  [AC_MSG_FAILURE([C compiler does not support ISO C89])])
+
+dnl Supporting ISO C99 means that the following header files are available:
+dnl stdbool.h.
+AC_PROG_CC_C99
+AS_VAR_IF([ac_cv_prog_cc_c99], [no],
+  [AC_MSG_FAILURE([C compiler does not support ISO C99])])
+
+ACX_COMPILER_CC_VENDOR_SIMPLE
+ACX_COMPILER_CC_VERSION_SIMPLE
+
 AC_PROG_FC
 AC_LANG([Fortran])
 ACX_FC_PP_SRCEXT([f90])
@@ -165,6 +182,7 @@ ACX_PROG_SEARCH([PYTHON], [python python3],
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 
+AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile])
 
 dnl An additional step to generate dummy dependencies:
