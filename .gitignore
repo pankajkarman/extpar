@@ -1,3 +1,34 @@
+# Autoreconf stage files:
+/autom4te.cache
+/src/config.h.in~
+
+# Configure stage files:
+*.c.d
+*.f90.d
+.dirstamp
+/Makefile
+/config.log
+/config.status
+/src/config.h
+
+# Build stage files:
+*.o
+/bin/extpar_ahf_to_buffer.exe
+/bin/extpar_alb_to_buffer.exe
+/bin/extpar_aot_to_buffer.exe
+/bin/extpar_consistency_check.exe
+/bin/extpar_cru_to_buffer.exe
+/bin/extpar_emiss_to_buffer.exe
+/bin/extpar_flake_to_buffer.exe
+/bin/extpar_isa_to_buffer.exe
+/bin/extpar_landuse_to_buffer.exe
+/bin/extpar_ndvi_to_buffer.exe
+/bin/extpar_soil_to_buffer.exe
+/bin/extpar_topo_to_buffer.exe
+/info_extpar.f90
+/mod/*
+
+# Other files:
 *#
 *~
 *.aux
