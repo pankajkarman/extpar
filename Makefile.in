@@ -227,7 +227,7 @@ dummy-depend: | $(dir_files)
 @abs_builddir@/info_extpar.@OBJEXT@: mod/mo_logging.@FCMODEXT@.proxy
 mod/info_extpar.@FCMODEXT@.proxy: @abs_builddir@/info_extpar.@OBJEXT@
 # 2. The list of dependencies related to Fortran-to-C bindings:
-#      Nothing yet
+src/mo_util_mmap.@OBJEXT@:| src/util_mmap.@OBJEXT@
 
 current_targets:= $(strip $(MAKECMDGOALS))
 ifeq (,$(current_targets))
