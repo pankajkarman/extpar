@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -7,6 +11,8 @@
 
 #include <sys/types.h>
 #include <sys/mman.h>
+
+#include "util_mmap_cache.h"
 
 void *allocate_cache(char *variable, size_t length)
 {

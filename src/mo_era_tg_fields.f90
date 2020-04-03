@@ -23,7 +23,7 @@ MODULE mo_era_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -37,10 +37,10 @@ MODULE mo_era_tg_fields
     &        allocate_era_target_fields
 
 
-  REAL(KIND=wp), ALLOCATABLE  :: sst_field(:,:,:,:), & !< field for sst data (12 months)
-       &                         wsnow_field(:,:,:,:), & !< field for wsnow data (12 months)
-       &                         t2m_field(:,:,:,:), & !< field for wsnow data (12 months)
-       &                         hsurf_field(:,:,:) !< field for wsnow data (12 months)
+  REAL(KIND=wp), POINTER :: sst_field(:,:,:,:), & !< field for sst data (12 months)
+       &                    wsnow_field(:,:,:,:), & !< field for wsnow data (12 months)
+       &                    t2m_field(:,:,:,:), & !< field for wsnow data (12 months)
+       &                    hsurf_field(:,:,:) !< field for wsnow data (12 months)
 
   CONTAINS
 

@@ -18,7 +18,7 @@ MODULE mo_soil_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -37,12 +37,12 @@ MODULE mo_soil_tg_fields
   PUBLIC :: allocate_soil_target_fields
 
 
-  INTEGER(KIND=i4), ALLOCATABLE :: soiltype_fao(:,:,:), & !< soiltype due to FAO Digital Soil map of the World
+  INTEGER(KIND=i4), POINTER ::     soiltype_fao(:,:,:), & !< soiltype due to FAO Digital Soil map of the World
        &                           soiltype_hwsd(:,:,:), & !< soiltype due to HWSD
        &                           soiltype_hwsd_s(:,:,:), & !< soiltype due to HWSD SUBSOIL
        &                           soiltype_deep(:,:,:) !< deep soiltype due to HWSD data
 
-  REAL(KIND=wp), ALLOCATABLE    :: fr_land_soil(:,:,:), & !< fraction land due to FAO Digital Soil map of the World
+  REAL(KIND=wp), POINTER        :: fr_land_soil(:,:,:), & !< fraction land due to FAO Digital Soil map of the World
        &                           fr_sand(:,:,:), & !< fraction sand due to HWSD
        &                           fr_silt(:,:,:), & !< fraction silt due to HWSD
        &                           fr_clay(:,:,:), & !< fraction clay due to HWSD

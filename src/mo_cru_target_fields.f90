@@ -20,7 +20,7 @@ MODULE mo_cru_target_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_io_utilities,          ONLY: var_meta_info
@@ -34,9 +34,9 @@ MODULE mo_cru_target_fields
        &    meta_crutemp, meta_cruelev,&
        &    i_t_cru_fine,i_t_cru_coarse
 
-  REAL (KIND=wp), ALLOCATABLE :: crutemp(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
-       &                         crutemp2(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
-       &                         cruelev(:,:,:) !< cru climatological temperature , cruelev(ie,je,ke)
+  REAL (KIND=wp), POINTER :: crutemp(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
+       &                     crutemp2(:,:,:), & !< cru climatological temperature , crutemp(ie,je,ke)
+       &                     cruelev(:,:,:) !< cru climatological temperature , cruelev(ie,je,ke)
 
   TYPE(var_meta_info)         :: meta_crutemp, meta_cruelev
 
@@ -88,11 +88,8 @@ endif
 
     meta_crutemp%varname = 'tem_clim'
     meta_crutemp%n_dim = 3
-if (l_use_array_cache) then
-   call allocate_cached('meta_crutemp%diminfo', meta_crutemp%diminfo, [meta_crutemp%n_dim])
-else
-   allocate(meta_crutemp%diminfo(meta_crutemp%n_dim), stat=errorcode)
-endif
+
+    allocate(meta_crutemp%diminfo(meta_crutemp%n_dim), stat=errorcode)
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_crutemp%diminfo',__FILE__,__LINE__)
 
     meta_crutemp%diminfo(1)%dimname = 'ie'
@@ -108,11 +105,8 @@ endif
 
     meta_cruelev%varname = 'elev_clim'
     meta_cruelev%n_dim = 3
-if (l_use_array_cache) then
-   call allocate_cached('meta_cruelev%diminfo', meta_cruelev%diminfo, [meta_cruelev%n_dim])
-else
-   allocate(meta_cruelev%diminfo(meta_cruelev%n_dim), stat=errorcode)
-endif
+
+    allocate(meta_cruelev%diminfo(meta_cruelev%n_dim), stat=errorcode)
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_cruelev%diminfo',__FILE__,__LINE__)
 
     meta_cruelev%diminfo(1)%dimname = 'ie'

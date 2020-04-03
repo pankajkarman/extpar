@@ -15,7 +15,7 @@ MODULE mo_ndvi_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -29,10 +29,10 @@ MODULE mo_ndvi_tg_fields
        &    allocate_ndvi_target_fields
 
 
-  REAL(KIND=wp), ALLOCATABLE  :: ndvi_field(:,:,:), & !< field for ndvi data
-       &                         ndvi_max(:,:,:), & !< field for ndvi maximum
-       &                         ndvi_field_mom(:,:,:,:), & !< field for monthly mean ndvi data (12 months)
-       &                         ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+  REAL(KIND=wp), POINTER :: ndvi_field(:,:,:), & !< field for ndvi data
+       &                    ndvi_max(:,:,:), & !< field for ndvi maximum
+       &                    ndvi_field_mom(:,:,:,:), & !< field for monthly mean ndvi data (12 months)
+       &                    ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
 
 
   CONTAINS

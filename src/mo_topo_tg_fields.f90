@@ -23,7 +23,7 @@ MODULE mo_topo_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -48,33 +48,34 @@ MODULE mo_topo_tg_fields
 
 
   PUBLIC ::   add_parameters_domain, &
-       &       vertex_param, &
-       &       allocate_additional_param
+       &      vertex_param, &
+       &      allocate_additional_param
 
 
+ 
 
-  REAL(KIND=wp), ALLOCATABLE  :: hh_topo(:,:,:), &      !< mean height
-       &                         hh_topo_max(:,:,:), &  !< maximum height
-       &                         hh_topo_min(:,:,:), &  !< minimum height
-       &                         stdh_topo(:,:,:), &    !< standard deviation of subgrid scale orographic height
-       &                         theta_topo(:,:,:), & !< sso parameter, angle of principal axis
-       &                         aniso_topo(:,:,:), & !< sso parameter, anisotropie factor
-       &                         slope_topo(:,:,:), & !< sso parameter, mean slope
-       &                         fr_land_topo(:,:,:), & !< fraction land due to GLOBE raw data
-       &                         z0_topo(:,:,:), & !< roughness length due to orography
-       &                         slope_asp_topo(:,:,:), &   !< lradtopo parameter, slope aspect
-       &                         slope_ang_topo(:,:,:), &   !< lradtopo parameter, slope angle
-       &                         horizon_topo  (:,:,:,:), & !< lradtopo parameter, horizon
-       &                         skyview_topo  (:,:,:), &   !< lradtopo parameter, skyview
-       &                         sgsl(:,:,:) !< subgrid-scale slopes
+  REAL(KIND=wp), POINTER  :: hh_topo(:,:,:), &      !< mean height
+       &                     hh_topo_max(:,:,:), &  !< maximum height
+       &                     hh_topo_min(:,:,:), &  !< minimum height
+       &                     stdh_topo(:,:,:), &    !< standard deviation of subgrid scale orographic height
+       &                     theta_topo(:,:,:), & !< sso parameter, angle of principal axis
+       &                     aniso_topo(:,:,:), & !< sso parameter, anisotropie factor
+       &                     slope_topo(:,:,:), & !< sso parameter, mean slope
+       &                     fr_land_topo(:,:,:), & !< fraction land due to GLOBE raw data
+       &                     z0_topo(:,:,:), & !< roughness length due to orography
+       &                     slope_asp_topo(:,:,:), &   !< lradtopo parameter, slope aspect
+       &                     slope_ang_topo(:,:,:), &   !< lradtopo parameter, slope angle
+       &                     horizon_topo  (:,:,:,:), & !< lradtopo parameter, horizon
+       &                     skyview_topo  (:,:,:), &   !< lradtopo parameter, skyview
+       &                     sgsl(:,:,:) !< subgrid-scale slopes
 
 
   !> data structure for parameters on vertices of Icon grid
   TYPE add_parameters_domain
-     REAL(KIND=wp), ALLOCATABLE     :: hh_vert(:,:,:), &   !< height on vertex
+     REAL(KIND=wp), POINTER :: hh_vert(:,:,:), &   !< height on vertex
           &                            sgsl_vert(:,:,:) !< subgrid slope on vertex
 
-     INTEGER (KIND=i4), ALLOCATABLE :: npixel_vert(:,:,:) !< number of raw data pixel corresponding to vertex
+     INTEGER (KIND=i4), POINTER :: npixel_vert(:,:,:) !< number of raw data pixel corresponding to vertex
   END TYPE add_parameters_domain
 
   TYPE(add_parameters_domain) :: vertex_param  !< additional external parameters for ICON domain

@@ -17,7 +17,7 @@ MODULE mo_glcc_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_glcc_lookup_tables,    ONLY: nclass_glcc
@@ -44,23 +44,23 @@ MODULE mo_glcc_tg_fields
        &    emissivity_glcc, &
        &    allocate_glcc_target_fields
 
-  INTEGER (KIND=i4), ALLOCATABLE :: glcc_class_npixel(:,:,:,:), &
-       &                            glcc_tot_npixel(:,:,:)
+  INTEGER (KIND=i4), POINTER :: glcc_class_npixel(:,:,:,:), &
+       &                        glcc_tot_npixel(:,:,:)
 
-  REAL (KIND=wp), ALLOCATABLE  :: glcc_class_fraction(:,:,:,:), &
-       &                          fr_land_glcc(:,:,:), &  !< fraction land due to glcc raw data
-       &                          ice_glcc(:,:,:), &      !< fraction of ice due to glcc raw data
-       &                          z0_glcc(:,:,:), &       !< roughness length due to glcc land use data
-       &                          root_glcc(:,:,:), &     !< root depth due to glcc land use data
-       &                          plcov_mx_glcc(:,:,:), & !< plant cover maximum due to glcc land use data
-       &                          plcov_mn_glcc(:,:,:), & !< plant cover minimum due to glcc land use data
-       &                          lai_mx_glcc(:,:,:), &   !< Leaf Area Index maximum due to glcc land use data
-       &                          lai_mn_glcc(:,:,:), &   !< Leaf Area Index minimum due to glcc land use data
-       &                          rs_min_glcc(:,:,:), &   !< minimal stomata resistance due to glcc land use data
-       &                          urban_glcc(:,:,:), &    !< urban fraction due to glcc land use data
-       &                          for_d_glcc(:,:,:), &    !< deciduous forest (fraction) due to glcc land use data
-       &                          for_e_glcc(:,:,:), &    !< evergreen forest (fraction) due to glcc land use data
-       &                          emissivity_glcc(:,:,:) !< longwave emissivity due to glcc land use data
+  REAL (KIND=wp), POINTER    :: glcc_class_fraction(:,:,:,:), &
+       &                        fr_land_glcc(:,:,:), &  !< fraction land due to glcc raw data
+       &                        ice_glcc(:,:,:), &      !< fraction of ice due to glcc raw data
+       &                        z0_glcc(:,:,:), &       !< roughness length due to glcc land use data
+       &                        root_glcc(:,:,:), &     !< root depth due to glcc land use data
+       &                        plcov_mx_glcc(:,:,:), & !< plant cover maximum due to glcc land use data
+       &                        plcov_mn_glcc(:,:,:), & !< plant cover minimum due to glcc land use data
+       &                        lai_mx_glcc(:,:,:), &   !< Leaf Area Index maximum due to glcc land use data
+       &                        lai_mn_glcc(:,:,:), &   !< Leaf Area Index minimum due to glcc land use data
+       &                        rs_min_glcc(:,:,:), &   !< minimal stomata resistance due to glcc land use data
+       &                        urban_glcc(:,:,:), &    !< urban fraction due to glcc land use data
+       &                        for_d_glcc(:,:,:), &    !< deciduous forest (fraction) due to glcc land use data
+       &                        for_e_glcc(:,:,:), &    !< evergreen forest (fraction) due to glcc land use data
+       &                        emissivity_glcc(:,:,:) !< longwave emissivity due to glcc land use data
 
   CONTAINS
 

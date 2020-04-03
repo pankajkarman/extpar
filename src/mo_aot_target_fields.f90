@@ -21,7 +21,7 @@ MODULE mo_aot_target_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -33,10 +33,10 @@ MODULE mo_aot_target_fields
   PUBLIC :: MAC_aot_tg, MAC_ssa_tg, MAC_asy_tg !new
 
   !< aerosol optical thickness, aot_tg(ie,je,ke,,ntype,ntime)
-  REAL(KIND=wp), ALLOCATABLE :: aot_tg(:,:,:,:,:), &
-       &                        MAC_aot_tg(:,:,:,:),&
-       &                        MAC_ssa_tg(:,:,:,:),&
-       &                        MAC_asy_tg(:,:,:,:)
+  REAL(KIND=wp), POINTER :: aot_tg(:,:,:,:,:), &
+       &                    MAC_aot_tg(:,:,:,:),&
+       &                    MAC_ssa_tg(:,:,:,:),&
+       &                    MAC_asy_tg(:,:,:,:)
 
   CONTAINS
 

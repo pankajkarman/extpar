@@ -627,7 +627,7 @@ PROGRAM extpar_consistency_check
 
   SELECT CASE(igrid_type)
     CASE(igrid_icon) ! ICON GRID
-      CALL  allocate_additional_param(icon_grid%nvertex,l_use_sgsl, l_use_array_data)
+      CALL  allocate_additional_param(icon_grid%nvertex,l_use_sgsl, l_use_array_cache)
   END SELECT
 
   ! get info on raw data file
@@ -807,42 +807,42 @@ PROGRAM extpar_consistency_check
 
   ! test for glcc data
   IF (l_use_glcc) THEN
-    CALL allocate_glcc_target_fields(tg, l_use_array_data)
+    CALL allocate_glcc_target_fields(tg, l_use_array_cache)
   ENDIF
   ! allocate Land use target fields
-  CALL allocate_lu_target_fields(tg, l_use_array_data)
-  CALL allocate_add_lu_fields(tg,nclass_lu, l_use_array_data)
+  CALL allocate_lu_target_fields(tg, l_use_array_cache)
+  CALL allocate_add_lu_fields(tg,nclass_lu, l_use_array_cache)
 
-  CALL allocate_soil_target_fields(tg,ldeep_soil, l_use_array_data)
+  CALL allocate_soil_target_fields(tg,ldeep_soil, l_use_array_cache)
 
   IF (l_use_ahf) THEN
-    CALL allocate_ahf_target_fields(tg, l_use_array_data)
+    CALL allocate_ahf_target_fields(tg, l_use_array_cache)
   END IF
   IF (l_use_isa) THEN
-    CALL allocate_isa_target_fields(tg, l_use_array_data)
-    CALL allocate_add_isa_fields(tg, l_use_array_data)
+    CALL allocate_isa_target_fields(tg, l_use_array_cache)
+    CALL allocate_add_isa_fields(tg, l_use_array_cache)
   END IF
 
-  CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_data)
+  CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_cache)
 
-  CALL allocate_emiss_target_fields(tg,ntime_emiss, l_use_array_data)
+  CALL allocate_emiss_target_fields(tg,ntime_emiss, l_use_array_cache)
 
-  CALL allocate_era_target_fields(tg,ntime_ndvi, l_use_array_data) ! sst clim contains also 12 monthly values as ndvi
+  CALL allocate_era_target_fields(tg,ntime_ndvi, l_use_array_cache) ! sst clim contains also 12 monthly values as ndvi
 
   IF (lscale_separation .AND. (itopo_type == 2)) THEN
     lscale_separation = .FALSE.
     CALL logging%warning('Scale separation can only be used with GLOBE topography => lscale_separation set to .FALSE.')
   ENDIF
 
-  CALL allocate_topo_target_fields(tg,nhori,l_use_sgsl, l_use_array_data)
+  CALL allocate_topo_target_fields(tg,nhori,l_use_sgsl, l_use_array_cache)
 
-  CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot, l_use_array_data)
+  CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot, l_use_array_cache)
 
-  CALL allocate_cru_target_fields(tg, l_use_array_data)
+  CALL allocate_cru_target_fields(tg, l_use_array_cache)
 
-  CALL allocate_flake_target_fields(tg, l_use_array_data)
+  CALL allocate_flake_target_fields(tg, l_use_array_cache)
 
-  CALL allocate_alb_target_fields(tg,ntime_alb,ialb_type, l_use_array_data)
+  CALL allocate_alb_target_fields(tg,ntime_alb,ialb_type, l_use_array_cache)
 
   !--------------------------------------------------------------------------
   !--------------------------------------------------------------------------

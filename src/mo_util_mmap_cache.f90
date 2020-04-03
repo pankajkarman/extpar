@@ -4,6 +4,8 @@ module mo_util_mmap_cache
 
   implicit none
 
+  public
+  
   ! C prototype: void *allocate_cache(char *variable, size_t length);
   !
   ! type(c_ptr) :: addr

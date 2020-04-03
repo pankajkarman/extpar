@@ -25,7 +25,7 @@ MODULE mo_isa_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -38,9 +38,9 @@ MODULE mo_isa_tg_fields
 
   PUBLIC :: allocate_isa_target_fields, allocate_add_isa_fields
 
-  REAL (KIND=wp), ALLOCATABLE    :: isa_field(:,:,:) !< fraction land due to land use raw data
+  REAL (KIND=wp), POINTER :: isa_field(:,:,:) !< fraction land due to land use raw data
 
-  INTEGER (KIND=i4), ALLOCATABLE :: isa_tot_npixel(:,:,:)
+  INTEGER (KIND=i4), POINTER :: isa_tot_npixel(:,:,:)
 
   CONTAINS
 

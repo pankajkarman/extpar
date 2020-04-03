@@ -16,7 +16,7 @@ MODULE mo_albedo_tg_fields
   !> kind parameters are defined in MODULE data_parameters
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
 
@@ -35,7 +35,7 @@ MODULE mo_albedo_tg_fields
 
 
 
-  REAL(KIND=wp), ALLOCATABLE  :: alb_field_mom(:,:,:,:), & !< field for monthly mean albedo data (12 months)
+  REAL(KIND=wp), POINTER      :: alb_field_mom(:,:,:,:), & !< field for monthly mean albedo data (12 months)
     &                            alnid_field_mom(:,:,:,:), &
     &                            aluvd_field_mom(:,:,:,:), &
     &                            alb_interpol(:,:,:,:), & !<  field for interpolated albedo

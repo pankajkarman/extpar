@@ -39,7 +39,7 @@ SWROOT="/home/mpim/m214089/icon-preprocessing/local.gcc"
 
 CC=gcc
 CPPFLAGS=""
-CFLAGS=="-Wall -pedantic -fbacktrace -O3 -g"
+CFLAGS="-Wall -pedantic -O3 -g"
 FC=gfortran
 FCFLAGS="-Wall -pedantic -fbacktrace -O3 -g"
 

@@ -24,7 +24,7 @@ MODULE mo_ahf_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -34,7 +34,7 @@ MODULE mo_ahf_tg_fields
   PUBLIC :: ahf_field, &
        &    allocate_ahf_target_fields
 
-  REAL(KIND=wp), ALLOCATABLE  :: ahf_field(:,:,:) !< field for ahf data
+  REAL(KIND=wp), POINTER :: ahf_field(:,:,:) !< field for ahf data
 
   CONTAINS
 

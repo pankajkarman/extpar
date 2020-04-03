@@ -15,7 +15,7 @@ MODULE mo_emiss_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
 
@@ -30,10 +30,10 @@ MODULE mo_emiss_tg_fields
     &        allocate_emiss_target_fields
 
 
-  REAL(KIND=wp), ALLOCATABLE  :: emiss_field(:,:,:), & !< field for emiss data
-       &                         emiss_max(:,:,:), & !< field for emiss maximum
-       &                         emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
-       &                         emiss_ratio_mom(:,:,:,:) !< field for monthly emiss ratio (12 months)
+  REAL(KIND=wp), POINTER :: emiss_field(:,:,:), & !< field for emiss data
+       &                    emiss_max(:,:,:), & !< field for emiss maximum
+       &                    emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
+       &                    emiss_ratio_mom(:,:,:,:) !< field for monthly emiss ratio (12 months)
 
   CONTAINS
 

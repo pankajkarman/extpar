@@ -146,7 +146,7 @@ PROGRAM extpar_ndvi_to_buffer
   CALL logging%info( '')
 
   CALL allocate_raw_ndvi_fields(nlon_ndvi,nlat_ndvi,ntime_ndvi)   
-  CALL allocate_ndvi_target_fields(tg,ntime_ndvi,e_array_cache=.FALSE.)
+  CALL allocate_ndvi_target_fields(tg,ntime_ndvi,l_use_array_cache=.FALSE.)
 
   CALL get_NDVI_data_coordinates(ncid_ndvi,      &
     &                               nlon_ndvi,      &

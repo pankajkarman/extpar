@@ -308,10 +308,9 @@ then
     tar xf cdi-1.9.7.tar.gz
     cd cdi-1.9.7
     CPPFLAGS="-I$prefix/include" \
-    CFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
-    CXXFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
-    ./configure --enable-iso-c-interface --with-eccodes=$prefix --with-netcdf=$prefix --with-szlib=$prefix --prefix=$prefix
-
+    CFLAGS="-g -O3 -march=native" \
+    LDFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
+    ./configure --enable-iso-c-interface --with-netcdf=$prefix --with-eccodes=$prefix --prefix=$prefix
     make -j 4 install
     make clean
     cd $src_dir
@@ -325,8 +324,9 @@ then
     tar xf  cdo-1.9.8.tar.gz
     cd cdo-1.9.8
     CPPFLAGS="-I$prefix/include" \
-    CFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
-    CXXFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
+    CFLAGS="-g -O3 -march=native" \
+    CXXFLAGS="-g -O3 -march=native" \
+    LDFLAGS="-L$prefix/lib -Wl,-rpath,$prefix/lib -lnetcdf" \
     ./configure --prefix=$prefix \
     --with-eccodes=$prefix \
     --with-hdf5=$prefix \

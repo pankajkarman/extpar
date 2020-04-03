@@ -20,7 +20,7 @@ MODULE mo_lu_tg_fields
 
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
-
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -78,55 +78,56 @@ MODULE mo_lu_tg_fields
 
   PUBLIC :: allocate_lu_ds_target_fields
 
-  INTEGER (KIND=i4), ALLOCATABLE :: lu_class_npixel(:,:,:,:), &
-       &                            lu_tot_npixel(:,:,:)
+  INTEGER(KIND=i4), PARAMETER :: i_lu_globcover = 1, &  !< id for landuse data set Globcover 2009
+       &                         i_lu_glc2000   = 2, &  !< id for landuse data set GLC2000
+       &                         i_lu_glcc      = 3, &  !< id for landuse data set GLCC
+       &                         i_lu_ecoclimap = 4  !< id for landuse data set ecoclimap
 
-  INTEGER(KIND=i4), PARAMETER    :: i_lu_globcover = 1, &  !< id for landuse data set Globcover 2009
-       &                            i_lu_glc2000   = 2, &  !< id for landuse data set GLC2000
-       &                            i_lu_glcc      = 3, &  !< id for landuse data set GLCC
-       &                            i_lu_ecoclimap = 4  !< id for landuse data set ecoclimap
+  INTEGER (KIND=i4), POINTER  :: lu_class_npixel(:,:,:,:), &
+       &                         lu_tot_npixel(:,:,:)
 
-  REAL (KIND=wp), ALLOCATABLE    :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
-       &                            fr_land_mask(:,:,:), &  !< fraction land due to external target data
-       &                            ice_lu(:,:,:), &      !< fraction of ice due to land use raw data
-       &                            z0_lu(:,:,:), &       !< roughness length due to land use land use data
-       &                            z0_tot(:,:,:), &       !< total roughness length
-       &                            root_lu(:,:,:), &     !< root depth due to land use land use data
-       &                            plcov_mx_lu(:,:,:), & !< plant cover maximum due to land use land use data
-       &                            plcov_mn_lu(:,:,:), & !< plant cover minimum due to land use land use data
-       &                            lai_mx_lu(:,:,:), &   !< Leaf Area Index maximum due to land use land use data
-       &                            lai_mn_lu(:,:,:), &   !< Leaf Area Index minimum due to land use land use data
-       &                            rs_min_lu(:,:,:), &   !< minimal stomata resistance due to land use land use data
-       &                            urban_lu(:,:,:), &    !< urban fraction due to land use land use data
-       &                            for_d_lu(:,:,:), &    !< deciduous forest (fraction) due to land use land use data
-       &                            for_e_lu(:,:,:), &    !< evergreen forest (fraction) due to land use land use data
-       &                            skinc_lu(:,:,:), &    !< skin conductivity due to land use data
-       &                            emissivity_lu(:,:,:), &  !< longwave emissivity due to land use land use data
-       &                            z012_lu(:,:,:,:), &  !< z0 veget. ecoclomap
-       &                            z012_tot(:,:,:,:), &  !< z0 ecoclomap
-       &                            lai12_lu(:,:,:,:), &  ! <  lai12 ecoclimap
-       &                            plcov12_lu(:,:,:,:), &  !<  plcov ecoclimap
-       &                            fr_ocean_lu(:,:,:), &  !< fraction ocean due to land use raw data
-       &                            lu_class_fraction(:,:,:,:), &
-       &                            fr_land(:,:,:,:), &  !< fraction land due to land use raw data
-       &                            ice(:,:,:,:), &      !< fraction of ice due to land use raw data
-       &                            z0(:,:,:,:), &       !< roughness length due to land use land use data
-       &                            root(:,:,:,:), &     !< root depth due to land use data
-       &                            plcov_mx(:,:,:,:), & !< plant cover maximum due to land use data
-       &                            plcov_mn(:,:,:,:), & !< plant cover minimum due to land use data
-       &                            lai_mx(:,:,:,:), &   !< Leaf Area Index maximum due to land use data
-       &                            lai_mn(:,:,:,:), &   !< Leaf Area Index minimum due to land use data
-       &                            rs_min(:,:,:,:), &   !< minimal stomata resistance due to land use data
-       &                            urban(:,:,:,:), &    !< urban fraction due to land use data
-       &                            for_d(:,:,:,:), &    !< deciduous forest (fraction) due to land use data
-       &                            for_e(:,:,:,:), &    !< evergreen forest (fraction) due to land use data
-       &                            skinc(:,:,:,:), &    !< skin conductivity due to land use data
-       &                            emissivity(:,:,:,:), &  !< longwave emissivity due to land use data
-       &                            fr_ocean(:,:,:,:), &  !< fraction ocean due to land use raw data
-       &                            z012(:,:,:,:), &  !< z0 ecoclomap
-       &                            z012tot(:,:,:,:), &  !< z0 ecoclomap
-       &                            lai12(:,:,:,:), &  ! <  lai12 ecoclimap
-       &                            plcov12(:,:,:,:) !<  plcov ecoclimap
+
+  REAL (KIND=wp), POINTER     :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
+       &                         fr_land_mask(:,:,:), &  !< fraction land due to external target data
+       &                         ice_lu(:,:,:), &      !< fraction of ice due to land use raw data
+       &                         z0_lu(:,:,:), &       !< roughness length due to land use land use data
+       &                         z0_tot(:,:,:), &       !< total roughness length
+       &                         root_lu(:,:,:), &     !< root depth due to land use land use data
+       &                         plcov_mx_lu(:,:,:), & !< plant cover maximum due to land use land use data
+       &                         plcov_mn_lu(:,:,:), & !< plant cover minimum due to land use land use data
+       &                         lai_mx_lu(:,:,:), &   !< Leaf Area Index maximum due to land use land use data
+       &                         lai_mn_lu(:,:,:), &   !< Leaf Area Index minimum due to land use land use data
+       &                         rs_min_lu(:,:,:), &   !< minimal stomata resistance due to land use land use data
+       &                         urban_lu(:,:,:), &    !< urban fraction due to land use land use data
+       &                         for_d_lu(:,:,:), &    !< deciduous forest (fraction) due to land use land use data
+       &                         for_e_lu(:,:,:), &    !< evergreen forest (fraction) due to land use land use data
+       &                         skinc_lu(:,:,:), &    !< skin conductivity due to land use data
+       &                         emissivity_lu(:,:,:), &  !< longwave emissivity due to land use land use data
+       &                         z012_lu(:,:,:,:), &  !< z0 veget. ecoclomap
+       &                         z012_tot(:,:,:,:), &  !< z0 ecoclomap
+       &                         lai12_lu(:,:,:,:), &  ! <  lai12 ecoclimap
+       &                         plcov12_lu(:,:,:,:), &  !<  plcov ecoclimap
+       &                         fr_ocean_lu(:,:,:), &  !< fraction ocean due to land use raw data
+       &                         lu_class_fraction(:,:,:,:), &
+       &                         fr_land(:,:,:,:), &  !< fraction land due to land use raw data
+       &                         ice(:,:,:,:), &      !< fraction of ice due to land use raw data
+       &                         z0(:,:,:,:), &       !< roughness length due to land use land use data
+       &                         root(:,:,:,:), &     !< root depth due to land use data
+       &                         plcov_mx(:,:,:,:), & !< plant cover maximum due to land use data
+       &                         plcov_mn(:,:,:,:), & !< plant cover minimum due to land use data
+       &                         lai_mx(:,:,:,:), &   !< Leaf Area Index maximum due to land use data
+       &                         lai_mn(:,:,:,:), &   !< Leaf Area Index minimum due to land use data
+       &                         rs_min(:,:,:,:), &   !< minimal stomata resistance due to land use data
+       &                         urban(:,:,:,:), &    !< urban fraction due to land use data
+       &                         for_d(:,:,:,:), &    !< deciduous forest (fraction) due to land use data
+       &                         for_e(:,:,:,:), &    !< evergreen forest (fraction) due to land use data
+       &                         skinc(:,:,:,:), &    !< skin conductivity due to land use data
+       &                         emissivity(:,:,:,:), &  !< longwave emissivity due to land use data
+       &                         fr_ocean(:,:,:,:), &  !< fraction ocean due to land use raw data
+       &                         z012(:,:,:,:), &  !< z0 ecoclomap
+       &                         z012tot(:,:,:,:), &  !< z0 ecoclomap
+       &                         lai12(:,:,:,:), &  ! <  lai12 ecoclimap
+       &                         plcov12(:,:,:,:) !<  plcov ecoclimap
 
   CONTAINS
 

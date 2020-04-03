@@ -17,6 +17,7 @@ MODULE mo_flake_tg_fields
   !> kind parameters are defined in MODULE data_parameters
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
+  USE mo_array_cache,           ONLY: allocate_cached
   USE mo_grid_structures,       ONLY: target_grid_def
 
   IMPLICIT NONE
@@ -28,9 +29,9 @@ MODULE mo_flake_tg_fields
       &     flake_tot_npixel, &
       &     allocate_flake_target_fields
 
-  INTEGER (KIND=i4), ALLOCATABLE :: flake_tot_npixel(:,:,:) !< total number of flake raw data pixels on target grid
-  REAL (KIND=wp), ALLOCATABLE  :: lake_depth(:,:,:), &!< lake depth [m]
-       &                          fr_lake(:,:,:)      !< lake fraction
+  INTEGER (KIND=i4), POINTER :: flake_tot_npixel(:,:,:) !< total number of flake raw data pixels on target grid
+  REAL (KIND=wp), POINTER  :: lake_depth(:,:,:), &!< lake depth [m]
+       &                      fr_lake(:,:,:)      !< lake fraction
 
   CONTAINS
 
