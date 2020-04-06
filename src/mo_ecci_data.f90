@@ -201,13 +201,12 @@ CONTAINS
    INTEGER(KIND=i4), INTENT(OUT):: nc_tiles_lu
    CHARACTER(len=2)    :: num
    CHARACTER(len=80)   :: path
-   INTEGER(KIND=i4)    :: i, errorcode        ! i is a counter, errorcode is used to check if allocation was successful
+   INTEGER(KIND=i4)    :: i, errorcode   
    INTEGER(KIND=i4)    :: ncid
    INTEGER(KIND=i4)    :: dimID_lat, dimID_lon, varID_lat, varID_lon                  
-   REAL(KIND=wp)       :: half_gridp          ! distance of half a grid point as the grid point is centered on a ECCI pixel
+   REAL(KIND=wp)       :: half_gridp          
     
    half_gridp = 0.001388888889
-!   print*, half_gridp
 
      DO i = 1,ntiles_ecci
        ! open ECCI file
