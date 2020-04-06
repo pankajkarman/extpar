@@ -117,13 +117,13 @@ depend: $(dep_files)
 
 # Delete the results of compilation and linking:
 mostlyclean:
-	rm -f $(addsuffix .@OBJEXT@,$(basename $(f90_files) $(c_files))) info_extpar.@OBJEXT@
+	rm -f $(addsuffix .@OBJEXT@,$(basename $(f90_files) $(c_files))) src/info_extpar.@OBJEXT@
 	rm -f $(moddir)/*.@FCMODEXT@ $(moddir)/*.@FCMODEXT@.proxy
 	rm -f $(prog_files)
 
 # Delete files generated at the building stage:
 clean: mostlyclean
-	rm -f info_extpar.f90
+	rm -f src/info_extpar.f90
 
 # Delete everything generated at the configure stage (and clean the created
 # directories if they are empty):
@@ -180,7 +180,7 @@ sanitize-mod-proxies:
 	@rm -f $(filter-out $(addsuffix .proxy,$(wildcard $(moddir)/*.@FCMODEXT@)),$(wildcard $(moddir)/*.@FCMODEXT@.proxy))
 
 # Info source file generation rule:
-@abs_builddir@/info_extpar.f90: force-create-info
+@abs_builddir@/src/info_extpar.f90: force-create-info | $(dir_files)
 	$(silent_GEN):;{ \
 	  echo 'Compiler command : $(FC)' && \
 	  echo 'Compiler version : @FC_VENDOR@ @FC_VERSION@' && \
@@ -191,7 +191,7 @@ sanitize-mod-proxies:
 	  echo 'Linker flags     : $(FCFLAGS) $(LDFLAGS)' && \
 	  echo 'Linker libraries : $(LIBS)'; \
 	} >.fconfig && \
-	$(srcdir)/bin/gen_info.sh .fconfig '$(srcdir)/src' . || exit 1; \
+	$(srcdir)/bin/gen_info.sh .fconfig '$(srcdir)/src' 'src' || exit 1; \
 	rm -f .fconfig && test -f $@
 
 # Directory creation rule:
@@ -224,8 +224,8 @@ dummy-depend: | $(dir_files)
 #    other source file. To avoid that, we manually specify the dependencies
 #    here (note that we should treat the object file by the absolute path
 #    to account for out-of-source builds properly):
-@abs_builddir@/info_extpar.@OBJEXT@: mod/mo_logging.@FCMODEXT@.proxy
-mod/info_extpar.@FCMODEXT@.proxy: @abs_builddir@/info_extpar.@OBJEXT@
+@abs_builddir@/src/info_extpar.@OBJEXT@: mod/mo_logging.@FCMODEXT@.proxy
+mod/info_extpar.@FCMODEXT@.proxy: @abs_builddir@/src/info_extpar.@OBJEXT@
 # 2. The list of dependencies related to Fortran-to-C bindings:
 src/mo_util_mmap_cache.@OBJEXT@:| src/util_mmap_cache.@OBJEXT@
 
