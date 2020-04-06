@@ -25,8 +25,8 @@
 /bin/extpar_ndvi_to_buffer.exe
 /bin/extpar_soil_to_buffer.exe
 /bin/extpar_topo_to_buffer.exe
-/info_extpar.f90
 /mod/*
+/src/info_extpar.f90
 
 # Other files:
 *#
