@@ -9,6 +9,8 @@ it contains:
 
     -Parent:NdviMeta-> Child: NDVI, NdviMax, NdviMrat
 
+    -Parent:ClimMeta-> Child: TempClim, HsurfClim
+
 Meta-Data that is shared amongs all fields of an Extpar class is defined in
 the parent class, for example CoordsMeta 
 Meta-Data that is only valid for one specific field is defined 
@@ -142,3 +144,35 @@ class NdviMrat(NdviMeta):
                      3: 'ie'}
         self.name = 'NDVI_MRAT'
         self.long = 'monthly proportion of actual value/maximum NDVI'
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# TCLIM
+# ->TempClim
+# ->HsurfClim
+
+
+class ClimMeta:
+    def __init__(self):
+        self.type = np.float32
+        self.dim = { 0: 'ke', 
+                     1: 'je',
+                     2: 'ie'}
+
+
+class TempClim(ClimMeta):
+    def __init__(self):
+        super().__init__()
+        self.name = 'T_CL'
+        self.standard = 'soil_temperature' 
+        self.long = 'CRU near surface temperature climatology'
+        self.units = 'K'
+
+
+class HsurfClim(ClimMeta):
+    def __init__(self):
+        super().__init__()
+        self.name = 'HSURF'
+        self.standard = 'surface_altitude' 
+        self.long = 'CRU grid elevation'
+        self.units = 'm'

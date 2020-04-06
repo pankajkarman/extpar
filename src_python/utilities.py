@@ -38,7 +38,7 @@ def launch_shell(bin,*args):
         logging.error('Shell command failed', exc_info=True)
         sys.exit(1)
 
-    logging.info(f'Succesful! Output: {output}')
+    logging.info(f'Output: {output}')
 
     return
 
