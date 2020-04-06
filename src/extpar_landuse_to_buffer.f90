@@ -342,7 +342,7 @@ PROGRAM extpar_landuse_to_buffer
                           lu_tiles_lat_max_ecci, &
                           nc_tiles_lu_ecci)
 
-      PRINT *, 'ECCI TILES, LON, LAT (MIN,MAX): ' 
+!      PRINT *, 'ECCI TILES, LON, LAT (MIN,MAX): ' 
      DO i = 1,ntiles_ecci
        WRITE(*,998)  i, lu_tiles_lon_min_ecci(i), lu_tiles_lon_max_ecci(i), &
                      lu_tiles_lat_min_ecci(i), lu_tiles_lat_max_ecci(i) 
