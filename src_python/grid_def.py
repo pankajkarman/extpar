@@ -41,6 +41,7 @@ class CosmoGrid:
         self.dlat = ig.dlat
         self.ie_tot = ig.ie_tot
         self.je_tot = ig.je_tot
+        self.ke_tot = 1
         self.gridsize = ig.ie_tot * ig.je_tot
 
     def create_grid_description(self,name):

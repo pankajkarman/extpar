@@ -31,6 +31,7 @@ def launch_shell(bin,*args):
         arg_list.append(str(arg))
 
     logging.info(f'Launch shell command: {arg_list}')
+    logging.info('')
     try:
         output = subprocess.check_output(arg_list,stderr=subprocess.STDOUT,
                                          universal_newlines=True)
@@ -38,7 +39,8 @@ def launch_shell(bin,*args):
         logging.error('Shell command failed', exc_info=True)
         sys.exit(1)
 
-    logging.info(f'Output: {output}')
+    logging.info('Output:')
+    logging.info(f'{output}')
 
     return
 

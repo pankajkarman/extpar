@@ -33,15 +33,14 @@ except KeyError:
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_tclim'  # name for grid description file
-weights = 'weights_tclim'        # name for weights of spatial interpolation
 
-# names for output of CDO
-coarse_regrid_to_fine = 'coarse_regrid.nc'
-fine_contains_coarse = 'fine_with_sea.nc'
-tclim_remap = 'tclim_remap_grid.nc'
-tclim_cdo = 'tclim_to_write.nc'
-topo_icon = 'topography_ICON.nc'
-hh_topo_only = 'hh_topo_only.nc'
+# processing steps using CDO
+step1_cdo = 'step_1.nc'
+step2_cdo = 'step_2.nc'
+step3_cdo = 'step_3.nc'
+step4_cdo = 'step_4.nc'
+step5_cdo = 'step_5.nc'
+
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
@@ -49,11 +48,11 @@ logging.info('============= delete files from old runs =======')
 logging.info('')
 
 utils.remove(grid)
-utils.remove(weights)
-utils.remove(coarse_regrid_to_fine)
-utils.remove(fine_contains_coarse)
-utils.remove(tclim_cdo)
-utils.remove(hh_topo_only)
+utils.remove(step1_cdo)
+utils.remove(step2_cdo)
+utils.remove(step3_cdo)
+utils.remove(step4_cdo)
+utils.remove(step5_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -62,11 +61,17 @@ logging.info('============= init variables from namelist =====')
 logging.info('')
 
 try:
-    merge_fine_and_coarse = itcl.ltcl_merge
+    correct_with_topo = itcl.lcorrect_with_topo
 except AttributeError:
-    logging.warning('parameter ltcl_merge not set in namelist INPUT_TCLIM'
-                    ' -> set to default False instead')
-    merge_fine_and_coarse = False
+    logging.warning('parameter lcorrect_with_topo not defined in' 
+                    'namelist INPUT_TCLIM -> set to True instead')
+    correct_with_topo = True
+
+itype_cru = itcl.itype_cru
+if (itype_cru > 2):
+    logging.error(f'itype_cru {itype_cru} does not exist. ' 
+                  f'Use 1 (fine) or 2 (coarse) instead!')
+    exit(1)
 
 igrid_type = ig.igrid_type
 if (igrid_type > 2):
@@ -76,22 +81,17 @@ if (igrid_type > 2):
 
 if (igrid_type == 1):
     grid = utils.clean_path('', ig.icon_grid)
-    topo_icon = utils.clean_path('', topo_icon)
+    external_topo = utils.clean_path('', itcl.external_topo)
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_tclim_coarse  = utils.clean_path(itcl.raw_data_path,
-                                          itcl.raw_data_tclim_coarse)
 raw_data_tclim_fine  = utils.clean_path(itcl.raw_data_path,
                                         itcl.raw_data_tclim_fine)
-
-
-# set names of variables in order to skip some intermediate processing steps
-# with CDO
-if not merge_fine_and_coarse:
-    fine_contains_coarse = raw_data_tclim_coarse  # 2 intermediate steps skipped
-    tclim_remap = tclim_cdo  # last step skipped
+        
+if (itype_cru == 2):
+    raw_data_tclim_coarse  = utils.clean_path(itcl.raw_data_path,
+                                              itcl.raw_data_tclim_coarse)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -111,52 +111,61 @@ logging.info('')
 logging.info('============= CDO: remap to target grid ========')
 logging.info('')
 
-#if not merge_fine_and_coarse:
-    # calculate yearly mean of T_CL
-    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-                       '-selname,T_CL',
-                       '-addc,273.15', '-yearmonmean', 
-                       raw_data_tclim_coarse, coarse_regrid_to_fine)
 
-   # utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-   #                    '-merge', coarse_regrid_to_fine, raw_data_tclim_coarse,
-   #                    fine_contains_coarse)
+if (itype_cru == 2):
 
-if merge_fine_and_coarse:
+    logging.info('STEP 1: ' 
+                 f'convert {raw_data_tclim_coarse} to Kelvin, '
+                 f'calculate yearly mean and remap {raw_data_tclim_coarse} '
+                 f'to grid of {raw_data_tclim_fine} '
+                 f'--> {step1_cdo}')
+    logging.info('')
 
-    # remap t_clim coarse to t_clim fine and calculate yearly mean
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,'addc,273.15', '-yearmonmean', 
                        f'-remapdis,{raw_data_tclim_fine}',
-                       raw_data_tclim_coarse, coarse_regrid_to_fine)
+                       raw_data_tclim_coarse, step1_cdo)
 
+    logging.info(f'STEP 2: ' 
+                 f'take landpoints from {raw_data_tclim_fine}, '
+                 f'sea-point from {step1_cdo} --> {step2_cdo}')
+    logging.info('')
 
-    # take land point from fine, rest from coarse
     utils.launch_shell('cdo', 
                        'expr, T_CL = ((FR_LAND != 0.0)) ? T_CL : ' 
                        'tem; HSURF; FR_LAND;',
-                       '-merge', raw_data_tclim_fine, coarse_regrid_to_fine,
-                       fine_contains_coarse)
+                       '-merge', raw_data_tclim_fine, step1_cdo,
+                       step2_cdo)
 
-    # take output from topo_to_buffer
+    logging.info(f'STEP 3: ' 
+                 f'extract HH_TOPO from {external_topo} --> {step3_cdo}')
+    logging.info('')
+
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                        '-chname,topography_c,HH_TOPO',
-                       '-selname,topography_c', topo_icon,
-                       hh_topo_only)
+                       '-selname,topography_c', external_topo,
+                       step3_cdo)
 
-# remap to target grid
-utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, 
-                   'smooth,maxpoints=16',
-                   '-setmisstonn', f'-remapdis,{grid}',
-                   fine_contains_coarse, tclim_remap)
+    logging.info(f'STEP 4: '
+                 f'smooth {step2_cdo} with maxpoint=16, '
+                 f'remap {step2_cdo} to target grid --> {step4_cdo}')
+    logging.info('')
 
-if merge_fine_and_coarse:
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, 
+                       'smooth,maxpoints=16',
+                       '-setmisstonn', f'-remapdis,{grid}',
+                       step2_cdo, step4_cdo)
+
+    logging.info(f'STEP 5: ' 
+                 f'correct T_CL from {step4_cdo} with HH_TOPO from {external_topo} '
+                 f'--> {step5_cdo}')
+    logging.info('')
 
     # topographic correction of temperature
     utils.launch_shell('cdo',
                        'expr, T_CL = ((FR_LAND != 0.0)) ? '
                        'T_CL+0.0065*(HSURF-HH_TOPO) : T_CL; HSURF;',
-                       '-merge', tclim_remap, hh_topo_only,
-                       tclim_cdo)
+                       '-merge', step4_cdo, step3_cdo,
+                       step5_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -164,8 +173,8 @@ logging.info('')
 logging.info('============= reshape CDO output ===============')
 logging.info('')
 
-tclim_nc = nc.Dataset(tclim_cdo, "r")
-import IPython; IPython.embed()
+tclim_nc = nc.Dataset(step5_cdo, "r")
+
 if (igrid_type == 1):
 
     # infer coordinates/dimensions form CDO file
