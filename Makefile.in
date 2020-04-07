@@ -66,6 +66,8 @@ endif
 src_roots:= $(addprefix $(srcdir)/,$(subdirs))
 src_files:= $(patsubst $(srcdir)/%,%,$(shell find $(src_roots) -name '*.f90' -o -name '*.c'))
 f90_files:= $(filter %.f90,$(src_files))
+# We need to treat src/info_extpar.f90 differently:
+f90_files:= $(filter-out src/info_extpar.f90,$(f90_files))
 c_files:= $(filter %.c,$(src_files))
 
 # Dependency files:
