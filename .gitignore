@@ -28,6 +28,9 @@
 /mod/*
 /src/info_extpar.f90
 
+# Dist stage files:
+/extpar-*.tar.bz2
+
 # Other files:
 *#
 *~

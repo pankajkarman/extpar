@@ -4,6 +4,9 @@ srcdir:= @srcdir@
 # Relative paths to the directories with the source files:
 subdirs:= src
 
+# Relative paths to the directories of the bundled packages:
+bundled_subdirs= @subdirs_extra@
+
 # Path to the directory with the Fortran module files:
 moddir:= mod
 
@@ -32,7 +35,7 @@ BZIP2 = bzip2
 
 # Fortran compiler flags:
 FCFLAGS= @FCFLAGS@
-makefile_FCFLAGS= @FCMODINC@$(moddir) @FCMODOUT@$(moddir) @NETCDF_FCFLAGS@ @CDI_FCFLAGS@
+makefile_FCFLAGS= @FCMODINC@$(moddir) @FCMODOUT@$(moddir) @BUNDLED_FCFLAGS@ @NETCDF_FCFLAGS@ @CDI_FCFLAGS@
 
 # C compiler and preprocessor flags:
 CFLAGS= @CFLAGS@
@@ -41,6 +44,7 @@ makefile_CPPFLAGS= -Isrc @DEFS@
 
 # Linker flags and libraries:
 LDFLAGS= @LDFLAGS@
+BUNDLED_LIBFILES= @BUNDLED_LIBFILES@
 LIBS= @NETCDF_FCLIBS@ @CDI_FCLIBS@ @LIBS@
 
 # Dependency generator flags:
@@ -89,6 +93,8 @@ vpath %.c $(srcdir)
         install sanitize-mod-proxies force-create-info dist
 # Targets that do not need the inclusion of the dependency files:
 NO_INC_TARGETS:= depend dummy-depend mostlyclean clean distclean dist
+# Call make inside the subdirectories unconditionally:
+.PHONY: $(bundled_subdirs)
 # Keep directory stamps:
 .PRECIOUS: $(dir_files)
 
@@ -118,7 +124,7 @@ all: $(prog_files)
 depend: $(dep_files)
 
 # Delete the results of compilation and linking:
-mostlyclean:
+mostlyclean: $(bundled_subdirs)
 	rm -f $(addsuffix .@OBJEXT@,$(basename $(f90_files) $(c_files))) src/info_extpar.@OBJEXT@
 	rm -f $(moddir)/*.@FCMODEXT@ $(moddir)/*.@FCMODEXT@.proxy
 	rm -f $(prog_files)
@@ -133,25 +139,45 @@ distclean: clean
 	rm -f src/config.h config.log config.status
 	rm -f $(dep_files)
 	rm -f $(dir_files)
-	@for dir in $(bindir) $(moddir) $(subdirs); do \
+	@for dir in $(bindir) $(moddir); do \
 	  if test -d "$$dir"; then \
 	    echo "find '$$dir' -type d -empty -delete"; \
 	    find "$$dir" -type d -empty -delete; \
 	  fi; \
 	done
+	@if test '.' != '$(srcdir)'; then \
+	  for dir in $(subdirs) bundled; do \
+	    if test -d "$$dir"; then \
+	      echo "find '$$dir' -type d -empty -delete"; \
+	      find "$$dir" -type d -empty -delete; \
+	    fi; \
+	  done; \
+	fi
 	rm -f Makefile
 
 # Installation rules:
 install: $(prog_files)
 	$(INSTALL) -d $(DESTDIR)@bindir@ && $(INSTALL) $^ $(DESTDIR)@bindir@
 
+# Check rule
+check: all
+	@test -z '$(bundled_subdirs)' && echo "The list of bundled libraries is empty: nothing to check." && exit 0; \
+	fail=; pass=; \
+	for d in $(bundled_subdirs); do \
+	  if $(MAKE) -C "$$d" check V=$(V); then pass="$$pass$$d "; \
+	  else fail="$$fail$$d "; fi; \
+	done; \
+	test -n "$$pass" && echo "PASS: $$pass"; \
+	if test -n "$$fail"; then echo "FAIL: $$fail" && false; fi # exit code of the last command must be zero if $fail is empty
+
 # Tarball creation rule:
 dist:
 	@if test ! -e @top_srcdir@/.git; then echo "'@top_srcdir@' is not a git repository" >&2; exit 1; fi
 	$(GIT) -C @top_srcdir@ archive --prefix=$(PACKAGE_TARNAME)/ --format tar -o @abs_top_builddir@/$(PACKAGE_TARNAME).tar HEAD
+	$(GIT) -C @top_srcdir@ submodule foreach '$(GIT) archive --prefix=$(PACKAGE_TARNAME)/$$path/ --format tar -o @abs_top_builddir@/$$name.tar HEAD && $(TAR) -Af @abs_top_builddir@/$(PACKAGE_TARNAME).tar @abs_top_builddir@/$$name.tar && rm @abs_top_builddir@/$$name.tar'
 	rm -f $(PACKAGE_TARNAME).tar.bz2 && BZIP2=$${BZIP2--9} $(BZIP2) $(PACKAGE_TARNAME).tar
 
-prog_rule = $(bindir)/$(1)$$(EXEEXT): $$(filter %.@OBJEXT@,$$(shell $(DEPLIST) --inc-oo -t src/$(1).@OBJEXT@ -f Makefile $$(dep_files)))
+prog_rule = $(bindir)/$(1)$$(EXEEXT): $$(filter %.@OBJEXT@,$$(shell $(DEPLIST) --inc-oo -t src/$(1).@OBJEXT@ -f Makefile $$(dep_files))) $$(BUNDLED_LIBFILES)
 $(foreach name,$(prog_names),$(eval $(call prog_rule,$(name))))
 
 $(prog_files): | $(dir_files)
@@ -162,7 +188,7 @@ $(prog_files): | $(dir_files)
 	$(silent_CC)$(CC) -o $@ -c $(CFLAGS) $(makefile_CPPFLAGS) $(CPPFLAGS) $<
 
 # Fortran compilation rule:
-%.@OBJEXT@: %.f90 | $(dir_files)
+%.@OBJEXT@: %.f90 | $(dir_files) $(bundled_subdirs)
 	$(silent_FC)$(FC) -o $@ -c $(makefile_FCFLAGS) $(FCFLAGS) @FCFLAGS_f90@ $<
 
 # Fortran module file rule:
@@ -180,6 +206,18 @@ $(moddir)/%.@FCMODEXT@.proxy:| sanitize-mod-proxies
 # delete <filename>.proxy:
 sanitize-mod-proxies:
 	@rm -f $(filter-out $(addsuffix .proxy,$(wildcard $(moddir)/*.@FCMODEXT@)),$(wildcard $(moddir)/*.@FCMODEXT@.proxy))
+
+# Make bundled libraries:
+$(bundled_subdirs):
+	@if test -f '$@/Makefile'; then \
+	  $(MAKE) -C $@ $(filter all mostlyclean clean distclean,$(MAKECMDGOALS)) V=$(V); \
+	else \
+	  test xdistclean = x$(filter distclean,$(MAKECMDGOALS)); \
+	fi
+
+# Relink executables if any of the source files of the bundled libraries
+# is updated (the semicolon is required to support parallel rebuild):
+$(BUNDLED_LIBFILES): $(bundled_subdirs);
 
 # Info source file generation rule:
 @abs_builddir@/src/info_extpar.f90: force-create-info | $(dir_files)

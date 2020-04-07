@@ -582,6 +582,7 @@ PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
 ac_unique_file="src/extpar_alb_to_buffer.f90"
+enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 MKDIR_P
@@ -589,11 +590,14 @@ INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
 PYTHON
+subdirs_extra
 CDI_FCLIBS
 CDI_FCFLAGS
 NETCDF_FCLIBS
 NETCDF_FCFLAGS
 DEFAULT_VERBOSITY
+BUNDLED_LIBFILES
+BUNDLED_FCFLAGS
 DEPGEN_FCFLAGS
 FCDEF_PP
 FCINCORDER_PP
@@ -661,12 +665,8 @@ enable_option_checking
 enable_silent_rules
 enable_rpaths
 enable_openmp
-with_netcdf_root
-with_netcdf_include
-with_netcdf_lib
-with_cdi_root
-with_cdi_include
-with_cdi_lib
+with_netcdf_fortran
+with_cdi
 '
       ac_precious_vars='build_alias
 host_alias
@@ -683,7 +683,7 @@ NETCDF_FCLIBS
 CDI_FCFLAGS
 CDI_FCLIBS
 PYTHON'
-
+ac_subdirs_all='bundled/cdi'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1302,15 +1302,11 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-netcdf-root=NETCDF_ROOT
-                          root search path for NetCDF headers and libraries
-  --with-netcdf-include=DIR
-                          search path for NetCDF headers [NETCDF_ROOT/include]
-  --with-netcdf-lib=DIR   search path for NetCDF libraries [NETCDF_ROOT/lib]
-  --with-cdi-root=CDI_ROOT
-                          root search path for CDI headers and libraries
-  --with-cdi-include=DIR  search path for CDI headers [CDI_ROOT/include]
-  --with-cdi-lib=DIR      search path for CDI libraries [CDI_ROOT/lib]
+  --with-netcdf-fortran=<yes|directory>
+                          location of NetCDF Fortran library (lib and include
+                          subdirs)
+  --with-cdi=<yes|directory|bundled>
+                          location of CDI library (lib and include subdirs)
 
 Some influential environment variables:
   CC          C compiler command
@@ -1323,10 +1319,10 @@ Some influential environment variables:
   FC          Fortran compiler command
   FCFLAGS     Fortran compiler flags
   NETCDF_FCFLAGS
-              exact Fortran compiler flags enabling NetCDF
+              exact Fortran compiler flags enabling NetCDF Fortran
   NETCDF_FCLIBS
-              exact linker flags enabling NetCDF when linking with Fortran
-              compiler
+              exact linker flags enabling NetCDF Fortran when linking with
+              Fortran compiler
   CDI_FCFLAGS exact Fortran compiler flags enabling CDI
   CDI_FCLIBS  exact linker flags enabling CDI when linking with Fortran
               compiler
@@ -1915,30 +1911,6 @@ ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
 ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
-
-
-# Check whether --enable-silent-rules was given.
-if test "${enable_silent_rules+set}" = set; then :
-  enableval=$enable_silent_rules;
-else
-  enable_silent_rules=yes
-fi
-
-
-# Check whether --enable-rpaths was given.
-if test "${enable_rpaths+set}" = set; then :
-  enableval=$enable_rpaths;
-else
-  enable_rpaths=yes
-fi
-
-
-# Check whether --enable-openmp was given.
-if test "${enable_openmp+set}" = set; then :
-  enableval=$enable_openmp;
-else
-  enable_openmp=no
-fi
 
 
 ac_ext=c
@@ -3857,6 +3829,20 @@ fi
 DEPGEN_FCFLAGS=''
 
 
+BUNDLED_FCFLAGS=''
+
+
+BUNDLED_LIBFILES=''
+
+
+# Check whether --enable-silent-rules was given.
+if test "${enable_silent_rules+set}" = set; then :
+  enableval=$enable_silent_rules;
+else
+  enable_silent_rules=yes
+fi
+
+
 if test "x$enable_silent_rules" = xyes; then :
   DEFAULT_VERBOSITY=0
 
@@ -3864,6 +3850,14 @@ else
   DEFAULT_VERBOSITY=1
 
 fi
+
+# Check whether --enable-rpaths was given.
+if test "${enable_rpaths+set}" = set; then :
+  enableval=$enable_rpaths;
+else
+  enable_rpaths=yes
+fi
+
 
 if test "x$enable_rpaths" = xyes; then :
      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran compiler flag needed to add a directory to the runtime library search path" >&5
@@ -3930,120 +3924,12 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 fi
 
-acx_libsearch_flags='-L'
-if test "x$enable_rpaths" = xyes; then :
-  as_fn_append acx_libsearch_flags " '$acx_cv_fc_rpath_flag'"
-fi
-eval "set dummy $acx_libsearch_flags"; shift
-
-# Check whether --with-netcdf-root was given.
-if test "${with_netcdf_root+set}" = set; then :
-  withval=$with_netcdf_root;
-fi
-
-
-# Check whether --with-netcdf-include was given.
-if test "${with_netcdf_include+set}" = set; then :
-  withval=$with_netcdf_include;
+# Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
 else
-  if ${with_netcdf_root+:} false; then :
-  with_netcdf_include="${with_netcdf_root}/include"
+  enable_openmp=no
 fi
-fi
-
-
-      if ${with_netcdf_include+:} false; then :
-  for acx_flag in "$FCMODINC"; do
-           case " "$acx_fc_NetCDF_inc_search_args" " in #(
-  *" ""${acx_flag}${with_netcdf_include}"" "*) :
-     ;; #(
-  " "" ") :
-    as_fn_append acx_fc_NetCDF_inc_search_args "${acx_flag}${with_netcdf_include}" ;; #(
-  *) :
-    as_fn_append acx_fc_NetCDF_inc_search_args " "; as_fn_append acx_fc_NetCDF_inc_search_args "${acx_flag}${with_netcdf_include}" ;;
-esac
-         done
-fi
-
-
-# Check whether --with-netcdf-lib was given.
-if test "${with_netcdf_lib+set}" = set; then :
-  withval=$with_netcdf_lib;
-else
-  if ${with_netcdf_root+:} false; then :
-  with_netcdf_lib="${with_netcdf_root}/lib"
-fi
-fi
-
-
-      if ${with_netcdf_lib+:} false; then :
-  for acx_flag in "$@"; do
-           case " "$acx_fc_NetCDF_lib_search_args" " in #(
-  *" ""${acx_flag}${with_netcdf_lib}"" "*) :
-     ;; #(
-  " "" ") :
-    as_fn_append acx_fc_NetCDF_lib_search_args "${acx_flag}${with_netcdf_lib}" ;; #(
-  *) :
-    as_fn_append acx_fc_NetCDF_lib_search_args " "; as_fn_append acx_fc_NetCDF_lib_search_args "${acx_flag}${with_netcdf_lib}" ;;
-esac
-         done
-fi
-
-
-
-# Check whether --with-cdi-root was given.
-if test "${with_cdi_root+set}" = set; then :
-  withval=$with_cdi_root;
-fi
-
-
-# Check whether --with-cdi-include was given.
-if test "${with_cdi_include+set}" = set; then :
-  withval=$with_cdi_include;
-else
-  if ${with_cdi_root+:} false; then :
-  with_cdi_include="${with_cdi_root}/include"
-fi
-fi
-
-
-      if ${with_cdi_include+:} false; then :
-  for acx_flag in "$FCMODINC"; do
-           case " "$acx_fc_CDI_inc_search_args" " in #(
-  *" ""${acx_flag}${with_cdi_include}"" "*) :
-     ;; #(
-  " "" ") :
-    as_fn_append acx_fc_CDI_inc_search_args "${acx_flag}${with_cdi_include}" ;; #(
-  *) :
-    as_fn_append acx_fc_CDI_inc_search_args " "; as_fn_append acx_fc_CDI_inc_search_args "${acx_flag}${with_cdi_include}" ;;
-esac
-         done
-fi
-
-
-# Check whether --with-cdi-lib was given.
-if test "${with_cdi_lib+set}" = set; then :
-  withval=$with_cdi_lib;
-else
-  if ${with_cdi_root+:} false; then :
-  with_cdi_lib="${with_cdi_root}/lib"
-fi
-fi
-
-
-      if ${with_cdi_lib+:} false; then :
-  for acx_flag in "$@"; do
-           case " "$acx_fc_CDI_lib_search_args" " in #(
-  *" ""${acx_flag}${with_cdi_lib}"" "*) :
-     ;; #(
-  " "" ") :
-    as_fn_append acx_fc_CDI_lib_search_args "${acx_flag}${with_cdi_lib}" ;; #(
-  *) :
-    as_fn_append acx_fc_CDI_lib_search_args " "; as_fn_append acx_fc_CDI_lib_search_args "${acx_flag}${with_cdi_lib}" ;;
-esac
-         done
-fi
-
 
 
 if test "x$enable_openmp" = xyes; then :
@@ -4224,8 +4110,31 @@ $as_echo "$acx_cv_fc_macro__OPENMP_defined" >&6; }
 fi
 fi
 
+
+# Check whether --with-netcdf-fortran was given.
+if test "${with_netcdf_fortran+set}" = set; then :
+  withval=$with_netcdf_fortran; if test "x$withval" = xno; then :
+  as_fn_error $? "cannot build the package without NetCDF Fortran library" "$LINENO" 5
+fi
+else
+  with_netcdf_fortran=yes
+fi
+
+
+
+
+acx_inc_search_args=
+acx_lib_search_args=
+if test x"$with_netcdf_fortran" != xyes; then :
+  acx_inc_search_args="${FCMODINC}$with_netcdf_fortran/include"
+   acx_lib_search_args="-L$with_netcdf_fortran/lib"
+   if test "x$enable_rpaths" = xyes; then :
+  as_fn_append acx_lib_search_args " ${acx_cv_fc_rpath_flag}$with_netcdf_fortran/lib"
+fi
+fi
+
 acx_save_FCFLAGS=$FCFLAGS
-NETCDF_FCFLAGS=${NETCDF_FCFLAGS-$acx_fc_NetCDF_inc_search_args}
+NETCDF_FCFLAGS=${NETCDF_FCFLAGS-$acx_inc_search_args}
 FCFLAGS="$NETCDF_FCFLAGS $acx_save_FCFLAGS"
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran module NETCDF" >&5
 $as_echo_n "checking for Fortran module NETCDF... " >&6; }
@@ -4265,7 +4174,7 @@ _ACEOF
       if ${NETCDF_FCLIBS+:} false; then :
   set dummy "$NETCDF_FCLIBS"
 else
-  set dummy ''  "$acx_fc_NetCDF_lib_search_args -lnetcdff" "$acx_fc_NetCDF_lib_search_args -lnetcdff -lnetcdf"
+  set dummy ''  "$acx_lib_search_args -lnetcdff" "$acx_lib_search_args -lnetcdff -lnetcdf"
 fi
       shift
       for acx_libs in "$@"; do
@@ -4311,10 +4220,104 @@ fi
 
 FCFLAGS=$acx_save_FCFLAGS
 
-acx_save_FCFLAGS=$FCFLAGS
-CDI_FCFLAGS=${CDI_FCFLAGS-$acx_fc_CDI_inc_search_args}
-FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran module MO_CDI" >&5
+
+# Check whether --with-cdi was given.
+if test "${with_cdi+set}" = set; then :
+  withval=$with_cdi; if test "x$withval" = xno; then :
+  as_fn_error $? "cannot build the package without CDI library" "$LINENO" 5
+fi
+else
+  with_cdi=bundled
+fi
+
+
+
+
+if test "x$with_cdi" = xbundled; then :
+  if test ! -r "$srcdir/bundled/cdi/src/cdi.h"; then :
+  as_fn_error $? "unable to find sources of the bundled version of CDI library (src/cdi.h) in '$srcdir/bundled/cdi': provide an external version of CDI (--with-cdi)" "$LINENO" 5
+fi
+
+
+      acx_config_subdir_args_bundled_cdi=
+   acx_config_subdir_ignore_arg=no
+   eval "set dummy $ac_configure_args"; shift
+   for acx_config_subdir_arg; do
+     if test "x$acx_config_subdir_ignore_arg" = xno; then :
+  case $acx_config_subdir_arg in #(
+  -cache-file|--cache-file|--cache-fil|--cache-fi| \
+           --cache-f|--cache-|--cache|--cach|--cac|--ca|--c| \
+           -srcdir|--srcdir|--srcdi|--srcd|--src|--sr| \
+           -prefix|--prefix|--prefi|--pref|--pre|--pr|--p) :
+    acx_config_subdir_ignore_arg=yes ;; #(
+  -cache-file=*|--cache-file=*|--cache-fil=*|--cache-fi=*| \
+           --cache-f=*|--cache-=*|--cache=*|--cach=*|--cac=*|--ca=*|--c=*| \
+           --config-cache|-C| \
+           -srcdir=*|--srcdir=*|--srcdi=*|--srcd=*|--src=*|--sr=*| \
+           -prefix=*|--prefix=*|--prefi=*|--pref=*|--pre=*|--pr=*|--p=*| \
+           --disable-option-checking) :
+     ;; #(
+  F77=*|CXX=*|LDFLAGS=*|LIBS=*) :
+     ;; #(
+  -enable-static|-enable-static=*|--enable-static|--enable-static=*|-disable-static|--disable-static) :
+     ;; #(
+  -enable-shared|-enable-shared=*|--enable-shared|--enable-shared=*|-disable-shared|--disable-shared) :
+     ;; #(
+  -enable-maintainer-mode|-enable-maintainer-mode=*|--enable-maintainer-mode|--enable-maintainer-mode=*|-disable-maintainer-mode|--disable-maintainer-mode) :
+     ;; #(
+  -enable-silent-rules|-enable-silent-rules=*|--enable-silent-rules|--enable-silent-rules=*|-disable-silent-rules|--disable-silent-rules) :
+     ;; #(
+  -enable-iso-c-interface|-enable-iso-c-interface=*|--enable-iso-c-interface|--enable-iso-c-interface=*|-disable-iso-c-interface|--disable-iso-c-interface) :
+     ;; #(
+  -enable-cf-interface|-enable-cf-interface=*|--enable-cf-interface|--enable-cf-interface=*|-disable-cf-interface|--disable-cf-interface) :
+     ;; #(
+  -enable-cdi-app|-enable-cdi-app=*|--enable-cdi-app|--enable-cdi-app=*|-disable-cdi-app|--disable-cdi-app) :
+     ;; #(
+  *) :
+
+           case $acx_config_subdir_arg in #(
+  *\'*) :
+    acx_config_subdir_arg=`$as_echo "$acx_config_subdir_arg" | sed "s/'/'\\\\\\\\''/g"` ;; #(
+  *) :
+     ;;
+esac
+            as_fn_append acx_config_subdir_args_bundled_cdi " '$acx_config_subdir_arg'" ;;
+esac
+else
+  acx_config_subdir_ignore_arg=no
+fi
+   done
+   set dummy --enable-static --disable-shared --disable-maintainer-mode --enable-silent-rules="$enable_silent_rules" --enable-iso-c-interface --disable-cf-interface --disable-cdi-app F77=no CXX=no CFLAGS="$subdir_CFLAGS" FCFLAGS="$subdir_FCFLAGS" ; shift
+      for acx_config_subdir_arg; do
+        case $acx_config_subdir_arg in #(
+  *\'*) :
+    acx_config_subdir_arg=`$as_echo "$acx_config_subdir_arg" | sed "s/'/'\\\\\\\\''/g"` ;; #(
+  *) :
+     ;;
+esac
+        as_fn_append acx_config_subdir_args_bundled_cdi " '$acx_config_subdir_arg'"
+      done
+      subdirs_extra="bundled/cdi"
+
+
+
+   CDI_FCFLAGS=; CDI_FCLIBS=
+   as_fn_append BUNDLED_FCFLAGS "${FCMODINC}bundled/cdi/src "
+   BUNDLED_LIBFILES="bundled/cdi/src/.libs/libcdi_f2003.a bundled/cdi/src/.libs/libcdi.a $BUNDLED_LIBFILES"
+else
+  acx_inc_search_args=
+   acx_lib_search_args=
+   if test x"$with_cdi" != xyes && test x"$with_cdi" != xbundled; then :
+  acx_inc_search_args="${FCMODINC}$with_cdi/include"
+      acx_lib_search_args="-L$with_cdi/lib"
+      if test "x$enable_rpaths" = xyes; then :
+  as_fn_append acx_lib_search_args " ${acx_cv_fc_rpath_flag}$with_cdi/lib"
+fi
+fi
+   acx_save_FCFLAGS=$FCFLAGS
+   CDI_FCFLAGS=${CDI_FCFLAGS-$acx_inc_search_args}
+   FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Fortran module MO_CDI" >&5
 $as_echo_n "checking for Fortran module MO_CDI... " >&6; }
 if ${acx_cv_fc_module_MO_CDI+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -4352,7 +4355,7 @@ _ACEOF
       if ${CDI_FCLIBS+:} false; then :
   set dummy "$CDI_FCLIBS"
 else
-  set dummy ''  "$acx_fc_CDI_lib_search_args -lcdi_f2003" "$acx_fc_CDI_lib_search_args -lcdi_f2003 -lcdi"
+  set dummy ''  "$acx_lib_search_args -lcdi_f2003" "$acx_lib_search_args -lcdi_f2003 -lcdi"
 fi
       shift
       for acx_libs in "$@"; do
@@ -4379,7 +4382,7 @@ else
 $as_echo "none needed" >&6; }
 fi
       CDI_FCLIBS=$acx_cv_fc_lib_func_VLISTDEFVARTIMETYPE
-      acx_have_netcdf=yes
+         acx_have_netcdf=yes
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown" >&5
 $as_echo "unknown" >&6; }
@@ -4396,25 +4399,25 @@ as_fn_error $? "Fortran module 'MO_CDI' is not available
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 
-FCFLAGS=$acx_save_FCFLAGS
-
-acx_save_FCFLAGS=$FCFLAGS; FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
-acx_save_LIBS=$LIBS; LIBS="$CDI_FCLIBS $acx_save_LIBS"
-acx_cdi_formats="grb:CDI_FILETYPE_GRB grb2:CDI_FILETYPE_GRB2 nc:CDI_FILETYPE_NC
-                 nc2:CDI_FILETYPE_NC2 nc4:CDI_FILETYPE_NC4
-                 nc4c:CDI_FILETYPE_NC4C nc5:CDI_FILETYPE_NC5
-                 srv:CDI_FILETYPE_SRV ext:CDI_FILETYPE_EXT ieg:CDI_FILETYPE_IEG"
-for acx_cdi_format in $acx_cdi_formats; do
-  acx_cdi_format_name=`echo "$acx_cdi_format" | cut -d: -f1`
-  acx_cdi_format_ID=`echo "$acx_cdi_format" | cut -d: -f2`
-  acx_cache_var_name="acx_cv_cdi_have_$acx_cdi_format_name"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CDI supports file format '$acx_cdi_format_name'" >&5
+   FCFLAGS=$acx_save_FCFLAGS
+   acx_save_FCFLAGS=$FCFLAGS; FCFLAGS="$CDI_FCFLAGS $acx_save_FCFLAGS"
+   acx_save_LIBS=$LIBS; LIBS="$CDI_FCLIBS $acx_save_LIBS"
+   acx_cdi_formats="grb:CDI_FILETYPE_GRB grb2:CDI_FILETYPE_GRB2
+                    nc:CDI_FILETYPE_NC nc2:CDI_FILETYPE_NC2
+                    nc4:CDI_FILETYPE_NC4 nc4c:CDI_FILETYPE_NC4C
+                    nc5:CDI_FILETYPE_NC5 srv:CDI_FILETYPE_SRV
+                    ext:CDI_FILETYPE_EXT ieg:CDI_FILETYPE_IEG"
+   for acx_cdi_format in $acx_cdi_formats; do
+     acx_cdi_format_name=`echo "$acx_cdi_format" | cut -d: -f1`
+     acx_cdi_format_ID=`echo "$acx_cdi_format" | cut -d: -f2`
+     acx_cache_var_name="acx_cv_cdi_have_$acx_cdi_format_name"
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether CDI supports file format '$acx_cdi_format_name'" >&5
 $as_echo_n "checking whether CDI supports file format '$acx_cdi_format_name'... " >&6; }
 if eval \${$acx_cache_var_name+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   eval "$acx_cache_var_name=unknown"
-     if test "x$cross_compiling" = xno; then :
+        if test "x$cross_compiling" = xno; then :
   cat > conftest.$ac_ext <<_ACEOF
       program main
       use mo_cdi, only: cdiHaveFiletype, $acx_cdi_format_ID
@@ -4423,7 +4426,7 @@ else
 _ACEOF
 if ac_fn_fc_try_link "$LINENO"; then :
   acx_exec_result=`./conftest$ac_exeext 2>/dev/null`
-           if test $? -eq 0; then :
+              if test $? -eq 0; then :
   if test $acx_exec_result -eq 1; then :
   eval "$acx_cache_var_name=yes"
 else
@@ -4438,8 +4441,10 @@ fi
 eval ac_res=\$$acx_cache_var_name
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
-done
-FCFLAGS=$acx_save_FCFLAGS; LIBS=$acx_save_LIBS
+   done
+   FCFLAGS=$acx_save_FCFLAGS; LIBS=$acx_save_LIBS
+fi
+
 
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for python" >&5
 $as_echo_n "checking for python... " >&6; }
@@ -4739,6 +4744,149 @@ LIBOBJS=$ac_libobjs
 LTLIBOBJS=$ac_ltlibobjs
 
 
+if test "x$no_recursion" = xyes; then :
+  subdirs_extra=
+else
+  acx_config_subdir_common_args="'--disable-option-checking'"
+            if test "x$silent" = xyes; then :
+  as_fn_append acx_config_subdir_common_args " '--silent'"
+fi
+            acx_config_subdir_popdir=`pwd`
+            for acx_config_subdir in $subdirs_extra; do
+              acx_msg="=== configuring in $acx_config_subdir ($acx_config_subdir_popdir/$acx_config_subdir)"
+              $as_echo "$as_me:${as_lineno-$LINENO}: $acx_msg" >&5
+              $as_echo "$acx_msg" >&6
+              as_dir="$acx_config_subdir"; as_fn_mkdir_p
+              ac_builddir=.
+
+case "$acx_config_subdir" in
+.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
+*)
+  ac_dir_suffix=/`$as_echo "$acx_config_subdir" | sed 's|^\.[\\/]||'`
+  # A ".." for each directory in $ac_dir_suffix.
+  ac_top_builddir_sub=`$as_echo "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
+  case $ac_top_builddir_sub in
+  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
+  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
+  esac ;;
+esac
+ac_abs_top_builddir=$ac_pwd
+ac_abs_builddir=$ac_pwd$ac_dir_suffix
+# for backward compatibility:
+ac_top_builddir=$ac_top_build_prefix
+
+case $srcdir in
+  .)  # We are building in place.
+    ac_srcdir=.
+    ac_top_srcdir=$ac_top_builddir_sub
+    ac_abs_top_srcdir=$ac_pwd ;;
+  [\\/]* | ?:[\\/]* )  # Absolute name.
+    ac_srcdir=$srcdir$ac_dir_suffix;
+    ac_top_srcdir=$srcdir
+    ac_abs_top_srcdir=$srcdir ;;
+  *) # Relative name.
+    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
+    ac_top_srcdir=$ac_top_build_prefix$srcdir
+    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
+esac
+ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
+
+              cd "$acx_config_subdir"
+              if test -f "$ac_srcdir/configure.gnu"; then :
+  acx_config_subdir_script="$ac_srcdir/configure.gnu"
+elif test -f "$ac_srcdir/configure"; then :
+  acx_config_subdir_script="$ac_srcdir/configure"
+else
+  as_fn_error $? "unable to configure '$acx_config_subdir': no configure script found" "$LINENO" 5
+                 acx_config_subdir_script=
+fi
+              if test -n "$acx_config_subdir_script"; then :
+  eval acx_config_subdir_args=\$acx_config_subdir_args_`$as_echo "$acx_config_subdir" | $as_tr_sh`
+                 if test /dev/null != "$cache_file"; then :
+  case $cache_file in #(
+  [\\/]* | ?:[\\/]*) :
+    acx_sub_cache_file=$cache_file ;; #(
+  *) :
+    acx_sub_cache_file="$ac_top_build_prefix$cache_file" ;;
+esac
+                      acx_sub_cache_file="$acx_sub_cache_file.`echo "$acx_config_subdir" | tr / .`"
+else
+  acx_sub_cache_file=$cache_file
+fi
+                 for acx_config_subdir_arg in \
+                   "--cache-file=$acx_sub_cache_file" \
+                   "--srcdir=$ac_srcdir" \
+                   "--prefix=$prefix"; do
+                   case $acx_config_subdir_arg in #(
+  *\'*) :
+    acx_config_subdir_arg=`$as_echo "$acx_config_subdir_arg" | sed "s/'/'\\\\\\\\''/g"` ;; #(
+  *) :
+     ;;
+esac
+                   as_fn_append acx_config_subdir_args " '$acx_config_subdir_arg'"
+                 done
+                 as_fn_append acx_config_subdir_args " $acx_config_subdir_common_args"
+                 { $as_echo "$as_me:${as_lineno-$LINENO}: running $SHELL $acx_config_subdir_script $acx_config_subdir_args" >&5
+$as_echo "$as_me: running $SHELL $acx_config_subdir_script $acx_config_subdir_args" >&6;}
+                 eval "\$SHELL \"$acx_config_subdir_script\" $acx_config_subdir_args" || as_fn_error $? "$acx_config_subdir_script failed for $acx_config_subdir" "$LINENO" 5
+fi
+              cd "$acx_config_subdir_popdir"
+            done
+            if test -n "$subdirs_extra"; then :
+  $as_echo "===" >&6
+               $as_echo "$as_me:${as_lineno-$LINENO}: ===" >&5
+fi
+fi
+if test "x$with_cdi" = xbundled; then :
+  acx_exec_result=`$as_echo @LDFLAGS@ | "bundled/cdi/config.status" -q --file=- 2>/dev/null`
+   if test $? -eq 0; then :
+  acx_LDFLAGS=$acx_exec_result
+else
+  as_fn_error $? "unable to run 'bundled/cdi/config.status'" "$LINENO" 5
+fi
+      acx_exec_result=`$as_echo @LIBS@ | "bundled/cdi/config.status" -q --file=- 2>/dev/null`
+   if test $? -eq 0; then :
+  acx_LIBS=$acx_exec_result
+else
+  as_fn_error $? "unable to run 'bundled/cdi/config.status'" "$LINENO" 5
+fi
+      LDFLAGS=$acx_LDFLAGS
+      LIBS=$acx_LIBS
+      if test "x$enable_rpaths" = xyes; then :
+  acx_L_args=
+   asx_extract_args_args="$acx_LDFLAGS $acx_LIBS"
+   asx_extract_args_args=`$as_echo "$asx_extract_args_args" | sed 's%''-L[ ]*''%_ASX_EXTRACT_ARGS_MARKER_%g'`
+   for asx_extract_args_arg in $asx_extract_args_args; do
+     case $asx_extract_args_arg in #(
+  _ASX_EXTRACT_ARGS_MARKER_*) :
+    asx_extract_args_value=`$as_echo "$asx_extract_args_arg" | sed 's%^_ASX_EXTRACT_ARGS_MARKER_%%'`
+        as_fn_append acx_L_args " $asx_extract_args_value" ;; #(
+  *) :
+     ;;
+esac
+   done
+         for acx_L_arg in $acx_L_args; do
+           case ' '$LDFLAGS' ' in #(
+  *' '"$acx_cv_fc_rpath_flag$acx_L_arg"' '*) :
+     ;; #(
+  ' '' ') :
+    as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$acx_L_arg" ;; #(
+  *) :
+    as_fn_append LDFLAGS ' '; as_fn_append LDFLAGS "$acx_cv_fc_rpath_flag$acx_L_arg" ;;
+esac
+         done
+fi
+      acx_exec_result=`$as_echo ' @PTHREAD_CFLAGS@' | "bundled/cdi/config.status" -q --file=- 2>/dev/null`
+   if test $? -eq 0; then :
+  acx_PTHREAD_CFLAGS=$acx_exec_result
+else
+  as_fn_error $? "unable to run 'bundled/cdi/config.status'" "$LINENO" 5
+fi
+      if test "x$FC_VENDOR" = xnag; then :
+  acx_PTHREAD_CFLAGS=`$as_echo "$acx_PTHREAD_CFLAGS" | sed 's/ -pthread/ -Wl,-pthread/g'`
+fi
+      as_fn_append LDFLAGS "$acx_PTHREAD_CFLAGS"
+fi
 
 : "${CONFIG_STATUS=./config.status}"
 ac_write_fail=0
