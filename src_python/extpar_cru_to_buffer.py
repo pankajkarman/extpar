@@ -6,7 +6,7 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import INPUT_TCLIM as itcl
+from INPUT_TCLIM import input_tclim as itcl
 import INPUT_GRID as ig
 import utilities as utils
 import grid_def
@@ -34,7 +34,6 @@ except KeyError:
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_tclim'  # name for grid description file
-testlist = 'INPUT_CRu'
 
 # processing steps using CDO
 step1_cdo = 'step_1.nc'
@@ -62,14 +61,7 @@ logging.info('')
 logging.info('============= init variables from namelist =====')
 logging.info('')
 
-try:
-    correct_with_topo = itcl.lcorrect_with_topo
-except AttributeError:
-    logging.warning('parameter lcorrect_with_topo not defined in' 
-                    'namelist INPUT_TCLIM -> set to True instead')
-    correct_with_topo = True
-
-itype_cru = itcl.itype_cru
+itype_cru = itcl['it_cl_type']
 if (itype_cru > 2):
     logging.error(f'itype_cru {itype_cru} does not exist. ' 
                   f'Use 1 (fine) or 2 (coarse) instead!')
@@ -83,17 +75,18 @@ if (igrid_type > 2):
 
 if (igrid_type == 1):
     grid = utils.clean_path('', ig.icon_grid)
-    external_topo = utils.clean_path('', itcl.external_topo)
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_tclim_fine  = utils.clean_path(itcl.raw_data_path,
-                                        itcl.raw_data_tclim_fine)
+raw_data_tclim_fine  = utils.clean_path(itcl['raw_data_path'],
+                                        itcl['raw_data_tclim_fine'])
         
 if (itype_cru == 2):
-    raw_data_tclim_coarse  = utils.clean_path(itcl.raw_data_path,
-                                              itcl.raw_data_tclim_coarse)
+    buffer_topo = fortran_namelist.read_variable_from_namelist('INPUT_ORO', 'orography_output_file')
+    buffer_topo = utils.clean_path('', buffer_topo)
+    raw_data_tclim_coarse  = utils.clean_path(itcl['raw_data_path'],
+                                              itcl['raw_data_tclim_coarse'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -114,14 +107,7 @@ logging.info( '============= write FORTRAN namelist ===========')
 logging.info( '')
 
 input_tclim = fortran_namelist.InputTclim()
-input_tclim.write_fortran_namelist('INPUT_wTCLIM',
-                                   step1_cdo,
-                                   step1_cdo,
-                                   step2_cdo,
-                                   step3_cdo,
-                                   step5_cdo,
-                                   step5_cdo)
-
+fortran_namelist.write_fortran_namelist('input_tclim', itcl,input_tclim)
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
@@ -154,12 +140,12 @@ if (itype_cru == 2):
                        step2_cdo)
 
     logging.info(f'STEP 3: ' 
-                 f'extract HH_TOPO from {external_topo} --> {step3_cdo}')
+                 f'extract HH_TOPO from {buffer_topo} --> {step3_cdo}')
     logging.info('')
 
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                        '-chname,topography_c,HH_TOPO',
-                       '-selname,topography_c', external_topo,
+                       '-selname,topography_c', buffer_topo,
                        step3_cdo)
 
     logging.info(f'STEP 4: '
@@ -173,7 +159,7 @@ if (itype_cru == 2):
                        step2_cdo, step4_cdo)
 
     logging.info(f'STEP 5: ' 
-                 f'correct T_CL from {step4_cdo} with HH_TOPO from {external_topo} '
+                 f'correct T_CL from {step4_cdo} with HH_TOPO from {buffer_topo} '
                  f'--> {step5_cdo}')
     logging.info('')
 
@@ -265,7 +251,7 @@ logging.info( '============= write to buffer file =============')
 logging.info( '')
 
 # init buffer file
-buffer_file = buffer.init_netcdf(itcl.buffer_tclim, je_tot, ie_tot)
+buffer_file = buffer.init_netcdf(itcl['buffer_tclim'], je_tot, ie_tot)
 
 # write lat/lon
 buffer.write_3d_field(buffer_file, lon, lon_meta)
@@ -276,24 +262,6 @@ buffer.write_3d_field(buffer_file, hsurf, hsurf_meta)
 buffer.write_3d_field(buffer_file, temp, temp_meta)
 
 buffer.close_netcdf(buffer_file)
-
-#--------------------------------------------------------------------------
-#--------------------------------------------------------------------------
-logging.info( '')
-logging.info( '============= write FORTRAN namelist ===========')
-logging.info( '')
-sys.exit(1)
-input_tclim = fortran_namelist.InputTclim()
-input_tclim.write_fortran_namelist('test_1',
-                                   step2_cdo,
-                                   step2_cdo,
-                                   step2_cdo,
-                                   step2_cdo,
-                                   step2_cdo,
-                                   step3_cdo,
-                                   step4_cdo,
-                                   step5_cdo,
-                                   step5_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------

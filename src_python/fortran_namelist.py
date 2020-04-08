@@ -1,55 +1,38 @@
 import logging
 import sys
 
-class FortranNamelist:
+def read_variable_from_namelist(namelist, variable):
+    with open(namelist, 'r') as f:
+        for line in f:
+            line =line.rstrip()
+            if variable in line:
+                split = line.split('=')
+                return split[-1].strip("',")
+
+    logging.error(f'Could not find {variable} in {namelist}')
+    sys.exit(1)
+
+def write_fortran_namelist(name, namelist, nl_class):
+
+    with open(name, 'w') as f:
+        for group in nl_class.variables.keys():
+            f.write(f'{group}\n')
+            for var in nl_class.variables[group]:
+
+                if (str(namelist[var]) and str(namelist[var]).strip()):
+                    f.write(f'{var} = {namelist[var]},\n')
+                else:
+                    f.write(f'{var} = "''"\n')
+
+            f.write('/\n')
+
+class InputTclim:
     def __init__(self):
-        self.groups = []
-        self.variables = []
 
-    def write_fortran_namelist(self, name, *args):
+        self.variables = {'&t_clim_raw_data':{ 'raw_data_path',
+                                              'raw_data_tclim_coarse',
+                                              'raw_data_tclim_fine',
+                                              'it_cl_type'}}
 
-        args_list = [*args]
-
-        vars_to_write = 0
-        for i in range(len(self.groups)):
-            vars_to_write += len(self.variables[i])
-        
-        if (vars_to_write != len(args_list)):
-            logging.error('Wrong number of variables for Fortran namelist '
-                          f'passed {len(args_list)}, required {vars_to_write}')
-            sys.exit(1)
-        import IPython; IPython.embed
-        print( len(args_list))
-        print(vars_to_write)
-        with open(name, 'w') as f:
-            idx = 0
-            for i in range(len(self.groups)):
-                f.write(f'{self.groups[i]}\n')
-                for j in range(len(self.variables[i])):
-                    f.write(f'{self.variables[i][j]} = {args_list[idx]}\n')
-                    idx += 1
-
-                f.write('/\n')
-
-                
-                
-
-
-class InputTclim(FortranNamelist):
-    def __init__(self):
-        super().__init__()
-        self.groups = ['&t_clim_raw_data', 
-                       '&t_clim_io_extpar']
-
-        self.variables = []
-
-        # variables of &t_clim_raw_data
-        self.variables.append({ 0: 'raw_data_t_clim_path',
-                                1: 'raw_data_t_clim_filename',
-                                2: 'it_cl_type'})
-
-        # variables of &t_clim_io_extpar
-        self.variables.append({ 0: 'raw_data_t_clim_path',
-                                1: 'raw_data_t_clim_filename',
-                                2: 't_clim_buffer_file',
-                                3: 't_clim_output_file'})
+        self.variables.update({'&t_clim_io_extpar':{ 'raw_data_path',
+                                                 'buffer_tclim'}})
