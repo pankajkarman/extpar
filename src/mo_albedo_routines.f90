@@ -333,6 +333,15 @@ MODULE mo_albedo_routines
     dlon_alb = 360./float(nlon_alb) ! dlon_alb in degrees
     dlat_alb = 180./float(nlat_alb) ! dlat_alb in degrees
 
+  IF ( (lat(nlat_alb) - lat(1)) < 0) THEN
+    ! dlat is negative for north -> south storage
+    CALL logging%info('north -> south storage direction in raw albedo data')
+    dlat_alb = -1 * dlat_alb
+  ELSE
+    ! dlat is positive for south -> north storage
+    CALL logging%info('south -> north storage direction in raw albedo data')
+  ENDIF
+
   END SUBROUTINE get_ALB_data_coordinates
          
   !> get one row of albedo raw data from netcdf file (along zonal direction)
