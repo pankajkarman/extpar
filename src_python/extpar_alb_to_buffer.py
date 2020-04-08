@@ -6,17 +6,18 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import INPUT_ALB as ia
 import INPUT_GRID as ig
 import utilities as utils
 import grid_def
 import buffer
 import metadata
+import fortran_namelist
+from namelist import input_alb as ia
 
 # initialize logger
 logging.basicConfig(filename='extpar_alb_to_buffer.log',
                     level=logging.INFO,
-                    format='%(levelname)s:%(message)s',
+                    format='%(message)s',
                     filemode='w')
 
 
@@ -61,8 +62,8 @@ logging.info('')
 
 igrid_type = ig.igrid_type
 if (igrid_type > 2):
-    logging.error(f'igrid_type {igrid_type} does not exist. 
-                  Use 1 (Icon) or 2 (Cosmo) instead!')
+    logging.error(f'igrid_type {igrid_type} does not exist. ' 
+                  'Use 1 (Icon) or 2 (Cosmo) instead!')
     exit(1)
 
 if (igrid_type == 1):
@@ -71,9 +72,9 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_alb   = utils.clean_path(ia.raw_data_path, ia.raw_data_alb)
-raw_data_aluvd = utils.clean_path(ia.raw_data_path, ia.raw_data_aluvd)
-raw_data_alnid = utils.clean_path(ia.raw_data_path, ia.raw_data_alnid)
+raw_data_alb   = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_alb_filename'])
+raw_data_aluvd = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_aluvd_filename'])
+raw_data_alnid = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_alnid_filename'])
 
 
 #--------------------------------------------------------------------------
@@ -88,6 +89,15 @@ lon_meta   = metadata.Lon()
 al_meta    = metadata.AL()
 alnid_meta = metadata.NI()
 aluvd_meta = metadata.UV()
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= write FORTRAN namelist ===========')
+logging.info( '')
+
+input_alb = fortran_namelist.InputAlb()
+fortran_namelist.write_fortran_namelist('INPUT_ALB', ia, input_alb)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -153,9 +163,9 @@ logging.info( '')
 
 # init buffer file
 if (igrid_type == 1):
-    buffer_file = buffer.init_netcdf(ia.buffer_alb, 1, cells)
+    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], 1, cells)
 elif(igrid_type == 2):
-    buffer_file = buffer.init_netcdf(ia.buffer_alb, tg.je_tot, tg.ie_tot)
+    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], tg.je_tot, tg.ie_tot)
 
 # write lat/lon
 buffer.write_3d_field(buffer_file, lon, lon_meta)
