@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3.6 
 import logging
 import os
 import sys
@@ -6,13 +6,13 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import INPUT_GRID as ig
 import utilities as utils
 import grid_def
 import buffer
 import metadata
 import fortran_namelist
 from namelist import input_alb as ia
+from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_alb_to_buffer.log',
@@ -60,14 +60,14 @@ logging.info('============= init variables from namelist =====')
 logging.info('')
 
 
-igrid_type = ig.igrid_type
+igrid_type = ig['igrid_type']
 if (igrid_type > 2):
     logging.error(f'igrid_type {igrid_type} does not exist. ' 
                   'Use 1 (Icon) or 2 (Cosmo) instead!')
     exit(1)
 
 if (igrid_type == 1):
-    grid = utils.clean_path('', ig.icon_grid)
+    grid = utils.clean_path('', ig['icon_grid'])
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)

@@ -12,7 +12,7 @@
   t2m_icon_file = 'ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc'
   t_clim_buffer_file = 'crutemp_clim_extpar_BUFFER.nc'
   aot_buffer_file = 'extpar_aot_BUFFER.nc'
-  alb_buffer_file = 'month_alb_BUFFER.nc'
+  alb_buffer_file = 'albedo_buffer.nc'
   land_sea_mask_file = ""
   number_special_points = 0
 /

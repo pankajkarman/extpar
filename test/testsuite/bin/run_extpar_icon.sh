@@ -61,11 +61,17 @@ fi
 # directories
 currentdir=$(pwd)
 rootdir=${currentdir}/../../../../..
+src_python=../../../../../src_python
+
+unset PYTHONPATH
+export PYTHONPATH=${src_python}
 
 # Names of executables
 
+# python executables
+binary_alb=extpar_alb_to_buffer.py
+
 # fortran executables
-binary_alb=extpar_alb_to_buffer.exe
 binary_ndvi=extpar_ndvi_to_buffer.exe
 binary_tclim=extpar_cru_to_buffer.exe
 binary_lu=extpar_landuse_to_buffer.exe
@@ -93,7 +99,6 @@ icon_grid_file=icon_grid*
 if [[ $type_of_test == mpim ]]; then
 
     # python and cdo executables 
-    binary_alb=extpar_alb_to_buffer.sh
     binary_ndvi=extpar_ndvi_to_buffer.sh
     binary_tclim=extpar_cru_to_buffer.sh
 
@@ -102,9 +107,6 @@ if [[ $type_of_test == mpim ]]; then
 
 # dwd
 elif [[ $type_of_test == dwd ]]; then
-
-    # python and cdo executables 
-    binary_alb=extpar_alb_to_buffer.sh
 
     ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc .
     ln -sf ${icon_grid_dir}/ei_an1986-2015_domain2_DOM01_BUFFER.nc .
@@ -117,9 +119,6 @@ elif [[ $type_of_test == dwd ]]; then
 
 # ecmwf
 elif [[ $type_of_test == ecmwf ]]; then
-
-    # python and cdo executables
-    binary_alb=extpar_alb_to_buffer.sh
 
     # run TCLIM with COARSE and FINE
     cp INPUT_TCLIM_COARSE INPUT_TCLIM
@@ -159,14 +158,15 @@ if [[ $type_of_test == mpim ]]; then
     # because of algorithmic problems for high res output with respect to
     # low res source data
 
-    run_sequential "${binary_alb} -r ${raw_data_alb} -u ${raw_data_aluvd} -i ${raw_data_alnid} -g ${icon_grid_file} -b ${buffer_alb} -p ${dir_during_test}"
+    run_sequential ${binary_alb}
+
     run_sequential "${binary_ndvi} -r ${raw_data_ndvi} -g ${icon_grid_file} -b ${buffer_ndvi} -p ${dir_during_test}"
     run_sequential "${binary_tclim} -c ${raw_data_tclim_coarse} -f ${raw_data_tclim_fine} -g ${icon_grid_file} -b ${buffer_tclim} -p ${dir_during_test}"
 
 # dwd
 elif [[ $type_of_test == dwd ]]; then
 
-    run_sequential "${binary_alb} -r ${raw_data_alb} -u ${raw_data_aluvd} -i ${raw_data_alnid} -g GRID_SUBSET.nc -b ${buffer_alb} -p ${dir_during_test}"
+    run_sequential ${binary_alb}
     run_sequential ${binary_tclim}
 
     # run tclim the second time -> tclim_fine
@@ -178,7 +178,7 @@ elif [[ $type_of_test == dwd ]]; then
 # ecmwf
 elif [[ $type_of_test == ecmwf ]]; then
 
-    run_sequential "${binary_alb} -r ${raw_data_alb} -u ${raw_data_aluvd} -i ${raw_data_alnid} -g GRID_SUBSET.nc -b ${buffer_alb} -p ${dir_during_test}"
+    run_sequential ${binary_alb}
 
     # run tclim the first time with tclim_coarse
     run_sequential ${binary_tclim}

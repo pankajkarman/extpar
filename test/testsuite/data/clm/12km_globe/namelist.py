@@ -8,7 +8,7 @@ input_tclim = {
 
 input_alb = {
         'raw_data_alb_path': '',
-        'raw_data_alb_filename': 'month_alb_new.nc',
+        'raw_data_alb_filename': 'global_soil_albedo.nc',
         'raw_data_alnid_filename': 'month_alnid_new.nc',
         'raw_data_aluvd_filename': 'month_aluvd_new.nc',
         'alb_buffer_file': 'albedo_buffer.nc',
@@ -23,11 +23,11 @@ input_grid = {
         'icon_grid': '',
         'pollon':-170.0,
         'pollat':43.0,
-        'startlon_tot':-18.0,
-        'startlat_tot':-12.9,
-        'dlon':0.06,
-        'dlat':0.06,
-        'ie_tot':601,
-        'je_tot':421
+        'startlon_tot':-42.25,
+        'startlat_tot':-36.52,
+        'dlon':0.11,
+        'dlat':0.11,
+        'ie_tot':771,
+        'je_tot':771
         }
 

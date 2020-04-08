@@ -11,7 +11,7 @@
   t2m_icon_file = 'ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc'
   t_clim_buffer_file = 'crutemp_climF_extpar_BUFFER.nc'
   aot_buffer_file = 'extpar_aot_BUFFER.nc'
-  alb_buffer_file = 'month_alb_BUFFER.nc'
+  alb_buffer_file = 'albedo_buffer.nc'
   i_lsm_data = 1
   land_sea_mask_file = ""
   lwrite_netcdf = .TRUE.

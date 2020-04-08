@@ -10,7 +10,7 @@
   ndvi_buffer_file="ndvi_buffer.nc",
   t_clim_buffer_file="crutemp_clim_extpar_buffer.nc",
   aot_buffer_file="extpar_buffer_aot.nc",
-  alb_buffer_file="month_alb_buffer.nc",
+  alb_buffer_file="albedo_buffer.nc",
   i_lsm_data=1,
   land_sea_mask_file="",
   number_special_points=0,

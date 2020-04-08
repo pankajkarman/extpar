@@ -1,5 +1,5 @@
 import math
-import INPUT_GRID as ig
+from namelist import input_grid as ig
 import numpy as np
 '''
 Module providing classes and functions for COSMO grids,
@@ -33,16 +33,16 @@ class CosmoGrid:
 
         '''init from namelist INPUT_GRID.py'''
 
-        self.pollon = ig.pollon
-        self.pollat = ig.pollat
-        self.startlon_tot = ig.startlon_tot
-        self.startlat_tot = ig.startlat_tot
-        self.dlon = ig.dlon
-        self.dlat = ig.dlat
-        self.ie_tot = ig.ie_tot
-        self.je_tot = ig.je_tot
+        self.pollon = ig['pollon']
+        self.pollat = ig['pollat']
+        self.startlon_tot = ig['startlon_tot']
+        self.startlat_tot = ig['startlat_tot']
+        self.dlon = ig['dlon']
+        self.dlat = ig['dlat']
+        self.ie_tot = ig['ie_tot']
+        self.je_tot = ig['je_tot']
         self.ke_tot = 1
-        self.gridsize = ig.ie_tot * ig.je_tot
+        self.gridsize = ig['ie_tot'] * ig['je_tot']
 
     def create_grid_description(self,name):
         '''

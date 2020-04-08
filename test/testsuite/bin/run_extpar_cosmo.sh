@@ -63,11 +63,17 @@ sed -i 's#@raw_data_flake_filename@#'"$raw_data_flake"'#' INPUT_FLAKE
 
 # directories
 currentdir=$(pwd)
+src_python=../../../../../src_python
+
+unset PYTHONPATH
+export PYTHONPATH=${src_python}
 
 # Names of executables
 
+# python executables
+binary_alb=extpar_alb_to_buffer.py
+
 # fortran executables
-binary_alb=extpar_alb_to_buffer.exe
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
@@ -88,6 +94,8 @@ ln -s -f ${data_dir}/*.nc .
 
 type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
+
+cp ../../../data/$type_of_test/$name_of_test/*.py .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------

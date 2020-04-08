@@ -23,11 +23,11 @@ input_grid = {
         'icon_grid': '',
         'pollon':-170.0,
         'pollat':43.0,
-        'startlon_tot':-18.0,
-        'startlat_tot':-12.9,
-        'dlon':0.06,
-        'dlat':0.06,
-        'ie_tot':601,
-        'je_tot':421
+        'startlon_tot':-0.0,
+        'startlat_tot':-2.0,
+        'dlon':0.01,
+        'dlat':0.01,
+        'ie_tot':100,
+        'je_tot':100
         }
 
