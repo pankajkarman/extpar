@@ -12,11 +12,12 @@ import utilities as utils
 import grid_def
 import buffer
 import metadata
+import fortran_namelist
 
 # initialize logger
 logging.basicConfig(filename='extpar_cru_to_buffer.log',
                     level=logging.INFO,
-                    format='%(levelname)s:%(message)s',
+                    format='%(message)s',
                     filemode='w')
 
 
@@ -33,6 +34,7 @@ except KeyError:
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_tclim'  # name for grid description file
+testlist = 'INPUT_CRu'
 
 # processing steps using CDO
 step1_cdo = 'step_1.nc'
@@ -107,6 +109,21 @@ temp_meta   = metadata.TempClim()
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= write FORTRAN namelist ===========')
+logging.info( '')
+
+input_tclim = fortran_namelist.InputTclim()
+input_tclim.write_fortran_namelist('INPUT_wTCLIM',
+                                   step1_cdo,
+                                   step1_cdo,
+                                   step2_cdo,
+                                   step3_cdo,
+                                   step5_cdo,
+                                   step5_cdo)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
 logging.info('')
 logging.info('============= CDO: remap to target grid ========')
 logging.info('')
@@ -166,7 +183,42 @@ if (itype_cru == 2):
                        'T_CL+0.0065*(HSURF-HH_TOPO) : T_CL; HSURF;',
                        '-merge', step4_cdo, step3_cdo,
                        step5_cdo)
+else:
 
+    logging.info('STEP 1: ' 
+                 f'set sea points to missing value in {raw_data_tclim_fine} '
+                 f'--> {step1_cdo}')
+
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                       '-selname,T_CL', '-setrtomiss,-1,10',
+                       raw_data_tclim_fine, step1_cdo)
+
+    logging.info('STEP 2: ' 
+                 f'extract HSURF from {raw_data_tclim_fine} '
+                 f'--> {step2_cdo}')
+
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                       '-selname,HSURF,', raw_data_tclim_fine,
+                       step2_cdo)
+
+    logging.info('STEP 3: ' 
+                 f'merge {step1_cdo} and {step2_cdo} '
+                 f'--> {step3_cdo}')
+
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                       '-merge', step1_cdo, step2_cdo,
+                       step3_cdo)
+
+    logging.info('STEP 4: ' 
+                 f'remap {step3_cdo} to target grid '
+                 f'--> {step4_cdo}')
+
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                       f'-remapbil,{grid}',step3_cdo,
+                       step4_cdo)
+
+    # missing step 5, swap names instead
+    step5_cdo = step4_cdo
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
@@ -224,6 +276,24 @@ buffer.write_3d_field(buffer_file, hsurf, hsurf_meta)
 buffer.write_3d_field(buffer_file, temp, temp_meta)
 
 buffer.close_netcdf(buffer_file)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= write FORTRAN namelist ===========')
+logging.info( '')
+sys.exit(1)
+input_tclim = fortran_namelist.InputTclim()
+input_tclim.write_fortran_namelist('test_1',
+                                   step2_cdo,
+                                   step2_cdo,
+                                   step2_cdo,
+                                   step2_cdo,
+                                   step2_cdo,
+                                   step3_cdo,
+                                   step4_cdo,
+                                   step5_cdo,
+                                   step5_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------

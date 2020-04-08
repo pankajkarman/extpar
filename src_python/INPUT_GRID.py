@@ -1,5 +1,5 @@
 # 1 for icon, 2 for cosmo
-igrid_type = 1
+igrid_type = 2
 
 #icon grid file
 icon_grid = 'icon_grid_0013_R02B04_G.nc'
