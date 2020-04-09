@@ -83,6 +83,19 @@ def clean_path(dir, file):
     return clean_path
 
 
+def check_albtype(alb_type):
+    '''
+    check alb_type for correctnes and return value, 
+    if not exit programme
+    '''
+
+    if (alb_type > 3):
+        logging.error(f'ialb_typ {alb_type} does not exist.')
+        exit(1)
+
+    return alb_type
+
+
 def check_gridtype(grid_type):
     '''
     check gridtype for correctnes and return value, 
@@ -109,3 +122,22 @@ def get_omp_num_threads():
         logging.warning('OMP_NUM_THREADS not set ->'
                         'use OMP_NUM_THREADS = 1 instead')
     return omp
+
+def determine_albedo_varnames(ialb_type):
+    
+    if (ialb_type == 1):
+        var_1 = 'al'
+        var_2 = 'aluvd'
+        var_3 = 'alnid'
+
+    elif (ialb_type == 2):
+        var_1 = 'ALB_DRY'
+        var_2 = 'ALB_SAT'
+        var_3 = ''
+    elif (ialb_type == 3):
+        var_1 = 'al'
+        var_2 = ''
+        var_3 = ''
+
+    return var_1, var_2, var_3
+

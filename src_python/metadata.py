@@ -66,6 +66,8 @@ class Lat(CoordsMeta):
 # ->AL
 # ->NI
 # ->UV
+# ->AlbSat
+# ->AlbDry
 
 
 class AlbMeta:
@@ -84,6 +86,10 @@ class AL(AlbMeta):
         self.name = 'ALB_DIF12'
         self.long = 'Albedo'
         self.orig = 'al'
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
 
 
 class NI(AlbMeta):
@@ -92,6 +98,10 @@ class NI(AlbMeta):
         self.name = 'ALNID12'
         self.long = 'NI_Albedo'
         self.orig = 'alnid'
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
 
 
 class UV(AlbMeta):
@@ -100,6 +110,32 @@ class UV(AlbMeta):
         self.name = 'ALUVD12'
         self.long = 'UV_Albedo'
         self.orig = 'aluvd'
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+
+class AlbDry(AlbMeta):
+    def __init__(self):
+        super().__init__()
+        self.name = 'ALB_DRY'
+        self.long = 'soil albedo for dry soil'
+        self.standard = 'surface_albedo'
+        self.orig = '_'
+        self.dim = { 0: 'ke',
+                     1: 'je',
+                     2: 'ie'}
+
+class AlbSat(AlbMeta):
+    def __init__(self):
+        super().__init__()
+        self.name = 'ALB_SAT'
+        self.long = 'soil albedo for saturated soil'
+        self.standard = 'surface_albedo'
+        self.orig = '_'
+        self.dim = { 0: 'ke',
+                     1: 'je',
+                     2: 'ie'}
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 # NDVI

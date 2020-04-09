@@ -44,7 +44,8 @@ class InputAlb:
     def __init__(self):
 
         self.variables = {'&alb_raw_data':{'raw_data_alb_path',
-                                           'raw_data_alb_filename'}}
+                                           'raw_data_alb_filename',
+                                           'ialb_typ'}}
 
         self.variables.update({'&alnid_raw_data':{'raw_data_alb_path',
                                                   'raw_data_alnid_filename',

@@ -7,6 +7,7 @@ input_tclim = {
         }
 
 input_alb = {
+        'ialb_typ': 1,
         'raw_data_alb_path': '',
         'raw_data_alb_filename': 'month_alb_new.nc',
         'raw_data_alnid_filename': 'month_alnid_new.nc',
@@ -19,7 +20,7 @@ input_alb = {
         }
 
 input_grid = {
-        'igrid_type': 1,
+        'igrid_type': 2,
         'icon_grid': 'icon_grid_0013_R02B04_G.nc',
         'pollon':-170.0,
         'pollat':43.0,
