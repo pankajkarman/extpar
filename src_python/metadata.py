@@ -9,6 +9,8 @@ it contains:
 
     -Parent:NdviMeta-> Child: NDVI, NdviMax, NdviMrat
 
+    -Parent:EmissMeta-> Child: EmissMean, EmissMax, EmissMrat
+
     -Parent:ClimMeta-> Child: TempClim, HsurfClim
 
 Meta-Data that is shared amongs all fields of an Extpar class is defined in
@@ -144,6 +146,53 @@ class NdviMrat(NdviMeta):
                      3: 'ie'}
         self.name = 'NDVI_MRAT'
         self.long = 'monthly proportion of actual value/maximum NDVI'
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# Emiss
+# ->EmissMean
+# ->EmissMax
+# ->EmissMrat
+
+
+class EmissMeta:
+    def __init__(self):
+        self.type = np.float32
+        self.units = '_'
+        self.standard = '_'
+        self.short = '_'
+
+
+class EmissMean(EmissMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+        self.name = 'EMISS'
+        self.long = 'monthly mean EMISS climatology 1998-2003'
+
+
+class EmissMax(EmissMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'ke', 
+                     1: 'je',
+                     2: 'ie'}
+        self.name = 'EMISS_MAX'
+        self.long = 'EMISS yearly maximum for climatology 1998-2003'
+
+
+class EmissMrat(EmissMeta):
+    def __init__(self):
+        super().__init__()
+        self.dim = { 0: 'time',
+                     1: 'ke', 
+                     2: 'je',
+                     3: 'ie'}
+        self.name = 'EMISS_MRAT'
+        self.long = 'monthly proportion of actual value/maximum EMISS'
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------

@@ -25,12 +25,7 @@ logging.info('============= start extpar_alb_to_buffer =======')
 logging.info('')
 
 # get number of OpenMP threads for CDO
-try:
-    omp = os.environ['OMP_NUM_THREADS']
-except KeyError:
-    omp = 1
-    logging.warning('OMP_NUM_THREADS not set ->'
-                    'use OMP_NUM_THREADS = 1 instead')
+omp = utils.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_albedo'  # name for grid description file
@@ -60,11 +55,7 @@ logging.info('============= init variables from namelist =====')
 logging.info('')
 
 
-igrid_type = ig['igrid_type']
-if (igrid_type > 2):
-    logging.error(f'igrid_type {igrid_type} does not exist. ' 
-                  'Use 1 (Icon) or 2 (Cosmo) instead!')
-    exit(1)
+igrid_type = utils.check_gridtype(ig['igrid_type'])
 
 if (igrid_type == 1):
     grid = utils.clean_path('', ig['icon_grid'])
@@ -166,6 +157,9 @@ if (igrid_type == 1):
     buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], 1, cells)
 elif(igrid_type == 2):
     buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], tg.je_tot, tg.ie_tot)
+
+# add 12 months as additional dimension
+buffer_file = buffer.add_dimension_month(buffer_file)
 
 # write lat/lon
 buffer.write_3d_field(buffer_file, lon, lon_meta)

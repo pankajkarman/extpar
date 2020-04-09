@@ -20,10 +20,7 @@ it contains:
 
 def init_netcdf(buffer_name,len_je, len_ie):
     '''
-    create netcdf and init dimensions
-
-    currently this functions is the placeholder for all the
-    stuff I couldn't put in modular functions
+    create netcdf and init base dimensions ie, je ,ke, mlev
     '''
     # create extpar BUFFER
     buffer = open_netcdf(buffer_name)
@@ -31,8 +28,20 @@ def init_netcdf(buffer_name,len_je, len_ie):
     buffer.createDimension('ie',len_ie)
     buffer.createDimension('je',len_je)
     buffer.createDimension('ke', 1)
-    buffer.createDimension('time', None)
     buffer.createDimension('mlev', 1)
+
+    extpar_mlev = buffer.createVariable('mlev', np.float32, ('mlev',))
+    extpar_mlev[:] = np.array([1], dtype=np.float32)
+
+    return buffer
+
+
+def add_dimension_month(buffer):
+    '''
+    add 12 months as dimension to netCDF
+    '''
+
+    buffer.createDimension('time', None)
 
     extpar_time = buffer.createVariable('time', np.float32, ('time',))
     extpar_time[:] = np.array([11110101, 11110201, 11110301,
@@ -40,9 +49,6 @@ def init_netcdf(buffer_name,len_je, len_ie):
                                11110701, 11110801, 11110901,
                                11111001,  11111101, 11111201],
                               dtype=np.float32)
-
-    extpar_mlev = buffer.createVariable('mlev', np.float32, ('mlev',))
-    extpar_mlev[:] = np.array([1], dtype=np.float32)
 
     return buffer
 

@@ -69,3 +69,11 @@ class InputNdvi:
 
         self.variables.update({'&ndvi_io_extpar':{'ndvi_buffer_file',
                                                   'ndvi_output_file'}})
+class InputEmiss:
+    def __init__(self):
+
+        self.variables = {'&emiss_raw_data':{'raw_data_emiss_path',
+                                             'raw_data_emiss_filename'}}
+
+        self.variables.update({'&emiss_io_extpar': {'emiss_buffer_file',
+                                                    'emiss_output_file'}})

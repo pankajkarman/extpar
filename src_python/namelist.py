@@ -19,8 +19,8 @@ input_alb = {
         }
 
 input_grid = {
-        'igrid_type': 2,
-        'icon_grid': '',
+        'igrid_type': 1,
+        'icon_grid': 'icon_grid_0013_R02B04_G.nc',
         'pollon':-170.0,
         'pollat':43.0,
         'startlon_tot':-18.0,
@@ -29,6 +29,13 @@ input_grid = {
         'dlat':0.06,
         'ie_tot':601,
         'je_tot':421
+        }
+
+input_emiss = { 
+        'raw_data_emiss_path': '',
+        'raw_data_emiss_filename': 'CAM_bbe_int_2010-2015_lw_fixed.nc',
+        'emiss_buffer_file': 'emiss_buffer.nc',
+        'emiss_output_file': 'emiss_icon.nc'
         }
 
 input_ndvi = {

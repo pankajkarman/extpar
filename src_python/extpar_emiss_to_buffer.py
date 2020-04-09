@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6 
+#!/usr/bin/env python3.6
 import logging
 import os
 import sys
@@ -11,28 +11,28 @@ import grid_def
 import buffer
 import metadata
 import fortran_namelist
-from namelist import input_ndvi as indvi
+from namelist import input_emiss as iemiss
 from namelist import input_grid as ig
 
 # initialize logger
-logging.basicConfig(filename='extpar_ndvi_to_buffer.log',
+logging.basicConfig(filename='extpar_emiss_to_buffer.log',
                     level=logging.DEBUG,
                     format='%(levelname)s:%(message)s',
                     filemode='w')
 
 
-logging.info('============= start extpar_ndvi_to_buffer ======')
+logging.info('============= start extpar_emiss_to_buffer ======')
 logging.info('')
 
 # get number of OpenMP threads for CDO
 omp = utils.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
-grid = 'grid_description_ndvi'  # name for grid description file
-weights = 'weights_ndvi'        # name for weights of spatial interpolation
+grid = 'grid_description_emiss'  # name for grid description file
+weights = 'weights_emiss'        # name for weights of spatial interpolation
 
 # names for output of CDO
-ndvi_cdo = 'ndvi_ycon.nc'
+emiss_cdo = 'emiss_ycon.nc'
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -42,13 +42,14 @@ logging.info('')
 
 utils.remove(grid)
 utils.remove(weights)
-utils.remove(ndvi_cdo)
+utils.remove(emiss_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
 logging.info('============= init variables from namelist =====')
 logging.info('')
+
 
 igrid_type = utils.check_gridtype(ig['igrid_type'])
 
@@ -58,7 +59,7 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'], indvi['raw_data_ndvi_filename'])
+raw_data_emiss  = utils.clean_path(iemiss['raw_data_emiss_path'], iemiss['raw_data_emiss_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -69,9 +70,9 @@ logging.info('')
 lat_meta   = metadata.Lat()
 lon_meta   = metadata.Lon()
 
-ndvi_meta  = metadata.NDVI()
-max_meta   = metadata.NdviMax()
-mrat_meta  = metadata.NdviMrat()
+emiss_meta  = metadata.EmissMean()
+max_meta   = metadata.EmissMax()
+mrat_meta  = metadata.EmissMrat()
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -79,8 +80,8 @@ logging.info( '')
 logging.info( '============= write FORTRAN namelist ===========')
 logging.info( '')
 
-input_ndvi = fortran_namelist.InputNdvi()
-fortran_namelist.write_fortran_namelist('INPUT_NDVI', indvi, input_ndvi)
+input_emiss = fortran_namelist.InputEmiss()
+fortran_namelist.write_fortran_namelist('INPUT_EMISS', iemiss, input_emiss)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -90,12 +91,27 @@ logging.info('')
 
 # calculate weights
 utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, f'genycon,{grid}',
-                   raw_data_ndvi, weights)
+                   raw_data_emiss, weights)
+
+
+utils.launch_shell('cp', raw_data_emiss, 'bbemis_0.nc')
+
+# Check of artificial low values (useful range is between approx. 0.6 and 1. for earth surface)
+utils.launch_shell('cdo',  '-f', 'nc4', '-P', omp,
+                   '-expr,bbemis_longwave=(bbemis_longwave<0.5)?-999:bbemis_longwave;', 'bbemis_0.nc', 'bbemis_1.nc')
+
+# Ensure artificial low values are set to missing
+utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                   'setmissval,-999', 'bbemis_1.nc', 'bbemis_2.nc')
+
+#Finally set missing values to nearest neighbors to allow useful values also for high-res grids
+utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                   'setmisstonn', 'bbemis_2.nc', 'bbemis_3.nc')
 
 # regrid 1
 utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, 
                    f'settaxis,1111-01-01,0,1mo',
-                   f'-remap,{grid},{weights}', raw_data_ndvi, ndvi_cdo)
+                   f'-remap,{grid},{weights}', 'bbemis_3.nc', emiss_cdo)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -103,17 +119,17 @@ logging.info('')
 logging.info('============= reshape CDO output ===============')
 logging.info('')
 
-ndvi_nc = nc.Dataset(ndvi_cdo, "r")
+emiss_nc = nc.Dataset(emiss_cdo, "r")
 
 if (igrid_type == 1):
 
     # infer coordinates/dimensions form CDO file
-    ie_tot = len(ndvi_nc.dimensions['cell'])
+    ie_tot = len(emiss_nc.dimensions['cell'])
     je_tot = 1
     ke_tot = 1
-    lon    = np.rad2deg(np.reshape(ndvi_nc.variables['clon'][:], 
+    lon    = np.rad2deg(np.reshape(emiss_nc.variables['clon'][:], 
                                    (ke_tot, je_tot, ie_tot)))
-    lat    = np.rad2deg(np.reshape(ndvi_nc.variables['clat'][:],
+    lat    = np.rad2deg(np.reshape(emiss_nc.variables['clat'][:],
                                    (ke_tot, je_tot, ie_tot)))
 
 else:
@@ -124,50 +140,50 @@ else:
     je_tot   = tg.je_tot
     ke_tot   = tg.ke_tot
 
-ndvi  = np.reshape(ndvi_nc.variables['ndvi'][:,:], 
+emiss  = np.reshape(emiss_nc.variables['bbemis_longwave'][:,:], 
                    (12, ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
-logging.info('============= compute NDVI_MAX and NDVI_MRAT ===')
+logging.info('============= compute EMISS_MAX and EMISS_MRAT ===')
 logging.info('')
 
 # calculate maxval over 12 month
-ndvi_max = np.amax(np.reshape(ndvi_nc.variables['ndvi'][:,:], 
+emiss_max = np.amax(np.reshape(emiss_nc.variables['bbemis_longwave'][:,:], 
                               (12, ke_tot, je_tot, ie_tot)), axis=0)
 
-# calculate ratio of ndvi/ndvi_max per month and set 'missing value' to -1
-ndvi_mrat = np.empty((12, ke_tot, je_tot, ie_tot), dtype=mrat_meta.type)
+# calculate ratio of emiss/emiss_max per month and set 'missing value' to -1
+emiss_mrat = np.empty((12, ke_tot, je_tot, ie_tot), dtype=mrat_meta.type)
 
 for t in np.arange(12):
-    ndvi_mrat[t,:,:,:] = np.divide(ndvi[t,:,:,:], ndvi_max[:,:,:],
-                                   where=ndvi_max[:,:,:] != 0.0)
-    ndvi_mrat[t,:,:,:] = np.where(ndvi_max[:,:,:] <= 0.0, -1.0, 
-                                  ndvi_mrat[t,:,:,:])
+    emiss_mrat[t,:,:,:] = np.divide(emiss[t,:,:,:], emiss_max[:,:,:],
+                                   where=emiss_max[:,:,:] != 0.0)
+    emiss_mrat[t,:,:,:] = np.where(emiss_max[:,:,:] <= 0.0, -1.0, 
+                                  emiss_mrat[t,:,:,:])
 
-# debug -> print these statistics setting level=level logging.DEBUG
+# debug -> print these statistics setting level=logging.DEBUG
 logging.debug('Diagnostics:')
 
-logging.debug('   NDVI max')
+logging.debug('   EMISS max')
 logging.debug('   min: {0:8.5f} mean: {1:8.5f} max: {2:8.5f}'
-              .format(np.min(ndvi_max),
-                      np.mean(ndvi_max),
-                      np.max(ndvi_max)))
+              .format(np.min(emiss_max),
+                      np.mean(emiss_max),
+                      np.max(emiss_max)))
 
-logging.debug('   NDVI')
+logging.debug('   EMISS')
 for t in np.arange(12):
     logging.debug('   min: {0:8.5f} mean: {1:8.5f} max: {2:8.5f}'
-                  .format(np.min(ndvi[t,:,:,:]),
-                          np.mean(ndvi[t,:,:,:]),
-                          np.max(ndvi[t,:,:,:])))
+                  .format(np.min(emiss[t,:,:,:]),
+                          np.mean(emiss[t,:,:,:]),
+                          np.max(emiss[t,:,:,:])))
 
-logging.debug('   NDVI mrat')
+logging.debug('   EMISS mrat')
 for t in np.arange(12):
     logging.debug('   min: {0:8.5f} mean: {1:8.5f} max: {2:8.5f}'
-                  .format(np.min(ndvi_mrat[t,:,:,:]),
-                          np.mean(ndvi_mrat[t,:,:,:]),
-                          np.max(ndvi_mrat[t,:,:,:])))
+                  .format(np.min(emiss_mrat[t,:,:,:]),
+                          np.mean(emiss_mrat[t,:,:,:]),
+                          np.max(emiss_mrat[t,:,:,:])))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -176,7 +192,7 @@ logging.info( '============= write to buffer file =============')
 logging.info( '')
 
 # init buffer file
-buffer_file = buffer.init_netcdf(indvi['ndvi_buffer_file'], je_tot, ie_tot)
+buffer_file = buffer.init_netcdf(iemiss['emiss_buffer_file'], je_tot, ie_tot)
 
 # add 12 months as additional dimension
 buffer_file = buffer.add_dimension_month(buffer_file)
@@ -185,15 +201,15 @@ buffer_file = buffer.add_dimension_month(buffer_file)
 buffer.write_3d_field(buffer_file, lon, lon_meta)
 buffer.write_3d_field(buffer_file, lat, lat_meta)
 
-# write NDVI fields
-buffer.write_3d_field(buffer_file, ndvi_max, max_meta)
-buffer.write_4d_field(buffer_file, ndvi, ndvi_meta)
-buffer.write_4d_field(buffer_file, ndvi_mrat, mrat_meta)
+# write EMISS fields
+buffer.write_3d_field(buffer_file, emiss_max, max_meta)
+buffer.write_4d_field(buffer_file, emiss, emiss_meta)
+buffer.write_4d_field(buffer_file, emiss_mrat, mrat_meta)
 
 buffer.close_netcdf(buffer_file)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info( '')
-logging.info( '============= extpar_ndvi_to_buffer done =======')
+logging.info( '============= extpar_emiss_to_buffer done =======')
 logging.info( '')

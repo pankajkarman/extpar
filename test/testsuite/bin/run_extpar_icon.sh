@@ -71,6 +71,7 @@ export PYTHONPATH=${src_python}
 # python executables
 binary_alb=extpar_alb_to_buffer.py
 binary_ndvi=extpar_ndvi_to_buffer.py
+binary_emiss=extpar_emiss_to_buffer.py
 
 # fortran executables
 binary_tclim=extpar_cru_to_buffer.exe
@@ -80,7 +81,6 @@ binary_aot=extpar_aot_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
 binary_isa=extpar_isa_to_buffer.exe
-binary_emiss=extpar_emiss_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # link raw data files to local workdir
@@ -103,6 +103,9 @@ if [[ $type_of_test == mpim ]]; then
 
     ln -sf ${icon_grid_dir}/ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc .
     ln -sf ${icon_grid_dir}/ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc .
+
+    # jj_tmp: hack to replace missing Fortran namelist to launch emiss_to_buffer.py
+    touch INPUT_EMISS
 
 # dwd
 elif [[ $type_of_test == dwd ]]; then

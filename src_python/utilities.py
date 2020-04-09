@@ -12,6 +12,10 @@ it contains:
 -remove: remove a file from the system
 
 -clean_path: make a clean path from a dir and file
+
+-check_gridtype : check wether itype_grid from namelist is correct
+
+-get_omp_num_threads: get value of environment variable for OpenMP
 '''
 
 
@@ -77,3 +81,31 @@ def clean_path(dir, file):
     f.close()
 
     return clean_path
+
+
+def check_gridtype(grid_type):
+    '''
+    check gridtype for correctnes and return value, 
+    if not exit programme
+    '''
+
+    if (grid_type > 2):
+        logging.error(f'grid_type {grid_type} does not exist. ' 
+                      f'Use 1 (Icon) or 2 (Cosmo) instead!')
+        exit(1)
+
+    return grid_type
+
+def get_omp_num_threads():
+    '''
+    get environment variables for OMP,
+    if not set, assume 1 as default
+    '''
+
+    try:
+        omp = os.environ['OMP_NUM_THREADS']
+    except KeyError:
+        omp = 1
+        logging.warning('OMP_NUM_THREADS not set ->'
+                        'use OMP_NUM_THREADS = 1 instead')
+    return omp

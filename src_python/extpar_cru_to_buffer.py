@@ -25,12 +25,7 @@ logging.info('============= start extpar_cru_to_buffer ========')
 logging.info('')
 
 # get number of OpenMP threads for CDO
-try:
-    omp = os.environ['OMP_NUM_THREADS']
-except KeyError:
-    omp = 1
-    logging.warning('OMP_NUM_THREADS not set ->'
-                    'use OMP_NUM_THREADS = 1 instead')
+omp = utils.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_tclim'  # name for grid description file
@@ -67,11 +62,7 @@ if (itype_cru > 2):
                   f'Use 1 (fine) or 2 (coarse) instead!')
     exit(1)
 
-igrid_type = ig.igrid_type
-if (igrid_type > 2):
-    logging.error(f'igrid_type {igrid_type} does not exist. ' 
-                  f'Use 1 (Icon) or 2 (Cosmo) instead!')
-    exit(1)
+igrid_type = utils.check_gridtype(ig['igrid_type'])
 
 if (igrid_type == 1):
     grid = utils.clean_path('', ig.icon_grid)

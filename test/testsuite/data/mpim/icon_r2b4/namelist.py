@@ -31,6 +31,13 @@ input_grid = {
         'je_tot':421
         }
 
+input_emiss = { 
+        'raw_data_emiss_path': '',
+        'raw_data_emiss_filename': 'CAM_bbe_int_2010-2015_lw_fixed.nc',
+        'emiss_buffer_file': 'emiss_buffer.nc',
+        'emiss_output_file': 'emiss_icon.nc'
+        }
+
 input_ndvi = {
         'raw_data_ndvi_path': '',
         'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',
