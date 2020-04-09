@@ -70,9 +70,9 @@ export PYTHONPATH=${src_python}
 
 # python executables
 binary_alb=extpar_alb_to_buffer.py
+binary_ndvi=extpar_ndvi_to_buffer.py
 
 # fortran executables
-binary_ndvi=extpar_ndvi_to_buffer.exe
 binary_tclim=extpar_cru_to_buffer.exe
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
@@ -99,7 +99,6 @@ icon_grid_file=icon_grid*
 if [[ $type_of_test == mpim ]]; then
 
     # python and cdo executables 
-    binary_ndvi=extpar_ndvi_to_buffer.sh
     binary_tclim=extpar_cru_to_buffer.sh
 
     ln -sf ${icon_grid_dir}/ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc .
@@ -161,7 +160,7 @@ if [[ $type_of_test == mpim ]]; then
 
     run_sequential ${binary_alb}
 
-    run_sequential "${binary_ndvi} -r ${raw_data_ndvi} -g ${icon_grid_file} -b ${buffer_ndvi} -p ${dir_during_test}"
+    run_sequential ${binary_ndvi}
     run_sequential "${binary_tclim} -c ${raw_data_tclim_coarse} -f ${raw_data_tclim_fine} -g ${icon_grid_file} -b ${buffer_tclim} -p ${dir_during_test}"
 
 # dwd

@@ -5,7 +5,7 @@
   lu_buffer_file="extpar_landuse_BUFFER.nc"
   glcc_buffer_file="glcc_landuse_BUFFER.nc"
   flake_buffer_file="flake_BUFFER.nc"
-  ndvi_buffer_file="NDVI_BUFFER.nc"
+  ndvi_buffer_file="ndvi_buffer.nc"
   t_clim_buffer_file="crutemp_climF_extpar_BUFFER.nc"
   aot_buffer_file="extpar_aot_BUFFER.nc"
   alb_buffer_file="albedo_buffer.nc"

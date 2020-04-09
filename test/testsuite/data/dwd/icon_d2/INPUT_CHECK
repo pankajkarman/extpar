@@ -6,7 +6,7 @@
   lu_buffer_file = 'extpar_landuse_BUFFER.nc'
   glcc_buffer_file = 'glcc_landuse_BUFFER.nc'
   flake_buffer_file = 'flake_BUFFER.nc'
-  ndvi_buffer_file = 'ndvi_BUFFER.nc'
+  ndvi_buffer_file = 'ndvi_buffer.nc'
   sst_icon_file = 'ei_an1986-2015_domain2_DOM01_BUFFER.nc'
   t2m_icon_file = 'ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc'
   t_clim_buffer_file = 'crutemp_climF_extpar_BUFFER.nc'

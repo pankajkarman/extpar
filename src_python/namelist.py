@@ -19,7 +19,7 @@ input_alb = {
         }
 
 input_grid = {
-        'igrid_type': 1,
+        'igrid_type': 2,
         'icon_grid': '',
         'pollon':-170.0,
         'pollat':43.0,

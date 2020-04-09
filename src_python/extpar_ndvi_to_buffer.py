@@ -10,6 +10,7 @@ import utilities as utils
 import grid_def
 import buffer
 import metadata
+import fortran_namelist
 from namelist import input_ndvi as indvi
 from namelist import input_grid as ig
 
@@ -67,7 +68,6 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-import IPython; IPython.embed()
 raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'], indvi['raw_data_ndvi_filename'])
 
 #--------------------------------------------------------------------------

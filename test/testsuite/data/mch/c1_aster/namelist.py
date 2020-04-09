@@ -31,3 +31,10 @@ input_grid = {
         'je_tot':100
         }
 
+input_ndvi = {
+        'raw_data_ndvi_path': '',
+        'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',
+        'ndvi_buffer_file': 'ndvi_buffer.nc',
+        'ndvi_output_file': 'ndvi_extpar_cosmo.nc'
+        }
+

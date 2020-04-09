@@ -5,7 +5,7 @@
   lu_buffer_file = 'extpar_landuse_BUFFER.nc'
   glcc_buffer_file = 'glcc_landuse_BUFFER.nc'
   flake_buffer_file = 'flake_BUFFER.nc'
-  ndvi_buffer_file = 'ndvi_BUFFER.nc'
+  ndvi_buffer_file = 'ndvi_buffer.nc'
   sst_icon_file = 'ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc'
   tile_mode = 1
   ltcl_merge = .FALSE.
