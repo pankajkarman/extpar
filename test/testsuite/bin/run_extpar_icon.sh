@@ -5,7 +5,7 @@
 
 ulimit -s unlimited
 ulimit -c 0
-
+set -x 
 # get hostname
 hostname="`echo $HOSTNAME`"
 logfile="extpar_runscript.log"
@@ -61,7 +61,7 @@ fi
 # directories
 currentdir=$(pwd)
 rootdir=${currentdir}/../../../../..
-src_python=../../../../../src_python
+src_python=${rootdir}/src_python
 
 unset PYTHONPATH
 export PYTHONPATH=${src_python}
@@ -139,6 +139,7 @@ else
 fi
 
 ln -sf ${icon_grid_dir}/${icon_grid_file} .
+cp ${icon_grid_dir}/*.py .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------

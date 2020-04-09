@@ -19,7 +19,7 @@ input_alb = {
         }
 
 input_grid = {
-        'igrid_type': 2,
+        'igrid_type': 1,
         'icon_grid': '',
         'pollon':-170.0,
         'pollat':43.0,
@@ -31,3 +31,9 @@ input_grid = {
         'je_tot':421
         }
 
+input_ndvi = {
+        'raw_data_ndvi_path': '',
+        'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',
+        'ndvi_buffer_file': 'ndvi_buffer.nc',
+        'ndvi_output_file': 'ndvi_extpar_cosmo.nc'
+        }

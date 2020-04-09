@@ -20,7 +20,7 @@ input_alb = {
 
 input_grid = {
         'igrid_type': 1,
-        'icon_grid': 'icon_grid_DOM01.nc',
+        'icon_grid': 'GRID_SUBSET.nc',
         'pollon':-170.0,
         'pollat':43.0,
         'startlon_tot':-18.0,

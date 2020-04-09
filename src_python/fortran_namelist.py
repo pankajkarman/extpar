@@ -60,3 +60,12 @@ class InputAlb:
         self.variables.update({'&alb_source_file':{'alb_source',
                                                    'alnid_source',
                                                    'aluvd_source'}})
+        
+class InputNdvi:
+    def __init__(self):
+
+        self.variables = {'&ndvi_raw_data':{'raw_data_ndvi_path',
+                                            'raw_data_ndvi_filename'}}
+
+        self.variables.update({'&ndvi_io_extpar':{'ndvi_buffer_file',
+                                                  'ndvi_output_file'}})

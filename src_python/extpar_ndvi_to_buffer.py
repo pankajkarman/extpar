@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3.6 
 import logging
 import os
 import sys
@@ -6,12 +6,12 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import INPUT_NDVI as indvi
-import INPUT_GRID as ig
 import utilities as utils
 import grid_def
 import buffer
 import metadata
+from namelist import input_ndvi as indvi
+from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_ndvi_to_buffer.log',
@@ -55,19 +55,20 @@ logging.info('============= init variables from namelist =====')
 logging.info('')
 
 
-igrid_type = ig.igrid_type
+igrid_type = ig['igrid_type']
 if (igrid_type > 2):
     logging.error(f'igrid_type {igrid_type} does not exist. ' 
                   f'Use 1 (Icon) or 2 (Cosmo) instead!')
     exit(1)
 
 if (igrid_type == 1):
-    grid = utils.clean_path('', ig.icon_grid)
+    grid = utils.clean_path('', ig['icon_grid'])
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_ndvi  = utils.clean_path(indvi.raw_data_path, indvi.raw_data_ndvi)
+import IPython; IPython.embed()
+raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'], indvi['raw_data_ndvi_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -81,6 +82,15 @@ lon_meta   = metadata.Lon()
 ndvi_meta  = metadata.NDVI()
 max_meta   = metadata.NdviMax()
 mrat_meta  = metadata.NdviMrat()
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info( '')
+logging.info( '============= write FORTRAN namelist ===========')
+logging.info( '')
+
+input_ndvi = fortran_namelist.InputNdvi()
+fortran_namelist.write_fortran_namelist('INPUT_NDVI', indvi, input_ndvi)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -176,7 +186,7 @@ logging.info( '============= write to buffer file =============')
 logging.info( '')
 
 # init buffer file
-buffer_file = buffer.init_netcdf(indvi.buffer_ndvi, je_tot, ie_tot)
+buffer_file = buffer.init_netcdf(indvi['ndvi_buffer_file'], je_tot, ie_tot)
 
 # write lat/lon
 buffer.write_3d_field(buffer_file, lon, lon_meta)

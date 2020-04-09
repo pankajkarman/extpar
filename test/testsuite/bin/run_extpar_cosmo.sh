@@ -2,7 +2,8 @@
       
 # import functions to launch Extpar executables
 . ./runcontrol_functions.sh
-      
+
+set -x      
 ulimit -s unlimited
 ulimit -c unlimited
 
@@ -63,7 +64,8 @@ sed -i 's#@raw_data_flake_filename@#'"$raw_data_flake"'#' INPUT_FLAKE
 
 # directories
 currentdir=$(pwd)
-src_python=../../../../../src_python
+rootdir=${currentdir}/../../../../..
+src_python=${rootdir}/src_python
 
 unset PYTHONPATH
 export PYTHONPATH=${src_python}
@@ -95,7 +97,7 @@ ln -s -f ${data_dir}/*.nc .
 type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
 
-cp ../../../data/$type_of_test/$name_of_test/*.py .
+cp ${rootdir}/test/testsuite/data/$type_of_test/$name_of_test/*.py .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
