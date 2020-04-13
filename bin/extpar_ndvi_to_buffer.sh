@@ -68,7 +68,7 @@ done
 raw_data_dir="${raw_data_path%%/}"
 
 test -f "${raw_data_dir}/${raw_data_ndvi}" || echo "ERROR: ndvi raw data could not be found"
-test -f "${icon_grid_file}"                || echo "ERROR: ICON grid file could not be found" 
+test -f "${icon_grid_file%:*}"             || echo "ERROR: ICON grid file could not be found" 
 
 export OMP_NUM_THREADS=8
 
@@ -82,7 +82,7 @@ cdo -f nc4 -P ${OMP_NUM_THREADS} \
 cdo -f nc4 -P ${OMP_NUM_THREADS} \
     settaxis,1111-01-01,0,1mo -remap,$icon_grid_file,weights.nc ${raw_data_dir}/${raw_data_ndvi} ndvi-ycon.nc
 
-./cdo2ndvi-buffer.py
+cdo2ndvi-buffer.py
 
 mv ndvi-ycon.nc ${output_ndvi}
 mv ndvi-ycon_BUFFER.nc ${buffer_ndvi}

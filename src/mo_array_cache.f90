@@ -17,7 +17,7 @@ module mo_array_cache
   type variable
     integer :: hash
     character(len=64) :: name
-    integer :: sizes(3)
+    integer :: sizes(5)
     type(c_ptr) :: ptr_for_deallocation
     integer :: real_or_integer_type
     integer :: kind_type
@@ -45,6 +45,8 @@ contains
     character(len=*), intent(in) :: variable_name
     real(sp), pointer :: variable_pointer(:,:,:) 
     integer, intent(in) :: variable_size(3)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
 
@@ -54,12 +56,15 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0.0_sp),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
 
+      size_to_save(:) = 0
+      size_to_save(1:3) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
 
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_real_type,               &
            &                                         sp)
@@ -72,6 +77,8 @@ contains
     character(len=*), intent(in) :: variable_name
     real(dp), pointer :: variable_pointer(:,:,:) 
     integer, intent(in) :: variable_size(3)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
 
@@ -83,10 +90,13 @@ contains
 
       number_of_cached_variables = number_of_cached_variables + 1
 
+      size_to_save(:) = 0
+      size_to_save(1:3) = variable_size
+      
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_real_type,               &           
            &                                         dp)
@@ -99,6 +109,8 @@ contains
     character(len=*), intent(in) :: variable_name
     integer(i4), pointer :: variable_pointer(:,:,:) 
     integer, intent(in) :: variable_size(3)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
 
@@ -108,12 +120,15 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0_i4),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
 
+      size_to_save(:) = 0
+      size_to_save(1:3) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
 
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_integer_type,            &                      
            &                                         i4)
@@ -126,6 +141,8 @@ contains
     character(len=*), intent(in) :: variable_name
     real(sp), pointer :: variable_pointer(:,:,:,:) 
     integer, intent(in) :: variable_size(4)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
@@ -135,12 +152,15 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0.0_sp),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
       
+      size_to_save(:) = 0
+      size_to_save(1:4) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_real_type,               &           
            &                                         sp)
@@ -153,21 +173,29 @@ contains
     character(len=*), intent(in) :: variable_name
     real(dp), pointer :: variable_pointer(:,:,:,:) 
     integer, intent(in) :: variable_size(4)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
     if (any(variable_size == 0)) then
       allocate(variable_pointer(variable_size(1), variable_size(2), variable_size(3), variable_size(4)))
     else
+      write(0,*) 'LK DEBUG: variable size 4d, dp ', variable_size, int(sum(variable_size)*c_sizeof(0.0_dp),i8)
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0.0_dp),i8))
+      if (.not. c_associated(addr)) write(0,*) 'LK DEBUG: addr not properly allocated 4d, dp ...'
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
+      write(0,*) 'LK DEBUG: dope vector information 4d, dp ', lbound(variable_pointer), ubound(variable_pointer)
+      
+      size_to_save(:) = 0
+      size_to_save(1:4) = variable_size
       
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_real_type,               &           
            &                                         dp)
@@ -180,6 +208,8 @@ contains
     character(len=*), intent(in) :: variable_name
     integer(i4), pointer :: variable_pointer(:,:,:,:) 
     integer, intent(in) :: variable_size(4)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
@@ -189,13 +219,16 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0_i4),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
       
+      size_to_save(:) = 0
+      size_to_save(1:4) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
-           &                                         addr,                       &
+           &                                         size_to_save,               &
+           &                                         addr,                       &           
            &                                         of_integer_type,            &           
            &                                         i4)
     endif
@@ -207,6 +240,8 @@ contains
     character(len=*), intent(in) :: variable_name
     real(sp), pointer :: variable_pointer(:,:,:,:,:) 
     integer, intent(in) :: variable_size(5)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
@@ -220,12 +255,14 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0.0_sp),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
       
+      size_to_save(:) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &
            &                                         addr,                       &
            &                                         of_real_type,               &           
            &                                         sp)
@@ -238,6 +275,8 @@ contains
     character(len=*), intent(in) :: variable_name
     real(dp), pointer :: variable_pointer(:,:,:,:,:) 
     integer, intent(in) :: variable_size(5)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
@@ -251,12 +290,14 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0.0_dp),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
       
+      size_to_save(:) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &           
            &                                         addr,                       &
            &                                         of_real_type,               &           
            &                                         dp)
@@ -269,6 +310,8 @@ contains
     character(len=*), intent(in) :: variable_name
     integer(i4), pointer :: variable_pointer(:,:,:,:,:) 
     integer, intent(in) :: variable_size(5)
+
+    integer :: size_to_save(5)
     
     type(c_ptr) :: addr
     
@@ -282,12 +325,14 @@ contains
       addr = allocate_cache(variable_name, int(sum(variable_size)*c_sizeof(0_i4),i8))
       call c_f_pointer(addr, variable_pointer, shape=variable_size)
       
+      size_to_save(:) = variable_size
+      
       number_of_cached_variables = number_of_cached_variables + 1
       
       cached_variables(number_of_cached_variables) = variable(                   &
            &                                         number_of_cached_variables, &
            &                                         variable_name,              &
-           &                                         variable_size,              &
+           &                                         size_to_save,               &           
            &                                         addr,                       &
            &                                         of_integer_type,            &           
            &                                         i4)
@@ -298,7 +343,7 @@ contains
   subroutine deallocate_cached(variable_name)
     character(len=*), intent(in) :: variable_name
     integer :: i
-    integer(i8) :: v_sizeof
+    integer(i8) :: v_sizeof, n_sizes
 
     v_sizeof = -1
 
@@ -318,7 +363,7 @@ contains
           v_sizeof = c_sizeof(0_i4)
         end select
       end select
-        
+
       if (variable_name == cached_variables(i)%name) then
         if (.not. c_associated(cached_variables(i)%ptr_for_deallocation)) then
           call deallocate_cache(cached_variables(i)%ptr_for_deallocation, &

@@ -16,7 +16,7 @@ ulimit -c 0
 # limit stacksize
 ulimit -s unlimited
 
-set -eu
+set -eux
 #_______________________________________________________________________________
 #
 usage() {
@@ -75,7 +75,7 @@ raw_data_dir="${raw_data_path%%/}"
 
 test -f "${raw_data_dir}/${raw_data_tclim_coarse}" || echo "ERROR: Coarse CRU raw data could not be found"
 test -f "${raw_data_dir}/${raw_data_tclim_fine}"   || echo "ERROR: Fine CRU raw data could not be found"
-test -f "${icon_grid_file}"                         || echo "ERROR: ICON grid file could not be found" 
+test -f "${icon_grid_file%:*}"                     || echo "ERROR: ICON grid file could not be found" 
 
 export OMP_NUM_THREADS=8
 
@@ -137,7 +137,7 @@ cdo expr,'T_CL = ((FR_LAND != 0.0)) ? T_CL+0.0065*(HSURF-HH_TOPO) : T_CL; HSURF;
     -merge crut_fine-icon_grid.nc icon_topo-icon_grid.nc \
     t_cl-dis.nc
 
-./cdo2t_cl-buffer.py
+cdo2t_cl-buffer.py
 
 mv t_cl-dis_BUFFER.nc ${buffer_tclim}
 mv t_cl-dis.nc ${output_tclim}

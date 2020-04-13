@@ -106,7 +106,7 @@ CONTAINS
       CALL logging%info(message_text)
     ELSE
       WRITE(message_text,*)TRIM(filename)//' ... no such file'
-      CALL logging%error('Missing input file ...',file, line)
+      CALL logging%error(message_text,file, line)
     ENDIF
     
   END SUBROUTINE check_input_file
