@@ -66,6 +66,8 @@ src_python=${rootdir}/src_python
 unset PYTHONPATH
 export PYTHONPATH=${src_python}
 
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
+
 # Names of executables
 
 # python executables

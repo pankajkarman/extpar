@@ -69,6 +69,8 @@ src_python=${rootdir}/src_python
 unset PYTHONPATH
 export PYTHONPATH=${src_python}
 
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
+
 # Names of executables
 
 # python executables
@@ -110,11 +112,19 @@ if [[ $type_of_test == clm ]]; then
     rm S_ORO_*
 fi
 
+# dwd
+if [[ $type_of_test == dwd ]]; then
+
+    # binary_tclim needs output of binary_topo
+    run_sequential ${binary_topo}
+else
+    run_parallel ${binary_topo} 
+fi
+
 run_parallel ${binary_alb}
 run_parallel ${binary_aot}
 run_parallel ${binary_tclim}
 run_parallel ${binary_lu}
-run_parallel ${binary_topo} 
 run_parallel ${binary_ndvi} 
 run_parallel ${binary_soil} 
 run_parallel ${binary_flake}
