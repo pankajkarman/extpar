@@ -3,15 +3,15 @@ import numpy as np
 Module providing the Meta-Data classes for the buffer file,
 it contains:
 
-    -Parent:Coordinates -> Child: Lon, Lat
+    -Parent: Coordinates -> Child: Lon, Lat
 
-    -Parent:AlbMeta -> Child: AL, NI, UV
+    -Parent: AlbMeta     -> Child: AL, NI, UV
 
-    -Parent:NdviMeta-> Child: NDVI, NdviMax, NdviMrat
+    -Parent: NdviMeta    -> Child: NDVI, NdviMax, NdviMrat
 
-    -Parent:EmissMeta-> Child: EmissMean, EmissMax, EmissMrat
+    -Parent: EmissMeta   -> Child: EmissMean, EmissMax, EmissMrat
 
-    -Parent:ClimMeta-> Child: TempClim, HsurfClim
+    -Parent: ClimMeta    -> Child: TempClim, HsurfClim
 
 Meta-Data that is shared amongs all fields of an Extpar class is defined in
 the parent class, for example CoordsMeta 
@@ -115,6 +115,7 @@ class UV(AlbMeta):
                      2: 'je',
                      3: 'ie'}
 
+
 class AlbDry(AlbMeta):
     def __init__(self):
         super().__init__()
@@ -125,6 +126,7 @@ class AlbDry(AlbMeta):
         self.dim = { 0: 'ke',
                      1: 'je',
                      2: 'ie'}
+
 
 class AlbSat(AlbMeta):
     def __init__(self):

@@ -1,10 +1,11 @@
 import logging
 import sys
 
+
 def read_variable_from_namelist(namelist, variable):
     with open(namelist, 'r') as f:
         for line in f:
-            line =line.rstrip()
+            line = line.rstrip()
             if variable in line:
                 split = line.split('=')
                 return split[-1].strip("',")
@@ -29,6 +30,7 @@ def write_fortran_namelist(name, namelist, nl_class):
 
             f.write('/\n')
 
+
 class InputTclim:
     def __init__(self):
 
@@ -38,14 +40,15 @@ class InputTclim:
                                               'it_cl_type'}}
 
         self.variables.update({'&t_clim_io_extpar':{'raw_data_path',
-                                                 'buffer_tclim'}})
+                                                    'buffer_tclim'}})
+
 
 class InputAlb:
     def __init__(self):
 
         self.variables = {'&alb_raw_data':{'raw_data_alb_path',
                                            'raw_data_alb_filename',
-                                           'ialb_typ'}}
+                                           'ialb_type'}}
 
         self.variables.update({'&alnid_raw_data':{'raw_data_alb_path',
                                                   'raw_data_alnid_filename',
@@ -61,7 +64,8 @@ class InputAlb:
         self.variables.update({'&alb_source_file':{'alb_source',
                                                    'alnid_source',
                                                    'aluvd_source'}})
-        
+
+
 class InputNdvi:
     def __init__(self):
 
@@ -70,6 +74,8 @@ class InputNdvi:
 
         self.variables.update({'&ndvi_io_extpar':{'ndvi_buffer_file',
                                                   'ndvi_output_file'}})
+
+
 class InputEmiss:
     def __init__(self):
 

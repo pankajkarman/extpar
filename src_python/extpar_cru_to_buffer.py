@@ -72,9 +72,12 @@ elif(igrid_type == 2):
 
 raw_data_tclim_fine  = utils.clean_path(itcl['raw_data_path'],
                                         itcl['raw_data_tclim_fine'])
-        
+
 if (itype_cru == 2):
-    buffer_topo = fortran_namelist.read_variable_from_namelist('INPUT_ORO', 'orography_output_file')
+    buffer_topo = \
+        fortran_namelist.read_variable_from_namelist('INPUT_ORO',
+                                                     'orography_output_file')
+
     buffer_topo = utils.clean_path('', buffer_topo)
     raw_data_tclim_coarse  = utils.clean_path(itcl['raw_data_path'],
                                               itcl['raw_data_tclim_coarse'])
@@ -115,7 +118,8 @@ if (itype_cru == 2):
                  f'--> {step1_cdo}')
     logging.info('')
 
-    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,'addc,273.15', '-yearmonmean', 
+    utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
+                       'addc,273.15', '-yearmonmean', 
                        f'-remapdis,{raw_data_tclim_fine}',
                        raw_data_tclim_coarse, step1_cdo)
 
@@ -150,7 +154,8 @@ if (itype_cru == 2):
                        step2_cdo, step4_cdo)
 
     logging.info(f'STEP 5: ' 
-                 f'correct T_CL from {step4_cdo} with HH_TOPO from {buffer_topo} '
+                 f'correct T_CL from {step4_cdo} '
+                 f'with HH_TOPO from {buffer_topo} '
                  f'--> {step5_cdo}')
     logging.info('')
 
@@ -219,7 +224,7 @@ if (igrid_type == 1):
                        (ke_tot, je_tot, ie_tot))
 
     hsurf  = np.reshape(tclim_nc.variables['HSURF'][:], 
-                       (ke_tot, je_tot, ie_tot))
+                        (ke_tot, je_tot, ie_tot))
 
 else:
 
@@ -233,7 +238,7 @@ else:
                        (ke_tot, je_tot, ie_tot))
 
     hsurf  = np.reshape(tclim_nc.variables['HSURF'][:,:], 
-                       (ke_tot, je_tot, ie_tot))
+                        (ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -245,12 +250,12 @@ logging.info( '')
 buffer_file = buffer.init_netcdf(itcl['buffer_tclim'], je_tot, ie_tot)
 
 # write lat/lon
-buffer.write_3d_field(buffer_file, lon, lon_meta)
-buffer.write_3d_field(buffer_file, lat, lat_meta)
+buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
+buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
 
 # write CRU fields
-buffer.write_3d_field(buffer_file, hsurf, hsurf_meta)
-buffer.write_3d_field(buffer_file, temp, temp_meta)
+buffer.write_field_to_buffer(buffer_file, hsurf, hsurf_meta)
+buffer.write_field_to_buffer(buffer_file, temp, temp_meta)
 
 buffer.close_netcdf(buffer_file)
 

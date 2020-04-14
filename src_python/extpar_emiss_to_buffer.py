@@ -59,7 +59,8 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_emiss  = utils.clean_path(iemiss['raw_data_emiss_path'], iemiss['raw_data_emiss_filename'])
+raw_data_emiss  = utils.clean_path(iemiss['raw_data_emiss_path'],
+                                   iemiss['raw_data_emiss_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -96,15 +97,18 @@ utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, f'genycon,{grid}',
 
 utils.launch_shell('cp', raw_data_emiss, 'bbemis_0.nc')
 
-# Check of artificial low values (useful range is between approx. 0.6 and 1. for earth surface)
+# Check of artificial low values
+# (useful range is between approx. 0.6 and 1. for earth surface)
 utils.launch_shell('cdo',  '-f', 'nc4', '-P', omp,
-                   '-expr,bbemis_longwave=(bbemis_longwave<0.5)?-999:bbemis_longwave;', 'bbemis_0.nc', 'bbemis_1.nc')
+                   '-expr,bbemis_longwave=(bbemis_longwave<0.5)'
+                   '?-999:bbemis_longwave;',
+                   'bbemis_0.nc', 'bbemis_1.nc')
 
 # Ensure artificial low values are set to missing
 utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                    'setmissval,-999', 'bbemis_1.nc', 'bbemis_2.nc')
 
-#Finally set missing values to nearest neighbors to allow useful values also for high-res grids
+# Set missing values to nearest neighbors -> useful values for high-res grids
 utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                    'setmisstonn', 'bbemis_2.nc', 'bbemis_3.nc')
 
@@ -141,7 +145,7 @@ else:
     ke_tot   = tg.ke_tot
 
 emiss  = np.reshape(emiss_nc.variables['bbemis_longwave'][:,:], 
-                   (12, ke_tot, je_tot, ie_tot))
+                    (12, ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -151,16 +155,16 @@ logging.info('')
 
 # calculate maxval over 12 month
 emiss_max = np.amax(np.reshape(emiss_nc.variables['bbemis_longwave'][:,:], 
-                              (12, ke_tot, je_tot, ie_tot)), axis=0)
+                               (12, ke_tot, je_tot, ie_tot)), axis=0)
 
 # calculate ratio of emiss/emiss_max per month and set 'missing value' to -1
 emiss_mrat = np.empty((12, ke_tot, je_tot, ie_tot), dtype=mrat_meta.type)
 
 for t in np.arange(12):
     emiss_mrat[t,:,:,:] = np.divide(emiss[t,:,:,:], emiss_max[:,:,:],
-                                   where=emiss_max[:,:,:] != 0.0)
+                                    where=emiss_max[:,:,:] != 0.0)
     emiss_mrat[t,:,:,:] = np.where(emiss_max[:,:,:] <= 0.0, -1.0, 
-                                  emiss_mrat[t,:,:,:])
+                                   emiss_mrat[t,:,:,:])
 
 # debug -> print these statistics setting level=logging.DEBUG
 logging.debug('Diagnostics:')
@@ -198,13 +202,13 @@ buffer_file = buffer.init_netcdf(iemiss['emiss_buffer_file'], je_tot, ie_tot)
 buffer_file = buffer.add_dimension_month(buffer_file)
 
 # write lat/lon
-buffer.write_3d_field(buffer_file, lon, lon_meta)
-buffer.write_3d_field(buffer_file, lat, lat_meta)
+buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
+buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
 
 # write EMISS fields
-buffer.write_3d_field(buffer_file, emiss_max, max_meta)
-buffer.write_4d_field(buffer_file, emiss, emiss_meta)
-buffer.write_4d_field(buffer_file, emiss_mrat, mrat_meta)
+buffer.write_field_to_buffer(buffer_file, emiss_max, max_meta)
+buffer.write_field_to_buffer(buffer_file, emiss, emiss_meta)
+buffer.write_field_to_buffer(buffer_file, emiss_mrat, mrat_meta)
 
 buffer.close_netcdf(buffer_file)
 

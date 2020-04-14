@@ -16,6 +16,10 @@ it contains:
 -check_gridtype : check wether itype_grid from namelist is correct
 
 -get_omp_num_threads: get value of environment variable for OpenMP
+
+-check_albtype: check wether ialb_type from namelist is correct
+
+-determine_albedo_varnames: assign correct varnames for different ialb_type
 '''
 
 
@@ -90,8 +94,17 @@ def check_albtype(alb_type):
     '''
 
     if (alb_type > 3):
-        logging.error(f'ialb_typ {alb_type} does not exist.')
+        logging.error(f'ialb_type {alb_type} does not exist.')
         exit(1)
+
+    if (alb_type == 1):
+        logging.info('process albedo data  for VIS, NIR and UV spectra')
+
+    if (alb_type == 2):
+        logging.info('process albedo data  for dry and saturated soil')
+
+    if (alb_type == 3):
+        logging.info('process albedo data  for VIS only')
 
     return alb_type
 
@@ -109,6 +122,7 @@ def check_gridtype(grid_type):
 
     return grid_type
 
+
 def get_omp_num_threads():
     '''
     get environment variables for OMP,
@@ -119,12 +133,16 @@ def get_omp_num_threads():
         omp = os.environ['OMP_NUM_THREADS']
     except KeyError:
         omp = 1
-        logging.warning('OMP_NUM_THREADS not set ->'
+        logging.warning('OMP_NUM_THREADS not set -> '
                         'use OMP_NUM_THREADS = 1 instead')
     return omp
 
+
 def determine_albedo_varnames(ialb_type):
-    
+    '''
+    assign the correct variable names for different ialb_type
+    '''
+
     if (ialb_type == 1):
         var_1 = 'al'
         var_2 = 'aluvd'
@@ -134,10 +152,10 @@ def determine_albedo_varnames(ialb_type):
         var_1 = 'ALB_DRY'
         var_2 = 'ALB_SAT'
         var_3 = ''
+
     elif (ialb_type == 3):
         var_1 = 'al'
         var_2 = ''
         var_3 = ''
 
     return var_1, var_2, var_3
-

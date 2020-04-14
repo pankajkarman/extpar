@@ -6,11 +6,11 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import utilities as utils
 import grid_def
 import buffer
 import metadata
 import fortran_namelist
+import utilities as utils
 from namelist import input_alb as ia
 from namelist import input_grid as ig
 
@@ -54,7 +54,7 @@ logging.info('')
 logging.info('============= init variables from namelist =====')
 logging.info('')
 
-ialb_type = utils.check_albtype(ia['ialb_typ'])
+ialb_type = utils.check_albtype(ia['ialb_type'])
 
 igrid_type = utils.check_gridtype(ig['igrid_type'])
 
@@ -64,16 +64,16 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
+raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'],
+                                    ia['raw_data_alb_filename'])
 
-if (ialb_type != 2):
-    raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_alb_filename'])
+# NIR and UV albedo data
+if (ialb_type == 1):
+    raw_data_alb_2 = utils.clean_path(ia['raw_data_alb_path'],
+                                      ia['raw_data_aluvd_filename'])
 
-    if (ialb_type == 1):
-        raw_data_alb_2 = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_aluvd_filename'])
-        raw_data_alb_3 = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_alnid_filename'])
-
-else:
-    raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'], ia['raw_data_alb_filename'])
+    raw_data_alb_3 = utils.clean_path(ia['raw_data_alb_path'],
+                                      ia['raw_data_alnid_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -92,6 +92,7 @@ else:
     alb_meta_3 = metadata.UV()
     alb_meta_2 = metadata.NI()
 
+# determine varname for postprocessing of CDO output
 var_1, var_2, var_3 = utils.determine_albedo_varnames(ialb_type)
 
 #--------------------------------------------------------------------------
@@ -118,16 +119,18 @@ utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                    f'setrtoc,-1000000,0.02,0.02',
                    f'-remap,{grid},{weights}', raw_data_alb_1, alb_cdo_1)
 
+# regrid NIR and UV albedo data
 if (ialb_type == 1):
+
     # regrid 2
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-                   f'setrtoc,-1000000,0.02,0.02',
-                   f'-remap,{grid},{weights}', raw_data_alb_2, alb_cdo_2)
+                       f'setrtoc,-1000000,0.02,0.02',
+                       f'-remap,{grid},{weights}', raw_data_alb_2, alb_cdo_2)
 
     # regrid 3
     utils.launch_shell('cdo','-f', 'nc4', '-P', omp,
-                   f'setrtoc,-1000000,0.02,0.02',
-                   f'-remap,{grid},{weights}', raw_data_alb_3, alb_cdo_3)
+                       f'setrtoc,-1000000,0.02,0.02',
+                       f'-remap,{grid},{weights}', raw_data_alb_3, alb_cdo_3)
 
 
 #--------------------------------------------------------------------------
@@ -146,8 +149,10 @@ if (igrid_type == 1):
 
     # infer coordinates/dimensions form CDO file
     ie_tot = len(alb_nc.dimensions['cell'])
-    lon   = np.rad2deg(np.reshape(alb_nc_1.variables['clon'][:], (1, 1, cells)))
-    lat   = np.rad2deg(np.reshape(alb_nc_1.variables['clat'][:], (1, 1, cells)))
+    lon   = np.rad2deg(np.reshape(alb_nc_1.variables['clon'][:],
+                       (1, 1, cells)))
+    lat   = np.rad2deg(np.reshape(alb_nc_1.variables['clat'][:],
+                       (1, 1, cells)))
     je_tot = 1
     ke_tot = 1
 
@@ -160,17 +165,24 @@ else:
     je_tot   = tg.je_tot
     ke_tot   = tg.ke_tot
 
-    if (ialb_type != 2):
-        alb_1 = np.reshape(alb_nc_1.variables[var_1][:,:], (12, ke_tot, je_tot, ie_tot))
-        if (ialb_type == 1):
-            alb_2 = np.reshape(alb_nc_2.variables[var_2][:,:,:],
-                               (12,1,tg.je_tot,tg.ie_tot))
-            alb_3 = np.reshape(alb_nc_2.variables[var_3][:,:,:],
-                               (12,1,tg.je_tot,tg.ie_tot))
+if (ialb_type != 2):
 
-    else:
-        alb_1    = np.reshape(alb_nc_1.variables[var_1][:,:], (ke_tot, je_tot, ie_tot))
-        alb_2    = np.reshape(alb_nc_1.variables[var_2][:,:], (ke_tot, je_tot, ie_tot))
+    alb_1 = np.reshape(alb_nc_1.variables[var_1][:,:],
+                       (12, ke_tot, je_tot, ie_tot))
+
+    # NIR and UV data     
+    if (ialb_type == 1):
+        alb_2 = np.reshape(alb_nc_2.variables[var_2][:,:,:],
+                           (12,1,tg.je_tot,tg.ie_tot))
+        alb_3 = np.reshape(alb_nc_3.variables[var_3][:,:,:],
+                           (12,1,tg.je_tot,tg.ie_tot))
+
+else:
+    alb_1    = np.reshape(alb_nc_1.variables[var_1][:,:],
+                          (ke_tot, je_tot, ie_tot))
+
+    alb_2    = np.reshape(alb_nc_1.variables[var_2][:,:],
+                          (ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -180,31 +192,37 @@ logging.info( '')
 
 # init buffer file
 if (igrid_type == 1):
-    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], 1, cells)
+    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, cells)
 elif(igrid_type == 2):
-    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], tg.je_tot, tg.ie_tot)
+    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
 
 # add 12 months as additional dimension
 if (ialb_type != 2):
     buffer_file = buffer.add_dimension_month(buffer_file)
 
 # write lat/lon
-buffer.write_3d_field(buffer_file, lon, lon_meta)
-buffer.write_3d_field(buffer_file, lat, lat_meta)
+buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
+buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
 
 # write albedo fields
-if (ialb_type != 2):
-    buffer.write_4d_field(buffer_file, alb_1, alb_meta_1)
+buffer.write_field_to_buffer(buffer_file, alb_1, alb_meta_1)
+buffer.write_field_to_buffer(buffer_file, alb_2, alb_meta_2)
 
-    if (ialb_type == 1):
-        buffer.write_4d_field(buffer_file, alb_2, alb_meta_2)
-        buffer.write_4d_field(buffer_file, alb_3, alb_meta_3)
-
-else:
-    buffer.write_3d_field(buffer_file, alb_1, alb_meta_1)
-    buffer.write_3d_field(buffer_file, alb_2, alb_meta_2)
+if (ialb_type == 1):
+    buffer.write_field_to_buffer(buffer_file, alb_3, alb_meta_3)
 
 buffer.close_netcdf(buffer_file)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= clean up =========================')
+logging.info('')
+
+utils.remove(weights)
+utils.remove(alb_cdo_1)
+utils.remove(alb_cdo_2)
+utils.remove(alb_cdo_3)
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------

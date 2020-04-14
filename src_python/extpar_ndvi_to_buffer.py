@@ -58,7 +58,8 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'], indvi['raw_data_ndvi_filename'])
+raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'],
+                                  indvi['raw_data_ndvi_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -182,13 +183,13 @@ buffer_file = buffer.init_netcdf(indvi['ndvi_buffer_file'], je_tot, ie_tot)
 buffer_file = buffer.add_dimension_month(buffer_file)
 
 # write lat/lon
-buffer.write_3d_field(buffer_file, lon, lon_meta)
-buffer.write_3d_field(buffer_file, lat, lat_meta)
+buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
+buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
 
 # write NDVI fields
-buffer.write_3d_field(buffer_file, ndvi_max, max_meta)
-buffer.write_4d_field(buffer_file, ndvi, ndvi_meta)
-buffer.write_4d_field(buffer_file, ndvi_mrat, mrat_meta)
+buffer.write_field_to_buffer(buffer_file, ndvi_max, max_meta)
+buffer.write_field_to_buffer(buffer_file, ndvi, ndvi_meta)
+buffer.write_field_to_buffer(buffer_file, ndvi_mrat, mrat_meta)
 
 buffer.close_netcdf(buffer_file)
 
