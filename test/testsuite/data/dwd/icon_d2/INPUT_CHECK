@@ -9,7 +9,7 @@
   ndvi_buffer_file = 'ndvi_buffer.nc'
   sst_icon_file = 'ei_an1986-2015_domain2_DOM01_BUFFER.nc'
   t2m_icon_file = 'ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc'
-  t_clim_buffer_file = 'crutemp_climF_extpar_BUFFER.nc'
+  t_clim_buffer_file = 'cru_buffer.nc'
   aot_buffer_file = 'extpar_aot_BUFFER.nc'
   alb_buffer_file = 'albedo_buffer.nc'
   i_lsm_data = 1
@@ -18,7 +18,7 @@
   lwrite_grib = .FALSE.
   number_special_points = 3
   tile_mode = 1
-  ltcl_merge = .TRUE.
+  ltcl_merge = .false.
   l_use_glcc = .false. 
 /
 

@@ -10,7 +10,7 @@
   tile_mode = 1
   ltcl_merge = .FALSE.
   t2m_icon_file = 'ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc'
-  t_clim_buffer_file = 'crutemp_clim_extpar_BUFFER.nc'
+  t_clim_buffer_file = 'cru_buffer.nc'
   aot_buffer_file = 'extpar_aot_BUFFER.nc'
   alb_buffer_file = 'albedo_buffer.nc'
   land_sea_mask_file = ""

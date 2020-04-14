@@ -6,13 +6,13 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-from INPUT_TCLIM import input_tclim as itcl
-import INPUT_GRID as ig
-import utilities as utils
 import grid_def
 import buffer
 import metadata
 import fortran_namelist
+import utilities as utils
+from namelist import input_tclim as itcl
+from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_cru_to_buffer.log',
@@ -172,7 +172,7 @@ else:
                  f'--> {step1_cdo}')
 
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-                       '-selname,T_CL', '-setrtomiss,-1,10',
+                       '-selname,T_CL', '-setctomiss,0',
                        raw_data_tclim_fine, step1_cdo)
 
     logging.info('STEP 2: ' 
@@ -196,7 +196,8 @@ else:
                  f'--> {step4_cdo}')
 
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-                       f'-remapbil,{grid}',step3_cdo,
+                       f'-remapdis,{grid}','-setmissval,-999',
+                       step3_cdo,
                        step4_cdo)
 
     # missing step 5, swap names instead
@@ -264,6 +265,7 @@ utils.remove(step2_cdo)
 utils.remove(step3_cdo)
 utils.remove(step4_cdo)
 utils.remove(step5_cdo)
+
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info( '')

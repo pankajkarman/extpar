@@ -3,7 +3,6 @@
 # import functions to launch Extpar executables
 . ./runcontrol_functions.sh
 
-set -x      
 ulimit -s unlimited
 ulimit -c unlimited
 
@@ -75,12 +74,12 @@ export PYTHONPATH=${src_python}
 # python executables
 binary_alb=extpar_alb_to_buffer.py
 binary_ndvi=extpar_ndvi_to_buffer.py
+binary_tclim=extpar_cru_to_buffer.py
 
 # fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
-binary_tclim=extpar_cru_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
 binary_ahf=extpar_ahf_to_buffer.exe
@@ -105,26 +104,7 @@ cp ${rootdir}/test/testsuite/data/$type_of_test/$name_of_test/*.py .
 
 echo ">>>> Data will be processed and produced in `pwd` <<<<"
 
-# dwd
-if [[ $type_of_test == dwd ]]; then
-    # run tclim twice
-    run_sequential ${binary_tclim}
-
-    # modify namelist INPUT_TCLIM
-    cat > INPUT_TCLIM << EOF_tclim
-&t_clim_raw_data
-  raw_data_t_clim_path='${data_dir}',
-  raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  it_cl_type = 1
-/  
-
-&t_clim_io_extpar
-  t_clim_buffer_file='crutemp_climF_extpar_BUFFER.nc',
-  t_clim_output_file='crutemp_climF_extpar_BUFFER.nc'
-/  
-EOF_tclim
-
-elif [[ $type_of_test == clm ]]; then
+if [[ $type_of_test == clm ]]; then
 
     # remove S_ORO fields
     rm S_ORO_*
@@ -180,25 +160,6 @@ if [[ $error_count > 0 ]]; then
     echo ""
     echo "*****************************************"
     exit 1 
-
-fi
-
-# dwd
-if [[ $type_of_test == dwd ]]; then
-
-    # modify namelist TCLIM_FINAL for consistency check
-    cat > INPUT_TCLIM_FINAL << EOF_tclim
-&t_clim_raw_data
-  raw_data_t_clim_path='${data_dir}',
-  raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  it_cl_type = 1
-/  
-
-&t_clim_io_extpar
-  t_clim_buffer_file='crutemp_climF_extpar_BUFFER.nc',
-  t_clim_output_file='crutemp_climC_extpar_BUFFER.nc'
-/  
-EOF_tclim
 
 fi
 

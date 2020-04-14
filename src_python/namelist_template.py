@@ -1,9 +1,9 @@
 input_tclim = {
-        'raw_data_path': '',
+        'raw_data_t_clim_path': '',
         'raw_data_tclim_coarse': 'absolute_hadcrut3.nc',
         'raw_data_tclim_fine': 'CRU_T2M_SURF_clim.nc',
-        'buffer_tclim': 'CRU_BUFFER',
-        'it_cl_type': 2
+        't_clim_buffer_file': 'cru_buffer.nc',
+        'it_cl_type': 1
         }
 
 input_alb = {
@@ -24,12 +24,12 @@ input_grid = {
         'icon_grid': 'icon_grid_0013_R02B04_G.nc',
         'pollon':-170.0,
         'pollat':43.0,
-        'startlon_tot':-42.25,
-        'startlat_tot':-36.52,
-        'dlon':0.11,
-        'dlat':0.11,
-        'ie_tot':771,
-        'je_tot':771,
+        'startlon_tot':-18.00,
+        'startlat_tot':-12.9,
+        'dlon':0.06,
+        'dlat':0.06,
+        'ie_tot':601,
+        'je_tot':421,
         }
 
 input_emiss = { 

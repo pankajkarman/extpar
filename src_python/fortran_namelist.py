@@ -62,13 +62,12 @@ def write_fortran_namelist(name, namelist, nl_class):
 class InputTclim:
     def __init__(self):
 
-        self.variables = {'&t_clim_raw_data':{'raw_data_path',
-                                              'raw_data_tclim_coarse',
-                                              'raw_data_tclim_fine',
+        self.variables = {'&t_clim_raw_data':{#'raw_data_path',
+                                              #'raw_data_tclim_coarse',
+                                              #'raw_data_tclim_fine',
                                               'it_cl_type'}}
 
-        self.variables.update({'&t_clim_io_extpar':{'raw_data_path',
-                                                    'buffer_tclim'}})
+        self.variables.update({'&t_clim_io_extpar':{'t_clim_buffer_file'}})
 
 
 class InputAlb:
