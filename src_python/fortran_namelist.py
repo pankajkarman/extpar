@@ -1,15 +1,43 @@
 import logging
 import sys
 
+'''
+Module providing function and classes needed for writing
+Fortran-namelists with the python version of Extpar,
+it contains:
+
+    -read_variable_from_namelist: read a variable from given Fortran namelist
+
+    -write_fortran_namelist: write a Fortran namelist using corr. class
+
+    -classes defining the groups and its variables of a Fortran namelist
+        -InputTclim
+        -InputAlb
+        -InputEmiss
+        -InputNdvi
+'''
 
 def read_variable_from_namelist(namelist, variable):
+    '''
+    read variable from existing Fortran namelist
+
+    namelist is read line by line, the first occurence of variable
+    is taken as the value and returned,
+    only tested with strings and integers
+    '''
+    
     with open(namelist, 'r') as f:
+
+        # read line by line
         for line in f:
             line = line.rstrip()
             if variable in line:
                 split = line.split('=')
+
+                # return last element of split and remove ","
                 return split[-1].strip("',")
 
+    # variable not found in namelist
     logging.error(f'Could not find {variable} in {namelist}')
     sys.exit(1)
 

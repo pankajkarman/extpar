@@ -6,11 +6,14 @@ import numpy as np
 '''
 Module providing functions to write the buffer file,
 it contains:
+
     -init_netcdf: create buffer file and init dimensions for albedo
 
     -open_netcdf: open netcdf, if exception occurs exit extpar
 
     -close_netcdf: close netcdf, if exception occurs exit extpar
+
+    -write_field_to_buffer: interface to call the correct writing-function
 
     -write_3d_field: write 3d field to buffer file
 
@@ -79,6 +82,9 @@ def close_netcdf(buffer):
         sys.exit(1)
 
 def write_field_to_buffer(buffer, field, field_meta):
+    '''
+    determine number of dimensions of field and call resp. writing-function
+    '''
 
     # determine number of dimensions
     dim_nr = len(field_meta.dim)

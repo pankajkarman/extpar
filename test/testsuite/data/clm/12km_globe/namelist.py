@@ -10,8 +10,8 @@ input_alb = {
         'ialb_type': 2,
         'raw_data_alb_path': '',
         'raw_data_alb_filename': 'global_soil_albedo.nc',
-        'raw_data_alnid_filename': 'month_alnid_new.nc',
-        'raw_data_aluvd_filename': 'month_aluvd_new.nc',
+        'raw_data_alnid_filename': '',
+        'raw_data_aluvd_filename': '',
         'alb_buffer_file': 'albedo_buffer.nc',
         'alb_output_file': 'albedo_cosmo.nc',
         'alb_source': 'al',
@@ -33,6 +33,7 @@ input_grid = {
         }
 
 input_ndvi = {
+        'raw_data_ndvi_path': '',
         'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',
         'ndvi_buffer_file': 'ndvi_buffer.nc',
         'ndvi_output_file': 'ndvi_extpar_cosmo.nc'

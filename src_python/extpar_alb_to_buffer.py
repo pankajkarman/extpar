@@ -148,11 +148,11 @@ if (ialb_type == 1):
 if (igrid_type == 1):
 
     # infer coordinates/dimensions form CDO file
-    ie_tot = len(alb_nc.dimensions['cell'])
+    ie_tot = len(alb_nc_1.dimensions['cell'])
     lon   = np.rad2deg(np.reshape(alb_nc_1.variables['clon'][:],
-                       (1, 1, cells)))
+                       (1, 1, ie_tot)))
     lat   = np.rad2deg(np.reshape(alb_nc_1.variables['clat'][:],
-                       (1, 1, cells)))
+                       (1, 1, ie_tot)))
     je_tot = 1
     ke_tot = 1
 
@@ -172,10 +172,10 @@ if (ialb_type != 2):
 
     # NIR and UV data     
     if (ialb_type == 1):
-        alb_2 = np.reshape(alb_nc_2.variables[var_2][:,:,:],
-                           (12,1,tg.je_tot,tg.ie_tot))
-        alb_3 = np.reshape(alb_nc_3.variables[var_3][:,:,:],
-                           (12,1,tg.je_tot,tg.ie_tot))
+        alb_2 = np.reshape(alb_nc_2.variables[var_2][:,:],
+                           (12,1,je_tot,ie_tot))
+        alb_3 = np.reshape(alb_nc_3.variables[var_3][:,:],
+                           (12,1,je_tot,ie_tot))
 
 else:
     alb_1    = np.reshape(alb_nc_1.variables[var_1][:,:],
@@ -192,7 +192,7 @@ logging.info( '')
 
 # init buffer file
 if (igrid_type == 1):
-    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, cells)
+    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
 elif(igrid_type == 2):
     buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
 

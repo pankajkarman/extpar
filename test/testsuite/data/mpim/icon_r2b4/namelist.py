@@ -33,6 +33,7 @@ input_grid = {
         }
 
 input_emiss = { 
+        'iemiss_type': 2,
         'raw_data_emiss_path': '',
         'raw_data_emiss_filename': 'CAM_bbe_int_2010-2015_lw_fixed.nc',
         'emiss_buffer_file': 'emiss_buffer.nc',

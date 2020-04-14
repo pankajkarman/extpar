@@ -220,12 +220,6 @@ if (igrid_type == 1):
     lat    = np.rad2deg(np.reshape(tclim_nc.variables['clat'][:],
                                    (ke_tot, je_tot, ie_tot)))
 
-    temp  = np.reshape(tclim_nc.variables['T_CL'][:], 
-                       (ke_tot, je_tot, ie_tot))
-
-    hsurf  = np.reshape(tclim_nc.variables['HSURF'][:], 
-                        (ke_tot, je_tot, ie_tot))
-
 else:
 
     # infer coordinates/dimensions from tg
@@ -234,11 +228,11 @@ else:
     je_tot   = tg.je_tot
     ke_tot   = tg.ke_tot
 
-    temp  = np.reshape(tclim_nc.variables['T_CL'][:,:], 
-                       (ke_tot, je_tot, ie_tot))
+temp  = np.reshape(tclim_nc.variables['T_CL'][:,:], 
+                   (ke_tot, je_tot, ie_tot))
 
-    hsurf  = np.reshape(tclim_nc.variables['HSURF'][:,:], 
-                        (ke_tot, je_tot, ie_tot))
+hsurf  = np.reshape(tclim_nc.variables['HSURF'][:,:], 
+                    (ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -259,6 +253,17 @@ buffer.write_field_to_buffer(buffer_file, temp, temp_meta)
 
 buffer.close_netcdf(buffer_file)
 
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= clean up =========================')
+logging.info('')
+
+utils.remove(step1_cdo)
+utils.remove(step2_cdo)
+utils.remove(step3_cdo)
+utils.remove(step4_cdo)
+utils.remove(step5_cdo)
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info( '')

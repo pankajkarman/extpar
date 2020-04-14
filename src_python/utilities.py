@@ -109,6 +109,24 @@ def check_albtype(alb_type):
     return alb_type
 
 
+def check_emisstype(emiss_type):
+    '''
+    check emiss_type for correctnes and return value, 
+    if not exit programme
+    '''
+    if (emiss_type < 1 or emiss_type > 2):
+        logging.error(f'iemiss_type {emiss_type} does not exist. '
+                      'Use 1 (full-range) or 2 (longwave) instead!')
+
+    if (emiss_type == 1):
+        logging.info('process full-range emissivity data')
+
+    if (emiss_type == 2):
+        logging.info('process long-wave emissivity data only')
+
+    return emiss_type
+
+
 def check_gridtype(grid_type):
     '''
     check gridtype for correctnes and return value, 
@@ -136,6 +154,20 @@ def get_omp_num_threads():
         logging.warning('OMP_NUM_THREADS not set -> '
                         'use OMP_NUM_THREADS = 1 instead')
     return omp
+
+
+def determine_emiss_varnames(iemiss_type):
+    '''
+    assign the correct variable names for different iemiss_type
+    '''
+
+    if (iemiss_type == 1):
+        var = 'bbemis_full'
+
+    if (iemiss_type == 2):
+        var = 'bbemis_longwave'
+
+    return var
 
 
 def determine_albedo_varnames(ialb_type):
