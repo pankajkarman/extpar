@@ -56,11 +56,7 @@ logging.info('')
 logging.info('============= init variables from namelist =====')
 logging.info('')
 
-itype_cru = itcl['it_cl_type']
-if (itype_cru > 2):
-    logging.error(f'itype_cru {itype_cru} does not exist. ' 
-                  f'Use 1 (fine) or 2 (coarse) instead!')
-    exit(1)
+itype_cru = utils.check_itype_cru(itcl['it_cl_type'])
 
 igrid_type = utils.check_gridtype(ig['igrid_type'])
 
@@ -70,7 +66,7 @@ elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
 
-raw_data_tclim_fine  = utils.clean_path(itcl['raw_data_path'],
+raw_data_tclim_fine  = utils.clean_path(itcl['raw_data_t_clim_path'],
                                         itcl['raw_data_tclim_fine'])
 
 if (itype_cru == 2):
@@ -101,7 +97,7 @@ logging.info( '============= write FORTRAN namelist ===========')
 logging.info( '')
 
 input_tclim = fortran_namelist.InputTclim()
-fortran_namelist.write_fortran_namelist('input_tclim', itcl,input_tclim)
+fortran_namelist.write_fortran_namelist('INPUT_TCLIM', itcl,input_tclim)
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
@@ -242,7 +238,7 @@ logging.info( '============= write to buffer file =============')
 logging.info( '')
 
 # init buffer file
-buffer_file = buffer.init_netcdf(itcl['buffer_tclim'], je_tot, ie_tot)
+buffer_file = buffer.init_netcdf(itcl['t_clim_buffer_file'], je_tot, ie_tot)
 
 # write lat/lon
 buffer.write_field_to_buffer(buffer_file, lon, lon_meta)

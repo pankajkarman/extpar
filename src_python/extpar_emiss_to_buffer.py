@@ -16,8 +16,8 @@ from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_emiss_to_buffer.log',
-                    level=logging.DEBUG,
-                    format='%(levelname)s:%(message)s',
+                    level=logging.INFO,
+                    format='%(message)s',
                     filemode='w')
 
 

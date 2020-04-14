@@ -15,6 +15,8 @@ it contains:
 
 -check_gridtype : check wether itype_grid from namelist is correct
 
+-check_itype_cru : check wether itype_cru from namelist is correct
+
 -get_omp_num_threads: get value of environment variable for OpenMP
 
 -check_albtype: check wether ialb_type from namelist is correct
@@ -140,6 +142,27 @@ def check_gridtype(grid_type):
 
     return grid_type
 
+
+def check_itype_cru(itype_cru):
+    '''
+    check itype_cru for correctness and return value,
+    if not exit programme
+    '''
+
+    if (itype_cru > 2 or itype_cru < 1):
+        logging.error(f'itype_cru {itype_cru} does not exist. ' 
+                      f'Use 1 (fine) or 2 (coarse and fine) instead!')
+
+        exit(1)
+
+    if (itype_cru == 1):
+        logging.info('Process fine resolution for land')
+
+    if (itype_cru == 2):
+        logging.info('Process fine resolution for land, '
+                     'coarse resolution for sea')
+    
+        return itype_cru
 
 def get_omp_num_threads():
     '''
