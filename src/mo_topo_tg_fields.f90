@@ -245,7 +245,9 @@ if (l_use_array_cache) then
 else
    allocate(vertex_param%npixel_vert(nvertex,je,ke), stat=errorcode)
 endif
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the vertex_param%npixel_vert(nvertex,je,ke)',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the vertex_param%npixel_vert(nvertex,je,ke)', &
+         & __FILE__, &
+         & __LINE__)
     vertex_param%npixel_vert = 0
 
     IF (lcompute_sgsl) THEN
@@ -254,7 +256,9 @@ if (l_use_array_cache) then
 else
    allocate(vertex_param%sgsl_vert(nvertex,je,ke), stat=errorcode)
 endif
-      IF(errorcode.NE.0) CALL logging%error('Cant allocate the vertex_param%sgsl_vert(nvertex,je,ke',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the vertex_param%sgsl_vert(nvertex,je,ke', &
+         & __FILE__, &
+         & __LINE__)
       vertex_param%sgsl_vert = 0.0
     ENDIF
 

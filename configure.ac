@@ -29,7 +29,7 @@ AC_SUBST([FC_VENDOR], [$acx_cv_fc_compiler_vendor])
 ACX_COMPILER_FC_VERSION_SIMPLE
 AC_SUBST([FC_VERSION], [$acx_cv_fc_compiler_version])
 
-ACX_FC_LINE_LENGTH([unlimited])
+dnl ACX_FC_LINE_LENGTH([unlimited])
 
 ACX_FC_MODULE_NAMING(
   [AC_SUBST([FCMODEXT], ["$acx_cv_fc_module_naming_ext"])

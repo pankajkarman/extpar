@@ -22,9 +22,11 @@ module mo_array_cache
     type(c_ptr) :: ptr_for_deallocation
     integer :: real_or_integer_type
     integer :: kind_type
+#if 0
   contains
     procedure :: write_variable_cache_formatted
     generic   :: write(formatted) => write_variable_cache_formatted
+#endif
   end type variable
 
   !! type(variable) :: cached_variables(512)
@@ -425,6 +427,7 @@ contains
     
   end subroutine add_to_variable_cache
 
+#if 0  
   subroutine write_variable_cache_formatted(val, i_unit, i_iotype, v_list, i_iostat, i_iomsg)
     class(variable), intent(in)     :: val
     integer, intent(in)             :: i_unit
@@ -443,5 +446,6 @@ contains
     write (i_unit, '(i0)',       iostat=i_iostat) val%kind_type
         
   end subroutine write_variable_cache_formatted
+#endif
   
 end module mo_array_cache
