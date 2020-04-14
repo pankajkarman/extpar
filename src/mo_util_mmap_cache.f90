@@ -35,22 +35,22 @@ module mo_util_mmap_cache
   
 end module mo_util_mmap_cache
 
-#if 0 
-program test_cache
-  use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_loc, &
-       &                                 c_size_t, c_sizeof
-  use mo_util_mmap_cache
-  implicit none
+! #if 0 
+! program test_cache
+!   use, intrinsic :: iso_c_binding, only: c_ptr, c_f_pointer, c_loc, &
+!        &                                 c_size_t, c_sizeof
+!   use mo_util_mmap_cache
+!   implicit none
 
-  type(c_ptr) :: addr
-  real, pointer :: sic(:)
+!   type(c_ptr) :: addr
+!   real, pointer :: sic(:)
 
-  addr = allocate_cache("sic", 3*c_sizeof(0.0))
-  call c_f_pointer(addr, sic, [3])
+!   addr = allocate_cache("sic", 3*c_sizeof(0.0))
+!   call c_f_pointer(addr, sic, [3])
 
-  sic = [ 0.3, 0.0, 0.1 ]
+!   sic = [ 0.3, 0.0, 0.1 ]
 
-  call deallocate_cache(c_loc(sic), 3*c_sizeof(0.0))
+!   call deallocate_cache(c_loc(sic), 3*c_sizeof(0.0))
   
-end program test_cache
-#endif
+! end program test_cache
+! #endif

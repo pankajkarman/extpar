@@ -18,25 +18,31 @@ void *allocate_cache(char *variable, size_t length)
 {
   int fd;
   void *addr;
-  char filename[256];  
-  
+  char filename[FILENAME_MAX+1];  
+
+  size_t pagesize = (size_t) sysconf(_SC_PAGESIZE);
+
+  size_t size_to_provide;
+
+  size_to_provide = ((length / pagesize) + 1 ) * pagesize;
+
   strcpy(filename, variable);
   strcat(filename, ".map");
-  
+
   fd = open(filename, O_RDWR | O_CREAT, 0644);
   if (fd < 0)
     {
       perror("open");
       exit(EXIT_FAILURE);
     }
-  
-  if (ftruncate(fd, length) < 0)
+    
+  if (ftruncate(fd, size_to_provide) < 0)
     {
       perror("ftruncate");
       exit(EXIT_FAILURE);
     }
   
-  addr = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, (off_t) 0);
+  addr = mmap(NULL, size_to_provide, PROT_READ | PROT_WRITE, MAP_SHARED, fd, (off_t) 0);
   if (addr == MAP_FAILED)
     {
       perror("mmap");
@@ -54,7 +60,13 @@ void *allocate_cache(char *variable, size_t length)
 
 void deallocate_cache(void *addr, size_t length)
 {
-  if (munmap(addr, (getpagesize())) < 0)
+  size_t pagesize = (size_t) sysconf(_SC_PAGESIZE);
+
+  size_t size_provided;
+
+  size_provided = ((length / pagesize) + 1 ) * pagesize;
+
+  if (munmap(addr, size_provided) < 0)
     {
       perror("munmap");
       exit(EXIT_FAILURE);
