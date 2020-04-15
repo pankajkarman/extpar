@@ -81,6 +81,7 @@ def close_netcdf(buffer):
         logging.error('Could not close netCDF', exc_info=True)
         sys.exit(1)
 
+
 def write_field_to_buffer(buffer, field, field_meta):
     '''
     determine number of dimensions of field and call resp. writing-function

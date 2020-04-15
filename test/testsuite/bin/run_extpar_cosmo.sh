@@ -144,11 +144,14 @@ wait
 # count non-zero exit status
 error_count=0
 
+if [[ $type_of_test != dwd ]]; then
+    check_exit_status ${binary_topo}  error_count
+fi
+
 check_exit_status ${binary_alb} error_count
 check_exit_status ${binary_aot} error_count
 check_exit_status ${binary_tclim} error_count
 check_exit_status ${binary_lu} error_count
-check_exit_status ${binary_topo}  error_count
 check_exit_status ${binary_ndvi}  error_count
 check_exit_status ${binary_soil}  error_count
 check_exit_status ${binary_flake} error_count

@@ -17,6 +17,7 @@ it contains:
         -InputNdvi
 '''
 
+
 def read_variable_from_namelist(namelist, variable):
     '''
     read variable from existing Fortran namelist
@@ -25,7 +26,7 @@ def read_variable_from_namelist(namelist, variable):
     is taken as the value and returned,
     only tested with strings and integers
     '''
-    
+
     with open(namelist, 'r') as f:
 
         # read line by line
@@ -34,14 +35,21 @@ def read_variable_from_namelist(namelist, variable):
             if variable in line:
                 split = line.split('=')
 
-                # return last element of split and remove ","
-                return split[-1].strip("',")
+                # return last element of split and remove "," and "'"
+                return split[-1].strip().strip("',")
 
     # variable not found in namelist
     logging.error(f'Could not find {variable} in {namelist}')
     sys.exit(1)
 
+
 def write_fortran_namelist(name, namelist, nl_class):
+    '''
+    write Fortran namelist with name for extpar_consistency_check
+
+    the groups of the namelist and its variables are defined in nl_class,
+    the values of the variables are stored in namelist
+    '''
 
     with open(name, 'w') as f:
         for group in nl_class.variables.keys():
@@ -60,17 +68,22 @@ def write_fortran_namelist(name, namelist, nl_class):
 
 
 class InputTclim:
+    '''
+    define structure of former namelist "INPUT_TCLIM"
+    '''
+
     def __init__(self):
 
-        self.variables = {'&t_clim_raw_data':{#'raw_data_path',
-                                              #'raw_data_tclim_coarse',
-                                              #'raw_data_tclim_fine',
-                                              'it_cl_type'}}
+        self.variables = {'&t_clim_raw_data':{'it_cl_type'}}
 
         self.variables.update({'&t_clim_io_extpar':{'t_clim_buffer_file'}})
 
 
 class InputAlb:
+    '''
+    define structure of former namelist "INPUT_ALB"
+    '''
+
     def __init__(self):
 
         self.variables = {'&alb_raw_data':{'raw_data_alb_path',
@@ -94,6 +107,10 @@ class InputAlb:
 
 
 class InputNdvi:
+    ''' 
+    define structure of former namelist "INPUT_NDVI"
+    '''
+
     def __init__(self):
 
         self.variables = {'&ndvi_raw_data':{'raw_data_ndvi_path',
@@ -104,6 +121,10 @@ class InputNdvi:
 
 
 class InputEmiss:
+    '''
+    define structure of former namelist "INPUT_EMISS"
+    '''
+
     def __init__(self):
 
         self.variables = {'&emiss_raw_data':{'raw_data_emiss_path',

@@ -61,7 +61,7 @@ itype_cru = utils.check_itype_cru(itcl['it_cl_type'])
 igrid_type = utils.check_gridtype(ig['igrid_type'])
 
 if (igrid_type == 1):
-    grid = utils.clean_path('', ig.icon_grid)
+    grid = utils.clean_path('', ig['icon_grid'])
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid()
     tg.create_grid_description(grid)
@@ -75,7 +75,7 @@ if (itype_cru == 2):
                                                      'orography_output_file')
 
     buffer_topo = utils.clean_path('', buffer_topo)
-    raw_data_tclim_coarse  = utils.clean_path(itcl['raw_data_path'],
+    raw_data_tclim_coarse  = utils.clean_path(itcl['raw_data_t_clim_path'],
                                               itcl['raw_data_tclim_coarse'])
 
 #--------------------------------------------------------------------------
@@ -107,6 +107,12 @@ logging.info('')
 
 if (itype_cru == 2):
 
+    # determine varnames of surface height from topo_to_buffer
+    if (igrid_type == 1):
+        varname_topo = 'topography_c'
+    else:
+        varname_topo = 'Z0_TOPO'
+
     logging.info('STEP 1: ' 
                  f'convert {raw_data_tclim_coarse} to Kelvin, '
                  f'calculate yearly mean and remap {raw_data_tclim_coarse} '
@@ -135,8 +141,8 @@ if (itype_cru == 2):
     logging.info('')
 
     utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
-                       '-chname,topography_c,HH_TOPO',
-                       '-selname,topography_c', buffer_topo,
+                       f'-chname,{varname_topo},HH_TOPO',
+                       f'-selname,{varname_topo}', buffer_topo,
                        step3_cdo)
 
     logging.info(f'STEP 4: '
@@ -155,7 +161,6 @@ if (itype_cru == 2):
                  f'--> {step5_cdo}')
     logging.info('')
 
-    # topographic correction of temperature
     utils.launch_shell('cdo',
                        'expr, T_CL = ((FR_LAND != 0.0)) ? '
                        'T_CL+0.0065*(HSURF-HH_TOPO) : T_CL; HSURF;',
@@ -217,6 +222,11 @@ if (igrid_type == 1):
     lat    = np.rad2deg(np.reshape(tclim_nc.variables['clat'][:],
                                    (ke_tot, je_tot, ie_tot)))
 
+    temp  = np.reshape(tclim_nc.variables['T_CL'][:], 
+                       (ke_tot, je_tot, ie_tot))
+
+    hsurf  = np.reshape(tclim_nc.variables['HSURF'][:], 
+                        (ke_tot, je_tot, ie_tot))
 else:
 
     # infer coordinates/dimensions from tg
@@ -225,11 +235,11 @@ else:
     je_tot   = tg.je_tot
     ke_tot   = tg.ke_tot
 
-temp  = np.reshape(tclim_nc.variables['T_CL'][:,:], 
-                   (ke_tot, je_tot, ie_tot))
+    temp  = np.reshape(tclim_nc.variables['T_CL'][:,:], 
+                       (ke_tot, je_tot, ie_tot))
 
-hsurf  = np.reshape(tclim_nc.variables['HSURF'][:,:], 
-                    (ke_tot, je_tot, ie_tot))
+    hsurf  = np.reshape(tclim_nc.variables['HSURF'][:,:], 
+                        (ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------

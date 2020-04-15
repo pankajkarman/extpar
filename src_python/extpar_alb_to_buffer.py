@@ -69,11 +69,12 @@ raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'],
 
 # NIR and UV albedo data
 if (ialb_type == 1):
+
     raw_data_alb_2 = utils.clean_path(ia['raw_data_alb_path'],
-                                      ia['raw_data_aluvd_filename'])
+                                      ia['raw_data_alnid_filename'])
 
     raw_data_alb_3 = utils.clean_path(ia['raw_data_alb_path'],
-                                      ia['raw_data_alnid_filename'])
+                                      ia['raw_data_aluvd_filename'])
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -89,8 +90,8 @@ if (ialb_type == 2):
     alb_meta_2 = metadata.AlbDry()
 else:
     alb_meta_1 = metadata.AL()
-    alb_meta_3 = metadata.UV()
     alb_meta_2 = metadata.NI()
+    alb_meta_3 = metadata.UV()
 
 # determine varname for postprocessing of CDO output
 var_1, var_2, var_3 = utils.determine_albedo_varnames(ialb_type)

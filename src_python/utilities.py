@@ -161,8 +161,9 @@ def check_itype_cru(itype_cru):
     if (itype_cru == 2):
         logging.info('Process fine resolution for land, '
                      'coarse resolution for sea')
-    
+
         return itype_cru
+
 
 def get_omp_num_threads():
     '''
@@ -200,8 +201,8 @@ def determine_albedo_varnames(ialb_type):
 
     if (ialb_type == 1):
         var_1 = 'al'
-        var_2 = 'aluvd'
-        var_3 = 'alnid'
+        var_2 = 'alnid'
+        var_3 = 'aluvd'
 
     elif (ialb_type == 2):
         var_1 = 'ALB_DRY'
