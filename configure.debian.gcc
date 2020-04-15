@@ -35,7 +35,7 @@ banner "Configuration for Debian with GCC - GCC 6 or newer is required."
 
 banner "Define system specific environment"
 
-SWROOT="/home/mpim/m214089/icon-preprocessing/local.gcc"
+SWROOT="/work/mh0287/icon-preprocessing/local.gcc"
 
 CC=gcc
 CPPFLAGS=""
