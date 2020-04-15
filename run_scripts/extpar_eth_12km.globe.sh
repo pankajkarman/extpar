@@ -54,16 +54,20 @@ fi
 # define paths and variables independent from host or model
 
 # Names of executables
-binary_alb=extpar_alb_to_buffer.exe
+
+# python executables
+binary_alb=extpar_alb_to_buffer.py
+binary_ndvi=extpar_ndvi_to_buffer.py
+binary_tclim=extpar_cru_to_buffer.py
+
+# fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
-binary_tclim=extpar_cru_to_buffer.exe
-binary_ndvi=extpar_ndvi_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
-binary_sgsl=extpar_sgsl_to_buffer.exe
-
+binary_ahf=extpar_ahf_to_buffer.exe
+binary_isa=extpar_isa_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # Output file format and names; adjust!
@@ -201,6 +205,51 @@ fi
 cd ${sandboxdir}
 
 # create input namelists 
+
+#---
+cat > namelist.py << EOF_namelist_python
+input_grid = {
+        'igrid_type': 2,
+        'icon_grid': '',
+        'pollon':-170.0,
+        'pollat':43.0,
+        'startlon_tot':${startlon_tot},
+        'startlat_tot':${startlat_tot},
+        'dlon':${dlon},
+        'dlat':${dlat},
+        'ie_tot'${ie_tot},
+        'je_tot':${je_tot},
+        }
+
+input_alb = {
+        'ialb_type': 2,
+        'raw_data_alb_path': '',
+        'raw_data_alb_filename': '${raw_data_alb}',
+        'raw_data_alnid_filename': '${raw_data_alnid}',
+        'raw_data_aluvd_filename': '${raw_data_aluvd}',
+        'alb_buffer_file': '${buffer_alb}',
+        'alb_output_file': '${output_alb}',
+        'alb_source': 'al',
+        'alnid_source': 'alnid',
+        'aluvd_source': 'aluvd'
+        }
+
+input_tclim = {
+        'raw_data_t_clim_path': '',
+        'raw_data_tclim_coarse': '',
+        'raw_data_tclim_fine': '${raw_data_tclim_fine}',
+        't_clim_buffer_file': '${buffer_tclim}',
+        't_clim_output_file':'${output_tclim}',
+        'it_cl_type': 1
+        }
+
+input_ndvi = {
+        'raw_data_ndvi_path': '',
+        'raw_data_ndvi_filename': '${raw_data_ndvi}',
+        'ndvi_buffer_file': '${buffer_ndvi}',
+        'ndvi_output_file': '${output_ndvi}'
+        }
+EOF_namelist_python
 
 # set target grid definition 
 cat > INPUT_grid_org << EOF_go

@@ -16,7 +16,7 @@ logfile="extpar_runscript.log"
 # variables to define by user
 
 # Sandbox (make sure you have enough disk place at that location)!
-sandboxdir=/scratch/juckerj/sandbox_c1_test/
+sandboxdir=/scratch/b/b381001/sandbox_c1_test/
 
 # define model for which Extpar should run
 model="c1"
@@ -27,6 +27,18 @@ model="c1"
 
 # directory of runscripts => need to be as in original repository
 scriptdir=`pwd`
+src_python=${scriptdir}/../python/lib
+
+# change dir to src_python to get absolute path
+echo change dir to $src_python to get absolute PYTHONPATH >> ${logfile}
+
+cd $src_python
+unset PYTHONPATH
+export PYTHONPATH=$(pwd)
+echo go back to scriptdir >> ${logfile}
+cd -
+
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 
 # directory of compiled extpar executables
 exedir=$scriptdir/../bin
@@ -35,7 +47,7 @@ exedir=$scriptdir/../bin
 # define host-dependent paths and variables
 
 # CSCS-machines
-if [[ $hostname == kesch* || $hostname == daint* ]]; then
+#if [[ $hostname == kesch* || $hostname == daint*  ]]; then
 
     # NetCDF raw data for external parameter
     data_dir=/store/s83/tsm/extpar/raw_data_nc/
@@ -44,7 +56,7 @@ if [[ $hostname == kesch* || $hostname == daint* ]]; then
     export GRIB_DEFINITION_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/definitions:/users/bettems/lib/grib_api/grib_api-1.13.1/definitions"
     export GRIB_SAMPLES_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/samples"
 
-fi
+#fi
 
 #---------------------------------------------------------------------------------------------------------
 # define raw data globe
@@ -163,15 +175,18 @@ fi
 # define paths and variables independent from host or model
 
 # Names of executables
-binary_alb=extpar_alb_to_buffer.exe
+
+# python executables
+binary_alb=extpar_alb_to_buffer.py
+binary_ndvi=extpar_ndvi_to_buffer.py
+binary_tclim=extpar_cru_to_buffer.py
+
+# fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
-binary_tclim=extpar_cru_to_buffer.exe
-binary_ndvi=extpar_ndvi_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
-binary_sgsl=extpar_sgsl_to_buffer.exe
 binary_ahf=extpar_ahf_to_buffer.exe
 binary_isa=extpar_isa_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
@@ -296,29 +311,50 @@ cat > INPUT_COSMO_GRID << EOF_grid
 /
 EOF_grid
 #---
-cat > INPUT_ALB << EOF_alb
-&alb_raw_data
-  raw_data_alb_path='',
-  raw_data_alb_filename='${raw_data_alb}'
-/
-&alnid_raw_data
-  raw_data_alb_path='',
-  raw_data_alnid_filename='${raw_data_alnid}'
-/
-&aluvd_raw_data
-  raw_data_alb_path='',
-  raw_data_aluvd_filename='${raw_data_aluvd}'
-/
-&alb_io_extpar
-  alb_buffer_file='${buffer_alb}',
-  alb_output_file='${output_alb}'
-/
-&alb_source_file
-  alb_source='al',
-  alnid_source='alnid',
-  aluvd_source='aluvd'
-/
-EOF_alb
+cat > namelist.py << EOF_namelist_python
+input_grid = {
+        'igrid_type': 2,
+        'icon_grid': '',
+        'pollon':-170.0,
+        'pollat':43.0,
+        'startlon_tot':${startlon_tot},
+        'startlat_tot':${startlat_tot},
+        'dlon':${dlon},
+        'dlat':${dlat},
+        'ie_tot'${ie_tot},
+        'je_tot':${je_tot},
+        }
+
+input_alb = {
+        'ialb_type': 2,
+        'raw_data_alb_path': '',
+        'raw_data_alb_filename': '${raw_data_alb}',
+        'raw_data_alnid_filename': '${raw_data_alnid}',
+        'raw_data_aluvd_filename': '${raw_data_aluvd}',
+        'alb_buffer_file': '${buffer_alb}',
+        'alb_output_file': '${output_alb}',
+        'alb_source': 'al',
+        'alnid_source': 'alnid',
+        'aluvd_source': 'aluvd'
+        }
+
+input_tclim = {
+        'raw_data_t_clim_path': '',
+        'raw_data_tclim_coarse': '',
+        'raw_data_tclim_fine': '${raw_data_tclim_fine}',
+        't_clim_buffer_file': '${buffer_tclim}',
+        't_clim_output_file':'${output_tclim}',
+        'it_cl_type': 1
+        }
+
+input_ndvi = {
+        'raw_data_ndvi_path': '',
+        'raw_data_ndvi_filename': '${raw_data_ndvi}',
+        'ndvi_buffer_file': '${buffer_ndvi}',
+        'ndvi_output_file': '${output_ndvi}'
+        }
+EOF_namelist_python
+
 #---
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
@@ -330,19 +366,6 @@ cat > INPUT_AOT << EOF_aot
   aot_output_file='${output_aot}'
 /
 EOF_aot
-#---
-cat > INPUT_TCLIM << EOF_tclim
-&t_clim_raw_data
-  raw_data_t_clim_path='',
-  raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  it_cl_type = 1
-/  
-
-&t_clim_io_extpar
-  t_clim_buffer_file='${buffer_tclim}',
-  t_clim_output_file='${output_tclim}'
-/  
-EOF_tclim
 #---
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
@@ -409,17 +432,7 @@ cat > INPUT_SCALE_SEP << EOF_scale_sep
   scale_sep_files = '${raw_filt_globe_A10}' '${raw_filt_globe_B10}'  '${raw_filt_globe_C10}'  '${raw_filt_globe_D10}'  '${raw_filt_globe_E10}'  '${raw_filt_globe_F10}'  '${raw_filt_globe_G10}'  '${raw_filt_globe_H10}'  '${raw_filt_globe_I10}'  '${raw_filt_globe_J10}'  '${raw_filt_globe_K10}'  '${raw_filt_globe_L10}'  '${raw_filt_globe_M10}'  '${raw_filt_globe_N10}'  '${raw_filt_globe_O10}'  '${raw_filt_globe_P10}'
 /
 EOF_scale_sep
-#---
-cat > INPUT_NDVI << EOF_ndvi
-&ndvi_raw_data
-  raw_data_ndvi_path='',
-  raw_data_ndvi_filename='${raw_data_ndvi}'
-/  
-&ndvi_io_extpar
- ndvi_buffer_file='${buffer_ndvi}',
- ndvi_output_file='${output_ndvi}'
-/
-EOF_ndvi
+
 #---
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data

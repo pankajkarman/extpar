@@ -250,6 +250,51 @@ echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
 # create input namelists 
 
+#---
+cat > namelist.py << EOF_namelist_python
+input_grid = {
+        'igrid_type': 2,
+        'icon_grid': '',
+        'pollon':-170.0,
+        'pollat':43.0,
+        'startlon_tot':${startlon_tot},
+        'startlat_tot':${startlat_tot},
+        'dlon':${dlon},
+        'dlat':${dlat},
+        'ie_tot'${ie_tot},
+        'je_tot':${je_tot},
+        }
+
+input_alb = {
+        'ialb_type': 2,
+        'raw_data_alb_path': '',
+        'raw_data_alb_filename': '${raw_data_alb}',
+        'raw_data_alnid_filename': '${raw_data_alnid}',
+        'raw_data_aluvd_filename': '${raw_data_aluvd}',
+        'alb_buffer_file': '${buffer_alb}',
+        'alb_output_file': '${output_alb}',
+        'alb_source': 'al',
+        'alnid_source': 'alnid',
+        'aluvd_source': 'aluvd'
+        }
+
+input_tclim = {
+        'raw_data_t_clim_path': '',
+        'raw_data_tclim_coarse': '',
+        'raw_data_tclim_fine': '${raw_data_tclim_fine}',
+        't_clim_buffer_file': '${buffer_tclim}',
+        't_clim_output_file':'${output_tclim}',
+        'it_cl_type': 1
+        }
+
+input_ndvi = {
+        'raw_data_ndvi_path': '',
+        'raw_data_ndvi_filename': '${raw_data_ndvi}',
+        'ndvi_buffer_file': '${buffer_ndvi}',
+        'ndvi_output_file': '${output_ndvi}'
+        }
+EOF_namelist_python
+
 # set target grid definition 
 cat > INPUT_grid_org << EOF_go
 &GRID_DEF 
@@ -270,30 +315,7 @@ cat > INPUT_COSMO_GRID << EOF_grid
 /
 EOF_grid
 #---
-cat > INPUT_ALB << EOF_alb
-&alb_raw_data
-  raw_data_alb_path='',
-  raw_data_alb_filename='${raw_data_alb}'
-/
-&alnid_raw_data
-  raw_data_alb_path='',
-  raw_data_alnid_filename='${raw_data_alnid}'
-/
-&aluvd_raw_data
-  raw_data_alb_path='',
-  raw_data_aluvd_filename='${raw_data_aluvd}'
-/
-&alb_io_extpar
-  alb_buffer_file='${buffer_alb}',
-  alb_output_file='${output_alb}'
-/
-&alb_source_file
-  alb_source='al',
-  alnid_source='alnid',
-  aluvd_source='aluvd'
-/
-EOF_alb
-#---
+
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
   raw_data_aot_path='',
@@ -305,19 +327,7 @@ cat > INPUT_AOT << EOF_aot
 /
 EOF_aot
 #---
-cat > INPUT_TCLIM << EOF_tclim
-&t_clim_raw_data
-  raw_data_t_clim_path='',
-  raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  it_cl_type = 1
-/  
 
-&t_clim_io_extpar
-  t_clim_buffer_file='${buffer_tclim}',
-  t_clim_output_file='${output_tclim}'
-/  
-EOF_tclim
-#---
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
    raw_data_lu_path='',
@@ -383,17 +393,6 @@ cat > INPUT_SCALE_SEP << EOF_scale_sep
   scale_sep_files = '${raw_filt_globe_A10}' '${raw_filt_globe_B10}'  '${raw_filt_globe_C10}'  '${raw_filt_globe_D10}'  '${raw_filt_globe_E10}'  '${raw_filt_globe_F10}'  '${raw_filt_globe_G10}'  '${raw_filt_globe_H10}'  '${raw_filt_globe_I10}'  '${raw_filt_globe_J10}'  '${raw_filt_globe_K10}'  '${raw_filt_globe_L10}'  '${raw_filt_globe_M10}'  '${raw_filt_globe_N10}'  '${raw_filt_globe_O10}'  '${raw_filt_globe_P10}'
 /
 EOF_scale_sep
-#---
-cat > INPUT_NDVI << EOF_ndvi
-&ndvi_raw_data
-  raw_data_ndvi_path='',
-  raw_data_ndvi_filename='${raw_data_ndvi}'
-/  
-&ndvi_io_extpar
- ndvi_buffer_file='${buffer_ndvi}',
- ndvi_output_file='${output_ndvi}'
-/
-EOF_ndvi
 #---
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
