@@ -1,1 +1,1 @@
-../src_python/extpar_ndvi_to_buffer.py
+../python/extpar_ndvi_to_buffer.py

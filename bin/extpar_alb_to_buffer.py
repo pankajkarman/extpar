@@ -1,1 +1,1 @@
-../src_python/extpar_alb_to_buffer.py
+../python/extpar_alb_to_buffer.py

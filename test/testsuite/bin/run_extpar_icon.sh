@@ -61,10 +61,15 @@ fi
 # directories
 currentdir=$(pwd)
 rootdir=${currentdir}/../../../../..
-src_python=${rootdir}/src_python
+src_python=${rootdir}/python/lib
 
+# change dir to src_python to get absolute path
+echo change dir to $src_python to get absolute PYTHONPATH
+cd $src_python
 unset PYTHONPATH
-export PYTHONPATH=${src_python}
+export PYTHONPATH=$(pwd)
+echo go back to working dir:
+cd - >> ${logfile}
 
 echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 
