@@ -616,20 +616,20 @@ As the resolution of the raw data set is so coarse, there is no need to go throu
 \subsubsection{Short description of the subprogram \textit{extpar\_ndvi\_to\_buffer}}
 The executable \textit{extpar\_ndvi\_to\_buffer} aggregates NDVI data (Normalized Differential Vegetation Index) to the target grid.\par\medskip\noindent
 \paragraph{Target grid definition} \ \par\medskip\noindent
-The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
+The definition of the target grid is done using the namelist \textit{namelist.py}. \par\medskip\noindent
 \paragraph{Raw NDVI data}\ \par\medskip\noindent
-For the aggregation of the normalized differential vegetation index the namelist is quite simple again. It contains the path and the filename of the raw data set, as well as the names of the buffer and output files for the consistency check.\par\medskip\noindent
-In order to be able to allocate the raw data, its dimensions must first be known. Therefore the number of grid points in x- and y-direction and the number of time in months are read from the netcdf file directly. Having these varibles the raw data fields can be allocated. Additionally, the target fields must be allocated, which is done using the target grid information and the number of months. The number of months is twelve, as a yearly cycle is calculated. Before the aggregation can start the grid of the raw data must be defined. Especially the start latitude and longitude as well as the resolution in both directions is needed. \par\medskip\noindent
+For the aggregation of the normalized differential vegetation index the namelist is quite simple again. It contains the path and the filename of the raw data set, as well as the names of the buffer and output files for the consistency check. Because the  consistency check requires a namelist readable for Fortran, \textit{extpar\_ndvi\_to\_buffer} generates that namelist under the name \textit{INPUT\_NDVI}. \par\medskip\noindent
 \paragraph{Aggregation of the raw data to the target grid}\ \par\medskip\noindent
 \textit{The following paragraphs describe computations on the raw data grid}\par\medskip\noindent
-To aggregate the data three loops are necessary: The first one over the time index, the second over the latitudes, where the data is read from the NetCDF file row-wise from 180 degrees west to 180 degrees east and finally over the longitude, which indicates a point-wise treatment of the raw data. For each raw data grid element a corresponding target grid element is defined. All the raw data pixels that are closer than half a grid point away from the target grid are aggregated to exactly this target grid element. This routine is described in more detail in the subsection \textit{'Aggregation of the raw topography to the target grid'} in section \ref{extpar_topo_to_buffer} and in Fig. \ref{fig:aggregation_figure}. Each time a raw data point is associated with a target grid, the number of raw data points is increased by one and the ndvi field is summed up. \par\medskip\noindent 
+To aggregate the data to the target grid, the first-order conservative remapping operator \textit{remapycon} is used. \par\medskip\noindent 
 \textit{The following paragraphs describe computations on the target grid}\par\medskip\noindent
-If there is at least one raw data element in a target grid element, the summed up ndvi field is normalized by the number of available raw data points. If no raw data point is available, a weighted bilinear interpolation is performed using four neighbor raw data pixels. In addition to the ndvi value, the monthly ratio with respect to the maximum ndvi is computed. \par\medskip\noindent
-Finally the data is saved in a NetCDF buffer and an output file and the allocated data is released again. Note that for very high resolution target grids, problems can occur with the bilinear interpolation.  A solution for this issue has been introduced in EXTPAR version 5.0, see section \ref{cdo_replacement} for more details.  
+After the remapping with CDO, in addition to the ndvi value, the monthly ratio with respect to the maximum ndvi is computed. \par\medskip\noindent
+Finally the data is saved in a NetCDF buffer and an output file.  
 \
 \subsubsection{Used namelist files and data in-/output:}
 \begin{itemize}
- \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_NDVI
+ \item namelist files: namelist.py
+ \item generate namelist: INPUT\_NDVI
  \item data input: NDVI\_1998\_2003.nc
  \item Output: NDVI\_buffer.nc
 \end{itemize}
