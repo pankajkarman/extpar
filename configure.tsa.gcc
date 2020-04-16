@@ -28,7 +28,7 @@ function banner {
 #_______________________________________________________________________________
 #
 
-banner "Configuration for mistral.dkrz.de with NAG Fortran"
+banner "Configuration for tsa.cscs.ch with GCC"
 
 #_______________________________________________________________________________
 #
@@ -39,59 +39,64 @@ extpar_dir=$(cd ${this_script%/*} && pwd)
 
 banner "Define system specific environment"
 
-source $MODULESHOME/init/bash
+source /oprusers/osm/.opr_setup_dir
 
-module purge
+export MODULEPATH=$MODULEPATH:$OPR_SETUP_DIR/modules/modulefiles
 
-module load automake
-module load autoconf               
-module load libtool
+module load PrgEnv-gnu/19.2
+module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
 module load cdo
-module load anaconda3
-module load gcc/6.4.0
-module load nag/6.2
-
-SWROOT="/sw/rhel6-x64"
-
-NETCDFFROOT=$SWROOT/netcdf/netcdf_fortran-4.4.2-static-nag60 
-NETCDFROOT=$SWROOT/netcdf/netcdf_c-4.3.2-gcc48                                       
-HDF5ROOT=$SWROOT/hdf5/hdf5-1.8.14-threadsafe-gcc48                                 
-SZIPROOT=$SWROOT/sys/libaec-0.3.2-gcc48
-ZLIBROOT=/usr
+ZLIB=/oprusers/osm/opr.rh7.6/modules/modulefiles/zlib/.1.2.11-gcccore-8.3.0
 
 CC=gcc
 CPPFLAGS=""
-CFLAGS="-std=gnu99 -Wall -Wno-maybe-uninitialized -g -O3 -march=native"
-FC=nagfor
-FCFLAGS="-colour -fpp -gline -g -C=all -O0 -float-store -nan"
+CFLAGS="-Wall -pedantic -O3 -g ${NETCDF_C_INCLUDE}"
+FC=gfortran
+FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g"
 
-LDFLAGS=""
+LDFLAGS="${NETCDF_C_LD_FLAGS}"
+LIB=""
 
-LIBS=""
+# NetCDF library
+LIB+= 
+INC+="${NETCDF_FORTRAN_INCLUDE} "
+LIB+="${NETCDF_C_LD_FLAGS} "
+INC+="${NETCDF_C_INCLUDE} "
+ 
+# HDF library
+LIB+="${HDF5_LD_FLAGS} "
+# ZLIB library
+LIB+=
+INC+=
 
-NETCDF_FCLIBS="-Bstatic -L${NETCDFFROOT}/lib -lnetcdff -Bdynamic -L${NETCDFROOT}/lib -lnetcdf -L${HDF5ROOT}/lib -lhdf5_hl -lhdf5 -L${SZIPROOT}/lib -lsz -laec -L${ZLIBROOT}/lib -lz"
+# LIBDL
+LIB+=-ldl
+INC+=
 
-EXTRA_CONFIG_ARGS+="--disable-openmp "
-EXTRA_CONFIG_ARGS+="--enable-rpath "
-EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${NETCDFFROOT} "
-EXTRA_CONFIG_ARGS+="--with-netcdf=${NETCDFROOT} "
-EXTRA_CONFIG_ARGS+="--with-szlib=${SZIPROOT} "
-EXTRA_CONFIG_ARGS+="--disable-openmp "
-EXTRA_CONFIG_ARGS+="--with-cdi=bundled"
+
+NETCDF_FCFLAGS="${NETCDF_FORTRAN_INCLUDE} ${NETCDF_C_INCLUDE}"
+NETCDF_FCLIBS="${NETCDF_FORTRAN_LD_FLAGS} ${NETCDF_C_LD_FLAGS} ${HDF5_LD_FLAGS} -L${ZLIB}/lib -lz -ldl"
+#-L${EBROOTRZLIB}/lib -lz -ldl"
+
+EXTRA_CONFIG_ARGS="--enable-rpaths "
+EXTRA_CONFIG_ARGS+="--enable-openmp "
+EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=yes "
+EXTRA_CONFIG_ARGS+="--with-netcdf=yes "
+EXTRA_CONFIG_ARGS+="--with-cdi=bundled "
 
 #_______________________________________________________________________________
 #
 
 gcc_version=$(gcc --version | awk 'NR==1{print $3}')
-nagfor_version=$(nagfor -V 2>&1 | awk 'NR==1')
+gfortran_version=$(gfortran --version | awk 'NR==1{print $4}')
 
-blueln "Software tree installation ${SWROOT}"
+blueln "Software tree installation "
 echo
 blueln "C compiler            : ${gcc_version}"
 blueln "C compiler flags      : ${CFLAGS}"
 blueln "C preprocessor flags  : ${CPPFLAGS}"
 echo
-blueln "Fortran compiler      : ${nagfor_version}"
+blueln "Fortran compiler      : ${gfortran_version}"
 blueln "Fortran compiler flags: ${FCFLAGS}"
 echo
 blueln "Configure flags:"
@@ -112,8 +117,9 @@ CPPFLAGS="${CPPFLAGS}" \
 FC="${FC}" \
 FCFLAGS="${FCFLAGS}" \
 LDFLAGS="${LDFLAGS}" \
+LIBS="${LIB}" \
+NETCDF_FCFLAGS="${NETCDF_FCFLAGS}" \
 NETCDF_FCLIBS="${NETCDF_FCLIBS}" \
-LIBS="${LIBS}" \
 ${EXTRA_CONFIG_ARGS} \
 "$@"
 

@@ -28,7 +28,7 @@ function banner {
 #_______________________________________________________________________________
 #
 
-banner "Configuration for mistral.dkrz.de with NAG Fortran"
+banner "Configuration for mistral.dkrz.de with Intel"
 
 #_______________________________________________________________________________
 #
@@ -46,52 +46,43 @@ module purge
 module load automake
 module load autoconf               
 module load libtool
+module load git
 module load cdo
 module load anaconda3
-module load gcc/6.4.0
-module load nag/6.2
+module load intel/18.0.4
 
 SWROOT="/sw/rhel6-x64"
 
-NETCDFFROOT=$SWROOT/netcdf/netcdf_fortran-4.4.2-static-nag60 
-NETCDFROOT=$SWROOT/netcdf/netcdf_c-4.3.2-gcc48                                       
-HDF5ROOT=$SWROOT/hdf5/hdf5-1.8.14-threadsafe-gcc48                                 
-SZIPROOT=$SWROOT/sys/libaec-0.3.2-gcc48
-ZLIBROOT=/usr
-
-CC=gcc
+CC=icc
 CPPFLAGS=""
-CFLAGS="-std=gnu99 -Wall -Wno-maybe-uninitialized -g -O3 -march=native"
-FC=nagfor
-FCFLAGS="-colour -fpp -gline -g -C=all -O0 -float-store -nan"
+CFLAGS="-O2 -g"
+FC=ifort
+FCFLAGS="-fpp -O2 -march=native -g -fpe0 -fp-speculation safe -traceback -sox"
 
 LDFLAGS=""
 
 LIBS=""
 
-NETCDF_FCLIBS="-Bstatic -L${NETCDFFROOT}/lib -lnetcdff -Bdynamic -L${NETCDFROOT}/lib -lnetcdf -L${HDF5ROOT}/lib -lhdf5_hl -lhdf5 -L${SZIPROOT}/lib -lsz -laec -L${ZLIBROOT}/lib -lz"
-
-EXTRA_CONFIG_ARGS+="--disable-openmp "
-EXTRA_CONFIG_ARGS+="--enable-rpath "
-EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${NETCDFFROOT} "
-EXTRA_CONFIG_ARGS+="--with-netcdf=${NETCDFROOT} "
-EXTRA_CONFIG_ARGS+="--with-szlib=${SZIPROOT} "
-EXTRA_CONFIG_ARGS+="--disable-openmp "
+EXTRA_CONFIG_ARGS="--enable-rpaths "
+EXTRA_CONFIG_ARGS+="--enable-openmp "
+EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${SWROOT}/netcdf/netcdf_fortran-4.4.3-intel14 "
+#EXTRA_CONFIG_ARGS+="--with-netcdf=${SWROOT}/netcdf/netcdf_c-4.4.0-gcc48 "
+#EXTRA_CONFIG_ARGS+="--with-szlib=${SWROOT}/sys/libaec-1.0.2-gcc64 "
 EXTRA_CONFIG_ARGS+="--with-cdi=bundled"
 
 #_______________________________________________________________________________
 #
 
-gcc_version=$(gcc --version | awk 'NR==1{print $3}')
-nagfor_version=$(nagfor -V 2>&1 | awk 'NR==1')
+icc_version=$(icc --version 2>&1 | awk 'NR==1')                                                                
+ifort_version=$(ifort --version 2>&1 | awk 'NR==1')     
 
 blueln "Software tree installation ${SWROOT}"
 echo
-blueln "C compiler            : ${gcc_version}"
+blueln "C compiler            : ${icc_version}"
 blueln "C compiler flags      : ${CFLAGS}"
 blueln "C preprocessor flags  : ${CPPFLAGS}"
 echo
-blueln "Fortran compiler      : ${nagfor_version}"
+blueln "Fortran compiler      : ${ifort_version}"
 blueln "Fortran compiler flags: ${FCFLAGS}"
 echo
 blueln "Configure flags:"
@@ -112,7 +103,6 @@ CPPFLAGS="${CPPFLAGS}" \
 FC="${FC}" \
 FCFLAGS="${FCFLAGS}" \
 LDFLAGS="${LDFLAGS}" \
-NETCDF_FCLIBS="${NETCDF_FCLIBS}" \
 LIBS="${LIBS}" \
 ${EXTRA_CONFIG_ARGS} \
 "$@"
