@@ -32,16 +32,20 @@ banner "Configuration for Debian with GCC - GCC 6 or newer is required."
 
 #_______________________________________________________________________________
 #
+this_script=${0}
+extpar_dir=$(cd ${this_script%/*} && pwd)
+#_______________________________________________________________________________
+#
 
 banner "Define system specific environment"
 
-SWROOT="/home/mpim/m214089/icon-preprocessing/local.gcc"
+SWROOT="/work/mh0287/icon-preprocessing/local.gcc"
 
 CC=gcc
 CPPFLAGS=""
 CFLAGS="-Wall -pedantic -O3 -g"
 FC=gfortran
-FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g"
+FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g -ffree-line-length-256"
 
 LDFLAGS=""
 
@@ -80,7 +84,7 @@ done
 
 banner "Configure ..."
 
-"./configure" \
+"${extpar_dir}/configure" \
 CC="${CC}" \
 CFLAGS="${CFLAGS}" \
 CPPFLAGS="${CPPFLAGS}" \
