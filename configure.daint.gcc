@@ -28,7 +28,7 @@ function banner {
 #_______________________________________________________________________________
 #
 
-banner "Configuration for mistral.dkrz.de with GCC - GCC 6 or newer is required."
+banner "Configuration for daint.cscs.ch with GCC - GCC 6 or newer is required."
 
 #_______________________________________________________________________________
 #
