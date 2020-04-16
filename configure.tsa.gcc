@@ -1,4 +1,3 @@
-
 #! /bin/bash
 #
 set -eu
@@ -47,6 +46,7 @@ export MODULEPATH=$MODULEPATH:$OPR_SETUP_DIR/modules/modulefiles
 module load PrgEnv-gnu/19.2
 module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
 module load cdo
+ZLIB=/oprusers/osm/opr.rh7.6/modules/modulefiles/zlib/.1.2.11-gcccore-8.3.0
 
 CC=gcc
 CPPFLAGS=""
@@ -55,27 +55,28 @@ FC=gfortran
 FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g"
 
 LDFLAGS="${NETCDF_C_LD_FLAGS}"
-LIBS=""
+LIB=""
 
 # NetCDF library
-LIB     += 
-INC     += ${NETCDF_FORTRAN_INCLUDE}
-LIB     += ${NETCDF_C_LD_FLAGS}
-INC     += ${NETCDF_C_INCLUDE}
+LIB+= 
+INC+="${NETCDF_FORTRAN_INCLUDE} "
+LIB+="${NETCDF_C_LD_FLAGS} "
+INC+="${NETCDF_C_INCLUDE} "
  
 # HDF library
-LIB     += ${HDF5_LD_FLAGS}
+LIB+="${HDF5_LD_FLAGS} "
 # ZLIB library
-LIB     +=
-INC     +=
+LIB+=
+INC+=
 
 # LIBDL
-LIB += -ldl
-INC +=
+LIB+=-ldl
+INC+=
 
 
 NETCDF_FCFLAGS="${NETCDF_FORTRAN_INCLUDE} ${NETCDF_C_INCLUDE}"
-NETCDF_FCLIBS="${NETCDF_FORTRAN_LD_FLAGS} ${NETCDF_C_LD_FLAGS} ${HDF5_LD_FLAGS} -L${EBROOTRZLIB}/lib -lz -ldl"
+NETCDF_FCLIBS="${NETCDF_FORTRAN_LD_FLAGS} ${NETCDF_C_LD_FLAGS} ${HDF5_LD_FLAGS} -L${ZLIB}/lib -lz -ldl"
+#-L${EBROOTRZLIB}/lib -lz -ldl"
 
 EXTRA_CONFIG_ARGS="--enable-rpaths "
 EXTRA_CONFIG_ARGS+="--enable-openmp "
@@ -89,7 +90,7 @@ EXTRA_CONFIG_ARGS+="--with-cdi=bundled "
 gcc_version=$(gcc --version | awk 'NR==1{print $3}')
 gfortran_version=$(gfortran --version | awk 'NR==1{print $4}')
 
-blueln "Software tree installation ${SWROOT}"
+blueln "Software tree installation "
 echo
 blueln "C compiler            : ${gcc_version}"
 blueln "C compiler flags      : ${CFLAGS}"
@@ -116,9 +117,9 @@ CPPFLAGS="${CPPFLAGS}" \
 FC="${FC}" \
 FCFLAGS="${FCFLAGS}" \
 LDFLAGS="${LDFLAGS}" \
-LIBS="${LIBS}" \
-NETCDF_FCFLAGS=${NETCDF_FCFLAGS}" \
-NETCDF_FCLIBS=${NETCDF_FCLIBS}" \
+LIBS="${LIB}" \
+NETCDF_FCFLAGS="${NETCDF_FCFLAGS}" \
+NETCDF_FCLIBS="${NETCDF_FCLIBS}" \
 ${EXTRA_CONFIG_ARGS} \
 "$@"
 
