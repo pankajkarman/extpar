@@ -78,7 +78,8 @@ else
     INFO_RevisionHash="(missing)"
     INFO_CodeIsModified="unknown"
 fi
-cd -
+
+cd - > /dev/null 2>&1
 
 #_____________________________________________________________________________________________
 #

@@ -65,8 +65,8 @@ AC_SUBST([BUNDLED_LIBFILES], [''])
 dnl Optionally enable silent rules
 AC_ARG_ENABLE([silent-rules],
   [AC_HELP_STRING([--enable-silent-rules],
-     [less verbose build output (undo: "make V=1") @<:@default=yes@:>@])], [],
-  [enable_silent_rules=yes])
+     [less verbose build output (undo: "make V=1") @<:@default=no@:>@])], [],
+  [enable_silent_rules=no])
 
 AS_VAR_IF([enable_silent_rules], [yes],
   [AC_SUBST([DEFAULT_VERBOSITY], [0])],

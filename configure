@@ -1305,7 +1305,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-silent-rules   less verbose build output (undo: "make V=1")
-                          [default=yes]
+                          [default=no]
   --enable-rpaths         add directories specified with -L flags in LDFLAGS
                           and LIBS to the runtime library search paths (RPATH)
                           [default=yes]
@@ -3798,7 +3798,7 @@ BUNDLED_LIBFILES=''
 if test "${enable_silent_rules+set}" = set; then :
   enableval=$enable_silent_rules;
 else
-  enable_silent_rules=yes
+  enable_silent_rules=no
 fi
 
 
