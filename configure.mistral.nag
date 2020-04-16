@@ -32,6 +32,10 @@ banner "Configuration for mistral.dkrz.de with NAG Fortran"
 
 #_______________________________________________________________________________
 #
+this_script=${0}
+extpar_dir=$(cd ${this_script%/*} && pwd)
+#_______________________________________________________________________________
+#
 
 banner "Define system specific environment"
 
@@ -101,7 +105,7 @@ done
 
 banner "Configure ..."
 
-"./configure" \
+"${extpar_dir}/configure" \
 CC="${CC}" \
 CFLAGS="${CFLAGS}" \
 CPPFLAGS="${CPPFLAGS}" \
