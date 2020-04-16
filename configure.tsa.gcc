@@ -44,44 +44,25 @@ source /oprusers/osm/.opr_setup_dir
 export MODULEPATH=$MODULEPATH:$OPR_SETUP_DIR/modules/modulefiles
 
 module load PrgEnv-gnu/19.2
-module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
+module unload curl
+module load netcdf-fortran
 module load cdo
-ZLIB=/oprusers/osm/opr.rh7.6/modules/modulefiles/zlib/.1.2.11-gcccore-8.3.0
 
 CC=gcc
 CPPFLAGS=""
-CFLAGS="-Wall -pedantic -O3 -g ${NETCDF_C_INCLUDE}"
+CFLAGS="-Wall -pedantic -O3 -g"
 FC=gfortran
 FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g"
 
-LDFLAGS="${NETCDF_C_LD_FLAGS}"
+LDFLAGS=""
 LIB=""
-
-# NetCDF library
-LIB+= 
-INC+="${NETCDF_FORTRAN_INCLUDE} "
-LIB+="${NETCDF_C_LD_FLAGS} "
-INC+="${NETCDF_C_INCLUDE} "
- 
-# HDF library
-LIB+="${HDF5_LD_FLAGS} "
-# ZLIB library
-LIB+=
-INC+=
-
-# LIBDL
-LIB+=-ldl
-INC+=
-
-
-NETCDF_FCFLAGS="${NETCDF_FORTRAN_INCLUDE} ${NETCDF_C_INCLUDE}"
-NETCDF_FCLIBS="${NETCDF_FORTRAN_LD_FLAGS} ${NETCDF_C_LD_FLAGS} ${HDF5_LD_FLAGS} -L${ZLIB}/lib -lz -ldl"
-#-L${EBROOTRZLIB}/lib -lz -ldl"
 
 EXTRA_CONFIG_ARGS="--enable-rpaths "
 EXTRA_CONFIG_ARGS+="--enable-openmp "
-EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=yes "
-EXTRA_CONFIG_ARGS+="--with-netcdf=yes "
+EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${EBROOTNETCDFMINFORTRAN} "
+EXTRA_CONFIG_ARGS+="--with-netcdf=${EBROOTNETCDF} "
+EXTRA_CONFIG_ARGS+="--with-szip=${EBROOTSZIP} "
+EXTRA_CONFIG_ARGS+="--with-zlib=${EBROOTZLIB} "
 EXTRA_CONFIG_ARGS+="--with-cdi=bundled "
 
 #_______________________________________________________________________________
@@ -118,8 +99,6 @@ FC="${FC}" \
 FCFLAGS="${FCFLAGS}" \
 LDFLAGS="${LDFLAGS}" \
 LIBS="${LIB}" \
-NETCDF_FCFLAGS="${NETCDF_FCFLAGS}" \
-NETCDF_FCLIBS="${NETCDF_FCLIBS}" \
 ${EXTRA_CONFIG_ARGS} \
 "$@"
 
