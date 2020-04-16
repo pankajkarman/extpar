@@ -43,6 +43,8 @@ If the tests fail, then the developer should fix the issues and resubmit the tes
 Once all of the tests are passing, then they should notify the source code administrator that the pull
 request is ready for review and merging into the develop branch.  
 
+## Fortran Code
+
 ### Logging
 In case you want to add some additional prints in Extpar, please use the logger described below.
 
@@ -91,3 +93,46 @@ in, out, and inout.
 7. Do not use tabs, deprecated, or obsolete features.
 
 8. Do not overspecify declarations - especially if standard types are expected.
+
+## Python Code
+
+### Structure
+The organization of the Python programmes is slightly different to the Fortran ones, because Python does not need to be compiled prior to execution.   
+The main python scripts *extpar_alb_to_buffer.py*, *extpar_cru_to_buffer.py*, *extpar_ndvi_to_buffer.py* and *emiss_to_buffer.py* can be treated like the Fortran binaries and copied to the run-directory. Make sure the *namelist.py* is also present at the run-directory.  
+
+All self-written Python-modules are stored in *python/lib* and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set the following:  
+
+unset PYTHONPATH  
+export PYTHONPATH=*absolute_path_to_python/lib*
+
+### Logging
+In case you want to add some additional prints in Extpar, please use the logger described below.
+
+CALL the built-in logger-functions in order to print messages or variables in the specific logfile of each Extpar executable.
+The logger can print variables as well as strings. Use formatted strings (f') in case you want to combine variables and strings.
+The logger has 4 different levels of messages to print:
+
+1. loggin.debug(your_message): Mean/Max/Min of variables needed for development, more detailed information about code execution.
+
+2. logging.info(your_message): info-prints for better orientation during code execution, variables or other stuff.
+
+3. logging.warning(your_message): warnings, like wrong namelist-inputs, unsupported NetCDF versions or problems with some data points.
+
+4. logging.error(your_message): errors that occur during I/O, allocation or wrong namelist parameters, that requires an abort of Extpar. The programm does not stop automatically after the call of logging.error, so a sys.exit(1) follows the logging.error()
+
+Default logging level is info, so only messages from logging.info(), logging.warning() and logging.error() are written to the logfile. Adjust the level of the logger right at the beginning of each Python executable to level=logging.DEBUG to also print logging.debug().
+
+### Coding rules and best practices
+
+The Python code needs to fulfill the [Pep8 coding standard](https://www.python.org/dev/peps/pep-0008/).
+The testsuite provides a test to check these requirements. **Describe how to use it**
+The most important coding rules and best practices are the following:
+
+1. put (short) docstrings at the begining of each function or class,  
+also keep the content list in each module file up to date.
+
+2. Check **ALL** namelist paramters from *namelist.py* for correctness before they are used in the code.
+
+3. Limit the number of characters per line to 79.
+
+4. Always use 4 indentation characters.
