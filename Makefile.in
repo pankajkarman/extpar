@@ -56,7 +56,7 @@ DEPGEN_c= --src-root='@srcdir@' --pp-enable --pp-eval-expr
 DEPGEN_FCFLAGS= @DEPGEN_FCFLAGS@
 
 # Silent rule prefixes:
-V= @DEFAULT_VERBOSITY@
+V=@DEFAULT_VERBOSITY@
 ifeq ($(V), 0)
 silent_CC=      @echo "  CC      " $@;
 silent_DEPGEN=  @echo "  DEPGEN  " $@;
