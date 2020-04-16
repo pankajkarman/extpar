@@ -1,0 +1,119 @@
+#! /bin/bash
+#
+set -eu
+#_______________________________________________________________________________
+#
+# Utility functions
+
+red=$(tput setaf 5)
+green=$(tput setaf 2)
+blue=$(tput setaf 6)
+bgcolor=$(tput sgr0)
+#
+redln() { echo "${red}${1}${bgcolor}"; }
+blueln() { echo "${blue}${1}${bgcolor}"; }
+greenln () { echo "${green}${1}${bgcolor}"; }
+
+function banner {
+    typeset line
+    line=______________________________________________________________________
+    echo
+    blueln $line
+    echo
+    greenln "$*"
+    blueln $line
+    echo
+}
+
+#_______________________________________________________________________________
+#
+
+banner "Configuration for mistral.dkrz.de with GCC - GCC 6 or newer is required."
+
+#_______________________________________________________________________________
+#
+
+banner "Define system specific environment"
+
+#source $MODULESHOME/init/bash
+
+#module purge
+
+source /oprusers/osm/.opr_setup_dir
+export MODULEPATH=$MODULEPATH:$OPR_SETUP_DIR/modules/modulefiles
+module load PrgEnv-gnu/19.2
+module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
+#module load automake
+#module load autoconf               
+#module load libtool
+module load cdo
+
+SWROOT="/oprusers/osm/opr.rh7.6/modules/"
+
+NETCDFFROOT=$SWROOT/netcdf-fortran/4.4.4/gnu-8.3.0-with-system-zlib 
+NETCDFROOT=$SWROOT/netcdf-c/4.4.0/gnu-8.3.0-with-system-zlib                                       
+HDF5ROOT=$SWROOT/hdf5/1.8.21-gnu-8.3.0-with-system-zlib                               
+ZLIBROOT=/apps/arolla/UES/jenkins/RH7.6/generic/easybuild/software/zlib
+
+CC=gcc
+CPPFLAGS=""
+CFLAGS="-Wall -pedantic -O3 -g"
+FC=gfortran
+FCFLAGS="-cpp -Wall -pedantic -Wno-maybe-uninitialized -fbacktrace -O3 -g"
+
+LDFLAGS=""
+LIBS=""
+
+NETCDF_FCLIBS="-Bstatic -L${NETCDFFROOT}/lib -lnetcdff -Bdynamic -L${NETCDFROOT}/lib -lnetcdf -L${HDF5ROOT}/lib -lhdf5_hl -lhdf5 -L${ZLIBROOT}/lib -lz"
+
+EXTRA_CONFIG_ARGS="--enable-rpaths "
+EXTRA_CONFIG_ARGS+="--enable-openmp "
+EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${NETCDFFROOT} "
+EXTRA_CONFIG_ARGS+="--with-netcdf=${NETCDFROOT} "
+EXTRA_CONFIG_ARGS+="--with-szlib=${ZLIBROOT} "
+EXTRA_CONFIG_ARGS+="--with-cdi=bundled "
+
+#_______________________________________________________________________________
+#
+
+gcc_version=$(gcc --version | awk 'NR==1{print $3}')
+gfortran_version=$(gfortran --version | awk 'NR==1{print $4}')
+
+blueln "Software tree installation ${SWROOT}"
+echo
+blueln "C compiler            : ${gcc_version}"
+blueln "C compiler flags      : ${CFLAGS}"
+blueln "C preprocessor flags  : ${CPPFLAGS}"
+echo
+blueln "Fortran compiler      : ${gfortran_version}"
+blueln "Fortran compiler flags: ${FCFLAGS}"
+echo
+blueln "Configure flags:"
+for extra_arg in ${EXTRA_CONFIG_ARGS}
+do
+    blueln "   $extra_arg"
+done
+
+#_______________________________________________________________________________
+#
+
+banner "Configure ..."
+
+"./configure" \
+CC="${CC}" \
+CFLAGS="${CFLAGS}" \
+CPPFLAGS="${CPPFLAGS}" \
+FC="${FC}" \
+FCFLAGS="${FCFLAGS}" \
+LDFLAGS="${LDFLAGS}" \
+LIBS="${LIBS}" \
+${EXTRA_CONFIG_ARGS} \
+"$@"
+
+banner "Run make ..."
+
+#_______________________________________________________________________________
+#
+exit
+#_______________________________________________________________________________
+#
