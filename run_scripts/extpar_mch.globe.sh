@@ -1,5 +1,5 @@
 #!/bin/ksh
-
+set -x
 # import functions to launch Extpar executables
 . ../test/testsuite/bin/runcontrol_functions.sh
 
@@ -16,10 +16,10 @@ logfile="extpar_runscript.log"
 # variables to define by user
 
 # Sandbox (make sure you have enough disk place at that location)!
-sandboxdir=/scratch/b/b381001/sandbox_c1_test/
+sandboxdir=/scratch/juckerj/sandbox_c7_test/
 
 # define model for which Extpar should run
-model="c1"
+model="c7"
 
 ###############################################
 
@@ -47,16 +47,16 @@ exedir=$scriptdir/../bin
 # define host-dependent paths and variables
 
 # CSCS-machines
-#if [[ $hostname == kesch* || $hostname == daint*  ]]; then
+if [[ $hostname == kesch* || $hostname == tsa* || $hostname == arolla* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/store/s83/tsm/extpar/raw_data_nc/
+    data_dir=/scratch/juckerj/extpar-input-data/linked_data
 
     # GRIB API resources; adjust the path setting!
     export GRIB_DEFINITION_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/definitions:/users/bettems/lib/grib_api/grib_api-1.13.1/definitions"
     export GRIB_SAMPLES_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/samples"
 
-#fi
+fi
 
 #---------------------------------------------------------------------------------------------------------
 # define raw data globe
@@ -321,7 +321,7 @@ input_grid = {
         'startlat_tot':${startlat_tot},
         'dlon':${dlon},
         'dlat':${dlat},
-        'ie_tot'${ie_tot},
+        'ie_tot':${ie_tot},
         'je_tot':${je_tot},
         }
 
