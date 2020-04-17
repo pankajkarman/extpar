@@ -20,7 +20,7 @@ if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostna
 
 
     # NetCDF raw data for external parameter
-    data_dir=/store/s83/tsm/extpar/raw_data_nc/
+    data_dir=/scratch/juckerj/extpar-input-data/linked_data/
 
     # NetCDF raw data file names
     raw_data_tclim_fine='CRU_T2M_SURF_clim_fine.nc'
@@ -67,11 +67,11 @@ rootdir=${currentdir}/../../../../..
 src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
-echo change dir to $src_python to get absolute PYTHONPATH
+echo change dir to $src_python to get absolute PYTHONPATH >> ${logfile}
 cd $src_python
 unset PYTHONPATH
 export PYTHONPATH=$(pwd)
-echo go back to working dir:
+echo go back to working dir: >> ${logfile}
 cd - >> ${logfile}
 
 echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}

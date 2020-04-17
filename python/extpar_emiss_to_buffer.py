@@ -6,11 +6,6 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-from version import version_check
-
-# check Python requirements before custom modules are imported
-version_check(__file__)
-
 import utilities as utils
 import grid_def
 import buffer

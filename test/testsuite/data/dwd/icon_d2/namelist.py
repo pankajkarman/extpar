@@ -1,7 +1,7 @@
 input_tclim = {
         'raw_data_t_clim_path': '',
         'raw_data_tclim_coarse': 'absolute_hadcrut3.nc',
-        'raw_data_tclim_fine': 'CRU_T2M_SURF_clim.nc',
+        'raw_data_tclim_fine': 'CRU_T_SOIL_clim.nc',
         't_clim_buffer_file': 'cru_buffer.nc',
         'it_cl_type': 1
         }
@@ -9,9 +9,9 @@ input_tclim = {
 input_alb = {
         'ialb_type': 1,
         'raw_data_alb_path': '',
-        'raw_data_alb_filename': 'month_alb_new.nc',
-        'raw_data_alnid_filename': 'month_alnid_new.nc',
-        'raw_data_aluvd_filename': 'month_aluvd_new.nc',
+        'raw_data_alb_filename': 'alb_new.nc',
+        'raw_data_alnid_filename': 'alnid_new.nc',
+        'raw_data_aluvd_filename': 'aluvd_new.nc',
         'alb_buffer_file': 'albedo_buffer.nc',
         'alb_output_file': 'albedo_cosmo.nc',
         'alb_source': 'al',
