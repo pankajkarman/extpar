@@ -1,3 +1,21 @@
+'''
+This is a template for the namelist -> rename to namelist.py for use
+
+Make sure, the namelist.py is contained in the run-directory of Extpar.
+All Python scripts use the same namelist.py file, but use different
+dictionaries:
+
+    -all extpar_programmes:       input_grid
+
+    -extpar_alb_to_buffer.py:     input_alb
+
+    -extpar_cru_to_buffer.py:     input_tclim
+
+    -extpar_emiss_to_buffer.py:   input_emiss
+
+    -extpar_ndvi_to_buffer.py:    input_ndvi
+'''
+
 input_tclim = {
         'raw_data_t_clim_path': '',
         'raw_data_tclim_coarse': 'absolute_hadcrut3.nc',

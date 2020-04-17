@@ -7,19 +7,19 @@ import subprocess
 Module utilities provides a bunch of helpful functions for Extpar,
 it contains:
 
--launch_shell: wrapper to lauch a programm in the shell
+-launch_shell: wrapper to launch a programm in the shell
 
 -remove: remove a file from the system
 
 -clean_path: make a clean path from a dir and file
 
--check_gridtype : check wether itype_grid from namelist is correct
+-check_gridtype : check whether itype_grid from namelist is correct
 
--check_itype_cru : check wether itype_cru from namelist is correct
+-check_itype_cru : check whether itype_cru from namelist is correct
 
 -get_omp_num_threads: get value of environment variable for OpenMP
 
--check_albtype: check wether ialb_type from namelist is correct
+-check_albtype: check whether ialb_type from namelist is correct
 
 -determine_albedo_varnames: assign correct varnames for different ialb_type
 '''
@@ -113,7 +113,7 @@ def check_albtype(alb_type):
 
 def check_emisstype(emiss_type):
     '''
-    check emiss_type for correctnes and return value, 
+    check emiss_type for correctness and return value, 
     if not exit programme
     '''
     if (emiss_type < 1 or emiss_type > 2):
@@ -131,7 +131,7 @@ def check_emisstype(emiss_type):
 
 def check_gridtype(grid_type):
     '''
-    check gridtype for correctnes and return value, 
+    check gridtype for correctness and return value, 
     if not exit programme
     '''
 

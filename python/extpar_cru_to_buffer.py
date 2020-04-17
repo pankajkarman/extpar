@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6 
+#!/usr/bin/env python3
 import logging
 import os
 import sys
@@ -213,7 +213,7 @@ tclim_nc = nc.Dataset(step5_cdo, "r")
 
 if (igrid_type == 1):
 
-    # infer coordinates/dimensions form CDO file
+    # infer coordinates/dimensions from CDO file
     ie_tot = len(tclim_nc.dimensions['cell'])
     je_tot = 1
     ke_tot = 1

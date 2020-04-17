@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6 
+#!/usr/bin/env python3 
 import logging
 import os
 import sys
@@ -148,7 +148,7 @@ if (ialb_type == 1):
 
 if (igrid_type == 1):
 
-    # infer coordinates/dimensions form CDO file
+    # infer coordinates/dimensions from CDO file
     ie_tot = len(alb_nc_1.dimensions['cell'])
     lon   = np.rad2deg(np.reshape(alb_nc_1.variables['clon'][:],
                        (1, 1, ie_tot)))

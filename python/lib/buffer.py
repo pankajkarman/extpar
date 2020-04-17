@@ -92,24 +92,18 @@ def write_field_to_buffer(buffer, field, field_meta):
 
     # call the correct writing-function
 
-    # unsupported
-    if (dim_nr < 3):
-        logging.error(f' field {field_meta.name} has '
-                      'unsupported number of dimension')
-        sys.exit(1)
-
     # 3d-field
     if (dim_nr == 3):
         write_3d_field(buffer, field, field_meta)
 
     # 4d-field
-    if (dim_nr == 4):
+    elif (dim_nr == 4):
         write_4d_field(buffer, field, field_meta)
 
     # unsupported
-    if (dim_nr > 4):
-        logging.error(f' field {field_meta.name} has '
-                      'unsupported number of dimension')
+    else:
+        logging.error(f'field {field_meta.name} has {dim_nr} dimensions,'
+                      ' currently supported are 3 or 4 dimensions')
         sys.exit(1)
 
 
