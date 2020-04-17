@@ -219,10 +219,10 @@ input_grid = {
         'pollat':43.0,
         'startlon_tot':${startlon_tot},
         'startlat_tot':${startlat_tot},
-        'dlon':${dlon},
-        'dlat':${dlat},
-        'ie_tot':${ie_tot},
-        'je_tot':${je_tot}
+        'dlon':0.11,
+        'dlat':0.11,
+        'ie_tot':771,
+        'je_tot':771
         }
 
 input_alb = {
@@ -275,31 +275,6 @@ cat > INPUT_COSMO_GRID << EOF_grid
 /
 EOF_grid
 #---
-cat > INPUT_ALB << EOF_alb
-&alb_raw_data
-  raw_data_alb_path='',
-  raw_data_alb_filename='${raw_data_alb}',
-  ialb_type=2
-/
-&alnid_raw_data
-  raw_data_alb_path='',
-  raw_data_alnid_filename='${raw_data_alnid}'
-/
-&aluvd_raw_data
-  raw_data_alb_path='',
-  raw_data_aluvd_filename='${raw_data_aluvd}'
-/
-&alb_io_extpar
-  alb_buffer_file='${buffer_alb}',
-  alb_output_file='${output_alb}'
-/
-&alb_source_file
-  alb_source='al',
-  alnid_source='alnid',
-  aluvd_source='aluvd'
-/
-EOF_alb
-#---
 cat > INPUT_AOT << EOF_aot
 &aerosol_raw_data
   raw_data_aot_path='',
@@ -311,19 +286,7 @@ cat > INPUT_AOT << EOF_aot
   aot_output_file='${output_aot}'
 /
 EOF_aot
-#---
-cat > INPUT_TCLIM << EOF_tclim
-&t_clim_raw_data
-  raw_data_t_clim_path='',
-  raw_data_t_clim_filename='${raw_data_tclim_fine}',
-  it_cl_type = 1
-/  
 
-&t_clim_io_extpar
-  t_clim_buffer_file='${buffer_tclim}',
-  t_clim_output_file='${output_tclim}'
-/  
-EOF_tclim
 #---
 cat > INPUT_LU << EOF_lu
 &lu_raw_data
@@ -394,29 +357,7 @@ cat > INPUT_SCALE_SEP << EOF_scale_sep
 /
 EOF_scale_sep
 #---
-cat > INPUT_SGSL << EOF_sgsl
-&sgsl_io_extpar
-  sgsl_buffer_file='${buffer_sgsl}',
-/
-&sgsl_raw_data
- idem_type = 1,
- raw_data_sgsl_path='',
- ntiles_column = 4,
- ntiles_row = 4,
- sgsl_files = '${raw_data_sgsl_A10}' '${raw_data_sgsl_B10}'  '${raw_data_sgsl_C10}'  '${raw_data_sgsl_D10}'  '${raw_data_sgsl_E10}'  '${raw_data_sgsl_F10}'  '${raw_data_sgsl_G10}'  '${raw_data_sgsl_H10}'  '${raw_data_sgsl_I10}'  '${raw_data_sgsl_J10}'  '${raw_data_sgsl_K10}'  '${raw_data_sgsl_L10}'  '${raw_data_sgsl_M10}'  '${raw_data_sgsl_N10}'  '${raw_data_sgsl_O10}'  '${raw_data_sgsl_P10}' 
-/
-EOF_sgsl
-cat > INPUT_NDVI << EOF_ndvi
-&ndvi_raw_data
-  raw_data_ndvi_path='',
-  raw_data_ndvi_filename='${raw_data_ndvi}'
-/  
-&ndvi_io_extpar
- ndvi_buffer_file='${buffer_ndvi}',
- ndvi_output_file='${output_ndvi}'
-/
-EOF_ndvi
-#---
+
 cat > INPUT_SOIL << EOF_soil
 &soil_raw_data
  isoil_data = 1,
