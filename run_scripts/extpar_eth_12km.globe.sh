@@ -27,6 +27,13 @@ sandboxdir=/scratch/juckerj/sandbox_extpar_full_domain_globe_eth/
 
 # directory of runscripts => need to be as in original repository
 scriptdir=`pwd`
+src_python=${scriptdir}/../python/lib
+
+# change dir to src_python to get absolute path
+cd $src_python
+unset PYTHONPATH
+export PYTHONPATH=$(pwd)
+cd - > /dev/null 2>&1
 
 # directory of compiled extpar executables
 exedir=$scriptdir/../bin
@@ -36,14 +43,10 @@ exedir=$scriptdir/../bin
 # define host-dependent paths and variables
 
 # CSCS-machines
-if [[ $hostname == kesch* || $hostname == daint* ]]; then
+if [[ $hostname == kesch* || $hostname == tsa* || $hostname == arolla* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/store/s83/tsm/extpar/raw_data_nc/
-
-    # GRIB API resources; adjust the path setting!
-    export GRIB_DEFINITION_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/definitions:/users/bettems/lib/grib_api/grib_api-1.13.1/definitions"
-    export GRIB_SAMPLES_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/samples"
+    data_dir=/scratch/juckerj/extpar-input-data/linked_data
 
 fi
 
@@ -74,19 +77,16 @@ binary_consistency_check=extpar_consistency_check.exe
 grib_sample='rotated_ll_pl_grib1'
 
 raw_data_alb='global_soil_albedo.nc'
-#raw_data_alb='MODIS_month_alb.nc'
-raw_data_alnid='MODIS_month_alnid.nc'
-raw_data_aluvd='MODIS_month_aluvd.nc'
 buffer_alb='month_alb_buffer.nc'
 output_alb='month_alb_extpar_cosmo.nc'
 
 #raw_data_aot='aerosol_optical_thickness.nc'
-raw_data_aot='aerocomm_aod_monthly.nc'
+raw_data_aot='AeroCom1.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
 
-raw_data_tclim_coarse='CRU_T2M_SURF_clim_coarse.nc'
-raw_data_tclim_fine='CRU_T2M_SURF_clim_fine.nc'
+raw_data_tclim_coarse='CRU_T2M_SURF_clim.nc'
+raw_data_tclim_fine='CRU_T_SOIL_clim.nc'
 buffer_tclim='crutemp_clim_extpar_buffer.nc'
 output_tclim='crutemp_clim_extpar_cosmo.nc'
 
@@ -169,9 +169,9 @@ raw_data_ndvi='NDVI_1998_2003.nc'
 buffer_ndvi='ndvi_buffer.nc'
 output_ndvi='ndvi_extpar_cosmo.nc'
 
-raw_data_soil_FAO='FAO_DSMW_DP.nc'
-raw_data_soil_HWSD='HWSD0_30_texture_2.nc'
-raw_data_deep_soil='HWSD30_100_texture_2.nc'
+raw_data_soil_FAO='FAO_DSMW_double.nc'
+raw_data_soil_HWSD='HWSD0_30_topsoil.nc'
+raw_data_deep_soil='HWSD30_100_subsoil.nc'
 buffer_soil='soil_buffer.nc'
 output_soil='soil_COSMO.nc'
 
@@ -182,7 +182,7 @@ raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
 raw_data_flake='GLDB_lakedepth.nc'
 buffer_flake='flake_buffer.nc'
-output_flake='ext_par_flake_cosmo.nc'
+output_flake='flake_cosmo.nc'
 
 
 #--------------------------------------------------------------------------------
@@ -204,6 +204,10 @@ fi
 
 cd ${sandboxdir}
 
+echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
+
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
+
 # create input namelists 
 
 #---
@@ -217,8 +221,8 @@ input_grid = {
         'startlat_tot':${startlat_tot},
         'dlon':${dlon},
         'dlat':${dlat},
-        'ie_tot'${ie_tot},
-        'je_tot':${je_tot},
+        'ie_tot':${ie_tot},
+        'je_tot':${je_tot}
         }
 
 input_alb = {
@@ -343,6 +347,9 @@ cat > INPUT_LU << EOF_lu
 EOF_lu
 #---
 cat > INPUT_ORO << EOF_oro
+&oro_runcontrol
+  lcompute_sgsl=.TRUE. ,
+  /
 &orography_io_extpar
   orography_buffer_file='${buffer_topo}',
   orography_output_file='${output_topo}'
@@ -475,7 +482,6 @@ run_parallel ${binary_soil}
 run_parallel ${binary_flake}
 run_parallel ${binary_ndvi} 
 run_parallel ${binary_topo} 
-run_parallel ${binary_sgsl} 
 
 #--------------------------------------------------------------------------------
 # IMPORTANT WAIT FOR ALL PARALLEL EXECUTABLES TO END
@@ -493,7 +499,6 @@ check_exit_status ${binary_topo}  error_count
 check_exit_status ${binary_ndvi}  error_count
 check_exit_status ${binary_soil}  error_count
 check_exit_status ${binary_flake} error_count
-check_exit_status ${binary_sgsl} error_count
 
 # if execution of some Extpar executables failed exit script
 if [[ $error_count > 0 ]]; then

@@ -16,7 +16,7 @@ logfile="extpar_runscript.log"
 # variables to define by user
 
 # Sandbox (make sure you have enough disk place at that location)!
-sandboxdir=/scratch/juckerj/sandbox_c7_test/
+sandboxdir=/scratch/juckerj/sandbox_c7_aster/
 
 # define model for which Extpar should run
 model="c7"
@@ -27,6 +27,13 @@ model="c7"
 
 # directory of runscripts => need to be as in original repository
 scriptdir=`pwd`
+src_python=${scriptdir}/../python/lib
+
+# change dir to src_python to get absolute path
+cd $src_python
+unset PYTHONPATH
+export PYTHONPATH=$(pwd)
+cd - > /dev/null 2>&1
 
 # directory of compiled extpar executables
 exedir=$scriptdir/../bin
@@ -36,15 +43,10 @@ exedir=$scriptdir/../bin
 # define host-dependent paths and variables
 
 # CSCS-machines
-if [[ $hostname == kesch* || $hostname == daint* ]]; then
+if [[ $hostname == kesch* || $hostname == tsa* || $hostname == arolla* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/store/s83/tsm/extpar/raw_data_nc/
-
-    # GRIB API resources; adjust the path setting!
-    export GRIB_DEFINITION_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/definitions:/users/bettems/lib/grib_api/grib_api-1.13.1/definitions"
-    export GRIB_SAMPLES_PATH="/users/bettems/projects/libgrib-api-cosmo-resources/samples"
-
+    data_dir=/scratch/juckerj/extpar-input-data/linked_data
 
 fi
 
@@ -137,15 +139,18 @@ fi
 # define paths and variables independent from host or model
 
 # Names of executables
-binary_alb=extpar_alb_to_buffer.exe
+
+# python executables
+binary_alb=extpar_alb_to_buffer.py
+binary_ndvi=extpar_ndvi_to_buffer.py
+binary_tclim=extpar_cru_to_buffer.py
+
+# fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
 binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
-binary_tclim=extpar_cru_to_buffer.exe
-binary_ndvi=extpar_ndvi_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
-binary_sgsl=extpar_sgsl_to_buffer.exe
 binary_ahf=extpar_ahf_to_buffer.exe
 binary_isa=extpar_isa_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
@@ -154,18 +159,18 @@ binary_consistency_check=extpar_consistency_check.exe
 grib_sample='rotated_ll_pl_grib1'
 
 # Names of raw data for INPUT_* namelists
-raw_data_alb='month_alb_new.nc'
-raw_data_alnid='month_alnid_new.nc'
-raw_data_aluvd='month_aluvd_new.nc'
+raw_data_alb='alb_new.nc'
+raw_data_alnid='alnid_new.nc'
+raw_data_aluvd='aluvd_new.nc'
 buffer_alb='month_alb_buffer.nc'
 output_alb='month_alb_extpar_cosmo.nc'
 
-raw_data_aot='aerosol_optical_thickness.nc'
+raw_data_aot='aot_GACP.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
 
-raw_data_tclim_coarse='CRU_T2M_SURF_clim_coarse.nc'
-raw_data_tclim_fine='CRU_T2M_SURF_clim_fine.nc'
+raw_data_tclim_coarse='CRU_T2M_SURF_clim.nc'
+raw_data_tclim_fine='CRU_T_SOIL_clim.nc'
 buffer_tclim='crutemp_clim_extpar_buffer.nc'
 output_tclim='crutemp_clim_extpar_cosmo.nc'
 
@@ -212,11 +217,11 @@ raw_data_ndvi='NDVI_1998_2003.nc'
 buffer_ndvi='ndvi_buffer.nc'
 output_ndvi='ndvi_extpar_cosmo.nc'
 
-raw_data_soil_FAO='FAO_DSMW_DP.nc'
-raw_data_soil_HWSD='HWSD0_30_texture_2.nc'
-raw_data_deep_soil='HWSD30_100_texture_2.nc'
+raw_data_soil_FAO='FAO_DSMW_double.nc'
+raw_data_soil_HWSD='HWSD0_30_topsoil.nc'
+raw_data_deep_soil='HWSD30_100_subsoil.nc'
 buffer_soil='soil_buffer.nc'
-output_soil='soil_COSMO.nc'
+output_soil='soil_cosmo.nc'
 
 raw_lookup_table_HWSD='LU_TAB_HWSD_UF.data'
 raw_HWSD_data='HWSD_DATA_COSMO.data'
@@ -225,7 +230,7 @@ raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
 raw_data_flake='GLDB_lakedepth.nc'
 buffer_flake='flake_buffer.nc'
-output_flake='ext_par_flake_cosmo.nc'
+output_flake='flake_cosmo.nc'
 
 #--------------------------------------------------------------------------------
 # Prepare working directory and create namelists
@@ -248,6 +253,8 @@ cd ${sandboxdir}
 
 echo "\n>>>> Data will be processed and produced in `pwd` <<<<\n"
 
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
+
 # create input namelists 
 
 #---
@@ -261,12 +268,12 @@ input_grid = {
         'startlat_tot':${startlat_tot},
         'dlon':${dlon},
         'dlat':${dlat},
-        'ie_tot'${ie_tot},
+        'ie_tot':${ie_tot},
         'je_tot':${je_tot},
         }
 
 input_alb = {
-        'ialb_type': 2,
+        'ialb_type': 1,
         'raw_data_alb_path': '',
         'raw_data_alb_filename': '${raw_data_alb}',
         'raw_data_alnid_filename': '${raw_data_alnid}',
@@ -350,6 +357,9 @@ cat > INPUT_LU << EOF_lu
 EOF_lu
 #---
 cat > INPUT_ORO << EOF_oro
+&oro_runcontrol
+  lcompute_sgsl=.FALSE. ,
+  /
 &orography_io_extpar
   orography_buffer_file='${buffer_topo}',
   orography_output_file='${output_topo}'

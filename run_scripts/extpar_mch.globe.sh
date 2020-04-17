@@ -35,7 +35,6 @@ unset PYTHONPATH
 export PYTHONPATH=$(pwd)
 cd - > /dev/null 2>&1
 
-
 # directory of compiled extpar executables
 exedir=$scriptdir/../bin
 
@@ -49,25 +48,6 @@ if [[ $hostname == kesch* || $hostname == tsa* || $hostname == arolla* ]]; then
     data_dir=/scratch/juckerj/extpar-input-data/linked_data
 
 fi
-
-#---------------------------------------------------------------------------------------------------------
-# define raw data globe
-raw_data_globe_A10='GLOBE_A10.nc'
-raw_data_globe_B10='GLOBE_B10.nc'
-raw_data_globe_C10='GLOBE_C10.nc'
-raw_data_globe_D10='GLOBE_D10.nc'
-raw_data_globe_E10='GLOBE_E10.nc'
-raw_data_globe_F10='GLOBE_F10.nc'
-raw_data_globe_G10='GLOBE_G10.nc'
-raw_data_globe_H10='GLOBE_H10.nc'
-raw_data_globe_I10='GLOBE_I10.nc'
-raw_data_globe_J10='GLOBE_J10.nc'
-raw_data_globe_K10='GLOBE_K10.nc'
-raw_data_globe_L10='GLOBE_L10.nc'
-raw_data_globe_M10='GLOBE_M10.nc'
-raw_data_globe_N10='GLOBE_N10.nc'
-raw_data_globe_O10='GLOBE_O10.nc'
-raw_data_globe_P10='GLOBE_P10.nc'
 
 #---------------------------------------------------------------------------------------------------------
 # define model (Cosmo1, Cosmo2 or Cosmo7) dependent variables
@@ -218,6 +198,26 @@ raw_data_globcover_5='GLOBCOVER_5_16bit.nc'
 
 buffer_lu='extpar_landuse_buffer.nc'
 output_lu='extpar_landuse_cosmo.nc'
+
+#---------------------------------------------------------------------------------------------------------
+# define raw data globe
+raw_data_globe_A10='GLOBE_A10.nc'
+raw_data_globe_B10='GLOBE_B10.nc'
+raw_data_globe_C10='GLOBE_C10.nc'
+raw_data_globe_D10='GLOBE_D10.nc'
+raw_data_globe_E10='GLOBE_E10.nc'
+raw_data_globe_F10='GLOBE_F10.nc'
+raw_data_globe_G10='GLOBE_G10.nc'
+raw_data_globe_H10='GLOBE_H10.nc'
+raw_data_globe_I10='GLOBE_I10.nc'
+raw_data_globe_J10='GLOBE_J10.nc'
+raw_data_globe_K10='GLOBE_K10.nc'
+raw_data_globe_L10='GLOBE_L10.nc'
+raw_data_globe_M10='GLOBE_M10.nc'
+raw_data_globe_N10='GLOBE_N10.nc'
+raw_data_globe_O10='GLOBE_O10.nc'
+raw_data_globe_P10='GLOBE_P10.nc'
+
 
 # lanczos filter is recommended when activating scale separation
 raw_filt_globe_A10='GLOBE_A_filt_lanczos_window.nc'
