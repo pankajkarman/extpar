@@ -83,9 +83,11 @@ case "$(hostname)" in
         ;;
     tsa*)
         host=tsa
+        module load cdo
+        source /users/juckerj/venv_jenkins/bin/activate
         ;;
     mlogin*)
-	host=mistral
+        host=mistral
         module unload anaconda3
         module load anaconda3/bleeding_edge 
         module unload cdo

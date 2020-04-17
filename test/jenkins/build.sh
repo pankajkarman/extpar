@@ -30,8 +30,6 @@ case "$(hostname)" in
         export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
         module load PrgEnv-gnu/19.2
         module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
-        source /users/juckerj/venv_jenkins/bin/activate
-        module load cdo
         make clean
         echo compile extpar...
         make &> compile.log
