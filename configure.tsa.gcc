@@ -1,6 +1,7 @@
 #! /bin/bash
 #
 set -eu
+set -o history
 #_______________________________________________________________________________
 #
 # Utility functions
@@ -103,6 +104,16 @@ ${EXTRA_CONFIG_ARGS} \
 "$@"
 
 banner "Run make ..."
+
+redln "To be compatible with the configure environment run:"
+echo
+while read module_command
+do
+    redln "   ${module_command}"
+done < <(history | awk '/^[ ]*[0-9]+[ ]+module/{$1=""; print $0}')
+echo
+redln "in your terminal, where the make command will be run." 
+echo
 
 #_______________________________________________________________________________
 #
