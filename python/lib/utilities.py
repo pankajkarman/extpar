@@ -17,8 +17,6 @@ it contains:
 
 -check_itype_cru : check whether itype_cru from namelist is correct
 
--get_omp_num_threads: get value of environment variable for OpenMP
-
 -check_albtype: check whether ialb_type from namelist is correct
 
 -determine_albedo_varnames: assign correct varnames for different ialb_type
@@ -164,20 +162,6 @@ def check_itype_cru(itype_cru):
 
         return itype_cru
 
-
-def get_omp_num_threads():
-    '''
-    get environment variables for OMP,
-    if not set, assume 1 as default
-    '''
-
-    try:
-        omp = os.environ['OMP_NUM_THREADS']
-    except KeyError:
-        omp = 8
-        logging.warning('OMP_NUM_THREADS not set -> '
-                        f'use OMP_NUM_THREADS = {omp} instead')
-    return omp
 
 
 def determine_emiss_varnames(iemiss_type):

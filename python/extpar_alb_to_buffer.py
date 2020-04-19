@@ -11,6 +11,7 @@ import buffer
 import metadata
 import fortran_namelist
 import utilities as utils
+import environment as env
 from namelist import input_alb as ia
 from namelist import input_grid as ig
 
@@ -24,8 +25,11 @@ logging.basicConfig(filename='extpar_alb_to_buffer.log',
 logging.info('============= start extpar_alb_to_buffer =======')
 logging.info('')
 
+# print a summary of the environment
+env.check_environment_for_extpar(__file__)
+
 # get number of OpenMP threads for CDO
-omp = utils.get_omp_num_threads()
+omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_albedo'  # name for grid description file

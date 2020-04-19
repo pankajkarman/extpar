@@ -11,6 +11,7 @@ import grid_def
 import buffer
 import metadata
 import fortran_namelist
+import environment as env
 from namelist import input_ndvi as indvi
 from namelist import input_grid as ig
 
@@ -24,8 +25,11 @@ logging.basicConfig(filename='extpar_ndvi_to_buffer.log',
 logging.info('============= start extpar_ndvi_to_buffer ======')
 logging.info('')
 
+# print a summary of the environment
+env.check_environment_for_extpar(__file__)
+
 # get number of OpenMP threads for CDO
-omp = utils.get_omp_num_threads()
+omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_ndvi'  # name for grid description file
