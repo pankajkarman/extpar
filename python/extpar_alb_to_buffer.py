@@ -60,12 +60,13 @@ logging.info('')
 
 ialb_type = utils.check_albtype(ia['ialb_type'])
 
-igrid_type = utils.check_gridtype(ig['igrid_type'])
+igrid_type, grid_fortran_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
+
     grid = utils.clean_path('', ig['icon_grid'])
 elif(igrid_type == 2):
-    tg = grid_def.CosmoGrid()
+    tg = grid_def.CosmoGrid(grid_fortran_namelist)
     tg.create_grid_description(grid)
 
 raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'],

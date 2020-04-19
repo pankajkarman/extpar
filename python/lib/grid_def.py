@@ -1,6 +1,10 @@
 import math
-from namelist import input_grid as ig
 import numpy as np
+
+import utilities as utils
+from namelist import input_grid as ig
+from fortran_namelist import read_variable_from_namelist
+
 '''
 Module providing classes and functions for COSMO grids,
 it contains:
@@ -29,20 +33,33 @@ class CosmoGrid:
         -phirot2phi
     '''
 
-    def __init__(self):
+    def __init__(self, namelist):
+        '''
+        init grid from existing Fortran namelist 'namelist'
 
-        '''init from namelist INPUT_GRID.py'''
+        the return value of function "read_variable_from_namelist" 
+        is converted to the right type (int, float) 
+        No check if retrieved values are meaningful is done
+        '''
+        
+        self.pollon = float(read_variable_from_namelist(namelist, 'pollon'))
+        self.pollat = float(read_variable_from_namelist(namelist, 'pollat'))
+        self.dlon = float(read_variable_from_namelist(namelist, 'dlon'))
+        self.dlat = float(read_variable_from_namelist(namelist, 'dlat'))
+        self.ie_tot = int(read_variable_from_namelist(namelist, 'ie_tot'))
+        self.je_tot =int(read_variable_from_namelist(namelist, 'je_tot'))
 
-        self.pollon = ig['pollon']
-        self.pollat = ig['pollat']
-        self.startlon_tot = ig['startlon_tot']
-        self.startlat_tot = ig['startlat_tot']
-        self.dlon = ig['dlon']
-        self.dlat = ig['dlat']
-        self.ie_tot = ig['ie_tot']
-        self.je_tot = ig['je_tot']
+        self.startlon_tot = float(read_variable_from_namelist(namelist,
+                                                              'startlon_tot'))
+
+        self.startlat_tot = float(read_variable_from_namelist(namelist,
+                                                              'startlat_tot'))
+
+
+        # infer from existing values
         self.ke_tot = 1
-        self.gridsize = ig['ie_tot'] * ig['je_tot']
+        self.gridsize = self.ie_tot * self.je_tot
+
 
     def create_grid_description(self,name):
         '''

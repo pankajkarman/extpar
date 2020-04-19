@@ -3,6 +3,8 @@ import sys
 import os
 import subprocess
 
+from fortran_namelist import read_variable_from_namelist
+
 '''
 Module utilities provides a bunch of helpful functions for Extpar,
 it contains:
@@ -127,18 +129,26 @@ def check_emisstype(emiss_type):
     return emiss_type
 
 
-def check_gridtype(grid_type):
+def check_gridtype(input_grid_org):
     '''
     check gridtype for correctness and return value, 
     if not exit programme
     '''
+
+    grid_org = clean_path('', input_grid_org)
+
+    grid_type = int(read_variable_from_namelist(grid_org, 'igrid_type'))
+
+    grid_fortran_namelist = read_variable_from_namelist(grid_org, 
+                                                                'domain_def_namelist')
 
     if (grid_type > 2):
         logging.error(f'grid_type {grid_type} does not exist. ' 
                       f'Use 1 (Icon) or 2 (Cosmo) instead!')
         exit(1)
 
-    return grid_type
+
+    return grid_type, grid_fortran_namelist
 
 
 def check_itype_cru(itype_cru):

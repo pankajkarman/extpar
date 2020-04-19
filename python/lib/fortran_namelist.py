@@ -1,6 +1,8 @@
 import logging
 import sys
 
+import utilities as utils
+
 '''
 Module providing function and classes needed for writing
 Fortran-namelists with the python version of Extpar,
@@ -23,9 +25,11 @@ def read_variable_from_namelist(namelist, variable):
     read variable from existing Fortran namelist
 
     namelist is read line by line, the first occurence of variable
-    is taken as the value and returned,
+    is taken as the value and returned as type "string",
     only tested with strings and integers
     '''
+
+    namelist = utils.clean_path('', namelist)
 
     with open(namelist, 'r') as f:
 
