@@ -24,27 +24,7 @@ if [[ $hostname == m* ]]; then
     ncks=/sw/rhel6-x64/nco/nco-4.7.5-gcc64/bin/ncks
 
     # directories
-    datadir=/pool/data/ICON/grids/private/mpim/icon_preprocessing/source/extpar_input.2016/
-    dir_during_test=./
-
-    # variables for albedo script
-    raw_data_alb='month_alb_new.nc'
-    raw_data_alnid='month_alnid_new.nc'
-    raw_data_aluvd='month_aluvd_new.nc'
-    buffer_alb='month_alb_BUFFER.nc'
-    output_alb='month_alb_ICON.nc'
-
-    # variables for ndvi script
-    raw_data_ndvi='NDVI_1998_2003.nc'
-    buffer_ndvi='ndvi_BUFFER.nc'
-    output_ndvi='ndvi_ICON.nc'
-
-    # variables for tclim script
-    raw_data_tclim_coarse='absolute_hadcrut3.nc'
-    raw_data_tclim_fine='CRU_T2M_SURF_clim.nc'
-    buffer_tclim='crutemp_clim_extpar_BUFFER.nc'
-    output_tclim='crutemp_clim_extpar_ICON.nc'
-
+    datadir=/scratch/b/b381001/extpar-input-data/linked_data
 
 # unkown host
 else

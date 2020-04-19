@@ -2,7 +2,6 @@ import math
 import numpy as np
 
 import utilities as utils
-from namelist import input_grid as ig
 from fortran_namelist import read_variable_from_namelist
 
 '''
@@ -49,12 +48,11 @@ class CosmoGrid:
         self.ie_tot = int(read_variable_from_namelist(namelist, 'ie_tot'))
         self.je_tot =int(read_variable_from_namelist(namelist, 'je_tot'))
 
-        self.startlon_tot = float(read_variable_from_namelist(namelist,
-                                                              'startlon_tot'))
+        self.startlon_tot = \
+                float(read_variable_from_namelist(namelist, 'startlon_tot'))
 
-        self.startlat_tot = float(read_variable_from_namelist(namelist,
-                                                              'startlat_tot'))
-
+        self.startlat_tot = \
+                float(read_variable_from_namelist(namelist, 'startlat_tot'))
 
         # infer from existing values
         self.ke_tot = 1

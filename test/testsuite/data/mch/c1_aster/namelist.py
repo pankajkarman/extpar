@@ -19,19 +19,6 @@ input_alb = {
         'aluvd_source': 'aluvd'
         }
 
-input_grid = {
-        'igrid_type': 2,
-        'icon_grid': '',
-        'pollon':-170.0,
-        'pollat':43.0,
-        'startlon_tot':-0.0,
-        'startlat_tot':-2.0,
-        'dlon':0.01,
-        'dlat':0.01,
-        'ie_tot':100,
-        'je_tot':100
-        }
-
 input_ndvi = {
         'raw_data_ndvi_path': '',
         'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',

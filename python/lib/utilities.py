@@ -131,18 +131,23 @@ def check_emisstype(emiss_type):
 
 def check_gridtype(input_grid_org):
     '''
-    check gridtype for correctness and return value, 
-    if not exit programme
+    check gridtype read from input_grid_org
+
+    read gridtype and domain_def_namelist from Fortran namelist
+    if gridtype is valid, return gridtype and name of domain_def_namelist
+    exit if gridtype is wrong or any namelist does not exist
     '''
 
     grid_org = clean_path('', input_grid_org)
 
     grid_type = int(read_variable_from_namelist(grid_org, 'igrid_type'))
 
-    grid_fortran_namelist = read_variable_from_namelist(grid_org, 
-                                                                'domain_def_namelist')
+    def_domain_namelist = read_variable_from_namelist(grid_org,
+                                                      'domain_def_namelist')
 
-    if (grid_type > 2):
+    grid_fortran_namelist = clean_path('',def_domain_namelist)
+
+    if (grid_type < 1 or grid_type > 2):
         logging.error(f'grid_type {grid_type} does not exist. ' 
                       f'Use 1 (Icon) or 2 (Cosmo) instead!')
         exit(1)

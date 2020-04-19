@@ -6,6 +6,7 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
+# extpar modules from lib
 import grid_def
 import buffer
 import metadata
@@ -13,7 +14,6 @@ import fortran_namelist
 import utilities as utils
 import environment as env
 from namelist import input_tclim as itcl
-from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_cru_to_buffer.log',
@@ -62,16 +62,25 @@ logging.info('')
 
 itype_cru = utils.check_itype_cru(itcl['it_cl_type'])
 
-igrid_type = utils.check_gridtype(ig['igrid_type'])
+igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
-    grid = utils.clean_path('', ig['icon_grid'])
-elif(igrid_type == 2):
-    tg = grid_def.CosmoGrid()
+    path_to_grid = \
+        fortran_namelist.read_variable_from_namelist(grid_namelist,
+                                                     'icon_grid_dir')
+
+    icon_grid = \
+        fortran_namelist.read_variable_from_namelist(grid_namelist,
+                                                     'icon_grid_nc_file')
+
+    grid = utils.clean_path(path_to_grid,icon_grid)
+
+elif (igrid_type == 2):
+    tg = grid_def.CosmoGrid(grid_namelist)
     tg.create_grid_description(grid)
 
-raw_data_tclim_fine  = utils.clean_path(itcl['raw_data_t_clim_path'],
-                                        itcl['raw_data_tclim_fine'])
+raw_data_tclim_fine = utils.clean_path(itcl['raw_data_t_clim_path'],
+                                       itcl['raw_data_tclim_fine'])
 
 if (itype_cru == 2):
     buffer_topo = \

@@ -23,7 +23,6 @@ if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostna
     data_dir=/scratch/juckerj/extpar-input-data/linked_data/
 
     # NetCDF raw data file names
-    raw_data_tclim_fine='CRU_T2M_SURF_clim_fine.nc'
     raw_data_glc2000='GLC2000_byte.nc'
     raw_data_glcc='GLCC_usgs_class_byte.nc'
     aster_prefix='ASTER_orig'
@@ -33,14 +32,13 @@ if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostna
 elif [[ $hostname == m* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/pool/data/ICON/grids/private/mpim/icon_preprocessing/source/extpar_input.2016/
+    data_dir=/scratch/b/b381001/extpar-input-data/linked_data
 
     # NetCDF raw data file names
-    raw_data_tclim_fine='CRU_T2M_SURF_clim.nc'
     raw_data_glc2000='glc2000_byte.nc'
     raw_data_glcc='glcc_usgs_class_byte.nc'
-    aster_prefix='topo.ASTER_orig'
-    raw_data_flake='lakedepth.nc'
+    aster_prefix='ASTER_orig'
+    raw_data_flake='GLDB_lakedepth.nc'
 
 # unkown host
 else
@@ -51,7 +49,6 @@ else
 fi
 
 # substitute host-dependent namelist parameters
-sed -i 's#@raw_data_t_clim_filename@#'"$raw_data_tclim_fine"'#' INPUT_TCLIM
 sed -i 's#@raw_data_lu_filename@#'"$raw_data_glc2000"'#' INPUT_LU
 sed -i 's#@raw_data_glcc_filename@#'"$raw_data_glcc"'#' INPUT_LU
 sed -i 's#@aster_prefix@#'"$aster_prefix"'#g' INPUT_ORO

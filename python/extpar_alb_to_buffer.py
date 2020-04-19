@@ -6,6 +6,7 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
+# extpar modules from lib
 import grid_def
 import buffer
 import metadata
@@ -13,7 +14,6 @@ import fortran_namelist
 import utilities as utils
 import environment as env
 from namelist import input_alb as ia
-from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_alb_to_buffer.log',
@@ -60,17 +60,25 @@ logging.info('')
 
 ialb_type = utils.check_albtype(ia['ialb_type'])
 
-igrid_type, grid_fortran_namelist = utils.check_gridtype('INPUT_grid_org')
+igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
+    path_to_grid = \
+        fortran_namelist.read_variable_from_namelist(grid_namelist,
+                                                     'icon_grid_dir')
 
-    grid = utils.clean_path('', ig['icon_grid'])
-elif(igrid_type == 2):
-    tg = grid_def.CosmoGrid(grid_fortran_namelist)
+    icon_grid = \
+        fortran_namelist.read_variable_from_namelist(grid_namelist,
+                                                     'icon_grid_nc_file')
+
+    grid = utils.clean_path(path_to_grid,icon_grid)
+
+elif (igrid_type == 2):
+    tg = grid_def.CosmoGrid(grid_namelist)
     tg.create_grid_description(grid)
 
-raw_data_alb_1   = utils.clean_path(ia['raw_data_alb_path'],
-                                    ia['raw_data_alb_filename'])
+raw_data_alb_1 = utils.clean_path(ia['raw_data_alb_path'],
+                                  ia['raw_data_alb_filename'])
 
 # NIR and UV albedo data
 if (ialb_type == 1):

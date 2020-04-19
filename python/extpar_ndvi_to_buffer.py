@@ -6,6 +6,7 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
+# extpar modules from lib
 import utilities as utils
 import grid_def
 import buffer
@@ -13,7 +14,6 @@ import metadata
 import fortran_namelist
 import environment as env
 from namelist import input_ndvi as indvi
-from namelist import input_grid as ig
 
 # initialize logger
 logging.basicConfig(filename='extpar_ndvi_to_buffer.log',
@@ -54,13 +54,23 @@ logging.info('')
 logging.info('============= init variables from namelist =====')
 logging.info('')
 
-igrid_type = utils.check_gridtype(ig['igrid_type'])
+igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
-    grid = utils.clean_path('', ig['icon_grid'])
+    path_to_grid = fortran_namelist.read_variable_from_namelist \
+                   (grid_namelist,
+                    'icon_grid_dir')
+
+    icon_grid = fortran_namelist.read_variable_from_namelist \
+                (grid_namelist,
+                 'icon_grid_nc_file')
+
+    grid = utils.clean_path(path_to_grid,icon_grid)
+
 elif(igrid_type == 2):
-    tg = grid_def.CosmoGrid()
+    tg = grid_def.CosmoGrid(grid_namelist)
     tg.create_grid_description(grid)
+
 
 raw_data_ndvi  = utils.clean_path(indvi['raw_data_ndvi_path'],
                                   indvi['raw_data_ndvi_filename'])
@@ -138,7 +148,7 @@ logging.info('')
 logging.info('============= compute NDVI_MAX and NDVI_MRAT ===')
 logging.info('')
 
-# calculate maxval over 12 month
+# calculate maxval over 12 months
 ndvi_max = np.amax(np.reshape(ndvi_nc.variables['ndvi'][:,:], 
                               (12, ke_tot, je_tot, ie_tot)), axis=0)
 
