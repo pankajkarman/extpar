@@ -36,7 +36,7 @@ def get_cdo_version(extpar_programme, host):
         # host is not mistral
         if 'm' not in hostname: 
             logging.error(f'CDO is not loaded on host {host}. Please '
-                            f'load CDO before you run {extpar_programme}')
+                          f'load CDO before you run {extpar_programme}')
             sys.exit(1)
 
         # host is mistral
@@ -45,14 +45,14 @@ def get_cdo_version(extpar_programme, host):
                             '-> CDO is already loaded as default')
 
             cdo_version = 'mistral default'
-            
+
     return cdo_version
 
 
 def check_environment_for_extpar(extpar_programme):
     '''
     get hostname, python version, pythonpath and cdo version
-    
+
     put all together into an info print for the logfile
     if CDO is not loaded, exit
     '''

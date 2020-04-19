@@ -35,8 +35,8 @@ elif [[ $hostname == m* ]]; then
     data_dir=/scratch/b/b381001/extpar-input-data/linked_data
 
     # NetCDF raw data file names
-    raw_data_glc2000='glc2000_byte.nc'
-    raw_data_glcc='glcc_usgs_class_byte.nc'
+    raw_data_glc2000='GLC2000_byte.nc'
+    raw_data_glcc='GLCC_usgs_class_byte.nc'
     aster_prefix='ASTER_orig'
     raw_data_flake='GLDB_lakedepth.nc'
 
@@ -64,11 +64,9 @@ rootdir=${currentdir}/../../../../..
 src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
-echo change dir to $src_python to get absolute PYTHONPATH >> ${logfile}
 cd $src_python
 unset PYTHONPATH
 export PYTHONPATH=$(pwd)
-echo go back to working dir: >> ${logfile}
 cd - >> ${logfile}
 
 echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}

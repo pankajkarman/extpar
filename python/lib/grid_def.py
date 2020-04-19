@@ -40,24 +40,25 @@ class CosmoGrid:
         is converted to the right type (int, float) 
         No check if retrieved values are meaningful is done
         '''
-        
+
         self.pollon = float(read_variable_from_namelist(namelist, 'pollon'))
         self.pollat = float(read_variable_from_namelist(namelist, 'pollat'))
+
         self.dlon = float(read_variable_from_namelist(namelist, 'dlon'))
         self.dlat = float(read_variable_from_namelist(namelist, 'dlat'))
+
         self.ie_tot = int(read_variable_from_namelist(namelist, 'ie_tot'))
-        self.je_tot =int(read_variable_from_namelist(namelist, 'je_tot'))
+        self.je_tot = int(read_variable_from_namelist(namelist, 'je_tot'))
 
         self.startlon_tot = \
-                float(read_variable_from_namelist(namelist, 'startlon_tot'))
+            float(read_variable_from_namelist(namelist, 'startlon_tot'))
 
         self.startlat_tot = \
-                float(read_variable_from_namelist(namelist, 'startlat_tot'))
+            float(read_variable_from_namelist(namelist, 'startlat_tot'))
 
         # infer from existing values
         self.ke_tot = 1
         self.gridsize = self.ie_tot * self.je_tot
-
 
     def create_grid_description(self,name):
         '''

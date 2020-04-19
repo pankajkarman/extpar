@@ -44,11 +44,9 @@ rootdir=${currentdir}/../../../../..
 src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
-echo change dir to $src_python to get absolute PYTHONPATH >> ${logfile}
 cd $src_python
 unset PYTHONPATH
 export PYTHONPATH=$(pwd)
-echo go back to working dir: >> ${logfile}
 cd - >> ${logfile}
 
 echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}

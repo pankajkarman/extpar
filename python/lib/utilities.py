@@ -40,12 +40,18 @@ def launch_shell(bin,*args):
     for arg in args:
         arg_list.append(str(arg))
 
-    logging.info(f'Launch shell command: {arg_list}')
+    args_for_logger = ' '.join(arg_list)
+
+    logging.info(f'Launch shell command: {args_for_logger}')
     logging.info('')
+
     try:
         output = subprocess.check_output(arg_list,stderr=subprocess.STDOUT,
                                          universal_newlines=True)
     except subprocess.CalledProcessError:
+        logging.warning(f'Problems with shell command: {args_for_logger} \n'
+                        '-> run command manually in console to find out more')
+
         logging.error('Shell command failed', exc_info=True)
         sys.exit(1)
 
@@ -152,7 +158,6 @@ def check_gridtype(input_grid_org):
                       f'Use 1 (Icon) or 2 (Cosmo) instead!')
         exit(1)
 
-
     return grid_type, grid_fortran_namelist
 
 
@@ -176,7 +181,6 @@ def check_itype_cru(itype_cru):
                      'coarse resolution for sea')
 
         return itype_cru
-
 
 
 def determine_emiss_varnames(iemiss_type):
