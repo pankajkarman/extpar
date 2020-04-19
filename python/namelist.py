@@ -1,1 +1,0 @@
-lib/namelist_template.py
