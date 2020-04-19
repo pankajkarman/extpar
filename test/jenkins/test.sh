@@ -83,7 +83,8 @@ case "$(hostname)" in
         ;;
     tsa*)
         host=tsa
-        module load cdo
+        source /oprusers/osm/.opr_setup_dir
+        export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
         source /users/juckerj/venv_jenkins/bin/activate
         ;;
     mlogin*)
