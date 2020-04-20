@@ -49,9 +49,10 @@
 !> \author Hermann Asensio
 MODULE mo_extpar_output_nc
 
+  USE, INTRINSIC :: iso_c_binding, ONLY: c_loc, c_f_pointer 
   USE mo_logging
   USE mo_var_meta_data
-  USE mo_kind,                  ONLY: wp, i4
+  USE mo_kind,                  ONLY: sp, dp, wp, i1, i4, i8
   USE info_extpar,              ONLY: INFO_RevisionHash, INFO_CodeIsModified, &
        &                              INFO_PackageName
                                 
@@ -95,6 +96,8 @@ MODULE mo_extpar_output_nc
        &                             clon_vertices, clat_vertices, &
        &                             allocate_icon_coor
 
+  USE mo_cdi
+  
   IMPLICIT NONE
 
   PRIVATE
@@ -102,8 +105,6 @@ MODULE mo_extpar_output_nc
   PUBLIC :: write_netcdf_cosmo_grid_extpar
   PUBLIC :: write_netcdf_icon_grid_extpar
   PUBLIC :: write_cdi_icon_grid_extpar
-
-  INCLUDE 'cdi.inc'
 
   CONTAINS
 
@@ -1644,7 +1645,7 @@ MODULE mo_extpar_output_nc
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-    INTEGER(KIND=i4), INTENT(IN), OPTIONAL :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+    INTEGER(KIND=i4), INTENT(IN), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
     REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
@@ -1664,6 +1665,7 @@ MODULE mo_extpar_output_nc
     TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
     REAL (KIND=wp), ALLOCATABLE :: time(:) !< time variable
     REAL (KIND=wp), ALLOCATABLE :: soiltype(:)
+    REAL (KIND=sp), POINTER :: soiltype_deep_f(:,:,:)
     INTEGER (KIND=i4) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
     INTEGER (KIND=i4) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
@@ -1675,8 +1677,9 @@ MODULE mo_extpar_output_nc
     CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
     INTEGER :: n !< counter
 
-    CHARACTER(len=1 ) :: uuid(16)    !   UUID of unstructured grids 
-
+    CHARACTER(LEN=1) :: tmp_uuid(16)    !   UUID of unstructured grids 
+    INTEGER(KIND=i1) :: uuid(16)
+    
     INTEGER :: len, stat
 
     INTEGER :: fileID
@@ -1861,11 +1864,11 @@ MODULE mo_extpar_output_nc
 
 
     !-----------------------------------------------------------------
-    gridID = gridCreate(GRID_UNSTRUCTURED, icon_grid%ncell)
+    gridID = gridCreate(GRID_UNSTRUCTURED, INT(icon_grid%ncell, i8))
     stat = cdiGridDefKeyStr(gridID, CDI_KEY_XDIMNAME, 5, "cell")
     CALL gridDefNumber(gridID, icon_grid%number_Of_Grid_Used)
-    CALL decode_uuid (icon_grid%uuidOfHGrid, uuid) 
-    CALL gridDefUUID(gridID, uuid)
+    CALL decode_uuid (icon_grid%uuidOfHGrid, tmp_uuid) 
+    CALL gridDefUUID(gridID, TRANSFER(tmp_uuid, uuid))
 
     surfaceID = zaxisCreate(ZAXIS_SURFACE, 1)
     class_luID = zaxisCreate(ZAXIS_GENERIC, nclass_lu)
@@ -1972,51 +1975,53 @@ MODULE mo_extpar_output_nc
    ! soiltype_deep
     IF (ldeep_soil) THEN
       CALL logging%info(trim(soiltype_fao_deep_meta%varname))
-      CALL streamWriteVar(fileID, soiltype_deep_ID, soiltype_deep, 0)
+      ! reinterpret_cast by hand ...
+      CALL c_f_pointer(c_loc(soiltype_deep), soiltype_deep_f, shape=ubound(soiltype_deep))
+      CALL streamWriteVarF(fileID, soiltype_deep_ID, soiltype_deep_f, 0_i8)
     ENDIF
 
     IF (isoil_data == HWSD_data) THEN
       ! fr_sand
       CALL logging%info("fr_sand")
-      CALL streamWriteVar(fileID, fr_sand_ID, fr_sand, 0)
+      CALL streamWriteVar(fileID, fr_sand_ID, fr_sand, 0_i8)
 
       ! fr_silt
       CALL logging%info("fr_silt")
-      CALL streamWriteVar(fileID, fr_silt_ID, fr_silt, 0)
+      CALL streamWriteVar(fileID, fr_silt_ID, fr_silt, 0_i8)
 
       ! fr_clay
       CALL logging%info("fr_clay")
-      CALL streamWriteVar(fileID, fr_clay_ID, fr_clay, 0)
+      CALL streamWriteVar(fileID, fr_clay_ID, fr_clay, 0_i8)
 
       ! fr_oc
       CALL logging%info("fr_oc")
-      CALL streamWriteVar(fileID, fr_oc_ID, fr_oc, 0)
+      CALL streamWriteVar(fileID, fr_oc_ID, fr_oc, 0_i8)
 
       ! fr_bd
       CALL logging%info("fr_bd")
-      CALL streamWriteVar(fileID, fr_bd_ID, fr_bd, 0)
+      CALL streamWriteVar(fileID, fr_bd_ID, fr_bd, 0_i8)
     ENDIF
 
     IF (ldeep_soil) THEN
       ! fr_sand_deep
       CALL logging%info("fr_sand_deep")
-      CALL streamWriteVar(fileID, fr_sand_deep_ID, fr_sand_deep, 0)
+      CALL streamWriteVar(fileID, fr_sand_deep_ID, fr_sand_deep, 0_i8)
 
       ! fr_silt_deep
       CALL logging%info("fr_silt_deep")
-      CALL streamWriteVar(fileID, fr_silt_deep_ID, fr_silt_deep, 0)
+      CALL streamWriteVar(fileID, fr_silt_deep_ID, fr_silt_deep, 0_i8)
 
       ! fr_clay_deep
       CALL logging%info("fr_clay_deep")
-      CALL streamWriteVar(fileID, fr_clay_deep_ID, fr_clay_deep, 0)
+      CALL streamWriteVar(fileID, fr_clay_deep_ID, fr_clay_deep, 0_i8)
 
       ! fr_oc_deep
       CALL logging%info("fr_oc_deep")
-      CALL streamWriteVar(fileID, fr_oc_deep_ID, fr_oc_deep, 0)
+      CALL streamWriteVar(fileID, fr_oc_deep_ID, fr_oc_deep, 0_i8)
 
       ! fr_bd_deep
       CALL logging%info("fr_bd_deep")
-      CALL streamWriteVar(fileID, fr_bd_deep_ID, fr_bd_deep, 0)
+      CALL streamWriteVar(fileID, fr_bd_deep_ID, fr_bd_deep, 0_i8)
     ENDIF
 
     ! soiltype  -> Integer Field!!
@@ -2024,170 +2029,170 @@ MODULE mo_extpar_output_nc
     IF (errorcode /= 0 ) CALL logging%error('Cant allocate array soiltype', __FILE__, __LINE__)
     soiltype(1:icon_grid%ncell) = soiltype_fao(1:icon_grid%ncell,1,1)
     CALL logging%info('soiltype')
-    CALL streamWriteVar(fileID, soiltype_fao_ID, soiltype, 0)
+    CALL streamWriteVar(fileID, soiltype_fao_ID, soiltype, 0_i8)
     DEALLOCATE(soiltype)
 
     CALL logging%info('fr_land_lu')
     n=1 ! fr_land_lu
-    CALL streamWriteVar(fileID, fr_land_lu_ID, fr_land_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, fr_land_lu_ID, fr_land_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('ice_lu')
     n=2 ! ice_lu
-    CALL streamWriteVar(fileID, ice_lu_ID, ice_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, ice_lu_ID, ice_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('plcov_mx_lu')
     n=3 ! plcov_mx_lu
-    CALL streamWriteVar(fileID, plcov_mx_lu_ID, plcov_mx_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, plcov_mx_lu_ID, plcov_mx_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('lai_mx_lu')
     n=4 ! lai_mx_lu
-    CALL streamWriteVar(fileID, lai_mx_lu_ID, lai_mx_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, lai_mx_lu_ID, lai_mx_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('rs_min_lu')
     n=5 ! rs_min_lu
-    CALL streamWriteVar(fileID, rs_min_lu_ID, rs_min_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, rs_min_lu_ID, rs_min_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('urban_lu')
     n=6 ! urban_lu
-    CALL streamWriteVar(fileID, urban_lu_ID, urban_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, urban_lu_ID, urban_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('for_d_lu')
     n=7 ! for_d_lu
-    CALL streamWriteVar(fileID, for_d_lu_ID, for_d_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, for_d_lu_ID, for_d_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('for_e_lu')
     n=8 ! for_e_lu
-    CALL streamWriteVar(fileID, for_e_lu_ID, for_e_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, for_e_lu_ID, for_e_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('emissivity_lu')
     n=9 ! emissivity_lu
-    CALL streamWriteVar(fileID, emissivity_lu_ID, emissivity_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, emissivity_lu_ID, emissivity_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('root_lu')
     n=10 ! root_lu
-    CALL streamWriteVar(fileID, root_lu_ID, root_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, root_lu_ID, root_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('z0_lu')
     n=11 ! z0_lu
-    CALL streamWriteVar(fileID, z0_lu_ID, z0_lu(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, z0_lu_ID, z0_lu(1:icon_grid%ncell,1,1), 0_i8)
  
     CALL logging%info('lon')
     n=12 ! lon
-    CALL streamWriteVar(fileID, lon_geo_ID, lon_geo(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, lon_geo_ID, lon_geo(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('lat')
     n=13 ! lat
-    CALL streamWriteVar(fileID, lat_geo_ID, lat_geo(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, lat_geo_ID, lat_geo(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('ndvi_max')
     n=14 ! ndvi_max
-    CALL streamWriteVar(fileID, ndvi_max_ID, ndvi_max(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, ndvi_max_ID, ndvi_max(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('hh_topo')
     n=15 ! hh_topo
-    CALL streamWriteVar(fileID, hh_topo_ID, hh_topo(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, hh_topo_ID, hh_topo(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('hh_topo_max')
     n=16 ! hh_topo
-    CALL streamWriteVar(fileID, hh_topo_max_ID, hh_topo_max(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, hh_topo_max_ID, hh_topo_max(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('hh_topo_min')
     n=17 ! hh_topo
-    CALL streamWriteVar(fileID, hh_topo_min_ID, hh_topo_min(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, hh_topo_min_ID, hh_topo_min(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('stdh_topo')
     n=18 ! stdh_topo
-    CALL streamWriteVar(fileID, stdh_topo_ID, stdh_topo(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, stdh_topo_ID, stdh_topo(1:icon_grid%ncell,1,1), 0_i8)
 
     IF (lsso) THEN
       CALL logging%info('theta_topo')
       n=19 ! theta_topo
-      CALL streamWriteVar(fileID, theta_topo_ID, theta_topo(1:icon_grid%ncell,1,1), 0)
+      CALL streamWriteVar(fileID, theta_topo_ID, theta_topo(1:icon_grid%ncell,1,1), 0_i8)
 
       CALL logging%info('aniso_topo')
       n=20 ! aniso_topo
-      CALL streamWriteVar(fileID, aniso_topo_ID, aniso_topo(1:icon_grid%ncell,1,1), 0)
+      CALL streamWriteVar(fileID, aniso_topo_ID, aniso_topo(1:icon_grid%ncell,1,1), 0_i8)
 
       CALL logging%info('slope_topo')
       n=21 ! slope_topo
-      CALL streamWriteVar(fileID, slope_topo_ID, slope_topo(1:icon_grid%ncell,1,1), 0)
+      CALL streamWriteVar(fileID, slope_topo_ID, slope_topo(1:icon_grid%ncell,1,1), 0_i8)
     ENDIF
 
     CALL logging%info('crutemp')
     n=22 ! crutemp
-    CALL streamWriteVar(fileID, crutemp_ID, crutemp(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, crutemp_ID, crutemp(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('fr_lake')
     n=23 ! fr_lake
-    CALL streamWriteVar(fileID, fr_lake_ID, fr_lake(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, fr_lake_ID, fr_lake(1:icon_grid%ncell,1,1), 0_i8)
 
     CALL logging%info('lake_depth')
     n=24 ! lake_depth
-    CALL streamWriteVar(fileID, lake_depth_ID, lake_depth(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, lake_depth_ID, lake_depth(1:icon_grid%ncell,1,1), 0_i8)
 
     IF (l_use_ahf) THEN
       CALL logging%info('ahf')
       n=25 ! ahf_field
-      CALL streamWriteVar(fileID, ahf_field_ID, ahf_field(1:icon_grid%ncell,1,1), 0)
+      CALL streamWriteVar(fileID, ahf_field_ID, ahf_field(1:icon_grid%ncell,1,1), 0_i8)
     END IF
 
     IF (l_use_isa) THEN
       CALL logging%info('isa')
       n=26 ! isa_field
-      CALL streamWriteVar(fileID, isa_field_ID, isa_field(1:icon_grid%ncell,1,1), 0)
+      CALL streamWriteVar(fileID, isa_field_ID, isa_field(1:icon_grid%ncell,1,1), 0_i8)
     END IF
 
-    CALL streamWriteVar(fileID, hsurf_field_ID, hsurf_field(1:icon_grid%ncell,1,1), 0)
+    CALL streamWriteVar(fileID, hsurf_field_ID, hsurf_field(1:icon_grid%ncell,1,1), 0_i8)
 
-    CALL streamWriteVar(fileID, clon_ID, clon, 0)
-    CALL streamWriteVar(fileID, clat_ID, clat, 0)
+    CALL streamWriteVar(fileID, clon_ID, clon, 0_i8)
+    CALL streamWriteVar(fileID, clat_ID, clat, 0_i8)
 
     n=1 ! lu_class_fraction
-    CALL streamWriteVar(fileID, lu_class_fraction_ID, lu_class_fraction(1:icon_grid%ncell,1,1,1:nclass_lu), 0)
+    CALL streamWriteVar(fileID, lu_class_fraction_ID, lu_class_fraction(1:icon_grid%ncell,1,1,1:nclass_lu), 0_i8)
 
     DO tsID = 1, ntime_ndvi
-      CALL taxisDefVdate(taxisID, INT(time(tsID)))
+      CALL taxisDefVdate(taxisID, INT(time(tsID),i8))
       CALL taxisDefVtime(taxisID, 0)
       iret = streamDefTimestep(fileID, tsID - 1)
 
       n=2 ! ndvi_field_mom
-      CALL streamWriteVar(fileID, ndvi_field_mom_ID, ndvi_field_mom(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, ndvi_field_mom_ID, ndvi_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=3 ! ndvi_ratio_mom
-      CALL streamWriteVar(fileID, ndvi_ratio_mom_ID, ndvi_ratio_mom(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, ndvi_ratio_mom_ID, ndvi_ratio_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=1 ! aot_bc
-      CALL streamWriteVar(fileID, aot_bc_ID, aot_tg(1:icon_grid%ncell,1,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, aot_bc_ID, aot_tg(1:icon_grid%ncell,1,1,1,tsID), 0_i8)
 
       n=2 ! aot_dust
-      CALL streamWriteVar(fileID, aot_dust_ID, aot_tg(1:icon_grid%ncell,1,1,2,tsID), 0)
+      CALL streamWriteVar(fileID, aot_dust_ID, aot_tg(1:icon_grid%ncell,1,1,2,tsID), 0_i8)
 
       n=3 ! aot_org
-      CALL streamWriteVar(fileID, aot_org_ID, aot_tg(1:icon_grid%ncell,1,1,3,tsID), 0)
+      CALL streamWriteVar(fileID, aot_org_ID, aot_tg(1:icon_grid%ncell,1,1,3,tsID), 0_i8)
 
       n=4 ! aot_so4
-      CALL streamWriteVar(fileID, aot_so4_ID, aot_tg(1:icon_grid%ncell,1,1,4,tsID), 0)
+      CALL streamWriteVar(fileID, aot_so4_ID, aot_tg(1:icon_grid%ncell,1,1,4,tsID), 0_i8)
 
       n=5 ! aot_ss
-      CALL streamWriteVar(fileID, aot_ss_ID, aot_tg(1:icon_grid%ncell,1,1,5,tsID), 0)
+      CALL streamWriteVar(fileID, aot_ss_ID, aot_tg(1:icon_grid%ncell,1,1,5,tsID), 0_i8)
 
       n=6 ! alb_field_mom
-      CALL streamWriteVar(fileID, alb_field_mom_ID, alb_field_mom(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, alb_field_mom_ID, alb_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=7 ! alnid_field_mom
-      CALL streamWriteVar(fileID, alnid_field_mom_ID, alnid_field_mom(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, alnid_field_mom_ID, alnid_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=8 ! aluvd_field_mom
-      CALL streamWriteVar(fileID, aluvd_field_mom_ID, aluvd_field_mom(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, aluvd_field_mom_ID, aluvd_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=9 ! sst_field
-      CALL streamWriteVar(fileID, sst_field_ID, sst_field(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, sst_field_ID, sst_field(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=10 ! wsnow_field
-      CALL streamWriteVar(fileID, wsnow_field_ID, wsnow_field(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, wsnow_field_ID, wsnow_field(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
       n=11 ! t2m_field
-      CALL streamWriteVar(fileID, t2m_field_ID, t2m_field(1:icon_grid%ncell,1,1,tsID), 0)
+      CALL streamWriteVar(fileID, t2m_field_ID, t2m_field(1:icon_grid%ncell,1,1,tsID), 0_i8)
     END DO
 
     !-----------------------------------------------------------------
@@ -2437,12 +2442,18 @@ MODULE mo_extpar_output_nc
     INTEGER          :: i, j, l, n, b
     CHARACTER(LEN=2) :: buf
 
-    uuid(:) = ACHAR (0)
+    IF (SIZE(uuid) /= 16) THEN
+      WRITE (message_text,*) "Error: size of buffer for uuid is insufficient!"
+      CALL logging%error(message_text, __FILE__, __LINE__)
+    ENDIF
+    uuid(:) = ACHAR(0)
+    
     l = VERIFY (uuid_str, "0123456789ABCDEFabcdef-")
     IF (l > 0) THEN
-      WRITE (message_text,*) "Warning: invalid character in uuid: '", uuid_str(l:l),"'"
+      WRITE (message_text,*) "Warning: invalid character in uuid string: '", uuid_str(l:l),"'"
       CALL logging%error(message_text, __FILE__, __LINE__)
     END IF
+
     n = LEN  (uuid_str)
     i = 1
     j = 0
@@ -2456,7 +2467,7 @@ MODULE mo_extpar_output_nc
       READ (buf,'(Z2)') b
       j = j + 1
       IF (j > SIZE (uuid)) CALL logging%error("uuid input too long!", __FILE__, __LINE__)
-      uuid(j) = ACHAR (b)
+      uuid(j) = ACHAR(b)
     END DO
     IF (i == n) CALL logging%error("uuid bad length", __FILE__, __LINE__)
   END SUBROUTINE decode_uuid
