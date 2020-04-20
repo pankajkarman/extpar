@@ -19,7 +19,7 @@ logfile="extpar_runscript.log"
 netcdf_output_filename='extpar_12km_europe_771x771.nc'
 
 # Sandbox (make sure you have enough disk place at that location)!
-sandboxdir=/scratch/juckerj/sandbox_extpar_full_domain_globe_eth/
+sandboxdir=/scratch/juckerj/review_clm/new_release/
 
 ###############################################
 
@@ -81,7 +81,7 @@ buffer_alb='month_alb_buffer.nc'
 output_alb='month_alb_extpar_cosmo.nc'
 
 #raw_data_aot='aerosol_optical_thickness.nc'
-raw_data_aot='AeroCom1.nc'
+raw_data_aot='aod_AeroCom1.nc'
 buffer_aot='extpar_buffer_aot.nc'
 output_aot='aot_extpar_cosmo.nc'
 
@@ -97,7 +97,6 @@ raw_data_glcc='GLCC_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
 output_glcc='glcc_landuse_cosmo.nc'
 
-# raw_data_globcover='GLOBCOVER_L4_200901_200912_V2.3_int16.nc'
 raw_data_globcover_0='GLOBCOVER_0_16bit.nc'
 raw_data_globcover_1='GLOBCOVER_1_16bit.nc'
 raw_data_globcover_2='GLOBCOVER_2_16bit.nc'
@@ -212,19 +211,6 @@ echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 
 #---
 cat > namelist.py << EOF_namelist_python
-input_grid = {
-        'igrid_type': 2,
-        'icon_grid': '',
-        'pollon':-170.0,
-        'pollat':43.0,
-        'startlon_tot':${startlon_tot},
-        'startlat_tot':${startlat_tot},
-        'dlon':0.11,
-        'dlat':0.11,
-        'ie_tot':771,
-        'je_tot':771
-        }
-
 input_alb = {
         'ialb_type': 2,
         'raw_data_alb_path': '',
@@ -325,6 +311,11 @@ cat > INPUT_ORO << EOF_oro
  ntiles_row = 4,
  topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
 /
+&sgsl_io_extpar
+ lpreproc_oro=.TRUE.
+ sgsl_buffer_file='sgsl_buffer.nc',
+ sgsl_files = '${raw_data_sgsl_A10}' '${raw_data_sgsl_B10}'  '${raw_data_sgsl_C10}'  '${raw_data_sgsl_D10}'  '${raw_data_sgsl_E10}'  '${raw_data_sgsl_F10}'  '${raw_data_sgsl_G10}'  '${raw_data_sgsl_H10}'  '${raw_data_sgsl_I10}'  '${raw_data_sgsl_J10}'  '${raw_data_sgsl_K10}'  '${raw_data_sgsl_L10}'  '${raw_data_sgsl_M10}'  '${raw_data_sgsl_N10}'  '${raw_data_sgsl_O10}'  '${raw_data_sgsl_P10}'
+    /
 EOF_oro
 
 cat > INPUT_OROSMOOTH << EOF_orosm

@@ -259,19 +259,6 @@ echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 
 #---
 cat > namelist.py << EOF_namelist_python
-input_grid = {
-        'igrid_type': 2,
-        'icon_grid': '',
-        'pollon':-170.0,
-        'pollat':43.0,
-        'startlon_tot':${startlon_tot},
-        'startlat_tot':${startlat_tot},
-        'dlon':${dlon},
-        'dlat':${dlat},
-        'ie_tot':${ie_tot},
-        'je_tot':${je_tot},
-        }
-
 input_alb = {
         'ialb_type': 1,
         'raw_data_alb_path': '',
