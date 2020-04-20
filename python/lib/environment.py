@@ -84,7 +84,7 @@ def get_omp_num_threads():
     try:
         omp = os.environ['OMP_NUM_THREADS']
     except KeyError:
-        omp = 2
+        omp = 1
         logging.warning('OMP_NUM_THREADS not set -> '
                         f'use OMP_NUM_THREADS = {omp} instead')
     return omp
