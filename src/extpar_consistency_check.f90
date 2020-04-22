@@ -342,6 +342,7 @@ PROGRAM extpar_consistency_check
        &                                           lu_dataset, & !< name of landuse data set
        &                                           lu_buffer_file, & !< name for glc2000 buffer file
        &                                           lu_output_file, & !< name for glc2000 output file
+       &                                           raw_data_path, &
        &                                           glcc_buffer_file, &    !< name for glcc buffer file
   ! albedo                                      
        &                                           raw_data_alb_path, &   !< path to albedo raw input data
@@ -664,7 +665,9 @@ PROGRAM extpar_consistency_check
        &                                 raw_data_lu_filename, &
        &                                 ilookup_table_lu, &
        &                                 lu_buffer_file, &
-       &                                 lu_output_file)
+       &                                 lu_output_file, &
+       &                                 raw_data_glcc_path_opt = raw_data_path, &
+       &                                 glcc_buffer_file_opt = glcc_buffer_file)
 
   lu_data_southern_boundary = -91.0  
   SELECT CASE (i_landuse_data)
@@ -744,7 +747,8 @@ PROGRAM extpar_consistency_check
          tile_mode,             &
          l_use_glcc              )
 
-  INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
+    INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
+
   CASE(igrid_cosmo)
     CALL read_namelists_extpar_check_cosmo( &
          namelist_file, &
