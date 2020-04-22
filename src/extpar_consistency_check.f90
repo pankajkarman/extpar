@@ -283,6 +283,8 @@ PROGRAM extpar_consistency_check
 
   USE mo_aot_data,              ONLY: read_namelists_extpar_aerosol
 
+  USE mo_flake_routines,        ONLY: read_namelists_extpar_flake
+
   USE mo_flake_tg_fields,       ONLY: fr_lake, &
        &                              lake_depth,    &
        &                              flake_tot_npixel, &
@@ -308,6 +310,8 @@ PROGRAM extpar_consistency_check
 
   USE mo_isa_data,              ONLY: max_tiles_isa, &
        &                              undef_isa, minimal_isa, isa_type
+
+  USE mo_ndvi_routines,         ONLY: read_namelists_extpar_ndvi
 
   IMPLICIT NONE
 
@@ -357,7 +361,10 @@ PROGRAM extpar_consistency_check
        &                                           ahf_buffer_file, & !< name for NDVI buffer file
        &                                           ahf_output_file, & !< name for NDVI output file
   ! NDVI                                        
+       &                                           raw_data_ndvi_path, &
+       &                                           raw_data_ndvi_filename, &
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
+       &                                           ndvi_output_file, &
  ! EMISS                                        
        &                                           emiss_buffer_file, & !< name for EMISS buffer file
        &                                           sst_icon_file, & !< name for SST icon file
@@ -370,15 +377,18 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_t_clim_path, &     !< path to raw data
        &                                           raw_data_t_clim_filename, & !< filename temperature climatology raw data
        &                                           t_clim_buffer_file, & !< name for temperature climatology buffer
-       &                                           t_clim_dummy_file, &  !< to avoid overwriting when reading the INPUT_CHECK namelist
        &                                           t_clim_output_file, & !< name for temperature climatology output file
   ! aerosol optical thickness                   
        &                                           raw_data_aot_path, &        !< path to raw data
        &                                           raw_data_aot_filename, & !< filename temperature climatology raw data
-       &                                           flake_buffer_file, &  !< name for flake buffer file
        &                                           aot_buffer_file, & !< name for aerosol buffer file
        &                                           aot_output_file, & !< name for aerosol output file
        &                                           topo_files(1:max_tiles), & !< filenames globe raw data
+  ! flake
+       &                                           raw_data_flake_path, &
+       &                                           raw_data_flake_filename, &
+       &                                           flake_buffer_file, &  !< name for flake buffer file
+       &                                           flake_output_file, &
   !special points                               
        &                                           path_alb_file, &
        &                                           alb_source, alnid_source, aluvd_source, &
@@ -509,6 +519,24 @@ PROGRAM extpar_consistency_check
   CALL logging%info( '')
 
   !--------------------------------------------------------------------------------------------------------
+  ! Get flake buffer file name from namelist
+  namelist_file = 'INPUT_FLAKE'
+  CALL read_namelists_extpar_flake(namelist_file, &
+       &                           raw_data_flake_path, &
+       &                           raw_data_flake_filename, &
+       &                           flake_buffer_file, &
+       &                           flake_output_file)
+
+  ! Get ndvi buffer file name from namelist
+  namelist_file = 'INPUT_NDVI'
+
+  CALL read_namelists_extpar_ndvi(namelist_file, &
+       &                          raw_data_ndvi_path, &
+       &                          raw_data_ndvi_filename, &
+       &                          ndvi_buffer_file, &
+       &                          ndvi_output_file)
+  
+
   ! Get lradtopo and nhori value from namelist
 
   namelist_file = 'INPUT_RADTOPO'
@@ -707,17 +735,8 @@ PROGRAM extpar_consistency_check
          grib_output_filename, &
          grib_sample, &
          netcdf_output_filename, &
-         orography_buffer_file, &
-         soil_buffer_file, &
-         lu_buffer_file, &
-         glcc_buffer_file, &
-         flake_buffer_file, &
-         ndvi_buffer_file, &
          sst_icon_file, &
          t2m_icon_file, &
-         t_clim_dummy_file, &
-         aot_buffer_file, &
-         alb_buffer_file, &
          i_lsm_data, &
          land_sea_mask_file,&
          lwrite_netcdf,         &
@@ -729,19 +748,11 @@ PROGRAM extpar_consistency_check
 
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
   CASE(igrid_cosmo)
-    CALL read_namelists_extpar_check_cosmo(namelist_file, &
+    CALL read_namelists_extpar_check_cosmo( &
+         namelist_file, &
          grib_output_filename, &
          grib_sample, &
          netcdf_output_filename, &
-         orography_buffer_file, &
-         soil_buffer_file, &
-         lu_buffer_file, &
-         glcc_buffer_file, &
-         flake_buffer_file, &
-         ndvi_buffer_file, &
-         t_clim_dummy_file, &
-         aot_buffer_file, &
-         alb_buffer_file, &
          i_lsm_data, &
          land_sea_mask_file,&
          lwrite_netcdf,         &
