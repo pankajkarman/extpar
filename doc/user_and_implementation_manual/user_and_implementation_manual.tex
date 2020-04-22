@@ -256,21 +256,17 @@ The software modules read from the following namelist files:
 \begin{itemize}
   \item INPUT\_AOT
   \item INPUT\_LU
-  \item INPUT\_ORO
+  \item INPUT\_ORO, INPUT\_OROSMOOTH, INPUT\_RADTOPO, INPUT\_SCALE\_SEP
   \item INPUT\_SOIL
   \item INPUT\_FLAKE
   \item INPUT\_ISA
   \item INPUT\_AHF
-  \item INPUT\_OROSMOOTH
-  \item INPUT\_RADTOPO
-  \item INPUT\_SCALE\_SEP
   \item INPUT\_grid\_org
   \item namelist.py
   \item INPUT\_COSMO\_GRID or INPUT\_ICON\_GRID
 \end{itemize}
 
 \noindent The namelists 'INPUT\_grid\_org' and either 'INPUT\_COSMO\_GRID' or 'INPUT\_ICON\_GRID' are used in all the programs, as they contain the general information of the target grid to which the raw data should be aggregated.\par\medskip\noindent
-
 \pgfdeclareimage[interpolate=true, height = 28.5cm]{EXTPAR_Figure}{EXTPAR_Figure}
 \begin{figure}[hp!]
 \begin{pgfpicture}{0cm}{0cm}{17.5cm}{23.7cm}
@@ -278,23 +274,46 @@ The software modules read from the following namelist files:
  \end{pgfpicture}
 \caption{\label{fig:EXTPAR_Figure} Schematic illustration of the software EXTPAR.}	
 \end{figure}
+
 \newpage
 
-\subsection{Workflow Python}\label{Workflow Python}
-The general workflow of all Python modules is the same. An exemplary workflow of the Python modules is describe below:
+\subsection{Hybrid Python-CDO structure}\label{Python-CDO}
+For three of the external parameters calculated by EXTPAR, namely albedo, NDVI, and the
+Hadley CRU climatologies, problems appeared with target
+resolutions much higher than the provided input data set
+resolutions. The problem is that not all target grid points get assigned a
+proper value. \par\medskip\noindent
 
-\noindent At the beginning of the program information about the environment on which Extpar is running is written to the logfile and all left-overs from prior executions of the same Extpar module are deleted. In a next step each paramter from the namelist 'namelist.py' is checked for correctness as well as assigned to an internal variable for later use in the program. The specifaction about the target grid is directly read from the Fortan namelist-files 'INPUT\_grid\_org. The next step in the modules involves the generation of all necessary meta-data for the buffer files and the write of a namelist files in the style of a Fortran namelist, containing all information needed for the consistency\_check at the end. In case of a COSMO target grid, a grid specification file is written, that is later used by CDO for the interpolation. 
+\noindent The currently used algorithm in the Fortran modules aggregates source grid point
+values onto the target grid where the input data is finer than the target grid
+and uses bi-linear interpolation to fill the remaining grid 
+points where the input data is sparser than the target grid.  However, starting
+from a 5 km global resolution for the target grid, points can potentially get
+assigned unreasonable values because of the insufficiency of the bi-linear 
+interpolation algorithm. \par\medskip\noindent
 
-\noindent After this is all setup, the most compute intensive part like the remapping to the target grid or data modifications are done using CDO. The Python program launches a subshell executing the CDO in it.
-The output from CDO is reshaped in order to fit the dimensions of the buffer files. After the reshape, the fields and its corresponding metadata is written to a netCDF buffer file. The last step of the programme again deletes all intermediate netCDF or other files written during runtime, that do not serve any purpose.
 
-\noindent The namelist 'namelist.py' contains the Python dictionaries 'input\_alb', 'input\_tclim', 'input\_emiss' and 'input\_ndvi'. These dictionaries replace their corresponding Fortran namelist files 'INPUT\_*'.
-\noindent 'input\_alb' provides information about the albedo data type and the paths and filenames of the input/output data.
-\noindent'input\_tclim' contains a switch to determine the type of data (coarse or fine) as well as the paths and filenames of the input/output data.
-\noindent'input\_emiss' contains a switch to determine the type of emissivity data (full range or long-wave) and the filename and paths of the input/output data.
-\noindent'input\_ndvi only provides information about the the path and the filenames of the input/output data.
+\noindent To resolve this issue, a rewrite of those Fortran module in Python, using the more sophisticated interpolation methods
+from CDO with support for all grids was conducted.  Because the interpolation methods implemented in CDO are faster then those
+in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. 
+\par\medskip\noindent
 
-\noindent Module-specific modifications or additional computations are described in the paragraph \textit{Data processing} of each Python module.
+\noindent The interpolation algorithms selected are:
+
+\begin{itemize}
+\item \textbf{albedo} \textit{distance-weighted average remapping}
+\item \textbf{NDVI} \textit{first order conservative remapping}
+\item \textbf{CRU climatology} \textit{distance-weighted average remapping}
+\item \textbf{emissivity} \textit{first order conservativ remapping}
+\end{itemize}
+
+The description of the used algorithms can be found via the CDO
+documentation: 
+\\
+(https://code.mpimet.mpg.de/projects/cdo/embedded/cdo.pdf).
+\\
+
+
 
 \subsection{Summary}\label{Summary}
 The external parameters can be generated by using twelve programs to aggregate the various raw datasets to the target grid and after this by calling the final program for the important consistency check.
@@ -802,6 +821,25 @@ The final results are written into a netcdf file. The output file name can be sp
 
 \section{Python modules}\label{Python modules}
 
+\subsection{General workflow}\label{General workflow}
+The general workflow of all Python modules is the same. An exemplary workflow of the Python modules is describe below:
+
+\noindent At the beginning of the program information about the environment on which Extpar is running is written to the logfile and all left-overs from prior executions of the same Extpar module are deleted. In a next step each paramter from the namelist 'namelist.py' is checked for correctness as well as assigned to an internal variable for later use in the program. The specifaction about the target grid is directly read from the Fortan namelist-files 'INPUT\_grid\_org. The next step in the modules involves the generation of all necessary meta-data for the buffer files and the write of a namelist files in the style of a Fortran namelist, containing all information needed for the consistency\_check at the end. In case of a COSMO target grid, a grid specification file is written, that is later used by CDO for the interpolation. 
+
+\noindent After this is all setup, the most compute intensive part like the remapping to the target grid or data modifications are done using CDO. The Python program launches a subshell executing the CDO in it.
+The output from CDO is reshaped in order to fit the dimensions of the buffer files. After the reshape, the fields and its corresponding metadata is written to a netCDF buffer file. The last step of the programme again deletes all intermediate netCDF or other files written during runtime, that do not serve any purpose.
+
+\noindent Module-specific modifications or additional computations are described in the paragraph \textit{Data processing} of each Python module.
+\paragraph{Namelist}\ \par\medskip\noindent
+\noindent The namelist 'namelist.py' contains the Python dictionaries 'input\_alb', 'input\_tclim', 'input\_emiss' and 'input\_ndvi'. These dictionaries replace their corresponding Fortran namelist files 'INPUT\_*'.
+
+\noindent 'input\_alb' provides information about the albedo data type and the paths and filenames of the input/output data.
+
+\noindent'input\_tclim' contains a switch to determine the type of data (coarse or fine) as well as the paths and filenames of the input/output data.
+
+\noindent'input\_emiss' contains a switch to determine the type of emissivity data (full range or long-wave) and the filename and paths of the input/output data.
+
+\noindent'input\_ndvi only provides information about the the path and the filenames of the input/output data.
 
 \subsection{extpar\_alb\_to\_buffer}\label{extpar_alb_to_buffer}
 \subsubsection{Short description of the subprogram \textit{extpar\_alb\_to\_buffer}}
@@ -921,42 +959,6 @@ The EXTPAR software is subject to several limitations:
 \item The OpenMP implementation is tested for ICON only.
 \item GRIB output is not supported anymore.  
 \end{itemize}
-
-\subsection{Limitations with high resolution target model grids}\label{cdo_replacement}
-For three of the external parameters calculated by EXTPAR, namely albedo, NDVI, and the
-Hadley CRU climatologies, problems appeared with target
-resolutions much higher than the provided input data set
-resolutions. The problem is that not all target grid points get assigned a
-proper value. \par\medskip\noindent
-
-The currently used algorithm in the Fortran modules aggregates source grid point
-values onto the target grid where the input data is finer than the target grid
-and uses bi-linear interpolation to fill the remaining grid 
-points where the input data is sparser than the target grid.  However, starting
-from a 5 km global resolution for the target grid, points can potentially get
-assigned unreasonable values because of the insufficiency of the bi-linear 
-interpolation algorithm. \par\medskip\noindent
-
-
-To resolve this issue, a rewrite of those Fortran module in Python, using the more sophisticated interpolation methods
-from CDO with support for all grids was conducted.  Because the interpolation methods implemented in CDO are faster then those
-in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. 
-\par\medskip\noindent
-
-The interpolation algorithms selected are:
-
-\begin{itemize}
-\item \textbf{albedo} \textit{distance-weighted average remapping}
-\item \textbf{NDVI} \textit{first order conservative remapping}
-\item \textbf{CRU climatology} \textit{distance-weighted average remapping}
-\item \textbf{emissivity} \textit{first order conservativ remappinf}
-\end{itemize}
-
-The description of the used algorithms can be found via the CDO
-documentation: 
-\\
-(https://code.mpimet.mpg.de/projects/cdo/embedded/cdo.pdf).
-\\
 
 \clearpage
 
