@@ -443,7 +443,6 @@ PROGRAM extpar_consistency_check
        &                                           i_gcv_bare_soil = 20 ! GlobCover land-use class for bare-soil
 
 
-  ! variables for the T_CLIM
   LOGICAL                                       :: last=.FALSE., & ! in TCL leave loop
        &                                           foundtcl=.FALSE., & ! in TCL
        &                                           lsso_param,lsubtract_mean_slope, &
@@ -457,7 +456,7 @@ PROGRAM extpar_consistency_check
        &                                           lwrite_netcdf, &  !< flag to enable netcdf output for COSMO
        &                                           lwrite_grib, &    !< flag to enable GRIB output for COSMO
        &                                           lflake_correction, & !< flag to correct fr_lake and depth_lake near coastlines
-       &                                           tile_mask, ltcl_merge, &
+       &                                           tile_mask, &
   ! Namelist values for topography scale separation
        &                                           lscale_separation, &
   ! Namelist values for orography smoothing
@@ -743,7 +742,6 @@ PROGRAM extpar_consistency_check
          lwrite_grib,           &
          number_special_points, &
          tile_mode,             &
-         ltcl_merge,            &
          l_use_glcc              )
 
   INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
@@ -759,31 +757,18 @@ PROGRAM extpar_consistency_check
          lwrite_grib,           &
          number_special_points, &
          tile_mode,             &
-         lflake_correction,     &
-         ltcl_merge)
+         lflake_correction)
 
     INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
   END SELECT
 
-  IF(ltcl_merge) THEN
- 
-    namelist_file_t_clim = 'INPUT_TCLIM_FINAL'
-    CALL read_namelists_extpar_t_clim(namelist_file_t_clim,     &
-                                      it_cl_type,               &
-                                      raw_data_t_clim_path,     &
-                                      raw_data_t_clim_filename, &
-                                      t_clim_buffer_file , &
-                                      t_clim_output_file  )
-
-  ELSE
-    namelist_file_t_clim = 'INPUT_TCLIM'
-    CALL read_namelists_extpar_t_clim(namelist_file_t_clim,     &
-         it_cl_type,               &
-         raw_data_t_clim_path,     &
-         raw_data_t_clim_filename, &
-         t_clim_buffer_file      , &
-         t_clim_output_file        )
-  END IF
+  namelist_file_t_clim = 'INPUT_TCLIM'
+  CALL read_namelists_extpar_t_clim(namelist_file_t_clim,     &
+       it_cl_type,               &
+       raw_data_t_clim_path,     &
+       raw_data_t_clim_filename, &
+       t_clim_buffer_file      , &
+       t_clim_output_file        )
 
   ! read namelist for input EMISS data
   namelist_file = 'INPUT_EMISS'
@@ -1108,39 +1093,17 @@ PROGRAM extpar_consistency_check
   CALL logging%info( '')
   CALL logging%info('CRU')
 
-  IF (ltcl_merge) THEN
-    SELECT CASE(it_cl_type)
-      CASE(i_t_cru_fine)
-        CALL read_netcdf_buffer_cru(t_clim_buffer_file,&
-             &                      tg,       &
-             &                      crutemp,  &
-             &                      cruelev)
-        CALL read_netcdf_buffer_cru(t_clim_output_file, &
-             &                      tg,        &
-             &                      crutemp2)
-      CASE(i_t_cru_coarse)
-        CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
-             &                      tg,        &
-             &                      crutemp)
-    END SELECT
-  ELSE
-    SELECT CASE(it_cl_type)
-      CASE(i_t_cru_fine)
-        CALL read_netcdf_buffer_cru(t_clim_buffer_file,&
-         &                                     tg,       &
-         &                                     crutemp,  &
-         &                                     cruelev)  
-      CASE(i_t_cru_coarse)
-        CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
-         &                                     tg,        &
-         &                                     crutemp)
-    END SELECT
-
-    CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
-       &                                     tg,      &
+  SELECT CASE(it_cl_type)
+    CASE(i_t_cru_fine)
+      CALL read_netcdf_buffer_cru(t_clim_buffer_file,&
+       &                                     tg,       &
+       &                                     crutemp,  &
+       &                                     cruelev)  
+    CASE(i_t_cru_coarse)
+      CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
+       &                                     tg,        &
        &                                     crutemp)
-
-  END IF
+  END SELECT
 
   !-------------------------------------------------------------------------
   CALL logging%info( '')
@@ -2031,132 +1994,117 @@ PROGRAM extpar_consistency_check
   CALL logging%info( '')
   CALL logging%info('T_CL correction')
 
-  IF (ltcl_merge) THEN
-  !-------------------------------------------------------------------------
+  IF (igrid_type == igrid_cosmo) THEN
+    SELECT CASE(it_cl_type)
+      CASE(i_t_cru_fine)
 
-    DO j=1,tg%je
-      DO i=1,tg%ie
-        IF ( crutemp(i,j,1) > 0.0 ) THEN  ! Fine
-          crutemp(i,j,1) = crutemp(i,j,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i,j,1))
-        ELSE
-          crutemp(i,j,1) = crutemp2(i,j,1) ! Coarse
-        END IF
-      END DO
-    END DO
-  ELSE 
-     
-    IF (igrid_type == igrid_cosmo) THEN
-      SELECT CASE(it_cl_type)
-        CASE(i_t_cru_fine)
-
-          crutemp2 = crutemp
-          DO j=1,tg%je
-            DO i=1,tg%ie
-              last = .FALSE.
-              IF ( fr_land_lu(i,j,1) < 0.5) THEN
-                crutemp(i,j,1)  = -1.E20_wp
+        crutemp2 = crutemp
+        DO j=1,tg%je
+          DO i=1,tg%ie
+            last = .FALSE.
+            IF ( fr_land_lu(i,j,1) < 0.5) THEN
+              crutemp(i,j,1)  = -1.E20_wp
+            ELSE
+              IF ( crutemp(i,j,1) > 0.0 ) THEN
+                foundtcl = .TRUE.
+                crutemp(i,j,1) = crutemp(i,j,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i,j,1) )
               ELSE
-                IF ( crutemp(i,j,1) > 0.0 ) THEN
-                  foundtcl = .TRUE.
-                  crutemp(i,j,1) = crutemp(i,j,1) + 0.65 * 0.01*( cruelev(i,j,1) - hh_topo(i,j,1) )
-                ELSE
-                  ! 3x3 search
-                  foundtcl = .FALSE.
-                  DO jj=-1,2
-                    DO ii=-1,2
-                      IF (j+jj > 0 .and.  j+jj < tg%je .and. i+ii > 0 .and. i+ii < tg%ie) THEN
-                        IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
-                          crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i+ii,j+jj,1) - hh_topo(i,j,1) )
-                          foundtcl = .TRUE.
-                          last = .TRUE.
-                          exit
-                        END IF
-                      ENDIF   ! inside domain
-                    END DO
-                    IF  (last) THEN
-                      exit
-                    ENDIF
-                  END DO
-                  ! if still missing go along longitude
-                  IF (.NOT. foundtcl) THEN
-                    tclsum = 0._wp
-                    elesum = 0._wp
-                    ntclct = 0
-                    l = 1
-                    DO WHILE (.NOT. foundtcl .AND. l .le. (tg%ie / 6))
-                      iml=MAX(1_i4,i-3*l)
-                      imu=i+2-3*l
-                      ipl=i+3*l-2
-                      ipu=MIN(tg%ie,i+3*l)
-                      jml=MAX(1_i4,j-l)
-                      jmu=j-l
-                      jpl=j+l
-                      jpu=MIN(tg%je,INT(j+l,i4))
-                      IF (jml == jmu) THEN
-                        DO ii=iml,ipu
-                          IF ( crutemp2(ii,jml,1) > 0.0 ) THEN
-                            tclsum = tclsum + crutemp2(ii,jml,1)
-                            elesum = elesum + cruelev(ii,jml,1)
-                            ntclct = ntclct + 1
-                          ENDIF
-                        ENDDO
-                      ELSE
-                        jml = jml - 1
-                      ENDIF
-                      IF (jpl == jpu) THEN
-                        DO ii=iml,ipu
-                          IF ( crutemp2(ii,jpu,1) > 0.0 ) THEN
-                            tclsum = tclsum + crutemp2(ii,jpu,1)
-                            elesum = elesum + cruelev(ii,jpu,1)
-                            ntclct = ntclct + 1
-                          ENDIF
-                        ENDDO
-                      ELSE
-                        jpu = jpu + 1
-                      ENDIF
-                      IF (iml .LE. imu) THEN
-                        DO jj = jml+1,jpu-1
-                          DO ii = iml,imu
-                            IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
-                              tclsum = tclsum + crutemp2(ii,jj,1)
-                              elesum = elesum + cruelev(ii,jj,1)
-                              ntclct = ntclct + 1
-                            ENDIF
-                          ENDDO
-                        ENDDO
-                      ENDIF
-                      IF (ipl .LE. ipu) THEN
-                        DO jj = jml+1,jpu-1
-                          DO ii = ipl,ipu
-                            IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
-                              tclsum = tclsum + crutemp2(ii,jj,1)
-                              elesum = elesum + cruelev(ii,jj,1)
-                              ntclct = ntclct + 1
-                            ENDIF
-                          ENDDO
-                        ENDDO
-                      ENDIF
-                      IF (ntclct > 0) THEN
-                        crutemp(i,j,1) = tclsum/REAL(ntclct,wp) + 0.0065 * (elesum/REAL(ntclct,wp) - hh_topo(i,j,1))
+                ! 3x3 search
+                foundtcl = .FALSE.
+                DO jj=-1,2
+                  DO ii=-1,2
+                    IF (j+jj > 0 .and.  j+jj < tg%je .and. i+ii > 0 .and. i+ii < tg%ie) THEN
+                      IF ( crutemp2(i+ii,j+jj,1) > 0.0 ) THEN
+                        crutemp(i,j,1) = crutemp2(i+ii,j+jj,1) + 0.65 * 0.01*( cruelev(i+ii,j+jj,1) - hh_topo(i,j,1) )
                         foundtcl = .TRUE.
-                      ELSE
-                        l = l + 1
-                      ENDIF
-                    ENDDO  ! while
-                  ENDIF    ! .not. foundtcl
-
-                  IF ( .NOT. foundtcl) THEN
-                    WRITE(message_text,*) 'No temperature data for T_CL correction  at point: ', i,j
-                    CALL logging%warning(message_text)
-                    crutemp(i,j,1) = 288.15 - 0.0065 * hh_topo(i,j,1)
+                        last = .TRUE.
+                        exit
+                      END IF
+                    ENDIF   ! inside domain
+                  END DO
+                  IF  (last) THEN
+                    exit
                   ENDIF
+                END DO
+                ! if still missing go along longitude
+                IF (.NOT. foundtcl) THEN
+                  tclsum = 0._wp
+                  elesum = 0._wp
+                  ntclct = 0
+                  l = 1
+                  DO WHILE (.NOT. foundtcl .AND. l .le. (tg%ie / 6))
+                    iml=MAX(1_i4,i-3*l)
+                    imu=i+2-3*l
+                    ipl=i+3*l-2
+                    ipu=MIN(tg%ie,i+3*l)
+                    jml=MAX(1_i4,j-l)
+                    jmu=j-l
+                    jpl=j+l
+                    jpu=MIN(tg%je,INT(j+l,i4))
+                    IF (jml == jmu) THEN
+                      DO ii=iml,ipu
+                        IF ( crutemp2(ii,jml,1) > 0.0 ) THEN
+                          tclsum = tclsum + crutemp2(ii,jml,1)
+                          elesum = elesum + cruelev(ii,jml,1)
+                          ntclct = ntclct + 1
+                        ENDIF
+                      ENDDO
+                    ELSE
+                      jml = jml - 1
+                    ENDIF
+                    IF (jpl == jpu) THEN
+                      DO ii=iml,ipu
+                        IF ( crutemp2(ii,jpu,1) > 0.0 ) THEN
+                          tclsum = tclsum + crutemp2(ii,jpu,1)
+                          elesum = elesum + cruelev(ii,jpu,1)
+                          ntclct = ntclct + 1
+                        ENDIF
+                      ENDDO
+                    ELSE
+                      jpu = jpu + 1
+                    ENDIF
+                    IF (iml .LE. imu) THEN
+                      DO jj = jml+1,jpu-1
+                        DO ii = iml,imu
+                          IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
+                            tclsum = tclsum + crutemp2(ii,jj,1)
+                            elesum = elesum + cruelev(ii,jj,1)
+                            ntclct = ntclct + 1
+                          ENDIF
+                        ENDDO
+                      ENDDO
+                    ENDIF
+                    IF (ipl .LE. ipu) THEN
+                      DO jj = jml+1,jpu-1
+                        DO ii = ipl,ipu
+                          IF ( crutemp2(ii,jj,1) > 0.0 ) THEN
+                            tclsum = tclsum + crutemp2(ii,jj,1)
+                            elesum = elesum + cruelev(ii,jj,1)
+                            ntclct = ntclct + 1
+                          ENDIF
+                        ENDDO
+                      ENDDO
+                    ENDIF
+                    IF (ntclct > 0) THEN
+                      crutemp(i,j,1) = tclsum/REAL(ntclct,wp) + 0.0065 * (elesum/REAL(ntclct,wp) - hh_topo(i,j,1))
+                      foundtcl = .TRUE.
+                    ELSE
+                      l = l + 1
+                    ENDIF
+                  ENDDO  ! while
+                ENDIF    ! .not. foundtcl
+
+                IF ( .NOT. foundtcl) THEN
+                  WRITE(message_text,*) 'No temperature data for T_CL correction  at point: ', i,j
+                  CALL logging%warning(message_text)
+                  crutemp(i,j,1) = 288.15 - 0.0065 * hh_topo(i,j,1)
                 ENDIF
               ENDIF
-            ENDDO
+            ENDIF
           ENDDO
-      END SELECT
-    ENDIF
-  END IF
+        ENDDO
+    END SELECT
+  ENDIF
 
   SELECT CASE(isoil_data)
     CASE(HWSD_data)

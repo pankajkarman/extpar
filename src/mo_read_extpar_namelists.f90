@@ -98,7 +98,6 @@ MODULE mo_read_extpar_namelists
        &                                      lwrite_grib,           &
        &                                      number_special_points, &
        &                                      tile_mode,             &
-       &                                      ltcl_merge,            &
        &                                      l_use_glcc              )
 
     CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
@@ -113,7 +112,7 @@ MODULE mo_read_extpar_namelists
     INTEGER(KIND=i4),INTENT(OUT)              :: number_special_points, i_lsm_data, &
          &                                       tile_mode
 
-    LOGICAL,INTENT(OUT)                       :: lwrite_netcdf, lwrite_grib, ltcl_merge, l_use_glcc
+    LOGICAL,INTENT(OUT)                       :: lwrite_netcdf, lwrite_grib, l_use_glcc
 
     !local variables
     INTEGER(KIND=i4)                          :: nuin, ierr
@@ -130,7 +129,6 @@ MODULE mo_read_extpar_namelists
          &                                 lwrite_grib, &
          &                                 number_special_points, &
          &                                 tile_mode, &
-         &                                 ltcl_merge, &
          &                                 l_use_glcc
 
 
@@ -141,7 +139,6 @@ MODULE mo_read_extpar_namelists
     tile_mode = 0
     lwrite_netcdf = .TRUE.
     lwrite_grib   = .FALSE.
-    ltcl_merge    = .TRUE.
     l_use_glcc    = .TRUE. ! Assume that GLCC land-use data file exists!
 
     OPEN(NEWUNIT=nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
@@ -185,8 +182,7 @@ MODULE mo_read_extpar_namelists
        &                                       lwrite_grib,           &
        &                                       number_special_points, &
        &                                       tile_mode,             &
-       &                                       lflake_correction,     &
-       &                                       ltcl_merge)
+       &                                       lflake_correction)
 
     CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
 
@@ -198,7 +194,7 @@ MODULE mo_read_extpar_namelists
     INTEGER(KIND=i4), INTENT(OUT)             :: number_special_points, i_lsm_data, &
          &                                       tile_mode
 
-    LOGICAL, INTENT(OUT)                      :: lwrite_netcdf, lwrite_grib, lflake_correction, ltcl_merge
+    LOGICAL, INTENT(OUT)                      :: lwrite_netcdf, lwrite_grib, lflake_correction
 
     INTEGER(KIND=i4)                          :: nuin, ierr
 
@@ -212,14 +208,12 @@ MODULE mo_read_extpar_namelists
          lwrite_grib, &
          tile_mode, &
          number_special_points, &
-         lflake_correction, &
-         ltcl_merge
+         lflake_correction
 
     lwrite_netcdf = .TRUE.
     lwrite_grib   = .FALSE.
     lflake_correction = .TRUE.
     tile_mode = 0
-    ltcl_merge = .FALSE.
 
     CALL logging%info('Enter routine: read_namelists_extpar_check_cosmo')
 
@@ -246,8 +240,6 @@ MODULE mo_read_extpar_namelists
     WRITE(message_text,'(a,i0)') 'Tile mode: ', tile_mode
     CALL logging%info(message_text)
     WRITE(message_text,*) 'Flake corrrection: ', lflake_correction
-    CALL logging%info(message_text)
-    WRITE(message_text,*) 'Ltcl merge: ', ltcl_merge
     CALL logging%info(message_text)
 
     CALL logging%info('Exit routine: read_namelists_extpar_check_cosmo')
