@@ -53,9 +53,27 @@ forget to issue a "make clean" in between.
 
 ##### Kesch
 
-You have to load the following modules:
-    module load netcdf
+First, you have to append the module path:
+    export MODULEPATH=$MODULEPATH:/oprusers/owm/modules/RH7.5/modulefiles
+Then, you have to load the following modules:
+    module load gnu_PE/17.02
     module load PrgEnv-gnu
+    module load netcdf/4.2.1.1-gnu-5.4.0
+
+Then simply type "make" to compile with optimization options or
+"make debug" to compile with debug options.
+In case you change the target (from debug to opt or the other way around), don not 
+forget to issue a "make clean" in between.
+
+##### Tsa and Arolla
+
+First, you have to source a setup  
+source /oprusers/osm/.opr_setup_dir  
+Then append the module path  
+export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles 
+Finally load the two modules  
+module load PrgEnv-gnu/19.2  
+module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib  
 
 Then simply type "make" to compile with optimization options or
 "make debug" to compile with debug options.

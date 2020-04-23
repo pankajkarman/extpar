@@ -33,6 +33,12 @@ off from the develop branch and merged into the master branch. It is named
 
 Supporting branches are removed once successfully merged in one of the main branch.
 
+### Developments with new input data sets
+Any new Extpar code that is accompanied by a new input data file or files should be added with a simultaneous pull request
+in both this code repository (for the code changes) and in the [extpar-input-data repository](https://gitlab.dkrz.de/extpar-data/extpar-input-data)
+(for the addition of the input data files). The **topic** branch for both pull requests should have the same name, in order to enable
+the synchronization of the code and input-data repositories.
+
 ### Testing new developments
 Once a developer has finished developing a new feature or bug fix, they should make a 
 pull request on the Github repository from their topic branch into the develop branch.  
@@ -42,6 +48,25 @@ This will start the automated testing, and the code will be compiled and tested 
 If the tests fail, then the developer should fix the issues and resubmit the testing on Jenkins.  
 Once all of the tests are passing, then they should notify the source code administrator that the pull
 request is ready for review and merging into the develop branch.  
+
+### Logging
+In case you want to add some additional prints in Extpar, please use the logger described below.
+
+CALL the built-in logger-functions in order to print messages or variables in the specific logfile of each Extpar executable.
+The logger has three different levels of messages to print:
+
+1. logging%info(your_message): info-prints for better orientation during code execution, variables or other stuff.
+
+2. logging%warning(your_message): warnings, like wrong namelist-inputs, unsupported NetCDF versions or problems with some data points.
+
+3. logging%error(your_message, __FILE__,__LINE__): errors that occur during I/O, allocation, that requires an abort of Extpar. 
+
+As your_message needs to be a sequence of characters, use
+WRITE(message_text,*)var_x, 'is now', var_y
+and then CALL logging%inf0(message_text) to print the values of var_x and var_y to the logfile.
+
+For quick debugging-prints ONLY use
+WRITE(logging%fileunit,*)var_x, 'is now', var_y 
 
 ## Coding rules and best practices
 

@@ -1,4 +1,60 @@
 # Release notes
+ ## 5.3
+ This is an intermediate release that reduces code complexity for topo_to_buffer.exe, enhances the testing for INTEL compiler and further cleans the code
+
+ * Merge sgsl_to_buffer into topo_to_buffer
+   - New namelist &oro_runcontrol in INPUT_ORO containing lcompute_sgsl
+   - For users of former sgsl_to_buffer.exe, namelist &sgsl_io_extpar now moved to INPUT_ORO, containing the new parameter lpreproc_oro
+   - The functionality is kept by default for all newly introduced namelist parameters, so for the same workflows as before only change lcompute_sgsl
+
+ * Testsuite
+   - Additional check for compiler warning of GCC,INTEL and NAG
+   - Unify runscripts for COSMO and ICON
+   - Slightly different domain for COSMO1, reducing the required number of ASTER tiles to only 1
+   - Add references for INTEL in a seperate directory in data
+
+ * Cleanup
+   - Initialize logicals in extpar_consistency_check properly to prevent bugs
+   - Remove hardcoded filename in emiss_to_buffer
+   - Finalize logging and coding standard as described in developers guide
+
+ ## 5.2.1
+ This is a minor release containing a bug fix and a small feature addition.
+ * Bug fix for ICON/COSMO file- and variable name mismatch in topography calculation
+ * Add Extpar version number (pulled from git release number) to output NetCDF file
+ 
+ ## 5.2
+ This is an intermediate release introducing extpar_emiss_to_buffer, an improved logging, enhanced error checking during I/O and a lot of clean-up and formatting
+
+ * New Extpar executable emiss_to_buffer
+   - Aggregates CAMEL emissivity data to the target grid
+   - Two raw datasets available (full range and only long-wave radiation)
+
+ * Consistent logger for all Extpar executables
+   - Three levels of messages: info, warning and error
+   - Each Extpar executable write to its own logfile
+
+ * Clean-up and formatting of all src-files
+   - Remove all unused variables and USE-statements
+   - Remove all unused dummy arguments in subroutines
+   - Implement formatting according the coding-guidelines for Extpar
+ 
+ * Make all precisions consistent
+   - Remove i8 from Extpar, instead make all INTEGER(KIND=i4)
+   - Change all REAL to REAL(KIND=wp), wp is defined in mo_kind
+ 
+ * Small changes in some fields due to fix of implicit type conversion during runtime
+   - Z0, max difference ~10^(-7)
+   - DEPTH_LK, max difference ~10^(-6)
+
+ * Enhanced error checking during I/O
+   - All namelist I/O checked, abort of Extpar in case of incorrect (typos, wrong variables, etc,) namelists
+
+
+ ## 5.1.2
+ This is a minor release containing a few bug fixes.
+ * Fix build environment on Kesch
+ * Add missing definition of skinc_lu meta data when ECOCLIMAP dataset is chosen. 
 
  ## 5.1.1
  This is a minor release containing a few bug fixes.

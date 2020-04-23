@@ -11,6 +11,7 @@ mo_agg_glcc.o \
 mo_agg_globcover.o \
 mo_agg_ecci.o \
 mo_agg_ecoclimap.o \
+mo_agg_emiss.o \
 mo_agg_ndvi.o \
 mo_agg_sgsl.o \
 mo_agg_soil.o \
@@ -34,7 +35,10 @@ mo_cru_target_fields.o \
 mo_ecoclimap_data.o \
 mo_ecoclimap_lookup_tables.o \
 mo_ecoclimap_tg_fields.o \
-mo_exception.o \
+mo_emiss_data.o \
+mo_emiss_output_nc.o \
+mo_emiss_routines.o \
+mo_emiss_tg_fields.o \
 mo_extpar_output_nc.o \
 mo_flake_data.o \
 mo_flake_output_nc.o \
@@ -71,14 +75,12 @@ mo_ndvi_routines.o \
 mo_ndvi_tg_fields.o \
 mo_oro_filter.o \
 mo_physical_constants.o \
+mo_preproc_for_sgsl.o \
 mo_read_extpar_namelists.o \
 mo_search_icongrid.o \
 mo_search_ll_grid.o \
 mo_search_target_grid.o \
-mo_sgsl_data.o \
-mo_sgsl_output_nc.o \
 mo_sgsl_routines.o \
-mo_sgsl_tg_fields.o \
 mo_soil_consistency.o \
 mo_soil_data.o \
 mo_soil_output_nc.o \
