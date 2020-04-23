@@ -208,8 +208,8 @@ def determine_albedo_varnames(ialb_type):
         var_3 = 'aluvd'
 
     elif (ialb_type == 2):
-        var_1 = 'ALB_DRY'
-        var_2 = 'ALB_SAT'
+        var_1 = 'ALB_SAT'
+        var_2 = 'ALB_DRY'
         var_3 = ''
 
     elif (ialb_type == 3):
