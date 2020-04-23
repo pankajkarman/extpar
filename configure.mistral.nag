@@ -47,6 +47,7 @@ module purge
 module load automake
 module load autoconf               
 module load libtool
+module load git
 module load cdo
 module load anaconda3
 module load gcc/6.4.0
@@ -120,10 +121,16 @@ ${EXTRA_CONFIG_ARGS} \
 
 banner "Run make ..."
 
+if [[ -e modules.env ]] 
+then
+    rm -f modules.env
+fi
+
 while read module_command
 do
-    redln "   ${module_command}"
-done < <(history | awk '/^[ ]*[0-9]+[ ]+module/{$1=""; print $0 >> "modules.env"}')
+    blueln "   ${module_command}"
+    echo "${module_command}" >> modules.env
+done < <(history | awk '/^[ ]*[0-9]+[ ]+module/{$1=""; print $0}')
 
 echo
 redln "To be compatible with the configure environment run:"
