@@ -26,10 +26,8 @@ case "$(hostname)" in
 
         ;;
     tsa*)
-        source /oprusers/osm/.opr_setup_dir
-        export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
-        module load PrgEnv-gnu/19.2
-        module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib
+        ./configure.tsa.gcc
+        source modules.env
         make clean
         echo compile extpar...
         make &> compile.log

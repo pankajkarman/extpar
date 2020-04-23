@@ -154,6 +154,7 @@ distclean: clean
 	  done; \
 	fi
 	rm -f Makefile
+	rm -f modules.env
 
 # Installation rules:
 install: $(prog_files)
