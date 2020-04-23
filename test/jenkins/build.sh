@@ -38,26 +38,10 @@ case "$(hostname)" in
         then
            source /sw/rhel6-x64/etc/profile.mistral
         fi
-        case "$compiler" in
-            gcc)
-                export MACH=mistral.gcc
-                module unload gcc
-                module load gcc/6.2.0
-                ;;
-            nag)
-                export MACH=mistral.nag
-                module unload nag
-                module load nag/6.2
-                ;;
-            intel)
-                export MACH=mistral.intel
-                module unload gcc
-                module load gcc/6.2.0
-                module unload intel
-                module load intel/18.0.4
-                ;;
-        esac
-        module list
+        git submodule init
+        git submodule update
+        ./configure.mistral.$compiler
+        source modules.env
         make clean
         echo compile extpar...
         make &> compile.log
