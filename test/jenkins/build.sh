@@ -5,27 +5,24 @@
 case "$(hostname)" in
     # CSCS machines
     daint*)
-        module swap PrgEnv-cray PrgEnv-pgi
-        module load cray-netcdf
-        module list
-        make clean
-        make &> compile.log
-        ;;
-    kesch*)
-        export MODULEPATH=$MODULEPATH:/oprusers/owm/modules/RH7.5/modulefiles
-        module load PE/17.06
-        module load gcc
-        module load netcdf/4.4.1.1-gmvolf-17.02
-        module load cdo
-        module list
+        git submodule init
+        git submodule update
+        ./configure.daint.gcc
+        source modules.env
         make clean
         echo compile extpar...
         make &> compile.log
         echo          ...done
         echo See compile.log for more information!
-
         ;;
+
+    kesch*)
+        echo Extpar is no longer supported on Kesch!
+        ;;
+
     tsa*)
+        git submodule init
+        git submodule update
         ./configure.tsa.gcc
         source modules.env
         make clean
