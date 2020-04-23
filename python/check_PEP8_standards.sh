@@ -33,7 +33,7 @@
 
 # check arguments
 
-# assume that argument is the PYTHONPATH environment
+# assume that argument is the path to python/lib
 
 # use case 2:
 if [ ${#} -gt 0 ]; then

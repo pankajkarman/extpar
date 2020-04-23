@@ -8,14 +8,8 @@
 # Author       Jonas Jucker
 # Maintainer   katherine.osterried@env.ethz.ch
 
-# check environment variables
-if [ -z "${PYTHONPATH}" ] ; then
-  echo "Environment variable PYTHONPATH is not set" 1>&1
-  exit 20 # FAIL
-fi
-
-path_to_lib=${PYTHONPATH}
-path_to_buffer_scripts=$path_to_lib/../
+path_to_lib="../../python/lib"
+path_to_buffer_scripts="../../python"
 
 # check if necessary scripts exist
 if [ ! -f "$path_to_buffer_scripts/check_PEP8_standards.sh" ] ; then
