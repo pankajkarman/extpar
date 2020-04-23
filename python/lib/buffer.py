@@ -109,7 +109,7 @@ def write_field_to_buffer(buffer, field, field_meta):
 
 def write_3d_field(buffer,field_3d, meta):
     '''
-    write 3d field to buffer
+    write 3d field.data to buffer
 
     buffer is the netCDF file to write field_3d
     field_3d needs to have the same shape as netcdf_var
@@ -126,7 +126,7 @@ def write_3d_field(buffer,field_3d, meta):
     netcdf_var.units = meta.units
 
     try:
-        netcdf_var[:,:,:] = field_3d
+        netcdf_var[:,:,:] = field_3d.data
     except ValueError:
         logging.error('Error during netCDF IO', exc_info=True)
         sys.exit(1)
@@ -136,7 +136,7 @@ def write_3d_field(buffer,field_3d, meta):
 
 def write_4d_field(buffer,field_4d, meta):
     '''
-    write 4d field to buffer
+    write 4d field.data to buffer
 
     buffer is the netCDF file to write field_4d
     field_4d needs to have the same shape as netcdf_var
@@ -153,7 +153,7 @@ def write_4d_field(buffer,field_4d, meta):
     netcdf_var.units = meta.units
 
     try:
-        netcdf_var[:,:,:,:] = field_4d
+        netcdf_var[:,:,:,:] = field_4d.data
     except ValueError:
         logging.error('Error during netCDF IO', exc_info=True)
         sys.exit(1)
