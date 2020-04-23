@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# COSMO TECHNICAL TESTSUITE
+#
+# This script checks whether the Extpar Python-code violates
+# the Pep8 coding standards
+#
+# Author       Jonas Jucker
+# Maintainer   katherine.osterried@env.ethz.ch
+
+# check environment variables
+if [ -z "${PYTHONPATH}" ] ; then
+  echo "Environment variable PYTHONPATH is not set" 1>&1
+  exit 20 # FAIL
+fi
+
+path_to_lib=${PYTHONPATH}
+path_to_buffer_scripts=$path_to_lib/../
+
+# check if necessary scripts exist
+if [ ! -f "$path_to_buffer_scripts/check_PEP8_standards.sh" ] ; then
+  echo "Script check_PEP8_standards.sh not found" 1>&1
+  exit 20 # FAIL
+fi
+
+if [ ! -f "$path_to_lib/pycodestyle.py" ] ; then
+  echo "Script pycodestyle not found" 1>&1
+  exit 20 # FAIL
+fi
+
+# count number of py-files
+py_files_in_lib=`find $path_to_lib/*.py | wc -l`
+py_buffer_files=`find $path_to_buffer_scripts/*.py | wc -l`
+
+if [ $py_files_in_lib -lt 1 ] ; then
+  echo "No Python files found in directory $path_to_lib" 1>&1
+  exit 20 # FAIL
+fi
+
+if [ $py_buffer_files -lt 1 ] ; then
+  echo "No Python files found in directory $path_to_buffer_scripts" 1>&1
+  exit 20 # FAIL
+fi
+
+# run Pep8 test
+pep8_violations=`${path_to_buffer_scripts}/check_PEP8_standards.sh ${path_to_lib}`
+
+# no violations found
+if [ ! -z "${pep8_violations}" ]; then
+    echo "Violations of Pep8-standard found!" 1>&1
+    exit 20 # FAIL
+fi
+
+# goodbye
+exit 0 # MATCH
