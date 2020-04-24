@@ -54,7 +54,7 @@ MODULE mo_lu_tg_fields
 
 
   PUBLIC :: allocate_lu_target_fields, allocate_add_lu_fields
-  PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecoclimap
+  PUBLIC :: i_lu_globcover, i_lu_glc2000, i_lu_glcc, i_lu_ecoclimap, i_lu_ecci
 
   PUBLIC :: fr_land, &
        &    ice, &
@@ -84,9 +84,10 @@ MODULE mo_lu_tg_fields
   INTEGER(KIND=i4), PARAMETER    :: i_lu_globcover = 1, &  !< id for landuse data set Globcover 2009
        &                            i_lu_glc2000   = 2, &  !< id for landuse data set GLC2000
        &                            i_lu_glcc      = 3, &  !< id for landuse data set GLCC
-       &                            i_lu_ecoclimap = 4  !< id for landuse data set ecoclimap
+       &                            i_lu_ecoclimap = 4, &  !< id for landuse data set ecoclimap
+       &                            i_lu_ecci      = 5     !< id for landuse data set ESA CCI
 
-  REAL (KIND=wp), ALLOCATABLE    :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
+ REAL (KIND=wp), ALLOCATABLE    :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
        &                            fr_land_mask(:,:,:), &  !< fraction land due to external target data
        &                            ice_lu(:,:,:), &      !< fraction of ice due to land use raw data
        &                            z0_lu(:,:,:), &       !< roughness length due to land use land use data
