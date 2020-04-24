@@ -33,6 +33,7 @@ omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_tclim'  # name for grid description file
+reduced_grid = 'reduced_icon_grid_tclim.nc'  # name for reduced icon grid
 
 # processing steps using CDO
 step1_cdo = 'step_1.nc'
@@ -48,6 +49,7 @@ logging.info('============= delete files from old runs =======')
 logging.info('')
 
 utils.remove(grid)
+utils.remove(reduced_grid)
 utils.remove(step1_cdo)
 utils.remove(step2_cdo)
 utils.remove(step3_cdo)
@@ -72,8 +74,9 @@ if (igrid_type == 1):
     icon_grid = \
         fortran_namelist.read_variable_from_namelist(grid_namelist,
                                                      'icon_grid_nc_file')
+    icon_grid = utils.clean_path(path_to_grid,icon_grid)
 
-    grid = utils.clean_path(path_to_grid,icon_grid)
+    grid = utils.reduce_icon_grid(icon_grid, reduced_grid)
 
 elif (igrid_type == 2):
     tg = grid_def.CosmoGrid(grid_namelist)
@@ -116,7 +119,6 @@ fortran_namelist.write_fortran_namelist('INPUT_TCLIM', itcl,input_tclim)
 logging.info('')
 logging.info('============= CDO: remap to target grid ========')
 logging.info('')
-
 
 if (itype_cru == 2):
 

@@ -33,6 +33,7 @@ omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_ndvi'  # name for grid description file
+reduced_grid = 'reduced_icon_grid_ndvi.nc'  # name for reduced icon grid
 weights = 'weights_ndvi'        # name for weights of spatial interpolation
 
 # names for output of CDO
@@ -45,6 +46,7 @@ logging.info('============= delete files from old runs =======')
 logging.info('')
 
 utils.remove(grid)
+utils.remove(reduced_grid)
 utils.remove(weights)
 utils.remove(ndvi_cdo)
 
@@ -65,7 +67,9 @@ if (igrid_type == 1):
         fortran_namelist.read_variable_from_namelist(grid_namelist,
                                                      'icon_grid_nc_file')
 
-    grid = utils.clean_path(path_to_grid,icon_grid)
+    icon_grid = utils.clean_path(path_to_grid,icon_grid)
+
+    grid = utils.reduce_icon_grid(icon_grid, reduced_grid)
 
 elif(igrid_type == 2):
     tg = grid_def.CosmoGrid(grid_namelist)

@@ -63,7 +63,7 @@ def check_environment_for_extpar(extpar_programme):
     cdo_version = get_cdo_version(extpar_programme,hostname)
 
     logging.info('')
-    logging.info(f'Environment for {extpar_programme}:')
+    logging.info('============= listen to environment ============')
     logging.info('')
     logging.info(f'Hostname -> {hostname}')
     logging.info('')
