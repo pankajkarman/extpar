@@ -15,7 +15,7 @@ function run_command {
 
 ##############################################################
 # Begin script
-
+export compiler
 case "$(hostname)" in
     # CSCS machines
     daint*)
