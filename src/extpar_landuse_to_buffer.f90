@@ -209,6 +209,8 @@ PROGRAM extpar_landuse_to_buffer
   INTEGER(KIND=i4)                        :: ntiles_lu, & 
        &                                     nlon_globcover, &  !< number of grid elements in zonal direction for globcover data
        &                                     nlat_globcover, &  !< number of grid elements in meridional direction for globcover data
+       &                                     nlon_ecci !< number of grid elements in zonal direction for ecci data
+       &                                     nlat_ecci !< number of grid elements in meridional  direction for ecci data
        &                                     nlon_ecoclimap, &  !< number of grid elements in zonal direction for ecoclimap data
        &                                     nlat_ecoclimap, &  !< number of grid elements in meridional direction for ecoclimap data
        &                                     nlon_glc2000, &  !< number of grid elements in zonal direction for glc2000 data

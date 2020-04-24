@@ -445,8 +445,8 @@ MODULE mo_landuse_routines
                                        nrow_tiles_ecci,       &
                                        len_lu_lon_ecci, len_lu_lat_ecci
 
-        INTEGER (KIND=i8), INTENT(OUT) :: nlon_ecci !< number of grid elements in zonal direction for ecci data
-        INTEGER (KIND=i8), INTENT(OUT) :: nlat_ecci !< number of grid elements in meridional direction for ecci data
+        INTEGER (KIND=i4), INTENT(OUT) :: nlon_ecci !< number of grid elements in zonal direction for ecci data
+        INTEGER (KIND=i4), INTENT(OUT) :: nlat_ecci !< number of grid elements in meridional direction for ecci data
 
         !local variables
         INTEGER, PARAMETER :: nx=43200
@@ -575,8 +575,8 @@ MODULE mo_landuse_routines
                                      lu_tiles_lon_min_ecci, &
                                      lu_tiles_lon_max_ecci
 
-        INTEGER (KIND=i8), INTENT(IN) :: nlon_ecci !< number of grid elements in zonal direction for ecci data
-        INTEGER (KIND=i8), INTENT(IN) :: nlat_ecci !< number of grid elements in meridional direction for ecci data
+        INTEGER (KIND=i4), INTENT(IN) :: nlon_ecci !< number of grid elements in zonal direction for ecci data
+        INTEGER (KIND=i4), INTENT(IN) :: nlat_ecci !< number of grid elements in meridional direction for ecci data
         REAL (KIND=wp), INTENT(OUT)    :: lon_ecci(1:nlon_ecci) !< longitude of ecci raw data
         REAL (KIND=wp), INTENT(OUT)    :: lat_ecci(1:nlat_ecci) !< latitude of ecci raw data
         TYPE(reg_lonlat_grid), INTENT(OUT) :: ecci_grid !< structure with defenition of the raw data grid for
@@ -599,7 +599,7 @@ MODULE mo_landuse_routines
         REAL (KIND=wp):: dx_ecci  ! grid element size of glcover data pixel in zonal direction
         REAL (KIND=wp):: dy_ecci  ! grid element size of glcover data pixel in meridional directionon
 
-        INTEGER (KIND=i8) :: jx,jy
+        INTEGER (KIND=i4) :: jx,jy
 
 
         xmin_ecci = MINVAL(lu_tiles_lon_min_ecci)
