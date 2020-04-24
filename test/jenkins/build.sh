@@ -15,7 +15,7 @@ function run_command {
 
 ##############################################################
 # Begin script
-export compiler
+
 case "$(hostname)" in
     # CSCS machines
     daint*)
@@ -35,6 +35,7 @@ case "$(hostname)" in
         ;;
 
     tsa*)
+        export compiler=gcc
         run_command git submodule init
         run_command git submodule update
         run_command ./configure.tsa.gcc
@@ -54,6 +55,7 @@ case "$(hostname)" in
         fi
         run_command git submodule init
         run_command git submodule update
+        export compiler=$compiler
         run_command ./configure.mistral.$compiler
         run_command source modules.env
         run_command make clean
