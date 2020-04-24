@@ -11,7 +11,7 @@ green=$(tput setaf 2)
 blue=$(tput setaf 6)
 bgcolor=$(tput sgr0)
 #
-if [ ! "$TERM" = "" ]; then
+if [[ -z "${compiler:-}" ]]; then
    redln() { echo "${red}${1}${bgcolor}"; }
    blueln() { echo "${blue}${1}${bgcolor}"; }
    greenln () { echo "${green}${1}${bgcolor}"; }
