@@ -4,31 +4,15 @@ set -eu
 set -o history
 #_______________________________________________________________________________
 #
-# Utility functions
-
-red=$(tput setaf 5)
-green=$(tput setaf 2)
-blue=$(tput setaf 6)
-bgcolor=$(tput sgr0)
-#
-if [[ -z "${compiler:-}" ]]; then
-   redln() { echo "${red}${1}${bgcolor}"; }
-   blueln() { echo "${blue}${1}${bgcolor}"; }
-   greenln () { echo "${green}${1}${bgcolor}"; }
-else
-   redln() { echo "${1}"; }
-   blueln() { echo "${1}"; }
-   greenln () { echo "${1}"; }  
-fi
 
 function banner {
     typeset line
     line=______________________________________________________________________
     echo
-    blueln $line
+    echo $line
     echo
-    greenln "$*"
-    blueln $line
+    echo "$*"
+    echo $line
     echo
 }
 
@@ -85,19 +69,19 @@ EXTRA_CONFIG_ARGS+="--with-cdi=bundled"
 gcc_version=$(gcc --version | awk 'NR==1{print $3}')
 gfortran_version=$(gfortran --version | awk 'NR==1{print $4}')
 
-blueln "Software tree installation ${SWROOT}"
+echo "Software tree installation ${SWROOT}"
 echo
-blueln "C compiler            : ${gcc_version}"
-blueln "C compiler flags      : ${CFLAGS}"
-blueln "C preprocessor flags  : ${CPPFLAGS}"
+echo "C compiler            : ${gcc_version}"
+echo "C compiler flags      : ${CFLAGS}"
+echo "C preprocessor flags  : ${CPPFLAGS}"
 echo
-blueln "Fortran compiler      : ${gfortran_version}"
-blueln "Fortran compiler flags: ${FCFLAGS}"
+echo "Fortran compiler      : ${gfortran_version}"
+echo "Fortran compiler flags: ${FCFLAGS}"
 echo
-blueln "Configureflags:"
+echo "Configureflags:"
 for extra_arg in ${EXTRA_CONFIG_ARGS}
 do
-    blueln "   $extra_arg"
+    echo "   $extra_arg"
 done
 
 #_______________________________________________________________________________
@@ -119,7 +103,7 @@ ${EXTRA_CONFIG_ARGS} \
 
 banner "Run make ..."
 
-blueln "Modules used during configuration"
+echo "Modules used during configuration"
 echo
 
 if [[ -e modules.env ]] 
@@ -129,16 +113,16 @@ fi
 
 while read module_command
 do
-    blueln "   ${module_command}"
+    echo "   ${module_command}"
     echo "${module_command}" >> modules.env
 done < <(history | awk '/^[ ]*[0-9]+[ ]+module/{$1=""; print $0}')
 
 echo
-redln "To be compatible with the configure environment run:"
+echo "To be compatible with the configure environment run:"
 echo
-redln "source modules.env"
+echo "source modules.env"
 echo
-redln "in your terminal, where the make command will be run." 
+echo "in your terminal, where the make command will be run." 
 echo
 #_______________________________________________________________________________
 #
