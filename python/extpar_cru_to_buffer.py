@@ -68,14 +68,14 @@ igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
     path_to_grid = \
-        fortran_namelist.read_variable_from_namelist(grid_namelist,
-                                                     'icon_grid_dir',
-                                                     str)
+        fortran_namelist.read_variable(grid_namelist,
+                                       'icon_grid_dir',
+                                       str)
 
     icon_grid = \
-        fortran_namelist.read_variable_from_namelist(grid_namelist,
-                                                     'icon_grid_nc_file',
-                                                     str)
+        fortran_namelist.read_variable(grid_namelist,
+                                       'icon_grid_nc_file',
+                                       str)
 
     grid = utils.reduce_icon_grid(icon_grid, reduced_grid)
 
@@ -88,8 +88,9 @@ raw_data_tclim_fine = utils.clean_path(itcl['raw_data_t_clim_path'],
 
 if (itype_cru == 2):
     buffer_topo = \
-        fortran_namelist.read_variable_from_namelist('INPUT_ORO',
-                                                     'orography_output_file')
+        fortran_namelist.read_variable('INPUT_ORO',
+                                       'orography_output_file',
+                                       str)
 
     buffer_topo = utils.clean_path('', buffer_topo)
     raw_data_tclim_coarse  = utils.clean_path(itcl['raw_data_t_clim_path'],

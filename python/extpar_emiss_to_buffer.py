@@ -70,14 +70,14 @@ igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 
 if (igrid_type == 1):
     path_to_grid = \
-        fortran_namelist.read_variable_from_namelist(grid_namelist,
-                                                     'icon_grid_dir',
-                                                     str)
+        fortran_namelist.read_variable(grid_namelist,
+                                       'icon_grid_dir',
+                                       str)
 
     icon_grid = \
-        fortran_namelist.read_variable_from_namelist(grid_namelist,
-                                                     'icon_grid_nc_file',
-                                                     str)
+        fortran_namelist.read_variable(grid_namelist,
+                                       'icon_grid_nc_file',
+                                       str)
 
     icon_grid = utils.clean_path(path_to_grid,icon_grid)
 
