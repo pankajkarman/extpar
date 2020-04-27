@@ -52,7 +52,7 @@ MODULE mo_extpar_output_nc
   USE, INTRINSIC :: iso_c_binding, ONLY: c_loc, c_f_pointer 
   USE mo_logging
   USE mo_var_meta_data
-  USE mo_kind,                  ONLY: sp, dp, wp, i1, i4, i8
+  USE mo_kind,                  ONLY: sp, wp, i1, i4, i8
   USE info_extpar,              ONLY: INFO_RevisionHash, INFO_CodeIsModified, &
        &                              INFO_PackageName
                                 
@@ -75,19 +75,19 @@ MODULE mo_extpar_output_nc
        &                             ialb_type, undef_alb_bs
 
   USE mo_ndvi_data,            ONLY: ntime_ndvi
+
   USE mo_emiss_data,           ONLY: ntime_emiss
 
   USE mo_aot_data,             ONLY: ntype_aot, ntime_aot,n_spectr, &
        &                             iaot_type
                                
   USE mo_soil_data,            ONLY: HWSD_data
+
   USE mo_topo_data,            ONLY: itopo_type, topo_aster, topo_gl
 
   USE mo_ecoclimap_data,       ONLY: ntime_ecoclimap
 
-  USE mo_topo_data,            ONLY: topo_aster, topo_gl
-  
-  USE mo_cosmo_grid, ONLY: lon_rot, lat_rot
+  USE mo_cosmo_grid,           ONLY: lon_rot, lat_rot
 
   USE mo_physical_constants,   ONLY: grav
 
@@ -1507,91 +1507,6 @@ MODULE mo_extpar_output_nc
        &                                   t2m_field,           &          
        &                                   hsurf_field          )    
 
-
-    USE mo_var_meta_data, ONLY: def_dimension_info_buffer
-
-    USE mo_var_meta_data, ONLY: lon_geo_meta, &
-         &                         lat_geo_meta, &
-         &                         def_com_target_fields_meta  
-
-
-    USE mo_var_meta_data, ONLY: def_dimension_info_icon
-
-    USE mo_var_meta_data, ONLY: clon_meta, clat_meta
-
-    USE mo_var_meta_data, ONLY: set_nc_grid_def_icon
-
-    USE mo_var_meta_data, ONLY: def_isa_fields_meta
-    USE mo_var_meta_data, ONLY: isa_field_meta
-    USE mo_var_meta_data, ONLY: ahf_field_meta, &
-         &                         def_ahf_meta
-
-    USE mo_var_meta_data, ONLY: def_lu_fields_meta
-
-    USE mo_var_meta_data, ONLY: fr_land_lu_meta,                        &
-         &       lu_class_fraction_meta,                                &
-         &       ice_lu_meta, z0_lu_meta,                               &
-         &       plcov_mx_lu_meta,                                      &
-         &       lai_mx_lu_meta,                                        &
-         &       rs_min_lu_meta, urban_lu_meta,                         &
-         &       for_d_lu_meta, for_e_lu_meta,                          &
-         &       skinc_lu_meta,                                         &
-         &       emissivity_lu_meta, root_lu_meta
-
-    USE mo_var_meta_data, ONLY: def_soil_meta
-    USE mo_var_meta_data, ONLY: soiltype_fao_meta,                       &
-         &                       HWSD_SAND_meta, HWSD_SILT_meta,          &
-         &                       HWSD_CLAY_meta, HWSD_OC_meta,            &
-         &                       HWSD_BD_meta,                            &
-         &                       soiltype_FAO_deep_meta,                      &
-         &                       HWSD_SAND_deep_meta, HWSD_SILT_deep_meta,&
-         &                       HWSD_CLAY_deep_meta, HWSD_OC_deep_meta,  &
-         &                       HWSD_BD_deep_meta
-
-    USE mo_var_meta_data, ONLY: alb_field_mom_meta, &
-         &                         alnid_field_mom_meta, &
-         &                         aluvd_field_mom_meta, &
-         &                         def_alb_meta
-
-    USE mo_var_meta_data, ONLY: ndvi_max_meta, &
-         &                         ndvi_field_mom_meta, &
-         &                         ndvi_ratio_mom_meta,&
-         &                         def_ndvi_meta
-
-    USE mo_var_meta_data, ONLY: sst_field_meta, &
-         &                         wsnow_field_meta,&
-         &                         t2m_field_meta,&
-         &                         hsurf_field_meta,&
-         &                         def_era_meta
-
-    USE mo_var_meta_data, ONLY: def_topo_meta, def_topo_vertex_meta
-
-    USE mo_var_meta_data, ONLY: hh_topo_meta,                       &
-         &                      hh_topo_max_meta, hh_topo_min_meta, &
-         &                      stdh_topo_meta, theta_topo_meta, &
-         &                      aniso_topo_meta, slope_topo_meta
-
-    USE mo_var_meta_data, ONLY: def_aot_tg_meta
-    USE mo_var_meta_data, ONLY: aer_bc_meta,   & 
-         &                         aer_dust_meta, aer_org_meta,&
-         &                         aer_so4_meta, aer_ss_meta
-
-    USE mo_var_meta_data, ONLY: crutemp_meta, &
-         &                         def_crutemp_meta
-
-    USE mo_var_meta_data, ONLY: def_flake_fields_meta
-    USE mo_var_meta_data, ONLY: lake_depth_meta, fr_lake_meta
-
-    USE mo_flake_data, ONLY: flake_depth_undef !< default value for undefined lake depth
-
-    USE mo_topo_tg_fields, ONLY: add_parameters_domain
-
-    USE mo_icon_grid_data, ONLY: icon_grid_region
-
-    USE mo_icon_grid_data, ONLY: clon, clat
-    USE mo_icon_grid_data, ONLY: allocate_icon_coor
-
-
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename      !< filename for the netcdf file
     TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< definition of the ICON grid
     TYPE(target_grid_def), INTENT(IN) :: tg                    !< target grid description
@@ -1642,27 +1557,27 @@ MODULE mo_extpar_output_nc
     REAL (KIND=wp), INTENT(IN) :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
     REAL (KIND=wp), INTENT(IN) :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
     REAL (KIND=wp), INTENT(IN) :: hsurf_field(:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL(KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height
-    REAL(KIND=wp), INTENT(IN)  :: hh_topo_max(:,:,:)  !< max height on a gridpoint
-    REAL(KIND=wp), INTENT(IN)  :: hh_topo_min(:,:,:)  !< min height on a gridpoint
-    REAL(KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
+    REAL (KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height
+    REAL (KIND=wp), INTENT(IN)  :: hh_topo_max(:,:,:)  !< max height on a gridpoint
+    REAL (KIND=wp), INTENT(IN)  :: hh_topo_min(:,:,:)  !< min height on a gridpoint
+    REAL (KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
     REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-    REAL(KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-    INTEGER(KIND=i4), INTENT(IN), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
-    REAL(KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
+    REAL (KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
+    INTEGER (KIND=i4), INTENT(IN), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
+    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
 
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
-    REAL(KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
+    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
     REAL (KIND=wp), INTENT(IN), OPTIONAL :: isa_field(:,:,:) !< field for isa 
     REAL (KIND=wp), INTENT(IN), OPTIONAL :: ahf_field(:,:,:) !< field for ahf 
 
@@ -2212,20 +2127,13 @@ MODULE mo_extpar_output_nc
 
       n=11 ! t2m_field
       CALL streamWriteVar(fileID, t2m_field_ID, t2m_field(1:icon_grid%ncell,1,1,tsID), 0_i8)
+
+      IF (l_use_emiss) THEN
+        n=12
+        CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
+      ENDIF
     END DO
-
-    ! TODO LUIS
-    !IF (l_use_emiss) THEN
-    !  ! emiss_field_mom
-    !  DO tsID = 1, ntime_emiss
-    !    CALL taxisDefVdate(taxisID, INT(time(tsID),i8))
-    !    CALL taxisDefVtime(taxisID, 0)
-    !    iret = streamDefTimestep(fileID, tsID - 1)
-
-    !    n=2
-    !    CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
-    !  ENDDO
-    !ENDIF
+    
     !-----------------------------------------------------------------
 
     CALL vlistDestroy(vlistID)
