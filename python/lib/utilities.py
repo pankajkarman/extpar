@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 import subprocess
+import netCDF4 as nc
 
 from fortran_namelist import read_variable
 
@@ -22,6 +23,8 @@ it contains:
 -check_albtype: check whether ialb_type from namelist is correct
 
 -determine_albedo_varnames: assign correct varnames for different ialb_type
+
+-reduce_icon_grid: reduce icon grid to only hold one dimension
 '''
 
 
@@ -219,3 +222,24 @@ def determine_albedo_varnames(ialb_type):
         var_3 = ''
 
     return var_1, var_2, var_3
+
+
+def reduce_icon_grid(icon_grid_file, reduced_grid):
+    '''
+    reduce icon_grid_file to reduced_grid ant return name of reduce_grid
+
+    due to inconsistency in the order of dimensions in icon grids,
+    only use a reduced subset of the respective icon grid to avoid
+    problems with dimension names later in the code
+    '''
+
+    logging.info(f'Reduce icon grid {icon_grid_file} '
+                 f'-> {reduced_grid} to avoid wrong grid usage '
+                 'during CDO interpolation\n')
+
+    launch_shell('cdo', '-f', 'nc4',
+                 '-selvar,cell_area,clat,clat_vertices,clon,clon_vertices',
+                 icon_grid_file,
+                 reduced_grid)
+
+    return reduced_grid
