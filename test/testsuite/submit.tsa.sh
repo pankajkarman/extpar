@@ -10,7 +10,5 @@ export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
 source ../../modules.env
 module load cdo
 export HDF5_DISABLE_VERSION_CHECK=1
-printenv > env.log
-module list > list.log
 
 ./src/testsuite.py --exe=run_extpar_cosmo.sh -v 1 -o testsuite.out --testlist=testlist_cosmo.xml --mpicmd='srun -u -n'
