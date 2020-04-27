@@ -1449,6 +1449,7 @@ MODULE mo_extpar_output_nc
        &                                   lsso,                &
        &                                   l_use_isa,           &
        &                                   l_use_ahf,           &
+       &                                   l_use_emiss,         &
        &                                   undefined,           &
        &                                   undef_int,           &
        &                                   name_lookup_table_lu,&
@@ -1475,6 +1476,7 @@ MODULE mo_extpar_output_nc
        &                                   ndvi_max,            &
        &                                   ndvi_field_mom,      &
        &                                   ndvi_ratio_mom,      &
+       &                                   emiss_field_mom,     &
        &                                   hh_topo,             &
        &                                   hh_topo_max,         &
        &                                   hh_topo_min,         &       
@@ -1597,6 +1599,7 @@ MODULE mo_extpar_output_nc
     LOGICAL,               INTENT(IN) :: ldeep_soil
     LOGICAL,               INTENT(IN) :: l_use_isa
     LOGICAL,               INTENT(IN) :: l_use_ahf
+    LOGICAL,               INTENT(IN) :: l_use_emiss
     INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
     LOGICAL,               INTENT(IN) :: lsso
 
@@ -1634,6 +1637,7 @@ MODULE mo_extpar_output_nc
     REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
     REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
     REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:)!< field for monthly mean emiss data (12 months)
     REAL (KIND=wp), INTENT(IN) :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
     REAL (KIND=wp), INTENT(IN) :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
     REAL (KIND=wp), INTENT(IN) :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
@@ -1738,6 +1742,7 @@ MODULE mo_extpar_output_nc
     INTEGER :: lu_class_fraction_ID
     INTEGER :: ndvi_field_mom_ID
     INTEGER :: ndvi_ratio_mom_ID
+    INTEGER :: emiss_field_mom_ID
     INTEGER :: aot_bc_ID
     INTEGER :: aot_dust_ID
     INTEGER :: aot_org_ID
@@ -1968,6 +1973,10 @@ MODULE mo_extpar_output_nc
     hsurf_field_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, hsurf_field_meta, undefined)
     clon_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, clon_meta, undefined)
     clat_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, clat_meta, undefined)
+
+    IF (l_use_emiss) THEN
+      emiss_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, emiss_field_mom_meta, undefined)
+    ENDIF
 
     CALL vlistDefTaxis(vlistID, taxisID)
 
@@ -2205,6 +2214,18 @@ MODULE mo_extpar_output_nc
       CALL streamWriteVar(fileID, t2m_field_ID, t2m_field(1:icon_grid%ncell,1,1,tsID), 0_i8)
     END DO
 
+    ! TODO LUIS
+    !IF (l_use_emiss) THEN
+    !  ! emiss_field_mom
+    !  DO tsID = 1, ntime_emiss
+    !    CALL taxisDefVdate(taxisID, INT(time(tsID),i8))
+    !    CALL taxisDefVtime(taxisID, 0)
+    !    iret = streamDefTimestep(fileID, tsID - 1)
+
+    !    n=2
+    !    CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
+    !  ENDDO
+    !ENDIF
     !-----------------------------------------------------------------
 
     CALL vlistDestroy(vlistID)

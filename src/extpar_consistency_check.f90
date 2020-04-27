@@ -2356,6 +2356,7 @@ PROGRAM extpar_consistency_check
          &                                     lsso_param,                    &
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
+         &                                     l_use_emiss,                   &
          &                                     fill_value_real,               &
          &                                     fill_value_int,                &
          &                                     TRIM(name_lookup_table_lu),    &
@@ -2382,6 +2383,7 @@ PROGRAM extpar_consistency_check
          &                                     ndvi_max,                      &
          &                                     ndvi_field_mom,                &
          &                                     ndvi_ratio_mom,                &
+         &                                     emiss_field_mom,               &
          &                                     hh_topo,                       &
          &                                     hh_topo_max,                   &
          &                                     hh_topo_min,                   &         
