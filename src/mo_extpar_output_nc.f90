@@ -6,8 +6,8 @@
 ! V1_0         2010/12/21 Hermann Asensio
 !  Initial release
 ! V1_1         2011/01/20 Hermann Asensio
-!  write optical thickness of aeorosls into seperate variables 
-!  in the netcdf output for ICON and COSMO grids        
+!  write optical thickness of aeorosls into seperate variables
+!  in the netcdf output for ICON and COSMO grids
 ! V1_2         2011/03/25 Hermann Asensio
 !  Adapt netcdf output to standards of COSMO-CLM
 ! V1_3         2011/04/19 Hermann Asensio
@@ -15,27 +15,27 @@
 ! introduce Globcover 2009 land use data set for external parameters
 ! V1_4         2011/04/21 Anne Roche
 !  implementation of orography smoothing
-! V1_7         2013/01/25 Guenther Zaengl 
-!   Parallel threads for ICON and COSMO using Open-MP, 
-!   Several bug fixes and optimizations for ICON search algorithm, 
-!   particularly for the special case of non-contiguous domains; 
-!   simplified namelist control for ICON  
+! V1_7         2013/01/25 Guenther Zaengl
+!   Parallel threads for ICON and COSMO using Open-MP,
+!   Several bug fixes and optimizations for ICON search algorithm,
+!   particularly for the special case of non-contiguous domains;
+!   simplified namelist control for ICON
 ! V1_8         2013-03-12 Frank Brenner
-!  introduced MODIS albedo dataset(s) as new external parameter(s)         
+!  introduced MODIS albedo dataset(s) as new external parameter(s)
 ! V1_11        2013/04/16 Juergen Helmert
 !  Small adaptions in output of global attributes
 ! V2_0         1013-06-04 Anne Roches
-!  introduced topographical corrected radiaton parameters as new 
+!  introduced topographical corrected radiaton parameters as new
 !  external parameters
 ! V2_0         2013-06-04 Martina Messmer/Daniel Luethi
 !  introduced HWSD data set as new external parameters (Juergen Helmert)
-!  SSO parameters changed to optional parameters        
+!  SSO parameters changed to optional parameters
 !  allow for alternative AOT data sets via raw_data_aot_data
-!  allow for prescribed soil albedo instead of albedo       
+!  allow for prescribed soil albedo instead of albedo
 ! V2_0_3       2015-01-12 Juergen Helmert
 !  Bugfix correction covers CSCS SVN r5907-r6359
 ! V3_0         2015-05-21 Juergen Helmert
-!  Adaptions for urban fields         
+!  Adaptions for urban fields
 !  correction of double allocation in case of lrad=.FALSE. (B. Rockel)
 ! V4_0         2016/08/17 Daniel Lthi and authors from RHM
 !  added support for subgrid-scale slope parameter
@@ -44,60 +44,61 @@
 ! Code Description:
 ! Language: Fortran 2003.
 !=======================================================================
-!> Fortran module with netcdf output routines for external parameters 
+!> Fortran module with netcdf output routines for external parameters
 !> ouptut routines
 !> \author Hermann Asensio
 MODULE mo_extpar_output_nc
 
-  USE, INTRINSIC :: iso_c_binding, ONLY: c_loc, c_f_pointer 
+  USE, INTRINSIC :: iso_c_binding, ONLY: c_loc, c_f_pointer
+
   USE mo_logging
   USE mo_var_meta_data
-  USE mo_kind,                  ONLY: sp, wp, i1, i4, i8
-  USE info_extpar,              ONLY: INFO_RevisionHash, INFO_CodeIsModified, &
-       &                              INFO_PackageName
-                                
-  USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
-       &                              icosahedral_triangular_grid, &
-       &                              target_grid_def
-
-  USE mo_io_utilities,          ONLY: netcdf_attributes, &
-       &                              dim_meta_info, &
-       &                              netcdf_put_var, &
-       &                              open_new_netcdf_file, &
-       &                              close_netcdf_file, &
-       &                              netcdf_def_grid_mapping, &
-       &                              set_date_mm_extpar_field,&
-                                      var_meta_info
-                                   
-  USE mo_io_units,             ONLY: filename_max
-
-  USE mo_albedo_data,          ONLY: ntime_alb, &
-       &                             ialb_type, undef_alb_bs
-
-  USE mo_ndvi_data,            ONLY: ntime_ndvi
-
-  USE mo_emiss_data,           ONLY: ntime_emiss
-
-  USE mo_aot_data,             ONLY: ntype_aot, ntime_aot,n_spectr, &
-       &                             iaot_type
-                               
-  USE mo_soil_data,            ONLY: HWSD_data
-
-  USE mo_topo_data,            ONLY: itopo_type, topo_aster, topo_gl
-
-  USE mo_ecoclimap_data,       ONLY: ntime_ecoclimap
-
-  USE mo_cosmo_grid,           ONLY: lon_rot, lat_rot
-
-  USE mo_physical_constants,   ONLY: grav
-
-  USE mo_icon_grid_data,       ONLY: icon_grid_region, &
-       &                             clon, clat, &
-       &                             clon_vertices, clat_vertices, &
-       &                             allocate_icon_coor
-
   USE mo_cdi
-  
+
+  USE mo_kind,                     ONLY: sp, wp, i1, i4, i8
+  USE info_extpar,                 ONLY: INFO_RevisionHash, INFO_CodeIsModified, &
+       &                                 INFO_PackageName
+
+  USE mo_grid_structures,          ONLY: rotated_lonlat_grid, &
+       &                                 icosahedral_triangular_grid, &
+       &                                 target_grid_def
+
+  USE mo_io_utilities,             ONLY: netcdf_attributes, &
+       &                                 dim_meta_info, &
+       &                                 netcdf_put_var, &
+       &                                 open_new_netcdf_file, &
+       &                                 close_netcdf_file, &
+       &                                 netcdf_def_grid_mapping, &
+       &                                 set_date_mm_extpar_field,&
+                                         var_meta_info
+
+  USE mo_io_units,                 ONLY: filename_max
+
+  USE mo_albedo_data,              ONLY: ntime_alb, &
+       &                                 ialb_type, undef_alb_bs
+
+  USE mo_ndvi_data,                ONLY: ntime_ndvi
+
+  USE mo_emiss_data,               ONLY: ntime_emiss
+
+  USE mo_aot_data,                 ONLY: ntype_aot, ntime_aot,n_spectr, &
+       &                                 iaot_type
+
+  USE mo_soil_data,                ONLY: HWSD_data
+
+  USE mo_topo_data,                ONLY: itopo_type, topo_aster, topo_gl
+
+  USE mo_ecoclimap_data,           ONLY: ntime_ecoclimap
+
+  USE mo_cosmo_grid,               ONLY: lon_rot, lat_rot
+
+  USE mo_physical_constants,       ONLY: grav
+
+  USE mo_icon_grid_data,           ONLY: icon_grid_region, &
+       &                                 clon, clat, &
+       &                                 clon_vertices, clat_vertices, &
+       &                                 allocate_icon_coor
+
   IMPLICIT NONE
 
   PRIVATE
@@ -141,7 +142,7 @@ MODULE mo_extpar_output_nc
        &                                    plcov_mn_lu,         &
        &                                    plcov_mx_lu,         &
        &                                    plcov12_lu,          &
-       &                                    lai_mn_lu,           & 
+       &                                    lai_mn_lu,           &
        &                                    lai_mx_lu,           &
        &                                    lai12_lu,            &
        &                                    rs_min_lu,           &
@@ -162,7 +163,7 @@ MODULE mo_extpar_output_nc
        &                                    aot_tg,              &
        &                                    MAC_aot_tg,          &
        &                                    MAC_ssa_tg,          &
-       &                                    MAC_asy_tg,          & 
+       &                                    MAC_asy_tg,          &
        &                                    crutemp,             &
        &                                    alb_field_mom,       &
        &                                    alnid_field_mom,     &
@@ -182,7 +183,7 @@ MODULE mo_extpar_output_nc
        &                                    fr_bd_deep,          &
        &                                    theta_topo,          &
        &                                    aniso_topo,          &
-       &                                    slope_topo,          & 
+       &                                    slope_topo,          &
        &                                    slope_asp_topo,      &
        &                                    slope_ang_topo,      &
        &                                    horizon_topo,        &
@@ -217,10 +218,10 @@ MODULE mo_extpar_output_nc
          &                                   lscale_separation, &
          &                                   lrad
 
-    
+
     REAL (KIND=wp), INTENT(IN)           :: lon_geo(:,:,:), &  !<longitude coordinates of the target grid in the geographical system
          &                                  lat_geo(:,:,:), &  !< latitude coordinates of the target grid in the geographical system
-         &                                  lu_class_fraction(:,:,:,:), &  
+         &                                  lu_class_fraction(:,:,:,:), &
          &                                  fr_land_lu(:,:,:), & !< fraction land due to lu raw data
          &                                  ice_lu(:,:,:), &     !< fraction of ice due to lu raw data
          &                                  z0_lu(:,:,:), &      !< roughness length
@@ -244,13 +245,13 @@ MODULE mo_extpar_output_nc
          &                                  ndvi_max(:,:,:), & !< field for ndvi maximum
          &                                  ndvi_field_mom(:,:,:,:), & !< field for monthly mean ndvi data (12 months)
          &                                  ndvi_ratio_mom(:,:,:,:), & !< field for monthly ndvi ratio (12 months)
-         &                                  hh_topo(:,:,:), &  !< mean height 
+         &                                  hh_topo(:,:,:), &  !< mean height
          &                                  stdh_topo(:,:,:), & !< standard deviation of subgrid scale orographic height
          &                                  aot_tg(:,:,:,:,:), & !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
          &                                  MAC_aot_tg(:,:,:,:), &
          &                                  MAC_ssa_tg(:,:,:,:), &
          &                                  MAC_asy_tg(:,:,:,:), &
-         &                                  crutemp(:,:,:), &  !< cru climatological temperature , crutemp(ie,je,ke) 
+         &                                  crutemp(:,:,:), &  !< cru climatological temperature , crutemp(ie,je,ke)
          &                                  theta_topo(:,:,:), & !< sso parameter, angle of principal axis
          &                                  aniso_topo(:,:,:), & !< sso parameter, anisotropie factor
          &                                  slope_topo(:,:,:), & !< sso parameter, mean slope
@@ -285,17 +286,17 @@ MODULE mo_extpar_output_nc
          &                                 var_real_2d(:,:), &
          &                                 var_real_hor(:,:,:), &
          &                                 var_real_MAC(:,:,:,:), &
-         &                                 time(:)   
-                                        
+         &                                 time(:)
+
     INTEGER (KIND=i4)                   :: dataDate, &
          &                                 dataTime, &
-         &                                 ndims, &  
+         &                                 ndims, &
          &                                 ncid, &
          &                                 varid, &
          &                                 errorcode, n !< error status variable
 
     INTEGER(KIND=i4), PARAMETER         :: nglob_atts=11
-                                        
+
     LOGICAL                             :: l_use_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     TYPE(dim_meta_info), ALLOCATABLE    :: dim_list(:) !< dimensions for netcdf file
     TYPE(netcdf_attributes)             :: global_attributes(nglob_atts)
@@ -332,7 +333,7 @@ MODULE mo_extpar_output_nc
     coordinates="lon lat"
     CALL set_nc_grid_def_cosmo(cosmo_grid,grid_mapping)
     ! nc_grid_def_cosmo
-    ! define meta information for target field variables lon_geo, lat_geo 
+    ! define meta information for target field variables lon_geo, lat_geo
     CALL def_com_target_fields_meta(dim_2d_cosmo,coordinates,grid_mapping)
     ! lon_geo_meta and lat_geo_meta
 
@@ -341,7 +342,7 @@ MODULE mo_extpar_output_nc
 
     ! define meta information for various land use related variables for netcdf output
     IF (i_landuse_data .EQ. 4) THEN
-      CALL  def_ecoclimap_fields_meta(ntime_ecoclimap,nclass_lu,dim_2d_cosmo,coordinates,grid_mapping) 
+      CALL  def_ecoclimap_fields_meta(ntime_ecoclimap,nclass_lu,dim_2d_cosmo,coordinates,grid_mapping)
     ELSE
       CALL def_lu_fields_meta(nclass_lu,dim_2d_cosmo,lu_dataset,coordinates,grid_mapping)
     ENDIF
@@ -392,13 +393,13 @@ MODULE mo_extpar_output_nc
     IF (i_landuse_data .EQ. 4) THEN
       ALLOCATE(z012tot(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1:12), STAT=errorcode)
       IF (errorcode /= 0 ) CALL logging%error('Cant allocate z012tot' ,__FILE__,__LINE__ )
-      z012tot(:,:,:) =  z012_lu(:,:,1,:) 
-      DO n=1, ntime_ecoclimap   
+      z012tot(:,:,:) =  z012_lu(:,:,1,:)
+      DO n=1, ntime_ecoclimap
         z012tot(:,:,n) =  z012tot(:,:,n) + z0_topo(:,:,1)
       ENDDO
     ENDIF
     !>
-    !set up dimensions for buffer netcdf output 
+    !set up dimensions for buffer netcdf output
 
     ndims = 4
     IF(lrad) ndims = ndims + 1
@@ -415,7 +416,7 @@ MODULE mo_extpar_output_nc
     dim_list(1) = dim_rlat_cosmo(1) ! rlat
     dim_list(2) = dim_rlon_cosmo(1) ! rlon
     dim_list(3)%dimname = 'nclass_lu'  ! nclass_lu
-    dim_list(3)%dimsize = nclass_lu 
+    dim_list(3)%dimsize = nclass_lu
     dim_list(4)%dimname = 'time'
     dim_list(4)%dimsize = ntime_aot
 
@@ -480,7 +481,7 @@ MODULE mo_extpar_output_nc
       ! z0_lu
       var_real_2d(:,:) = SUM(z012tot,DIM=3)/REAL(ntime_ecoclimap,wp)
       CALL netcdf_put_var(ncid,var_real_2d,z0_lu_meta,undefined)
-    ELSE 
+    ELSE
       ! plcov_mn_lu
       var_real_2d(:,:) = plcov_mn_lu(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1)
       CALL netcdf_put_var(ncid,var_real_2d,plcov_mn_lu_meta,undefined)
@@ -864,7 +865,7 @@ MODULE mo_extpar_output_nc
        &                                   lu_class_fraction,   &
        &                                   ice_lu,              &
        &                                   z0_lu,               &
-       &                                   root_lu,             &  
+       &                                   root_lu,             &
        &                                   plcov_mx_lu,         &
        &                                   lai_mx_lu,           &
        &                                   rs_min_lu,           &
@@ -882,16 +883,16 @@ MODULE mo_extpar_output_nc
        &                                   emiss_field_mom,      &
        &                                   hh_topo,             &
        &                                   hh_topo_max,         &
-       &                                   hh_topo_min,         &       
+       &                                   hh_topo_min,         &
        &                                   stdh_topo,           &
        &                                   theta_topo,          &
-       &                                   aniso_topo,          & 
+       &                                   aniso_topo,          &
        &                                   slope_topo,          &
        &                                   aot_tg,              &
        &                                   crutemp,             &
        &                                   alb_field_mom,       &
        &                                   alnid_field_mom,     &
-       &                                   aluvd_field_mom,     &      
+       &                                   aluvd_field_mom,     &
        &                                   fr_sand,             &
        &                                   fr_silt,             &
        &                                   fr_clay,             &
@@ -906,9 +907,9 @@ MODULE mo_extpar_output_nc
        &                                   isa_field,           &
        &                                   ahf_field,           &
        &                                   sst_field,           &
-       &                                   wsnow_field,         &          
-       &                                   t2m_field,           &          
-       &                                   hsurf_field          )    
+       &                                   wsnow_field,         &
+       &                                   t2m_field,           &
+       &                                   hsurf_field          )
 
 
 
@@ -931,10 +932,10 @@ MODULE mo_extpar_output_nc
 
     INTEGER(KIND=i4), INTENT(IN), OPTIONAL       :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
-    REAL(KIND=wp), INTENT(IN)                    :: undefined, &       !< value to indicate undefined grid elements 
+    REAL(KIND=wp), INTENT(IN)                    :: undefined, &       !< value to indicate undefined grid elements
          &                                          lon_geo(:,:,:), &  !< longitude coordinates of the target grid in the geographical system
          &                                          lat_geo(:,:,:), &  !< latitude coordinates of the target grid in the geographical system
-         &                                          lu_class_fraction(:,:,:,:), &  
+         &                                          lu_class_fraction(:,:,:,:), &
          &                                          fr_land_lu(:,:,:), & !< fraction land due to lu raw data
          &                                          ice_lu(:,:,:), &     !< fraction of ice due to lu raw data
          &                                          z0_lu(:,:,:), &      !< roughness length due to lu land use data
@@ -964,7 +965,7 @@ MODULE mo_extpar_output_nc
          &                                          hh_topo_min(:,:,:), &  !< min height on a gridpoint
          &                                          stdh_topo(:,:,:), & !< standard deviation of subgrid scale orographic height
          &                                          aot_tg(:,:,:,:,:), & !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-         &                                          crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
+         &                                          crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
 
     REAL (KIND=wp), INTENT(IN), OPTIONAL         :: emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
          &                                          fr_sand(:,:,:), &   !< sand fraction due to HWSD
@@ -980,8 +981,8 @@ MODULE mo_extpar_output_nc
          &                                          theta_topo(:,:,:), & !< sso parameter, angle of principal axis
          &                                          aniso_topo(:,:,:), & !< sso parameter, anisotropie factor
          &                                          slope_topo(:,:,:), & !< sso parameter, mean slope
-         &                                          isa_field(:,:,:), & !< field for isa 
-         &                                          ahf_field(:,:,:) !< field for ahf 
+         &                                          isa_field(:,:,:), & !< field for isa
+         &                                          ahf_field(:,:,:) !< field for ahf
 
     ! local variables
     INTEGER(KIND=i4)                             :: ndims, ncid, &
@@ -994,16 +995,16 @@ MODULE mo_extpar_output_nc
     TYPE(dim_meta_info), ALLOCATABLE             :: dim_list(:) !< dimensions for netcdf file
     TYPE(dim_meta_info), TARGET                  :: dim_1d_icon(1:1)
     REAL (KIND=wp), ALLOCATABLE                  :: time(:) !< time variable
-                                                 
+
     LOGICAL                                      :: l_use_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
     INTEGER(KIND=i4), PARAMETER                  :: nglob_atts=9
     TYPE(netcdf_attributes)                      :: global_attributes(nglob_atts)
-                                                 
+
     CHARACTER (len=80)                           :: grid_mapping !< netcdf attribute grid mapping
     CHARACTER (len=filename_max)                 :: namelist_file !< filename with namelists for for EXTPAR settings
 
     !-------------------------------------------------------------
-    !set up dimensions for buffer netcdf output 
+    !set up dimensions for buffer netcdf output
     ndims = 4
     ALLOCATE(dim_list(1:ndims),STAT=errorcode)
     IF (errorcode /= 0 ) CALL logging%error('Cant allocate array dim_list', __FILE__, __LINE__)
@@ -1014,9 +1015,9 @@ MODULE mo_extpar_output_nc
       time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
     ENDDO
     dim_list(1)%dimname = 'cell'
-    dim_list(1)%dimsize = icon_grid%ncell 
+    dim_list(1)%dimsize = icon_grid%ncell
     dim_list(2)%dimname = 'nv' ! icon_grid%nvertex_per_cell
-    dim_list(2)%dimsize = icon_grid%nvertex_per_cell 
+    dim_list(2)%dimsize = icon_grid%nvertex_per_cell
     dim_list(3)%dimname = 'vertex'
     dim_list(3)%dimsize = icon_grid%nvertex
     dim_list(4)%dimname = 'time'
@@ -1041,7 +1042,7 @@ MODULE mo_extpar_output_nc
     ! define global attributes
     CALL set_global_att_icon(icon_grid,global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
 
-! need to overload ...    
+! need to overload ...
 !    DO nc = 1, nglob_atts
 !      CALL logging%info('NetCDF attributes: '//TRIM(global_attributes(nc)), __FILE__, __LINE__)
 !    END DO
@@ -1069,7 +1070,7 @@ MODULE mo_extpar_output_nc
     !  &       for_d_lu_meta, for_e_lu_meta, &
     !  &       emissivity_lu_meta, root_lu_meta
 
-    ! define meta information for target field variables lon_geo, lat_geo 
+    ! define meta information for target field variables lon_geo, lat_geo
     CALL def_com_target_fields_meta(dim_1d_icon)
     ! lon_geo_meta and lat_geo_meta
 
@@ -1137,7 +1138,7 @@ MODULE mo_extpar_output_nc
     CALL aer_org_meta%overwrite_varname('AER_ORG')
     CALL aer_so4_meta%overwrite_varname('AER_SO4')
     CALL aer_ss_meta%overwrite_varname('AER_SS')
-    ! ** 
+    ! **
 
 
     !-----------------------------------------------------------------
@@ -1263,7 +1264,7 @@ MODULE mo_extpar_output_nc
 
     n=18 ! hh_topo
     CALL netcdf_put_var(ncid,hh_topo_min(1:icon_grid%ncell,1,1),hh_topo_min_meta,undefined)
-    
+
     n=19 ! stdh_topo
     CALL netcdf_put_var(ncid,stdh_topo(1:icon_grid%ncell,1,1),stdh_topo_meta,undefined)
 
@@ -1303,7 +1304,7 @@ MODULE mo_extpar_output_nc
     END IF
 
 
-    ! hh_vert not demanded for output 
+    ! hh_vert not demanded for output
 
     n=1 ! lu_class_fraction
 
@@ -1383,16 +1384,20 @@ MODULE mo_extpar_output_nc
     !-----------------------------------------------------------------
 
     CALL close_netcdf_file(ncid)
-    
+
   END SUBROUTINE write_netcdf_icon_grid_extpar
   !-----------------------------------------------------------------------
 
   INTEGER FUNCTION defineVariableInt(vlistID, gridID, zaxisID, timeID, meta, missval)
 
-    TYPE(var_meta_info), INTENT(IN) :: meta !< meta information for variable
-    INTEGER, INTENT(in) :: vlistID, gridID, zaxisID, timeID
-    REAL(KIND=wp), INTENT(in) :: missval
-    INTEGER :: varID, stat
+    TYPE(var_meta_info), INTENT(IN) :: meta
+    INTEGER, INTENT(in)             :: vlistID, &
+         &                             gridID,  &
+         &                             zaxisID, &
+         &                             timeID
+    REAL(KIND=wp), INTENT(in)       :: missval
+
+    INTEGER                         :: varID, stat
 
     varID = vlistDefVar(vlistID, gridID, zaxisID, timeID)
     CALL vlistDefVarDatatype(vlistID, varID, CDI_DATATYPE_INT32)
@@ -1415,10 +1420,14 @@ MODULE mo_extpar_output_nc
 
   INTEGER FUNCTION defineVariable(vlistID, gridID, zaxisID, timeID, meta, missval)
 
-    TYPE(var_meta_info), INTENT(IN) :: meta !< meta information for variable
-    INTEGER, INTENT(in) :: vlistID, gridID, zaxisID, timeID
-    REAL(KIND=wp), INTENT(in) :: missval
-    INTEGER :: varID, stat
+    TYPE(var_meta_info), INTENT(IN) :: meta
+    INTEGER, INTENT(in)             :: vlistID, &
+         &                             gridID,  &
+         &                             zaxisID, &
+         &                             timeID
+    REAL(KIND=wp), INTENT(in)       :: missval
+
+    INTEGER                         :: varID, stat
 
     varID = vlistDefVar(vlistID, gridID, zaxisID, timeID)
     CALL vlistDefVarDatatype(vlistID, varID, CDI_DATATYPE_FLT32)
@@ -1439,253 +1448,257 @@ MODULE mo_extpar_output_nc
 
   END FUNCTION defineVariable
 
-  !> CDI output of GLC2000 derived ICON fields
-  SUBROUTINE write_cdi_icon_grid_extpar(netcdf_filename,     &
-       &                                   icon_grid,           &
-       &                                   tg,                  &
-       &                                   isoil_data,          &
-       &                                   ldeep_soil,          &
-       &                                   itopo_type,          &
-       &                                   lsso,                &
-       &                                   l_use_isa,           &
-       &                                   l_use_ahf,           &
-       &                                   l_use_emiss,         &
-       &                                   undefined,           &
-       &                                   undef_int,           &
-       &                                   name_lookup_table_lu,&
-       &                                   lu_dataset,          &
-       &                                   nclass_lu,           &
-       &                                   lon_geo,             &
-       &                                   lat_geo,             &
-       &                                   fr_land_lu,          &
-       &                                   lu_class_fraction,   &
-       &                                   ice_lu,              &
-       &                                   z0_lu,               &
-       &                                   root_lu,             &  
-       &                                   plcov_mx_lu,         &
-       &                                   lai_mx_lu,           &
-       &                                   rs_min_lu,           &
-       &                                   urban_lu,            &
-       &                                   for_d_lu,            &
-       &                                   for_e_lu,            &
-       &                                   skinc_lu,            &
-       &                                   emissivity_lu,       &
-       &                                   lake_depth,          &
-       &                                   fr_lake,             &
-       &                                   soiltype_fao,        &
-       &                                   ndvi_max,            &
-       &                                   ndvi_field_mom,      &
-       &                                   ndvi_ratio_mom,      &
-       &                                   emiss_field_mom,     &
-       &                                   hh_topo,             &
-       &                                   hh_topo_max,         &
-       &                                   hh_topo_min,         &       
-       &                                   stdh_topo,           &
-       &                                   theta_topo,          &
-       &                                   aniso_topo,          & 
-       &                                   slope_topo,          &
-       &                                   aot_tg,              &
-       &                                   crutemp,             &
-       &                                   alb_field_mom,       &
-       &                                   alnid_field_mom,     &
-       &                                   aluvd_field_mom,     &      
-       &                                   fr_sand,             &
-       &                                   fr_silt,             &
-       &                                   fr_clay,             &
-       &                                   fr_oc,               &
-       &                                   fr_bd,               &
-       &                                   soiltype_deep,       &
-       &                                   fr_sand_deep,        &
-       &                                   fr_silt_deep,        &
-       &                                   fr_clay_deep,        &
-       &                                   fr_oc_deep,          &
-       &                                   fr_bd_deep,          &
-       &                                   isa_field,           &
-       &                                   ahf_field,           &
-       &                                   sst_field,           &
-       &                                   wsnow_field,         &          
-       &                                   t2m_field,           &          
-       &                                   hsurf_field          )    
+  !> CDI based output of GLC2000 derived ICON fields
+  SUBROUTINE write_cdi_icon_grid_extpar(netcdf_filename,      &
+       &                                icon_grid,            &
+       &                                tg,                   &
+       &                                isoil_data,           &
+       &                                ldeep_soil,           &
+       &                                itopo_type,           &
+       &                                lsso,                 &
+       &                                l_use_isa,            &
+       &                                l_use_ahf,            &
+       &                                l_use_emiss,          &
+       &                                undefined,            &
+       &                                undef_int,            &
+       &                                name_lookup_table_lu, &
+       &                                lu_dataset,           &
+       &                                nclass_lu,            &
+       &                                lon_geo,              &
+       &                                lat_geo,              &
+       &                                fr_land_lu,           &
+       &                                lu_class_fraction,    &
+       &                                ice_lu,               &
+       &                                z0_lu,                &
+       &                                root_lu,              &
+       &                                plcov_mx_lu,          &
+       &                                lai_mx_lu,            &
+       &                                rs_min_lu,            &
+       &                                urban_lu,             &
+       &                                for_d_lu,             &
+       &                                for_e_lu,             &
+       &                                skinc_lu,             &
+       &                                emissivity_lu,        &
+       &                                lake_depth,           &
+       &                                fr_lake,              &
+       &                                soiltype_fao,         &
+       &                                ndvi_max,             &
+       &                                ndvi_field_mom,       &
+       &                                ndvi_ratio_mom,       &
+       &                                emiss_field_mom,      &
+       &                                hh_topo,              &
+       &                                hh_topo_max,          &
+       &                                hh_topo_min,          &
+       &                                stdh_topo,            &
+       &                                theta_topo,           &
+       &                                aniso_topo,           &
+       &                                slope_topo,           &
+       &                                aot_tg,               &
+       &                                crutemp,              &
+       &                                alb_field_mom,        &
+       &                                alnid_field_mom,      &
+       &                                aluvd_field_mom,      &
+       &                                fr_sand,              &
+       &                                fr_silt,              &
+       &                                fr_clay,              &
+       &                                fr_oc,                &
+       &                                fr_bd,                &
+       &                                soiltype_deep,        &
+       &                                fr_sand_deep,         &
+       &                                fr_silt_deep,         &
+       &                                fr_clay_deep,         &
+       &                                fr_oc_deep,           &
+       &                                fr_bd_deep,           &
+       &                                isa_field,            &
+       &                                ahf_field,            &
+       &                                sst_field,            &
+       &                                wsnow_field,          &
+       &                                t2m_field,            &
+       &                                hsurf_field           )
 
-    CHARACTER (len=*), INTENT(IN)      :: netcdf_filename      !< filename for the netcdf file
-    TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< definition of the ICON grid
-    TYPE(target_grid_def), INTENT(IN) :: tg                    !< target grid description
-    INTEGER,               INTENT(IN) :: isoil_data
-    LOGICAL,               INTENT(IN) :: ldeep_soil
-    LOGICAL,               INTENT(IN) :: l_use_isa
-    LOGICAL,               INTENT(IN) :: l_use_ahf
-    LOGICAL,               INTENT(IN) :: l_use_emiss
-    INTEGER (KIND=i4),     INTENT(IN) :: itopo_type
-    LOGICAL,               INTENT(IN) :: lsso
+    CHARACTER (len=*), INTENT(in)                   :: netcdf_filename
+    TYPE(icosahedral_triangular_grid), INTENT(in)   :: icon_grid
+    TYPE(target_grid_def), INTENT(in)               :: tg
+    INTEGER, INTENT(in)                             :: isoil_data
+    LOGICAL, INTENT(in)                             :: ldeep_soil, &
+         &                                             l_use_isa, &
+         &                                             l_use_ahf, &
+         &                                             l_use_emiss, &
+         &                                             lsso
+    INTEGER (KIND=i4), INTENT(in)                   :: itopo_type
 
-    REAL(KIND=wp), INTENT(IN)          :: undefined       !< value to indicate undefined grid elements 
-    INTEGER, INTENT(IN)                :: undef_int       !< value to indicate undefined grid elements
-    REAL (KIND=wp), INTENT(IN) :: lon_geo(:,:,:)  !< longitude coordinates of the target grid in the geographical system
-    REAL (KIND=wp), INTENT(IN) :: lat_geo(:,:,:)  !< latitude coordinates of the target grid in the geographical system
-    CHARACTER (LEN=*), INTENT(IN)      :: name_lookup_table_lu !< name of lookup table
-    CHARACTER (LEN=*),INTENT(IN) :: lu_dataset !< name of landuse data set
-    INTEGER (KIND=i4), INTENT(IN) :: nclass_lu !< number of classes for the land use description
+    REAL (KIND=wp), INTENT(in)                      :: undefined            !< value to indicate undefined grid elements
+    INTEGER, INTENT(in)                             :: undef_int            !< value to indicate undefined grid elements
 
-    REAL (KIND=wp), INTENT(IN)  :: lu_class_fraction(:,:,:,:)  
-    !< fraction for each lu class on target grid (dimension (ie,je,ke,nclass_lu))
-    REAL (KIND=wp), INTENT(IN)  :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
-    REAL (KIND=wp), INTENT(IN)  :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
-    REAL (KIND=wp), INTENT(IN)  :: z0_lu(:,:,:)      !< roughness length due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: root_lu(:,:,:)    !< root depth due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: plcov_mx_lu(:,:,:)!< plant cover maximum due to lu land use data
-    !REAL (KIND=wp), INTENT(IN)  :: plcov_mn_lu(:,:,:)!< plant cover minimum due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: lai_mx_lu(:,:,:)  !< Leaf Area Index maximum due to lu land use data
-    !REAL (KIND=wp), INTENT(IN)  :: lai_mn_lu(:,:,:)  !< Leaf Area Index minimum due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: rs_min_lu(:,:,:)  !< minimal stomata resistance due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: urban_lu(:,:,:)   !< urban fraction due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
-    REAL (KIND=wp), INTENT(IN)  :: skinc_lu(:,:,:)   !< skin conductivity due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: lon_geo(:,:,:)       !< longitude coordinates of the target grid
+    REAL (KIND=wp), INTENT(in)                      :: lat_geo(:,:,:)       !< latitude coordinates of the target grid
 
-    REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
-    REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
-    INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL (KIND=wp), INTENT(IN) :: alb_field_mom(:,:,:,:)!< field for monthly mean albedo data
-    REAL (KIND=wp), INTENT(IN) :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN) :: aluvd_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(IN) :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(IN) :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-    REAL (KIND=wp), INTENT(IN) :: emiss_field_mom(:,:,:,:)!< field for monthly mean emiss data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(IN) :: hsurf_field(:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(IN)  :: hh_topo(:,:,:)  !< mean height
-    REAL (KIND=wp), INTENT(IN)  :: hh_topo_max(:,:,:)  !< max height on a gridpoint
-    REAL (KIND=wp), INTENT(IN)  :: hh_topo_min(:,:,:)  !< min height on a gridpoint
-    REAL (KIND=wp), INTENT(IN)  :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
-    REAL (KIND=wp), INTENT(IN)  :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-    REAL (KIND=wp), INTENT(IN)  :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke) 
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_sand(:,:,:)   !< sand fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_silt(:,:,:)   !< silt fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_clay(:,:,:)   !< clay fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_oc(:,:,:)     !< oc fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_bd(:,:,:)     !< bulk density due to HWSD
-    INTEGER (KIND=i4), INTENT(IN), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
+    CHARACTER (len=*), INTENT(in)                   :: name_lookup_table_lu !< name of lookup table
+    CHARACTER (len=*),INTENT(in)                    :: lu_dataset           !< name of landuse data set
+    INTEGER (KIND=i4), INTENT(in)                   :: nclass_lu            !< number of classes for the land use description
 
-    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
-    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
-    REAL (KIND=wp), INTENT(IN), OPTIONAL  :: slope_topo(:,:,:) !< sso parameter, mean slope
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: isa_field(:,:,:) !< field for isa 
-    REAL (KIND=wp), INTENT(IN), OPTIONAL :: ahf_field(:,:,:) !< field for ahf 
+    REAL (KIND=wp), INTENT(in)                      :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (ie,je,ke,nclass_lu)
+    REAL (KIND=wp), INTENT(in)                      :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
+    REAL (KIND=wp), INTENT(in)                      :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
+    REAL (KIND=wp), INTENT(in)                      :: z0_lu(:,:,:)      !< roughness length due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: root_lu(:,:,:)    !< root depth due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: plcov_mx_lu(:,:,:)!< plant cover maximum due to lu land use data
+    !REAL (KIND=wp), INTENT(in)                     :: plcov_mn_lu(:,:,:)!< plant cover minimum due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: lai_mx_lu(:,:,:)  !< Leaf Area Index maximum due to lu land use data
+    !REAL (KIND=wp), INTENT(in)                     :: lai_mn_lu(:,:,:)  !< Leaf Area Index minimum due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: rs_min_lu(:,:,:)  !< minimal stomata resistance due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: urban_lu(:,:,:)   !< urban fraction due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: skinc_lu(:,:,:)   !< skin conductivity due to lu land use data
+
+    REAL (KIND=wp), INTENT(in)                      :: lake_depth(:,:,:) !< lake depth
+    REAL (KIND=wp), INTENT(in)                      :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
+    INTEGER(KIND=i4), INTENT(in)                    :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+    REAL (KIND=wp), INTENT(in)                      :: alb_field_mom(:,:,:,:)!< field for monthly mean albedo data
+    REAL (KIND=wp), INTENT(in)                      :: alnid_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(in)                      :: aluvd_field_mom(:,:,:,:)
+    REAL (KIND=wp), INTENT(in)                      :: ndvi_max(:,:,:) !< field for ndvi maximum
+    REAL (KIND=wp), INTENT(in)                      :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: emiss_field_mom(:,:,:,:)!< field for monthly mean emiss data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: hsurf_field(:,:,:) !< field for monthly mean wsnow data (12 months)
+    REAL (KIND=wp), INTENT(in)                      :: hh_topo(:,:,:)  !< mean height
+    REAL (KIND=wp), INTENT(in)                      :: hh_topo_max(:,:,:)  !< max height on a gridpoint
+    REAL (KIND=wp), INTENT(in)                      :: hh_topo_min(:,:,:)  !< min height on a gridpoint
+    REAL (KIND=wp), INTENT(in)                      :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
+    REAL (KIND=wp), INTENT(in)                      :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
+    REAL (KIND=wp), INTENT(in)                      :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand(:,:,:)   !< sand fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_silt(:,:,:)   !< silt fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_clay(:,:,:)   !< clay fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_oc(:,:,:)     !< oc fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_bd(:,:,:)     !< bulk density due to HWSD
+    INTEGER (KIND=i4), INTENT(in), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
+
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: slope_topo(:,:,:) !< sso parameter, mean slope
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: isa_field(:,:,:) !< field for isa
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: ahf_field(:,:,:) !< field for ahf
 
     ! local variables
 
-    INTEGER :: ndims 
+    INTEGER                          :: ndims
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
-    TYPE(dim_meta_info), TARGET :: dim_1d_icon(1:1)
-    REAL (KIND=wp), ALLOCATABLE :: time(:) !< time variable
-    REAL (KIND=wp), ALLOCATABLE :: soiltype(:)
-    REAL (KIND=sp), POINTER :: soiltype_deep_f(:,:,:)
-    INTEGER (KIND=i4) :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-    INTEGER (KIND=i4) :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+    TYPE(dim_meta_info), TARGET      :: dim_1d_icon(1:1)
 
-    INTEGER, PARAMETER :: nglob_atts=6
-    TYPE(netcdf_attributes) :: global_attributes(nglob_atts)
+    REAL (KIND=wp), ALLOCATABLE      :: time(:) !< time variable
+    INTEGER (KIND=i4)                :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+    INTEGER (KIND=i4)                :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
-    INTEGER :: errorcode !< error status variable
+    REAL (KIND=wp), ALLOCATABLE      :: soiltype(:)
+    REAL (KIND=sp), POINTER          :: soiltype_deep_f(:,:,:)
 
-    CHARACTER (len=80):: grid_mapping !< netcdf attribute grid mapping
-    INTEGER :: n !< counter
+    INTEGER, PARAMETER               :: nglob_atts=6
+    TYPE(netcdf_attributes)          :: global_attributes(nglob_atts)
 
-    CHARACTER(LEN=1) :: tmp_uuid(16)    !   UUID of unstructured grids 
-    INTEGER(KIND=i1) :: uuid(16)
-    
-    INTEGER :: len, stat
+    INTEGER                          :: errorcode !< error status variable
 
-    INTEGER :: fileID
-    INTEGER :: file_type
-    INTEGER :: gridID
-    INTEGER :: surfaceID
-    INTEGER :: class_luID
-    INTEGER :: taxisID
-    INTEGER :: vlistID
-    INTEGER :: tsID
-    INTEGER :: iret
+    CHARACTER (len=80)               :: grid_mapping !< netcdf attribute grid mapping
+    INTEGER                          :: n !< counter
 
-    INTEGER :: soiltype_deep_ID
-    INTEGER :: fr_sand_ID
-    INTEGER :: fr_silt_ID
-    INTEGER :: fr_clay_ID
-    INTEGER :: fr_oc_ID
-    INTEGER :: fr_bd_ID
-    INTEGER :: fr_sand_deep_ID
-    INTEGER :: fr_silt_deep_ID
-    INTEGER :: fr_clay_deep_ID
-    INTEGER :: fr_oc_deep_ID
-    INTEGER :: fr_bd_deep_ID
-    INTEGER :: soiltype_fao_ID
-    INTEGER :: fr_land_lu_ID
-    INTEGER :: ice_lu_ID
-    INTEGER :: plcov_mx_lu_ID
-    INTEGER :: lai_mx_lu_ID
-    INTEGER :: rs_min_lu_ID
-    INTEGER :: urban_lu_ID
-    INTEGER :: for_d_lu_ID
-    INTEGER :: for_e_lu_ID
-    INTEGER :: skinc_lu_ID
-    INTEGER :: emissivity_lu_ID
-    INTEGER :: root_lu_ID
-    INTEGER :: z0_lu_ID
-    INTEGER :: lon_geo_ID
-    INTEGER :: lat_geo_ID
-    INTEGER :: ndvi_max_ID
-    INTEGER :: hh_topo_ID
-    INTEGER :: hh_topo_max_ID
-    INTEGER :: hh_topo_min_ID
-    INTEGER :: stdh_topo_ID
-    INTEGER :: theta_topo_ID
-    INTEGER :: aniso_topo_ID
-    INTEGER :: slope_topo_ID
-    INTEGER :: crutemp_ID
-    INTEGER :: fr_lake_ID
-    INTEGER :: lake_depth_ID
-    INTEGER :: ahf_field_ID
-    INTEGER :: isa_field_ID
-    INTEGER :: lu_class_fraction_ID
-    INTEGER :: ndvi_field_mom_ID
-    INTEGER :: ndvi_ratio_mom_ID
-    INTEGER :: emiss_field_mom_ID
-    INTEGER :: aot_bc_ID
-    INTEGER :: aot_dust_ID
-    INTEGER :: aot_org_ID
-    INTEGER :: aot_so4_ID
-    INTEGER :: aot_ss_ID
-    INTEGER :: alb_field_mom_ID 
-    INTEGER :: alnid_field_mom_ID
-    INTEGER :: aluvd_field_mom_ID
-    INTEGER :: sst_field_ID
-    INTEGER :: wsnow_field_ID
-    INTEGER :: t2m_field_ID
-    INTEGER :: hsurf_field_ID
-    INTEGER :: clon_ID
-    INTEGER :: clat_ID
-    
+    CHARACTER(len=1)                 :: tmp_uuid(16)    !   UUID of unstructured grids
+    INTEGER(KIND=i1)                 :: uuid(16)
+    INTEGER                          :: len, stat
+
+    INTEGER :: fileID,     &
+         &     file_type,  &
+         &     gridID,     &
+         &     surfaceID,  &
+         &     class_luID, &
+         &     taxisID,    &
+         &     vlistID,    &
+         &     tsID,       &
+         &     iret
+
+    INTEGER :: soiltype_deep_ID,     &
+         &     fr_sand_ID,           &
+         &     fr_silt_ID,           &
+         &     fr_clay_ID,           &
+         &     fr_oc_ID,             &
+         &     fr_bd_ID,             &
+         &     fr_sand_deep_ID,      &
+         &     fr_silt_deep_ID,      &
+         &     fr_clay_deep_ID,      &
+         &     fr_oc_deep_ID,        &
+         &     fr_bd_deep_ID,        &
+         &     soiltype_fao_ID,      &
+         &     fr_land_lu_ID,        &
+         &     ice_lu_ID,            &
+         &     plcov_mx_lu_ID,       &
+         &     lai_mx_lu_ID,         &
+         &     rs_min_lu_ID,         &
+         &     urban_lu_ID,          &
+         &     for_d_lu_ID,          &
+         &     for_e_lu_ID,          &
+         &     skinc_lu_ID,          &
+         &     emissivity_lu_ID,     &
+         &     root_lu_ID,           &
+         &     z0_lu_ID,             &
+         &     lon_geo_ID,           &
+         &     lat_geo_ID,           &
+         &     ndvi_max_ID,          &
+         &     hh_topo_ID,           &
+         &     hh_topo_max_ID,       &
+         &     hh_topo_min_ID,       &
+         &     stdh_topo_ID,         &
+         &     theta_topo_ID,        &
+         &     aniso_topo_ID,        &
+         &     slope_topo_ID,        &
+         &     crutemp_ID,           &
+         &     fr_lake_ID,           &
+         &     lake_depth_ID,        &
+         &     ahf_field_ID,         &
+         &     isa_field_ID,         &
+         &     lu_class_fraction_ID, &
+         &     ndvi_field_mom_ID,    &
+         &     ndvi_ratio_mom_ID,    &
+         &     emiss_field_mom_ID,   &
+         &     aot_bc_ID,            &
+         &     aot_dust_ID,          &
+         &     aot_org_ID,           &
+         &     aot_so4_ID,           &
+         &     aot_ss_ID,            &
+         &     alb_field_mom_ID,     &
+         &     alnid_field_mom_ID,   &
+         &     aluvd_field_mom_ID,   &
+         &     sst_field_ID,         &
+         &     wsnow_field_ID,       &
+         &     t2m_field_ID,         &
+         &     hsurf_field_ID,       &
+         &     clon_ID,              &
+         &     clat_ID
+
     !-------------------------------------------------------------
-    !set up dimensions for buffer netcdf output 
+    !set up dimensions for buffer netcdf output
+
     ndims = 1
     ALLOCATE(dim_list(1:ndims),STAT=errorcode)
     IF (errorcode /= 0 ) CALL logging%error('Cant allocate array dim_list', __FILE__, __LINE__)
     ALLOCATE(time(1:ntime_aot),STAT=errorcode)
     IF (errorcode /= 0 ) CALL logging%error('Cant allocate array time', __FILE__, __LINE__)
+
     DO n = 1, ntime_aot
       CALL set_date_mm_extpar_field(n,dataDate,dataTime)
       time(n) = REAL(dataDate,wp) + REAL(dataTime,wp)/10000. ! units = "day as %Y%m%d.%f"
     ENDDO
     dim_list(1)%dimname = 'cell'
-    dim_list(1)%dimsize = icon_grid%ncell 
+    dim_list(1)%dimsize = icon_grid%ncell
 
     dim_1d_icon   =  dim_list(1) ! cell
 
@@ -1721,7 +1734,7 @@ MODULE mo_extpar_output_nc
     !  &       for_d_lu_meta, for_e_lu_meta, &
     !  &       emissivity_lu_meta, root_lu_meta
 
-    ! define meta information for target field variables lon_geo, lat_geo 
+    ! define meta information for target field variables lon_geo, lat_geo
     CALL def_com_target_fields_meta(dim_1d_icon)
     ! lon_geo_meta and lat_geo_meta
 
@@ -1785,14 +1798,13 @@ MODULE mo_extpar_output_nc
     CALL aer_org_meta%overwrite_varname('AER_ORG')
     CALL aer_so4_meta%overwrite_varname('AER_SO4')
     CALL aer_ss_meta%overwrite_varname('AER_SS')
-    ! ** 
-
+    ! **
 
     !-----------------------------------------------------------------
     gridID = gridCreate(GRID_UNSTRUCTURED, INT(icon_grid%ncell, i8))
     stat = cdiGridDefKeyStr(gridID, CDI_KEY_XDIMNAME, 5, "cell")
     CALL gridDefNumber(gridID, icon_grid%number_Of_Grid_Used)
-    CALL decode_uuid (icon_grid%uuidOfHGrid, tmp_uuid) 
+    CALL decode_uuid (icon_grid%uuidOfHGrid, tmp_uuid)
     CALL gridDefUUID(gridID, TRANSFER(tmp_uuid, uuid))
 
     surfaceID = zaxisCreate(ZAXIS_SURFACE, 1)
@@ -2005,7 +2017,7 @@ MODULE mo_extpar_output_nc
     CALL logging%info('z0_lu')
     n=11 ! z0_lu
     CALL streamWriteVar(fileID, z0_lu_ID, z0_lu(1:icon_grid%ncell,1,1), 0_i8)
- 
+
     CALL logging%info('lon')
     n=12 ! lon
     CALL streamWriteVar(fileID, lon_geo_ID, lon_geo(1:icon_grid%ncell,1,1), 0_i8)
@@ -2133,7 +2145,7 @@ MODULE mo_extpar_output_nc
         CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
       ENDIF
     END DO
-    
+
     !-----------------------------------------------------------------
 
     CALL vlistDestroy(vlistID)
@@ -2144,7 +2156,7 @@ MODULE mo_extpar_output_nc
 
     !-----------------------------------------------------------------
     CALL streamClose(fileID)
-   
+
   END SUBROUTINE write_cdi_icon_grid_extpar
   !-----------------------------------------------------------------------
 
@@ -2152,16 +2164,19 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_cdi_global_att_icon(global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
 
+    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(1:6)
 
+    INTEGER (KIND=i4), INTENT(in)          :: itopo_type,isoil_data
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:6)
-    INTEGER (KIND=i4),     INTENT(IN) :: itopo_type,isoil_data
-    INTEGER env_len, status
-    CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
-    CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
-    CHARACTER (LEN=filename_max) :: env_str
+    CHARACTER (len=*),INTENT(in)           :: name_lookup_table_lu
+    CHARACTER (len=*),INTENT(in)           :: lu_dataset
+
+    ! filename_max makes sense, if it is the POSIX one, as this is the maximum size of a path in Unix
+!    CHARACTER (len=filename_max)           :: env_str
+!    INTEGER                                :: env_len, status   ! need to be nativ integer
 
     !local variables
+
     CHARACTER(len=10) :: ydate
     CHARACTER(len=10) :: ytime
     CHARACTER(len=2)  :: cc
@@ -2186,7 +2201,7 @@ MODULE mo_extpar_output_nc
       IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, GLOBE, Lake Database'
     CASE(2) ! topo_aster
       global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, ASTER, Lake Database'
-      IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'   
+      IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'
     END SELECT
 
     global_attributes(4)%attname = 'note'
@@ -2197,14 +2212,14 @@ MODULE mo_extpar_output_nc
     READ(ytime,'(2A2)') hh, minute
 
     ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
-    ytime=TRIM(hh)//':'//TRIM(minute) 
+    ytime=TRIM(hh)//':'//TRIM(minute)
 
     global_attributes(5)%attname = 'history'
     global_attributes(5)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
 
-    global_attributes(6)%attname = 'comment'
-    CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
-    global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
+!    global_attributes(6)%attname = 'comment'
+!    CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
+!    global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
 
   END SUBROUTINE set_cdi_global_att_icon
   !-----------------------------------------------------------------------
@@ -2212,17 +2227,23 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_global_att_icon(icon_grid,global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
 
+    TYPE(netcdf_attributes), INTENT(inout)        :: global_attributes(1:8)
 
+    TYPE(icosahedral_triangular_grid), INTENT(in) :: icon_grid
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:8)
-    TYPE(icosahedral_triangular_grid), INTENT(IN) :: icon_grid !< structure which contains the definition of the ICON grid
-    INTEGER (KIND=i4),     INTENT(IN) :: itopo_type,isoil_data
-    INTEGER i, env_len, status
-    CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
-    CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
-    CHARACTER (LEN=filename_max) :: env_str
+    INTEGER (KIND=i4),     INTENT(in)             :: itopo_type,isoil_data
+
+    CHARACTER (len=*),INTENT(in)                  :: name_lookup_table_lu
+    CHARACTER (len=*),INTENT(in)                  :: lu_dataset
 
     !local variables
+
+    ! filename_max makes sense, if it is the POSIX one, as this is the maximum size of a path in Unix
+!    CHARACTER (len=filename_max)                  :: env_str
+!    INTEGER                                       :: env_len, status
+
+    INTEGER (KIND=i4) :: i
+
     CHARACTER(len=2)  :: number_Of_Grid_Used_string
     CHARACTER(len=10) :: ydate
     CHARACTER(len=10) :: ytime
@@ -2232,8 +2253,8 @@ MODULE mo_extpar_output_nc
     CHARACTER(len=2)  :: dd
     CHARACTER(len=2)  :: hh
     CHARACTER(len=2)  :: minute
-    CHARACTER(len=1 ) :: uuid(16)    !   UUID of unstructured grids 
-    CHARACTER(len=16 ) :: uuidtxt    !   UUID of unstructured grids 
+    CHARACTER(len=1)  :: uuid(16)   ! UUID of unstructured grids
+    CHARACTER(len=16) :: uuidtxt    ! UUID of unstructured grids
 
     ! define global attributes
 
@@ -2241,6 +2262,7 @@ MODULE mo_extpar_output_nc
     global_attributes(1)%attributetext='external parameter'
 
     global_attributes(2)%attname = 'institution'
+    ! TODO: needs to set via NAMELIST
     global_attributes(2)%attributetext='Deutscher Wetterdienst'
 
     global_attributes(3)%attname = 'rawdata'
@@ -2250,7 +2272,7 @@ MODULE mo_extpar_output_nc
       IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, GLOBE, Lake Database'
     CASE(2) ! topo_aster
       global_attributes(3)%attributetext=TRIM(lu_dataset)//', FAO DSMW, ASTER, Lake Database'
-      IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'   
+      IF(isoil_data == HWSD_data) global_attributes(3)%attributetext=TRIM(lu_dataset)//', HWSD, ASTER, Lake Database'
     END SELECT
 
     global_attributes(4)%attname = 'note'
@@ -2261,40 +2283,39 @@ MODULE mo_extpar_output_nc
     READ(ytime,'(2A2)') hh, minute
 
     ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
-    ytime=TRIM(hh)//':'//TRIM(minute) 
+    ytime=TRIM(hh)//':'//TRIM(minute)
 
     global_attributes(5)%attname = 'history'
     global_attributes(5)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
 
-    global_attributes(6)%attname = 'comment'
-    CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
-    global_attributes(6)%attributetext='binaries in '//TRIM(env_str)
-
     WRITE(number_Of_Grid_Used_string,'(I2)')  icon_grid%number_Of_Grid_Used
-    global_attributes(7)%attname = 'number_of_grid_used'
-    global_attributes(7)%attributetext=number_Of_Grid_Used_string
+    global_attributes(6)%attname = 'number_of_grid_used'
+    global_attributes(6)%attributetext=number_Of_Grid_Used_string
 
-    CALL decode_uuid (icon_grid%uuidOfHGrid, uuid) 
+    CALL decode_uuid (icon_grid%uuidOfHGrid, uuid)
 
     DO i=1,LEN(uuid)
       uuidtxt(i:i)=uuid(i)
     END DO
 
-    global_attributes(8)%attname = 'uuidOfHGrid'
-    global_attributes(8)%attributetext=icon_grid%uuidOfHGrid
+    global_attributes(7)%attname = 'uuidOfHGrid'
+    global_attributes(7)%attributetext=icon_grid%uuidOfHGrid
 
+!    global_attributes(8)%attname = 'comment'
+!    CALL get_environment_VARIABLE( "progdir", env_str, env_len, status)
+!    global_attributes(8)%attributetext='binaries in '//TRIM(env_str)
 
   END SUBROUTINE set_global_att_icon
   !-----------------------------------------------------------------------
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
 
-    TYPE(netcdf_attributes), INTENT(INOUT) :: global_attributes(1:11)
-    CHARACTER (LEN=*),INTENT(IN) :: name_lookup_table_lu
-    CHARACTER (LEN=*),INTENT(IN) :: lu_dataset
-    INTEGER,          INTENT(IN) :: isoil_data
-    LOGICAL,          INTENT(IN) :: lscale_separation
-    CHARACTER (LEN=*),INTENT(IN) :: y_orofilt
+    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(1:11)
+    CHARACTER (len=*),INTENT(in)           :: name_lookup_table_lu
+    CHARACTER (len=*),INTENT(in)           :: lu_dataset
+    INTEGER, INTENT(in)                    :: isoil_data
+    LOGICAL, INTENT(in)                    :: lscale_separation
+    CHARACTER (len=*),INTENT(in)           :: y_orofilt
     !local variables
     CHARACTER(len=10) :: ydate
     CHARACTER(len=10) :: ytime
@@ -2335,7 +2356,7 @@ MODULE mo_extpar_output_nc
     global_attributes(5)%attname = 'scale_separation'
     IF (lscale_separation) THEN
       global_attributes(5)%attributetext = 'scale separation: ON'
-    ELSE 
+    ELSE
       global_attributes(5)%attributetext = 'scale separation: OFF'
     ENDIF
 
@@ -2347,7 +2368,7 @@ MODULE mo_extpar_output_nc
     READ(ytime,'(2A2)') hh, minute
 
     ydate=TRIM(cc)//TRIM(yy)//'-'//TRIM(mm)//'-'//TRIM(dd)
-    ytime=TRIM(hh)//':'//TRIM(minute) 
+    ytime=TRIM(hh)//':'//TRIM(minute)
 
     global_attributes(7)%attname = 'history'
     global_attributes(7)%attributetext=TRIM(ydate)//'T'//TRIM(ytime)//' extpar_consistency_check'
@@ -2355,7 +2376,7 @@ MODULE mo_extpar_output_nc
     global_attributes(8)%attname = 'comment'
     global_attributes(8)%attributetext='Generation of external parameters '// &
 #ifdef CLM
-         &                             'for COSMO-CLM through WebPEP'
+         &                             'for COSMO-CLM through WebPEP.'
 #else
          &                             'for numerical atmospheric models COSMO and ICON.'
 #endif
@@ -2366,27 +2387,27 @@ MODULE mo_extpar_output_nc
     global_attributes(10)%attname = 'Revision Hash'
     global_attributes(10)%attributetext = TRIM(INFO_RevisionHash)//" ("//TRIM(INFO_CodeIsModified)//")"
 
+    ! TODO: that is not true!!!!!!!!!
     global_attributes(11)%attname = 'Conventions'
     global_attributes(11)%attributetext = 'CF-1.5'
-
 
   END SUBROUTINE set_global_att_extpar
   !-----------------------------------------------------------------------
 
 
   SUBROUTINE decode_uuid (uuid_str, uuid)
-    CHARACTER(LEN=*), INTENT(IN)  :: uuid_str   ! uuid encoded as string
-    CHARACTER(LEN=1), INTENT(OUT) :: uuid(:)    ! decoded uuid
+    CHARACTER(len=*), INTENT(in)  :: uuid_str   ! uuid encoded as string
+    CHARACTER(len=1), INTENT(OUT) :: uuid(:)    ! decoded uuid
 
     INTEGER          :: i, j, l, n, b
-    CHARACTER(LEN=2) :: buf
+    CHARACTER(len=2) :: buf
 
     IF (SIZE(uuid) /= 16) THEN
       WRITE (message_text,*) "Error: size of buffer for uuid is insufficient!"
       CALL logging%error(message_text, __FILE__, __LINE__)
     ENDIF
     uuid(:) = ACHAR(0)
-    
+
     l = VERIFY (uuid_str, "0123456789ABCDEFabcdef-")
     IF (l > 0) THEN
       WRITE (message_text,*) "Warning: invalid character in uuid string: '", uuid_str(l:l),"'"
@@ -2409,6 +2430,7 @@ MODULE mo_extpar_output_nc
       uuid(j) = ACHAR(b)
     END DO
     IF (i == n) CALL logging%error("uuid bad length", __FILE__, __LINE__)
+
   END SUBROUTINE decode_uuid
 
 END MODULE mo_extpar_output_nc
