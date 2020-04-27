@@ -2374,6 +2374,7 @@ PROGRAM extpar_consistency_check
          &                                     urban_lu,                      &
          &                                     for_d_lu,                      &
          &                                     for_e_lu,                      &
+         &                                     skinc_lu,                      &
          &                                     emissivity_lu,                 &
          &                                     lake_depth,                    &
          &                                     fr_lake,                       &

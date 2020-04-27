@@ -1467,6 +1467,7 @@ MODULE mo_extpar_output_nc
        &                                   urban_lu,            &
        &                                   for_d_lu,            &
        &                                   for_e_lu,            &
+       &                                   skinc_lu,            &
        &                                   emissivity_lu,       &
        &                                   lake_depth,          &
        &                                   fr_lake,             &
@@ -1532,6 +1533,7 @@ MODULE mo_extpar_output_nc
          &       lai_mx_lu_meta,                                        &
          &       rs_min_lu_meta, urban_lu_meta,                         &
          &       for_d_lu_meta, for_e_lu_meta,                          &
+         &       skinc_lu_meta,                                         &
          &       emissivity_lu_meta, root_lu_meta
 
     USE mo_var_meta_data, ONLY: def_soil_meta
@@ -1621,6 +1623,8 @@ MODULE mo_extpar_output_nc
     REAL (KIND=wp), INTENT(IN)  :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
     REAL (KIND=wp), INTENT(IN)  :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
     REAL (KIND=wp), INTENT(IN)  :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
+    REAL (KIND=wp), INTENT(IN)  :: skinc_lu(:,:,:)   !< skin conductivity due to lu land use data
+
     REAL (KIND=wp), INTENT(IN)  :: lake_depth(:,:,:) !< lake depth
     REAL (KIND=wp), INTENT(IN)  :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
     INTEGER(KIND=i4), INTENT(IN) :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
@@ -1712,6 +1716,7 @@ MODULE mo_extpar_output_nc
     INTEGER :: urban_lu_ID
     INTEGER :: for_d_lu_ID
     INTEGER :: for_e_lu_ID
+    INTEGER :: skinc_lu_ID
     INTEGER :: emissivity_lu_ID
     INTEGER :: root_lu_ID
     INTEGER :: z0_lu_ID
@@ -1916,6 +1921,7 @@ MODULE mo_extpar_output_nc
     urban_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, urban_lu_meta, undefined)
     for_d_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, for_d_lu_meta, undefined)
     for_e_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, for_e_lu_meta, undefined)
+    skinc_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, skinc_lu_meta, undefined)
     emissivity_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, emissivity_lu_meta, undefined)
     root_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, root_lu_meta, undefined)
     z0_lu_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, z0_lu_meta, undefined)
@@ -2146,6 +2152,10 @@ MODULE mo_extpar_output_nc
 
     CALL streamWriteVar(fileID, clon_ID, clon, 0_i8)
     CALL streamWriteVar(fileID, clat_ID, clat, 0_i8)
+
+    CALL logging%info('skinc_lu')
+    n=27 ! emissivity_lu
+    CALL streamWriteVar(fileID, skinc_lu_ID, skinc_lu(1:icon_grid%ncell,1,1), 0_i8)
 
     n=1 ! lu_class_fraction
     CALL streamWriteVar(fileID, lu_class_fraction_ID, lu_class_fraction(1:icon_grid%ncell,1,1,1:nclass_lu), 0_i8)
