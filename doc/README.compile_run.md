@@ -1,12 +1,21 @@
 # EXTPAR: how to compile and run
-
+## Code structure
+EXTPAR contains FORTAN-Code as well as hybrid Python-CDO scripts.
+Both code bases need external libraries and installations.
 ### Libraries
-
-EXTPAR needs the following libraries:
+#### Fortran
+EXTPAR needs the following libraries for the Fortran-Code:
 - NetCDF
 - JASPER
 - PNG
 - Z LIB
+#### Python-CDO
+EXTPAR needs the following Python-packages and installations:
+- at least Python 3.6
+- module netCDF4
+
+Additionally an installation of CDO (Climate Data Operator) is required.
+
 Be sure that these libraries are installed on your system
 or install them yourself by following the installation
 instructions provided with the libraries.
