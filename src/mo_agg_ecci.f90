@@ -298,7 +298,7 @@ CONTAINS
     start_cell_id = 1
 
     ! open netcdf file
-    PRINT *,'open ECCI files'
+!    PRINT *,'open ECCI files'
     ! >mes
     DO nt = 1,ntiles_ecci
       CALL check_netcdf( nf90_open(TRIM(ecci_file(nt)),NF90_NOWRITE, ncid_ecci(nt)))
@@ -315,7 +315,7 @@ CONTAINS
 
     CALL det_band_ecci_data(ecci_grid,block_row_start,ta_grid)
 
-    print*, 'ta_grid: ', ta_grid
+!    print*, 'ta_grid: ', ta_grid
 
     IF (ALLOCATED(lu_block)) THEN
       DEALLOCATE(lu_block, STAT = errorcode)
@@ -364,12 +364,12 @@ CONTAINS
     ENDIF
     !$   ALLOCATE(start_cell_arr(num_blocks))
     !$   start_cell_arr(:) = 1
-    PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
+!    PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
 #ifdef _OPENMP
     region_wallclock = 0.0_dp
 #endif
-    print*, 'Start loop over ECCI rows'
+!    print*, 'Start loop over ECCI rows'
     ecci_rows: DO mlat = 1,ecci_grid%nlat_reg
 
 #ifdef _OPENMP
@@ -540,11 +540,11 @@ CONTAINS
       IF (mlat == 1.OR.(MOD(mlat,3600) == 0)) THEN
         loop_end = omp_get_wtime()
         loop_wallclock = loop_end-loop_start
-        PRINT '(a,i6,a,f7.2,a,f18.12,a,f18.12,a)', &
-             & 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat), ' time: ', loop_wallclock, ' s openmp: ', region_wallclock, ' s'      
+!        PRINT '(a,i6,a,f7.2,a,f18.12,a,f18.12,a)', &
+!             & 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat), ' time: ', loop_wallclock, ' s openmp: ', region_wallclock, ' s'      
       ENDIF
 #else
-      IF (MOD(mlat,200) == 0) PRINT '(a,i6,a,f7.2)', 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat)
+!      IF (MOD(mlat,200) == 0) PRINT '(a,i6,a,f7.2)', 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat)
 #endif
     ENDDO ecci_rows
 
@@ -747,7 +747,7 @@ CONTAINS
       ENDIF
     ENDDO
 
-PRINT*,' MAX ICE_ECCI: ', MAXVAL(ice_ecci)
+! PRINT*,' MAX ICE_ECCI: ', MAXVAL(ice_ecci)
 
   END SUBROUTINE agg_ecci_data_to_target_grid
 

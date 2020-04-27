@@ -234,7 +234,7 @@ CONTAINS
        len_lu_lon_ecci=lu_tiles_ncolumns_ecci(i)
        len_lu_lat_ecci=lu_tiles_nrows_ecci(i)
 #ifdef DEBUG
-       print*, 'ECCI TILE ',ntiles_ecci,': NLON,NLAT ',len_lu_lon,len_lu_lat
+!       print*, 'ECCI TILE ',ntiles_ecci,': NLON,NLAT ',len_lu_lon,len_lu_lat
 #endif
      ENDDO
 

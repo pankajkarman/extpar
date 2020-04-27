@@ -895,7 +895,7 @@ MODULE mo_landuse_routines
              ncolumns = ecci_endcolumn(k) - ecci_startcolumn(k) + 1
  
            ALLOCATE (raw_lu_block(1:ncolumns,1:nrows), STAT=errorcode)
-             IF(errorcode/=0) CALL abort_extpar('Cant allocate the array raw_lu_block')
+           IF(errorcode/=0) CALL logging%error('Cant allocate the array raw_lu_block',__FILE__,__LINE__)
 
              CALL check_netcdf(nf90_inq_varid(ncids_ecci(k),TRIM(varname),varid)) ! get the varid of the altitude variable
              ! get the data into the raw_lu_block
@@ -905,9 +905,8 @@ MODULE mo_landuse_routines
 
             lu_block(ta_start_ie(k):ta_end_ie(k),ta_start_je(k):ta_end_je(k)) = raw_lu_block(1:ncolumns,1:nrows)
             
-             DEALLOCATE (raw_lu_block, STAT=errorcode)
-              IF(errorcode/=0) CALL abort_extpar('Cant deallocate the array raw_lu_block')
-          
+          DEALLOCATE (raw_lu_block, STAT=errorcode)
+          IF(errorcode/=0) CALL logging%error('Cant deallocate the array raw_lu_block',__FILE__,__LINE__) 
            ENDIF
          ENDDO
 
