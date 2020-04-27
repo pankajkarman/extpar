@@ -55,7 +55,7 @@ CC=gcc
 CPPFLAGS=""
 CFLAGS="-std=gnu99 -Wall -Wno-maybe-uninitialized -g -O3 -march=native"
 FC=nagfor
-FCFLAGS="-colour -fpp -gline -g -C=all -O0 -float-store -nan"
+FCFLAGS="-colour -fpp -gline -g -C=all -O0 -float-store -nan -kind=byte"
 
 LDFLAGS=""
 
