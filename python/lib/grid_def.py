@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 import utilities as utils
-from fortran_namelist import read_variable_from_namelist
+from fortran_namelist import read_variable
 
 '''
 Module providing classes and functions for COSMO grids,
@@ -36,25 +36,25 @@ class CosmoGrid:
         '''
         init grid from existing Fortran namelist 'namelist'
 
-        the return value of function "read_variable_from_namelist" 
+        the return value of function "read_variable" 
         is converted to the right type (int, float) 
         No check if retrieved values are meaningful is done
         '''
 
-        self.pollon = float(read_variable_from_namelist(namelist, 'pollon'))
-        self.pollat = float(read_variable_from_namelist(namelist, 'pollat'))
+        self.pollon = read_variable(namelist, 'pollon', float)
+        self.pollat = read_variable(namelist, 'pollat', float)
 
-        self.dlon = float(read_variable_from_namelist(namelist, 'dlon'))
-        self.dlat = float(read_variable_from_namelist(namelist, 'dlat'))
+        self.dlon = read_variable(namelist, 'dlon', float)
+        self.dlat = read_variable(namelist, 'dlat', float)
 
-        self.ie_tot = int(read_variable_from_namelist(namelist, 'ie_tot'))
-        self.je_tot = int(read_variable_from_namelist(namelist, 'je_tot'))
+        self.ie_tot = read_variable(namelist, 'ie_tot', int)
+        self.je_tot = read_variable(namelist, 'je_tot', int)
 
         self.startlon_tot = \
-            float(read_variable_from_namelist(namelist, 'startlon_tot'))
+            read_variable(namelist, 'startlon_tot', float)
 
         self.startlat_tot = \
-            float(read_variable_from_namelist(namelist, 'startlat_tot'))
+            read_variable(namelist, 'startlat_tot', float)
 
         # infer from existing values
         self.ke_tot = 1

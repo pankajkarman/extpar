@@ -4,11 +4,11 @@ import sys
 import utilities as utils
 
 '''
-Module providing function and classes needed for writing
+Module providing function and classes needed for writing/reading
 Fortran-namelists with the python version of Extpar,
 it contains:
 
-    -read_variable_from_namelist: read a variable from given Fortran namelist
+    -read_variable: read a variable from given Fortran namelist
 
     -write_fortran_namelist: write a Fortran namelist using corr. class
 
@@ -20,13 +20,12 @@ it contains:
 '''
 
 
-def read_variable_from_namelist(namelist, variable):
+def read_variable(namelist, variable, type_to_convert):
     '''
     read variable from existing Fortran namelist
 
     namelist is read line by line, the first occurence of variable
-    is taken as the value and returned as type "string",
-    only tested with strings and integers
+    is taken as the value and returned with type int, float or string
     '''
 
     namelist = utils.clean_path('', namelist)
@@ -40,7 +39,47 @@ def read_variable_from_namelist(namelist, variable):
                 split = line.split('=')
 
                 # return last element of split and remove "," and "'"
-                return split[-1].strip().strip("',")
+                raw_variable = split[-1].strip().strip("',")
+
+                # convert string to type_to_convert
+
+                # string
+                if (type_to_convert == str):
+                    try:
+                        converted_variable = str(raw_variable)
+                    except ValueError:
+                        logging.error('Could not convert string '
+                                      f'{raw_variable} to type '
+                                      f'{type_to_convert}')
+                        sys.exit(1)
+
+                # integer
+                elif (type_to_convert == int):
+                    try:
+                        converted_variable = int(raw_variable)
+                    except ValueError:
+                        logging.error('Could not convert string '
+                                      f'{raw_variable} to type '
+                                      f'{type_to_convert}')
+                        sys.exit(1)
+
+                # float 
+                elif (type_to_convert == float):
+                    try:
+                        converted_variable = float(raw_variable)
+                    except ValueError:
+                        logging.error('Could not convert string '
+                                      f'{raw_variable} to type '
+                                      f'{type_to_convert}')
+                        sys.exit(1)
+
+                #unsupported
+                else:
+                    logging.error(f'Unsupported type {type_to_convert} '
+                                  f'to read from Fortran namelist')
+                    sys.exit(1)
+
+                return converted_variable
 
     # variable not found in namelist
     logging.error(f'Could not find {variable} in {namelist}')

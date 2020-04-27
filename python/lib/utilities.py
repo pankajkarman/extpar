@@ -3,7 +3,7 @@ import sys
 import os
 import subprocess
 
-from fortran_namelist import read_variable_from_namelist
+from fortran_namelist import read_variable
 
 '''
 Module utilities provides a bunch of helpful functions for Extpar,
@@ -146,10 +146,11 @@ def check_gridtype(input_grid_org):
 
     grid_org = clean_path('', input_grid_org)
 
-    grid_type = int(read_variable_from_namelist(grid_org, 'igrid_type'))
+    grid_type = read_variable(grid_org, 'igrid_type', int)
 
-    def_domain_namelist = read_variable_from_namelist(grid_org,
-                                                      'domain_def_namelist')
+    def_domain_namelist = read_variable(grid_org,
+                                        'domain_def_namelist',
+                                        str)
 
     grid_fortran_namelist = clean_path('',def_domain_namelist)
 
