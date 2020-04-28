@@ -853,7 +853,7 @@ The data is remapped to the target grid using the \textit{distance-weighted aver
         INPUT\_ICON\_GRID
   \item generate namelist: INPUT\_ALB
   \item data input: month\_alb.nc, month\_alnid.nc, month\_aluvd.nc, global\_soil\_albedo.nc
-  \item data output: buffer file with albedo data (input\_alb: alb\_output\_file)
+  \item data output: buffer file with albedo data (input\_alb: alb\_buffer\_file)
 \end{itemize}
 
 \subsection{extpar\_cru\_to\_buffer}\label{extpar_cru_to_buffer}
@@ -963,6 +963,16 @@ The EXTPAR software is subject to several limitations:
 \clearpage
 
 \section{Namelist Input for Extpar} \label{namelist_input_for_extpar}
+Extpar uses 3 types of different namelists in order to determine in which way data is processed.
+
+\begin{itemize}
+  \item Fortran namelists (INPUT\_*)
+  \item Python dictionaries (input\_*) (input\_* in namelist.py)
+  \item Fortran namelists written by Python scripts 
+\end{itemize}
+Whereas for the Fortran namelists and the Python dictionaries the user can specify parameters and filenames, the Fortran namelists generated during runtime by the
+Python scripts do not allow any user interaction.
+
 \subsection{Namelist files}\label{namelist_input_for_extpar_namelist_files}
 \begin{longtable}{|p{3.5cm}|p{4.8cm}|p{2.4cm}|p{3.8cm}|}
 \hline 
@@ -980,6 +990,7 @@ INPUT\_grid\_org & define target grid type    & runscript &  extpar\_consistency
  & & & extpar\_flake\_to\_buffer \\
  & & & extpar\_isa\_to\_buffer \\
  & & & extpar\_ahf\_to\_buffer \\
+ & & & extpar\_emiss\_to\_buffer \\
 \hline 
 INPUT\_COSMO\_GRID   & define target domain for COSMO grid    & runscript &  extpar\_consistency\_check \\
 & & & extpar\_aot\_to\_buffer \\
@@ -991,6 +1002,7 @@ INPUT\_COSMO\_GRID   & define target domain for COSMO grid    & runscript &  ext
  & & & extpar\_flake\_to\_buffer \\
  & & & extpar\_isa\_to\_buffer \\
  & & & extpar\_ahf\_to\_buffer \\
+ & & & extpar\_emiss\_to\_buffer \\
 \hline 
 INPUT\_ICON\_GRID   & define target domain for ICON grid    & runscript &  extpar\_consistency\_check \\
 & & & extpar\_aot\_to\_buffer \\
@@ -1002,6 +1014,7 @@ INPUT\_ICON\_GRID   & define target domain for ICON grid    & runscript &  extpa
  & & & extpar\_flake\_to\_buffer \\
  & & & extpar\_isa\_to\_buffer \\
  & & & extpar\_ahf\_to\_buffer \\
+ & & & extpar\_emiss\_to\_buffer \\
 \hline 
  INPUT\_ORO & settings for orography data & runscript & extpar\_topo\_to\_buffer \\
 \hline
@@ -1015,21 +1028,21 @@ INPUT\_ICON\_GRID   & define target domain for ICON grid    & runscript &  extpa
 \hline 
  INPUT\_AOT & settings for aerosol data  & runscript &  extpar\_aot\_to\_buffer \\
 \hline
-  INPUT\_TCLIM  & settings for temperature data     & runscript & extpar\_cru\_to\_buffer  \\
+  INPUT\_TCLIM  & settings for temperature data     &  extpar\_cru\_-to\_buffer & extpar\_consistency\_check \tabularnewline
 \hline 
-INPUT\_NDVI & settings for NDVI data & runscript & extpar\_ndvi\_to\_buffer \\
+INPUT\_NDVI & settings for NDVI data & extpar\_ndvi\_-to\_buffer & extpar\_consistency\_check \tabularnewline
 \hline 
 INPUT\_SOIL & settings for soil data & runscript & extpar\_soil\_to\_buffer \\
 \hline 
 INPUT\_FLAKE & settings for lake data & runscript & extpar\_flake\_to\_buffer \\
 \hline
-INPUT\_ALB & settings for albedo data & runscript & extpar\_albedo\_to\_buffer \\
+INPUT\_ALB & settings for albedo data & extpar\_albedo\_-to\_buffer & extpar\_consistency\_check \tabularnewline
 \hline
 INPUT\_ISA & settings for fraction of impervious surface area data & runscript & extpar\_isa\_to\_buffer \\
 \hline
 INPUT\_AHF & settings for anthropogenic heat flux data & runscript & extpar\_ahf\_to\_buffer \\
 \hline
-INPUT\_EMISS & settings for emissivity data & runscript & extpar\_emiss\_to\_buffer \\
+INPUT\_EMISS & settings for emissivity data & extpar\_emiss\_-to\_buffer & extpar\_consistency\_check \tabularnewline
 \hline
 INPUT\_CHECK & settings for the consistency check & runscript & extpar\_consistency\_check \\
 \hline 
@@ -1380,7 +1393,7 @@ aot\_output\_file & character & &  & name for aerosol output file \tabularnewlin
 
 \subsection{Climatological 2m temperature}\label{namelist_input_for_extpar_cru}
 
-\subsubsection*{NAMELIST /t\_clim\_raw\_data/ (INPUT\_TCLIM)}
+\subsubsection*{DICT input\_tclim (namelist.py)}
 
 \begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
 \hline 
@@ -1391,32 +1404,23 @@ aot\_output\_file & character & &  & name for aerosol output file \tabularnewlin
 \hline 
 raw\_data\_t\_clim\_path & character & &  & path to T2m climatology data \tabularnewline
 \hline 
-raw\_data\_t\_clim\_filename & character & &  & filename of T2m climatology  data \tabularnewline
+raw\_data\_t\_clim\_coarse & character & &  & filename of coarse T2m climatology  data \tabularnewline
 \hline
-it\_cl\_type & integer & & & switch to choose between the new and fine (1) and the old and coarse (2) raw data set. Note that the fine data set (1) is topographically corrected.\tabularnewline
+raw\_data\_t\_clim\_fine & character & &  & filename of fine T2m climatology  data \tabularnewline
 \hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /t\_clim\_io\_extpar/ (INPUT\_TCLIM)}
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
+it\_cl\_type & integer & & & switch to choose between the new and fine (1) and the old and coarse over sea and the fine over land (2) raw data set. 
+Note that the fine data set (1) is topographically corrected.\tabularnewline
 \hline
 t\_clim\_buffer\_file & character & &  & name for t\_clim buffer file
 \tabularnewline
-\hline 
-t\_clim\_output\_file & character & &  & name for t\_clim output file \tabularnewline
 \hline
+
 \bottomrule
 \end{longtable}
 
 \subsection{NDVI data}\label{namelist_input_for_extpar_ndvi}
 
-\subsubsection*{NAMELIST /ndvi\_raw\_data/ (INPUT\_NDVI)}
+\subsubsection*{DICT input\_ndvi (namelist.py)}
 
 \begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
 \hline 
@@ -1429,22 +1433,9 @@ raw\_data\_ndvi\_path & character & &  & path to ndvi raw data \tabularnewline
 \hline 
 raw\_data\_ndvi\_filename & character & &  & filename of ndvi raw data \tabularnewline
 \hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /ndvi\_io\_extpar/ (INPUT\_NDVI)}
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline
 ndvi\_buffer\_file & character & &  & name for ndvi buffer file
 \tabularnewline
 \hline 
-ndvi\_output\_file & character & &  & name for ndvi output file \tabularnewline
-\hline
 \bottomrule
 \end{longtable}
 
@@ -1554,7 +1545,7 @@ flake\_output\_file & character & &  & name for flake output file \tabularnewlin
 
 \subsection{Albedo data}\label{namelist_input_for_extpar_albedo}
 
-\subsubsection*{NAMELIST /alb\_raw\_data/ (INPUT\_ALB)}
+\subsubsection*{DICT input\_alb (namelist.py)}
 
 \begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
 \hline 
@@ -1569,82 +1560,25 @@ raw\_data\_alb\_path & character & & & path to raw albedo data
 raw\_data\_alb\_filename & character & & & filename of the raw albedo data
 \tabularnewline
 \hline
+raw\_data\_alnid\_filename & character & & & filename of the raw NIR-albedo data
+\tabularnewline
+\hline
+raw\_data\_aluvd\_filename & character & & & filename of the raw UV-albedo data
+\tabularnewline
+\hline
 ialb\_type & integer &1 & & switch to indicate albedo type 1:total albedo 2:soil albedo 3:as 1 without NI and UV fields
 \tabularnewline
 \hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /alnid\_raw\_data/ (INPUT\_ALB)}
-
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}&\textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline
- raw\_data\_alb\_path & character & & & path to raw albedo data
-\tabularnewline
-\hline
-raw\_data\_alnid\_filename & character & & & filename of the raw near infrared albedo data
-\tabularnewline
-\hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /aluvd\_raw\_data/ (INPUT\_ALB)}
-
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline
- raw\_data\_alb\_path & character & & & path to raw albedo data
-\tabularnewline
-\hline
-raw\_data\_aluvd\_filename & character & & & filename of the raw ultra violet albedo data
-\tabularnewline
-\hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /alb\_io\_extpar/ (INPUT\_ALB)}
-
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline 
 alb\_buffer\_file & character & & & name for the albedo buffer file
 \tabularnewline
 \hline
-alb\_output\_file & character & & & name for the albedo output file
-\tabularnewline
-\hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /alb\_source\_file/ (INPUT\_ALB)}
-
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline 
 alb\_source & character & 'al' & & variable name of the albedo netcdf file
 \tabularnewline
 \hline
-alnid\_source & character & 'alnid' & & variable name of the near infrared albedo netcdf file
+alnid\_source & character & 'alnid' & & variable name of the NIR-albedo netcdf file
 \tabularnewline
 \hline
-aluvd\_source & character & 'aluvd' & & variable name of the ultra violet albedo netcdf file
+aluvd\_source & character & 'aluvd' & & variable name of the UV-albedo netcdf file
 \tabularnewline
 \hline
 \bottomrule
@@ -1725,7 +1659,7 @@ ahf\_output\_file & character & &  & name for AHF output file
 
 \subsection{Emissivity parameter}\label{namelist_input_for_extpar_emissivity}
 
-\subsubsection*{NAMELIST /emiss\_raw\_data/ (INPUT\_EMISS)}
+\subsubsection*{DICT input\_emiss (namelist.py)}
 
 \begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
 \hline 
@@ -1733,6 +1667,8 @@ ahf\_output\_file & character & &  & name for AHF output file
 \tabularnewline
 \hline
 \endhead
+\hline
+iemiss\_type & integer & &  & switch to choose between full-range (1) and long-wave (2) emissivity data \tabularnewline
 \hline
 raw\_data\_emiss\_path & character & &  & path to emissivity parameter raw data
 \tabularnewline
@@ -1740,21 +1676,7 @@ raw\_data\_emiss\_path & character & &  & path to emissivity parameter raw data
 raw\_data\_emiss\_filename & character & &  &  filenames of emissivity raw data
 \tabularnewline
 \hline
-\bottomrule
-\end{longtable}
-
-\subsubsection*{NAMELIST /emiss\_io\_extpar/ (INPUT\_EMISS)}
-\begin{longtable}{|p{4cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{6cm}|}
-\hline 
-\textbf{Parameter}& \textbf{Type}& \textbf{Default}& \textbf{Unit}& \textbf{Description}
-\tabularnewline
-\hline
-\endhead
-\hline
 emiss\_buffer\_file & character & &  & name for emissivity parameter buffer file
-\tabularnewline
-\hline
-emiss\_output\_file & character & &  & name for emissivity output file
 \tabularnewline
 \hline 
 \bottomrule
@@ -1772,28 +1694,6 @@ emiss\_output\_file & character & &  & name for emissivity output file
 \hline 
 netcdf\_output\_filename & character & &  & filename for netcdf output filename \tabularnewline
 \hline 
-orography\_buffer\_file & character & &  & name for orography buffer file \tabularnewline
-\hline 
-soil\_buffer\_file & character & &  & name for soil buffer file \tabularnewline
-\hline 
-lu\_buffer\_file & character & &  & name for landuse buffer file \tabularnewline
-\hline 
-glcc\_buffer\_file & character & &  & name for glcc buffer file \tabularnewline
-\hline 
-flake\_buffer\_file & character & &  & name for flake buffer file \tabularnewline
-\hline 
-ndvi\_buffer\_file & character & &  & name for ndvi buffer file \tabularnewline
-\hline 
-sst\_icon\_file & character & &  & name for ICON sst buffer file \tabularnewline
-\hline 
-t\_2m\_icon\_file & character & &  & name for ICON two meter temperature buffer file \tabularnewline
-\hline
-t\_clim\_buffer\_file & character & &  & name for t\_clim buffer file \tabularnewline
-\hline 
-aot\_buffer\_file & character & &  & name for aot buffer file \tabularnewline
-\hline
-alb\_buffer\_file & character & &  & name for albedo buffer file \tabularnewline
-\hline
 i\_lsm\_data & integer &  & & integer switch to choose if an external land sea mask is desired or not. 0: no external land sea mask, 1: use external land sea mask \tabularnewline
 \hline
 land\_sea\_mask\_file & character & & & name of the file which can be used as the external land sea mask. \tabularnewline
@@ -1807,9 +1707,6 @@ tile structure
 \tabularnewline
 \hline
 lflake\_correction & logical & T & & if activated then fr\_lake values of grid points next to ocean are set to ocean values the lake depth value is set to undefined.  This is the default behavior in EXTPAR version 4.0, but not in DWD EXTPAR version 2.10.  
-\tabularnewline
-\hline
-ltcl\_merge & logical & F(COSMO),T(ICON) & & if activated then coarse TCLIM data is used for ocean points and fine TCLIM data is used for land points
 \tabularnewline
 \hline
 \bottomrule
