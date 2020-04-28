@@ -33,7 +33,7 @@ omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_albedo'  # name for grid description file
-reduced_grid = 'grid_description_albedo'   # name for reduced icon grid
+reduced_grid = 'reduced_icon_grid_albedo.nc'   # name for reduced icon grid
 weights = 'weights_albedo'        # name for weights of spatial interpolation
 
 # names for output of CDO
@@ -211,10 +211,7 @@ logging.info( '============= write to buffer file =============')
 logging.info( '')
 
 # init buffer file
-if (igrid_type == 1):
-    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
-elif(igrid_type == 2):
-    buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
+buffer_file = buffer.init_netcdf(ia['alb_buffer_file'], je_tot, ie_tot)
 
 # add 12 months as additional dimension
 if (ialb_type != 2):
