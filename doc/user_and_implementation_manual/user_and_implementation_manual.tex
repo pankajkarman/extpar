@@ -249,7 +249,7 @@ monthly mean EMISS climatology 1998-2003 &EMISS &1 & CAMEL
 
 \section{Software modules}\label{Software_modules}
 \subsection{Overview}\label{Overview}
-The software EXTPAR is composed of twelve autonomous programmes. Eleven programmes are responsible for aggregating a raw data to the target grid, which is specified by the user. The twelveth program, the consistency check, is performed in the end. The executables are called extpar\_$\ast$\_to\_buffer, whereas the star stands for ahf (anthropogenic heat flux), aot (aerosol optical thickness), cru (temperature climatology of the Climate Research Unit (CRU)), landuse, topo, ndvi (normalized difference vegetation index), soil, flake (fraction lake), isa (impervious surface area), albedo, and emiss (emissivity) respectively. In Fig. \ref{fig:EXTPAR_Figure} a schematic representation of EXTPAR is drawn. For the sake of clarity only the topography and land-use path is shown. The same can be applied for the other ten raw data sets. For all these programs there exist namelists. Most of the namelists only contain the name and path of the raw data file and the name of the buffer file, which is later used for the consistency check, and the name of the output of the final external variables. \par\medskip\noindent
+The software EXTPAR is composed of twelve autonomous programmes. Eleven programmes are responsible for aggregating a raw data to the target grid, which is specified by the user. The twelfth program, the consistency check, is performed in the end. The executables are called extpar\_$\ast$\_to\_buffer, whereas the star stands for ahf (anthropogenic heat flux), aot (aerosol optical thickness), cru (temperature climatology of the Climate Research Unit (CRU)), landuse, topo, ndvi (normalized difference vegetation index), soil, flake (fraction lake), isa (impervious surface area), albedo, and emiss (emissivity) respectively. In Fig. \ref{fig:EXTPAR_Figure} a schematic representation of EXTPAR is drawn. For the sake of clarity only the topography and land-use path is shown. The same can be applied for the other ten raw data sets. For all these programs there exist namelists. Most of the namelists only contain the name and path of the raw data file and the name of the buffer file, which is later used for the consistency check, and the name of the output of the final external variables. \par\medskip\noindent
 
 The software modules read from the following namelist files:
 
@@ -266,7 +266,7 @@ The software modules read from the following namelist files:
   \item namelist.py
 \end{itemize}
 
-\noindent The namelists 'INPUT\_grid\_org' and either 'INPUT\_COSMO\_GRID' or 'INPUT\_ICON\_GRID' are used in all the programs, as they contain the general information of the target grid to which the raw data should be aggregated. The namelist file 'namelist.py' is read be all Python programmes. \par\medskip\noindent
+\noindent The namelists 'INPUT\_grid\_org' and either 'INPUT\_COSMO\_GRID' or 'INPUT\_ICON\_GRID' are used in all the programs, as they contain the general information of the target grid to which the raw data should be aggregated. The namelist file 'namelist.py' is read by all Python programmes. \par\medskip\noindent
 \pgfdeclareimage[interpolate=true, height = 28.5cm]{EXTPAR_Figure}{EXTPAR_Figure}
 \begin{figure}[hp!]
 \begin{pgfpicture}{0cm}{0cm}{17.5cm}{23.7cm}
@@ -282,9 +282,9 @@ For three of the external parameters calculated by EXTPAR, namely albedo, NDVI, 
 Hadley CRU climatologies, problems appeared with target
 resolutions much higher than the provided input data set
 resolutions. The problem is that not all target grid points get assigned a
-proper value. \par\medskip\noindent
+proper value when using the legacy Fortan code and interpolation method.\par\medskip\noindent
 
-\noindent The currently used algorithm in the Fortran modules aggregates source grid point
+\noindent The algorithm used in the legacy Fortran modules aggregates source grid point
 values onto the target grid where the input data is finer than the target grid
 and uses bi-linear interpolation to fill the remaining grid 
 points where the input data is sparser than the target grid.  However, starting
@@ -293,9 +293,10 @@ assigned unreasonable values because of the insufficiency of the bi-linear
 interpolation algorithm. \par\medskip\noindent
 
 
-\noindent To resolve this issue, a rewrite of those Fortran module in Python, using the more sophisticated interpolation methods
+\noindent To resolve this issue, for Extpar Version 5.4 a rewrite of those Fortran modules in Python, using the more sophisticated interpolation methods
 from CDO with support for all grids was conducted.  Because the interpolation methods implemented in CDO are faster then those
-in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. 
+in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. A rewrite in Python only makes sense for Fortran modules that do simple calculations with the data. These calculaions can easily be substituted with CDO-commands in the Python modules.
+For modules doing complex calculations and providing many namelist parameters the user can define, like \textit{extpar\_topo\_to\_buffer} or \textit{extpar\_landuse\_to\_buffer}, a rewrite in Python is not planned.
 \par\medskip\noindent
 
 \noindent The interpolation algorithms selected are:
@@ -863,7 +864,7 @@ The data is remapped to the target grid using the \textit{distance-weighted aver
 \subsection{extpar\_cru\_to\_buffer}\label{extpar_cru_to_buffer}
 \subsubsection{Short description of the subprogram \textit{extpar\_cru\_to\_buffer}}
 The executable \textit{extpar\_cru\_to\_buffer} aggregates the temperature climatology of the Climate Research Unit (CRU) to the target grid. 
-The namelist 'namelist.py' gives the information of the path and the name of the raw temperature climatology data file. Additionally, the filename for the buffer is provided. There is an integer switch (it\_cl\_type), which allows to choose between a newer higher resolved data set for land surfaces only (1) and and older coarser raw data set for sea surfaces in combination with the  higher resolved data set over land (2). Aggregate the coarse data set over land surfaces is no longer supported since Extpar Version 5.4. \par\medskip\noindent
+The namelist 'namelist.py' gives the information of the path and the name of the raw temperature climatology data file. Additionally, the filename for the buffer is provided. There is an integer switch (it\_cl\_type), which allows the choice between a newer higher resolved data set for land surfaces only (1) and an older coarser raw data set for sea surfaces in combination with the  higher resolved data set over land (2). Aggregation of the coarse data set over land surfaces is no longer supported since Extpar Version 5.4. \par\medskip\noindent
 
 \paragraph{Data processing} \ \par\medskip\noindent
 
@@ -906,7 +907,7 @@ to determine whether one wants to use the broad band emissivity for the 3.6 and 
 \paragraph{Data processing} \ \par\medskip\noindent
 After the generation of the interpolation weights artificial low values below 0.5 are set to -999. In a subsequent processing step -999 is set to the value for missing data.
 In order to not have missing data in the field to interpolate, all missing values are set to the values of its nearest neighbour.
-The last step involves the \textit{first order conservate} interpolation to the target grid. After the remapping with CDO two additional fields are computed:
+The last step involves the \textit{first order conservative} interpolation to the target grid. After the remapping with CDO two additional fields are computed:
 \begin{itemize}
   \item EMISS\_MAX, the maximum EMISS value over 12 months
   \item EMISS\_MRAT, the monthly ratio with respect to the maximum EMISS
