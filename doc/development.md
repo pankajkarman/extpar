@@ -106,7 +106,7 @@ in, out, and inout.
 The organization of the Python programmes is slightly different to the Fortran ones, because Python does not need to be compiled prior to execution.   
 The main python scripts *extpar_alb_to_buffer.py*, *extpar_cru_to_buffer.py*, *extpar_ndvi_to_buffer.py* and *emiss_to_buffer.py* can be treated like the Fortran binaries and copied to the run-directory. Make sure the *namelist.py* is also present at the run-directory.  
 
-All self-written Python-modules are stored in *python/lib* and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set the following:  
+All self-written Python-modules are stored in [lib](../python/lib) and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set the following:  
 
 unset PYTHONPATH  
 export PYTHONPATH=*absolute_path_to_python/lib*
@@ -131,7 +131,8 @@ Default logging level is info, so only messages from logging.info(), logging.war
 ### Coding rules and best practices
 
 The Python code needs to fulfill the [Pep8 coding standard](https://www.python.org/dev/peps/pep-0008/).
-The testsuite provides a test to check these requirements. **Describe how to use it**
+The testsuite provides a test to check these requirements. To check if your code alligns with the Pep8 coding standard
+execute the [pep8_checker](../python/pep8_checker.sh).  
 The most important coding rules and best practices are the following:
 
 1. put (short) docstrings at the begining of each function or class,  
