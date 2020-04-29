@@ -12,8 +12,8 @@ path_to_lib="../../python/lib"
 path_to_buffer_scripts="../../python"
 
 # check if necessary scripts exist
-if [ ! -f "$path_to_buffer_scripts/check_PEP8_standards.sh" ] ; then
-  echo "Script check_PEP8_standards.sh not found" 1>&1
+if [ ! -f "$path_to_buffer_scripts/pep8_checker.sh" ] ; then
+  echo "Script pep8_checker.sh not found" 1>&1
   exit 20 # FAIL
 fi
 
@@ -37,7 +37,7 @@ if [ $py_buffer_files -lt 1 ] ; then
 fi
 
 # run Pep8 test
-pep8_violations=`${path_to_buffer_scripts}/check_PEP8_standards.sh ${path_to_lib}`
+pep8_violations=`${path_to_buffer_scripts}/pep8_checker.sh ${path_to_lib}`
 
 # no violations found
 if [ ! -z "${pep8_violations}" ]; then
