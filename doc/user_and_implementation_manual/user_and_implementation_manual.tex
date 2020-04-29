@@ -295,7 +295,7 @@ interpolation algorithm. \par\medskip\noindent
 
 \noindent To resolve this issue, for Extpar Version 5.4 a rewrite of those Fortran modules in Python, using the more sophisticated interpolation methods
 from CDO with support for all grids was conducted.  Because the interpolation methods implemented in CDO are faster then those
-in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. A rewrite in Python only makes sense for Fortran modules that do simple calculations with the data. These calculaions can easily be substituted with CDO-commands in the Python modules.
+in Fortran for large model grids, \textit{emiss\_to\_buffer} is written in Python as well. A rewrite in Python only makes sense for Fortran modules that do simple calculations with the data. These calculations can easily be substituted with CDO-commands in the Python modules.
 For modules doing complex calculations and providing many namelist parameters the user can define, like \textit{extpar\_topo\_to\_buffer} or \textit{extpar\_landuse\_to\_buffer}, a rewrite in Python is not planned.
 \par\medskip\noindent
 
