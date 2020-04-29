@@ -997,7 +997,7 @@ MODULE mo_extpar_output_nc
     REAL (KIND=wp), ALLOCATABLE                  :: time(:) !< time variable
 
     LOGICAL                                      :: l_use_emiss=.FALSE. !< flag if additional CAMEL emissivity data are present
-    INTEGER(KIND=i4), PARAMETER                  :: nglob_atts=9
+    INTEGER(KIND=i4), PARAMETER                  :: nglob_atts=7
     TYPE(netcdf_attributes)                      :: global_attributes(nglob_atts)
 
     CHARACTER (len=80)                           :: grid_mapping !< netcdf attribute grid mapping
@@ -1530,66 +1530,72 @@ MODULE mo_extpar_output_nc
     REAL (KIND=wp), INTENT(in)                      :: undefined            !< value to indicate undefined grid elements
     INTEGER, INTENT(in)                             :: undef_int            !< value to indicate undefined grid elements
 
-    REAL (KIND=wp), INTENT(in)                      :: lon_geo(:,:,:)       !< longitude coordinates of the target grid
-    REAL (KIND=wp), INTENT(in)                      :: lat_geo(:,:,:)       !< latitude coordinates of the target grid
+    REAL (KIND=wp), INTENT(in)                      :: lon_geo(:,:,:), &    !< longitude coordinates of the target grid
+         &                                             lat_geo(:,:,:)       !< latitude coordinates of the target grid
 
-    CHARACTER (len=*), INTENT(in)                   :: name_lookup_table_lu !< name of lookup table
-    CHARACTER (len=*),INTENT(in)                    :: lu_dataset           !< name of landuse data set
-    INTEGER (KIND=i4), INTENT(in)                   :: nclass_lu            !< number of classes for the land use description
+    CHARACTER (len=*), INTENT(in)                   :: name_lookup_table_lu, & !< name of lookup table
+         &                                             lu_dataset              !< name of landuse data set
+    INTEGER (KIND=i4), INTENT(in)                   :: nclass_lu               !< number of classes for the land use description
 
-    REAL (KIND=wp), INTENT(in)                      :: lu_class_fraction(:,:,:,:)  !< fraction for each lu class on target grid (ie,je,ke,nclass_lu)
-    REAL (KIND=wp), INTENT(in)                      :: fr_land_lu(:,:,:) !< fraction land due to lu raw data
-    REAL (KIND=wp), INTENT(in)                      :: ice_lu(:,:,:)     !< fraction of ice due to lu raw data
-    REAL (KIND=wp), INTENT(in)                      :: z0_lu(:,:,:)      !< roughness length due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: root_lu(:,:,:)    !< root depth due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: plcov_mx_lu(:,:,:)!< plant cover maximum due to lu land use data
-    !REAL (KIND=wp), INTENT(in)                     :: plcov_mn_lu(:,:,:)!< plant cover minimum due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: lai_mx_lu(:,:,:)  !< Leaf Area Index maximum due to lu land use data
-    !REAL (KIND=wp), INTENT(in)                     :: lai_mn_lu(:,:,:)  !< Leaf Area Index minimum due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: rs_min_lu(:,:,:)  !< minimal stomata resistance due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: urban_lu(:,:,:)   !< urban fraction due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: for_d_lu(:,:,:)   !< deciduous forest (fraction) due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: for_e_lu(:,:,:)   !< evergreen forest (fraction) due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: emissivity_lu(:,:,:) !< longwave emissivity due to lu land use data
-    REAL (KIND=wp), INTENT(in)                      :: skinc_lu(:,:,:)   !< skin conductivity due to lu land use data
+    REAL (KIND=wp), INTENT(in)                      :: lu_class_fraction(:,:,:,:), & !< fraction for each lu class on target grid (ie,je,ke,nclass_lu)
+         &                                             fr_land_lu(:,:,:),          & !< fraction land due to lu raw data
+         &                                             ice_lu(:,:,:),              & !< fraction of ice due to lu raw data
+         &                                             z0_lu(:,:,:),               & !< roughness length due to lu land use data
+         &                                             root_lu(:,:,:),             & !< root depth due to lu land use data
+         &                                             plcov_mx_lu(:,:,:),         & !< plant cover maximum due to lu land use data
+         !&                                             plcov_mn_lu(:,:,:),         & !< plant cover minimum due to lu land use data
+         &                                             lai_mx_lu(:,:,:),           & !< Leaf Area Index maximum due to lu land use data
+         !&                                             lai_mn_lu(:,:,:),           & !< Leaf Area Index minimum due to lu land use data
+         &                                             rs_min_lu(:,:,:),           & !< minimal stomata resistance due to lu land use data
+         &                                             urban_lu(:,:,:),            & !< urban fraction due to lu land use data
+         &                                             for_d_lu(:,:,:),            & !< deciduous forest (fraction) due to lu land use data
+         &                                             for_e_lu(:,:,:),            & !< evergreen forest (fraction) due to lu land use data
+         &                                             emissivity_lu(:,:,:),       & !< longwave emissivity due to lu land use data
+         &                                             skinc_lu(:,:,:)               !< skin conductivity due to lu land use data
 
-    REAL (KIND=wp), INTENT(in)                      :: lake_depth(:,:,:) !< lake depth
-    REAL (KIND=wp), INTENT(in)                      :: fr_lake(:,:,:)     !< fraction of fresh water (lakes)
+    REAL (KIND=wp), INTENT(in)                      :: lake_depth(:,:,:), & !< lake depth
+         &                                             fr_lake(:,:,:)       !< fraction of fresh water (lakes)
+
     INTEGER(KIND=i4), INTENT(in)                    :: soiltype_fao(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL (KIND=wp), INTENT(in)                      :: alb_field_mom(:,:,:,:)!< field for monthly mean albedo data
-    REAL (KIND=wp), INTENT(in)                      :: alnid_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(in)                      :: aluvd_field_mom(:,:,:,:)
-    REAL (KIND=wp), INTENT(in)                      :: ndvi_max(:,:,:) !< field for ndvi maximum
-    REAL (KIND=wp), INTENT(in)                      :: ndvi_field_mom(:,:,:,:) !< field for monthly mean ndvi data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: ndvi_ratio_mom(:,:,:,:) !< field for monthly ndvi ratio (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: emiss_field_mom(:,:,:,:)!< field for monthly mean emiss data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: sst_field(:,:,:,:) !< field for monthly mean sst data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: wsnow_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: t2m_field(:,:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: hsurf_field(:,:,:) !< field for monthly mean wsnow data (12 months)
-    REAL (KIND=wp), INTENT(in)                      :: hh_topo(:,:,:)  !< mean height
-    REAL (KIND=wp), INTENT(in)                      :: hh_topo_max(:,:,:)  !< max height on a gridpoint
-    REAL (KIND=wp), INTENT(in)                      :: hh_topo_min(:,:,:)  !< min height on a gridpoint
-    REAL (KIND=wp), INTENT(in)                      :: stdh_topo(:,:,:) !< standard deviation of subgrid scale orographic height
-    REAL (KIND=wp), INTENT(in)                      :: aot_tg(:,:,:,:,:) !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-    REAL (KIND=wp), INTENT(in)                      :: crutemp(:,:,:)  !< cru climatological temperature , crutemp(ie,je,ke)
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand(:,:,:)   !< sand fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_silt(:,:,:)   !< silt fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_clay(:,:,:)   !< clay fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_oc(:,:,:)     !< oc fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_bd(:,:,:)     !< bulk density due to HWSD
-    INTEGER (KIND=i4), INTENT(in), OPTIONAL, TARGET :: soiltype_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand_deep(:,:,:)   !< sand fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_silt_deep(:,:,:)   !< silt fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_clay_deep(:,:,:)   !< clay fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_oc_deep(:,:,:)     !< oc fraction due to HWSD
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_bd_deep(:,:,:)     !< bulk density due to HWSD
 
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: theta_topo(:,:,:) !< sso parameter, angle of principal axis
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: aniso_topo(:,:,:) !< sso parameter, anisotropie factor
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: slope_topo(:,:,:) !< sso parameter, mean slope
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: isa_field(:,:,:) !< field for isa
-    REAL (KIND=wp), INTENT(in), OPTIONAL            :: ahf_field(:,:,:) !< field for ahf
+    REAL (KIND=wp), INTENT(in)                      :: alb_field_mom(:,:,:,:),   & !< field for monthly mean albedo data
+         &                                             alnid_field_mom(:,:,:,:), &
+         &                                             aluvd_field_mom(:,:,:,:), &
+         &                                             ndvi_max(:,:,:),          & !< field for ndvi maximum
+         &                                             ndvi_field_mom(:,:,:,:),  & !< field for monthly mean ndvi data (12 months)
+         &                                             ndvi_ratio_mom(:,:,:,:),  & !< field for monthly ndvi ratio (12 months)
+         &                                             emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
+         &                                             sst_field(:,:,:,:),       & !< field for monthly mean sst data (12 months)
+         &                                             wsnow_field(:,:,:,:),     & !< field for monthly mean wsnow data (12 months)
+         &                                             t2m_field(:,:,:,:),       & !< field for monthly mean wsnow data (12 months)
+         &                                             hsurf_field(:,:,:),       & !< field for monthly mean wsnow data (12 months)
+         &                                             hh_topo(:,:,:),           & !< mean height
+         &                                             hh_topo_max(:,:,:),       & !< max height on a gridpoint
+         &                                             hh_topo_min(:,:,:),       & !< min height on a gridpoint
+         &                                             stdh_topo(:,:,:),         & !< standard deviation of subgrid scale orographic height
+         &                                             aot_tg(:,:,:,:,:),        & !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
+         &                                             crutemp(:,:,:)              !< cru climatological temperature , crutemp(ie,je,ke)
+
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand(:,:,:), &   !< sand fraction due to HWSD
+         &                                             fr_silt(:,:,:), &   !< silt fraction due to HWSD
+         &                                             fr_clay(:,:,:),&   !< clay fraction due to HWSD
+         &                                             fr_oc(:,:,:),&     !< oc fraction due to HWSD
+         &                                             fr_bd(:,:,:)     !< bulk density due to HWSD
+
+    INTEGER (KIND=i4), INTENT(in), OPTIONAL, TARGET :: soiltype_deep(:,:,:)    !< soiltype due to FAO Digital Soil map of the World
+
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand_deep(:,:,:), &  !< sand fraction due to HWSD
+         &                                             fr_silt_deep(:,:,:), &  !< silt fraction due to HWSD
+         &                                             fr_clay_deep(:,:,:), &  !< clay fraction due to HWSD
+         &                                             fr_oc_deep(:,:,:),   &  !< oc fraction due to HWSD
+         &                                             fr_bd_deep(:,:,:)       !< bulk density due to HWSD
+    
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: theta_topo(:,:,:), &    !< sso parameter, angle of principal axis
+         &                                             aniso_topo(:,:,:), &    !< sso parameter, anisotropie factor
+         &                                             slope_topo(:,:,:)       !< sso parameter, mean slope
+
+    REAL (KIND=wp), INTENT(in), OPTIONAL            :: isa_field(:,:,:), & !< field for isa
+         &                                             ahf_field(:,:,:) !< field for ahf
 
     ! local variables
 
@@ -1597,14 +1603,14 @@ MODULE mo_extpar_output_nc
     TYPE(dim_meta_info), ALLOCATABLE :: dim_list(:) !< dimensions for netcdf file
     TYPE(dim_meta_info), TARGET      :: dim_1d_icon(1:1)
 
-    REAL (KIND=wp), ALLOCATABLE      :: time(:) !< time variable
-    INTEGER (KIND=i4)                :: dataDate  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
-    INTEGER (KIND=i4)                :: dataTime  !< time, for edition independent use GRIB_API dataTime in the format hhmm
+    REAL (KIND=wp), ALLOCATABLE      :: time(:)      !< time variable
+    INTEGER (KIND=i4)                :: dataDate, &  !< date, for edition independent use of GRIB_API dataDate as Integer in the format ccyymmdd
+         &                              dataTime     !< time, for edition independent use GRIB_API dataTime in the format hhmm
 
     REAL (KIND=wp), ALLOCATABLE      :: soiltype(:)
     REAL (KIND=sp), POINTER          :: soiltype_deep_f(:,:,:)
 
-    INTEGER, PARAMETER               :: nglob_atts=6
+    INTEGER, PARAMETER               :: nglob_atts=5
     TYPE(netcdf_attributes)          :: global_attributes(nglob_atts)
 
     INTEGER                          :: errorcode !< error status variable
@@ -2164,7 +2170,7 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_cdi_global_att_icon(global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
 
-    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(1:6)
+    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(:)
 
     INTEGER (KIND=i4), INTENT(in)          :: itopo_type,isoil_data
 
@@ -2227,7 +2233,7 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_global_att_icon(icon_grid,global_attributes,itopo_type,name_lookup_table_lu,lu_dataset,isoil_data)
 
-    TYPE(netcdf_attributes), INTENT(inout)        :: global_attributes(1:8)
+    TYPE(netcdf_attributes), INTENT(inout)        :: global_attributes(:)
 
     TYPE(icosahedral_triangular_grid), INTENT(in) :: icon_grid
 
@@ -2310,7 +2316,7 @@ MODULE mo_extpar_output_nc
   !> set global attributes for netcdf with lu data
   SUBROUTINE set_global_att_extpar(global_attributes,name_lookup_table_lu,lu_dataset,isoil_data,lscale_separation,y_orofilt)
 
-    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(1:11)
+    TYPE(netcdf_attributes), INTENT(inout) :: global_attributes(:)
     CHARACTER (len=*),INTENT(in)           :: name_lookup_table_lu
     CHARACTER (len=*),INTENT(in)           :: lu_dataset
     INTEGER, INTENT(in)                    :: isoil_data
