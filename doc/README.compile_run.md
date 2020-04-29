@@ -14,7 +14,7 @@ EXTPAR needs the following Python-packages and installations:
 - at least Python 3.6
 - module netCDF4
 
-The module netCDF is the Python interface to the netCDF C library). It allows the create and manipulate netCDF with Python.
+The module netCDF is the Python interface to the netCDF C library). It allows the user create and manipulate netCDF files with Python.
 For more detailed information please visit [netCDF Python](https://unidata.github.io/netcdf4-python/netCDF4/index.html).
 
 Additionally an installation of CDO (Climate Data Operator) is required. All necessary information about this tool can be found at [CDO-MPI]( https://code.mpimet.mpg.de/projects/cdo/).
