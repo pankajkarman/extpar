@@ -1,4 +1,28 @@
 # Release notes
+## 5.4
+This is a major release that introduces a rewrite of 4 Extpar programmes in Python, a common git-LFS input data repository,
+a new build-system, an additional landuse data set and some minor changes in the testsuite.
+
+* Rewrite of 4 Extpar programmes in Python
+   - extpar_albedo_to_buffer.exe -> extpar_alb_to_buffer.py
+   - extpar_cru_to_buffer.exe -> extpar_cru_to_buffer.py
+   - extpar_emiss_to_buffer.exe -> extpar_emiss_to_buffer.py
+   - extpar_ndvi_to_buffer.exe -> extpar_ndvi_to_buffer.py
+   All Python programmes read from the same namelist file *namelist.py* containing Python dictionaries for each Extpar program. The handling of new programmes is almost the same as with the former Fortran executables. Please read the users guide for detailed information about the rewritten programmes.
+   
+* git-LFS input data repository
+   - All input data that can be processed with Extpar is stored in a unified data repository [extpar-input-data](https://gitlab.dkrz.de/extpar-data/extpar-input-data)
+   - Move all useful scripts and informations from raw_data_tools to the data repository hosted at DKRZ.
+   - Some fields are renamed for better understanding, so please check your runscripts to adapt the new names.
+   - ADD LOCATION OF REPOS ON MISTRAL AND CSCS
+* New build system
+   - TODO
+* Corine landuse data
+   - Additional landuse data set covering Europe
+   - Can only be used in combination with GLOBCOVER (i_landuse_data=1)
+   - Set switch l_use_corine=.true. in namelist *lu_raw_data* to aggregate the new data set
+   - The corine landuse data set is not tested regularly in the testuite!
+* 
  ## 5.3
  This is an intermediate release that reduces code complexity for topo_to_buffer.exe, enhances the testing for INTEL compiler and further cleans the code
 
