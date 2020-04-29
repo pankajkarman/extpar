@@ -47,7 +47,7 @@ case "$(hostname)" in
             gcc)
                 export MACH=mistral.gcc
                 module unload gcc
-                module load gcc/6.2.0
+                module load gcc/6.4.0
                 ;;
             nag)
                 export MACH=mistral.nag
@@ -57,7 +57,7 @@ case "$(hostname)" in
             intel)
                 export MACH=mistral.intel
                 module unload gcc
-                module load gcc/6.2.0
+                module load gcc/6.4.0
                 module unload intel
                 module load intel/18.0.4
                 ;;
