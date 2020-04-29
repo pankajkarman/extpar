@@ -131,14 +131,14 @@ Default logging level is info, so only messages from logging.info(), logging.war
 ### Coding rules and best practices
 
 The Python code needs to fulfill the [Pep8 coding standard](https://www.python.org/dev/peps/pep-0008/).
-The testsuite provides a test to check these requirements. To check if your code alligns with the Pep8 coding standard
+The testsuite provides a test to check these requirements. To check if your code aligns with the Pep8 coding standard
 execute the [pep8_checker](../python/pep8_checker.sh).  
 The most important coding rules and best practices are the following:
 
-1. put (short) docstrings at the begining of each function or class,  
+1. put (short) docstrings at the beginning of each function or class,  
 also keep the content list in each module file up to date.
 
-2. Check **ALL** namelist paramters from *namelist.py* for correctness before they are used in the code.
+2. Check **ALL** namelist parameters from *namelist.py* for correctness before they are used in the code.
 
 3. Limit the number of characters per line to 79.
 
