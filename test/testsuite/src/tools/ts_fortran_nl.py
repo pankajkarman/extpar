@@ -83,7 +83,6 @@ def replace_param(filename, param, newparamstr, occurrence=1):
         raise SkipError('replace_param: Error while opening '+filename)
 
     new_data = []
-    debug_data =[]
     
     for line in data:
 
