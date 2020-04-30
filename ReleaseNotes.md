@@ -1,7 +1,7 @@
 # Release notes
 ## 5.4
 This is a major release that introduces a rewrite of 4 Extpar programmes in Python, a common git-LFS input data repository,
-a new build-system, an additional landuse data set, some small improvements in the Fortran code and some minor changes in the testsuite.
+a new build-system, an additional landuse data set, CDI-library for icon grids in consistency check, mmap-caching for consistency check for less memory usage, some small improvements in the Fortran code and some minor changes in the testsuite.
 
 * Rewrite of 4 Extpar programmes in Python
    - Modules extpar_alb_to_buffer.py, extpar_cru_to_buffer.py, extpar_emiss_to_buffer.py and extpar_ndvi_to_buffer.py
@@ -19,6 +19,7 @@ a new build-system, an additional landuse data set, some small improvements in t
    - Location on Mistral: /work/pd1167/extpar-input-data/linked_data
 * New build-system  
    - TODO
+   
 * Corine landuse data
    - Additional landuse data set covering Europe
    - Can only be used in combination with GLOBCOVER (i_landuse_data=1)
@@ -29,6 +30,15 @@ a new build-system, an additional landuse data set, some small improvements in t
    - Icon test for DWD for all compilers
    - Convert testsuite src-code from Python2 to Python3
    - Pep8-Coding style test for Python code
+
+* CDI library for icon grids
+   - CDI write routine replaces write_netcdf_icon_grid routine
+   
+* Mmap-caching
+   - allows run of Extpar on machines with only little memory
+   - new logical parameter *l_use_array_cache = .true. * in namelist file *INPUT_CHECK* activates mmap-caching
+   - Bitwise-identical with and without mmap-caching
+
 * Fortran Code changes
    - Remove all *filename_max* from INTENT(IN)
    - Output of *COSMO/ICON* netCDF-files in the buffer modules no longer supported
