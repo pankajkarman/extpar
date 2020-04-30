@@ -218,6 +218,9 @@ MODULE mo_read_extpar_namelists
     CALL logging%info(message_text)
     WRITE(message_text,'(a,i0)') 'Tile mode: ',  tile_mode
     CALL logging%info(message_text)
+    IF (l_use_array_cache) THEN
+      CALL logging%info('array caching (less memory consumption) is activated!')
+    ENDIF
     
     CALL logging%info('Exit routine: read_namelists_extpar_check_icon')
 

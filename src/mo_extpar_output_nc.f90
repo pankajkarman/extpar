@@ -1793,6 +1793,9 @@ MODULE mo_extpar_output_nc
     ! lake_depth_meta, fr_lake_meta, &
     !  &       flake_tot_npixel_meta
 
+    !define meta information for various EMISS data related variables for netcdf output
+    CALL def_emiss_meta(ntime_emiss,dim_1d_icon)
+    ! dim_emiss_tg, emiss_max_meta, emiss_field_mom_meta, emiss_ratio_mom_meta
 
     ! ** provisional fix for ICON netcdf variable names in order to ensure backward compatibility
     CALL ice_lu_meta%overwrite_varname('ICE')

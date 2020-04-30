@@ -20,5 +20,6 @@
   tile_mode = 1
   ltcl_merge = .TRUE.
   l_use_glcc = .false. 
+  l_use_array_cache = .false.
 /
 

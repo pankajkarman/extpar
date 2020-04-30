@@ -83,6 +83,7 @@ def replace_param(filename, param, newparamstr, occurrence=1):
         raise SkipError('replace_param: Error while opening '+filename)
 
     new_data = []
+    debug_data =[]
     
     for line in data:
 
@@ -108,10 +109,12 @@ def replace_param(filename, param, newparamstr, occurrence=1):
                     modification = True
                     possible = True
         
-        new_data.append(line+line_c+'\n')
+        new_data.append(line+line_c)
                              
     fout = open(filename,'w')
-    fout.write(string.join(new_data,''))
+    for entry in new_data:
+        fout.writelines("".join(entry))
+        fout.write("\n")
     fout.close
 
     # if no return has been so far executed the code will have no significance any more

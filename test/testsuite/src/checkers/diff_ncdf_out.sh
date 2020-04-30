@@ -40,13 +40,13 @@ if [ $? -ne 0 ] ; then
   exit 20 # FAIL
 fi
 
-cdo diffv $REFOUTDIR/external_parameter*.nc $FILE 2>&1 | grep differ
+cdo --sortname diffv $REFOUTDIR/external_parameter*.nc $FILE 2>&1 | grep differ
 if [ $? -ne 1 ] ; then
    echo "Differences from reference file found" 1>&1
    exit 20 # FAIL
 fi
 
-cdo diffv $REFOUTDIR/external_parameter*.nc $FILE 2>&1 | grep Abort
+cdo --sortname diffv $REFOUTDIR/external_parameter*.nc $FILE 2>&1 | grep Abort
 if [ $? -ne 1 ] ; then
    echo "CDO abort during file comparison" 1>&1
    exit 20 # FAIL

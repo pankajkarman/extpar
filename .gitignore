@@ -62,3 +62,6 @@ work
 !bin/cdo2alb-buffer.py
 !bin/cdo2ndvi-buffer.py
 info_extpar.f90
+
+# Links to netCDF in icon_d2_caching test
+!test/testsuite/data/dwd/icon_d2_caching/*.nc
