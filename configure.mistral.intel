@@ -54,10 +54,12 @@ LDFLAGS=""
 
 LIBS=""
 
+BUILD_LIBS="-L${SWROOT}/hdf5/hdf5-1.8.14-threadsafe-gcc48/lib -lhdf5_hl -lhdf5"
+
 EXTRA_CONFIG_ARGS="--enable-rpaths "
 EXTRA_CONFIG_ARGS+="--enable-openmp "
 EXTRA_CONFIG_ARGS+="--with-netcdf-fortran=${SWROOT}/netcdf/netcdf_fortran-4.4.3-intel14 "
-#EXTRA_CONFIG_ARGS+="--with-netcdf=${SWROOT}/netcdf/netcdf_c-4.4.0-gcc48 "
+EXTRA_CONFIG_ARGS+="--with-netcdf=${SWROOT}/netcdf/netcdf_c-4.4.0-gcc48 "
 #EXTRA_CONFIG_ARGS+="--with-szlib=${SWROOT}/sys/libaec-1.0.2-gcc64 "
 EXTRA_CONFIG_ARGS+="--with-cdi=bundled"
 
@@ -95,6 +97,7 @@ FC="${FC}" \
 FCFLAGS="${FCFLAGS}" \
 LDFLAGS="${LDFLAGS}" \
 LIBS="${LIBS}" \
+BUILD_LIBS="${BUILD_LIBS}" \
 ${EXTRA_CONFIG_ARGS} \
 "$@"
 
