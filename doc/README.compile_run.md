@@ -14,7 +14,7 @@ EXTPAR needs the following Python-packages and installations:
 - at least Python 3.6
 - module netCDF4
 
-The module netCDF is the Python interface to the netCDF C library). It allows the user create and manipulate netCDF files with Python.
+The module netCDF is the Python interface to the netCDF C library. It allows the user create and manipulate netCDF files with Python.
 For more detailed information please visit [netCDF Python](https://unidata.github.io/netcdf4-python/netCDF4/index.html).
 
 Additionally an installation of CDO (Climate Data Operator) is required. All necessary information about this tool can be found at [CDO-MPI]( https://code.mpimet.mpg.de/projects/cdo/).
@@ -42,69 +42,44 @@ installs in $HOME/local.gcc.
 
 ### Compilation
 
-Simply create a new Options.xxx file (where xxx is the name of your machine) and adapt the compiler name, the flags to use and the library paths in this file.
+Since Version 5.4 Extpar follows the configure/make/make install paradigm of
+providing executables. Furthermore, out-of-source builds are
+supported.
+Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub the following:
 
-In case you have a new source file, simply add it to the file Objfiles.
-The dependencies between the files are generated automatically.
+* git clone --recursive git@github.com:C2SM-RCM/extpar.git
+* git submodule update
 
-The build procedure of extpar does not provide a installation target
-yet. So binaries are installed in the local extpar directory bin/
+
+Next step is to create a configure wrapper script to ease the
+configure process. For now we provide scripts for all machines listed below.
 
 #### On the CSCS machines
 
 ##### Piz Daint
-
-You have to load the following modules:
-    module load cray-netcdf
-    module swap PrgEnv-cray PrgEnv-gnu
-
-Then simply type "make" to compile with optimization options or
-"make debug" to compile with debug options.
-In case you change the target (from debug to opt or the other way around), don't 
-forget to issue a "make clean" in between.
-
+Run configure.daint.gcc  
+source modules.env  
+make  
 ##### Kesch
 
-First, you have to append the module path:
-    export MODULEPATH=$MODULEPATH:/oprusers/owm/modules/RH7.5/modulefiles
-Then, you have to load the following modules:
-    module load gnu_PE/17.02
-    module load PrgEnv-gnu
-    module load netcdf/4.2.1.1-gnu-5.4.0
+Since Extpart Version 5.4, Kesch is no longer supported.
 
-Then simply type "make" to compile with optimization options or
-"make debug" to compile with debug options.
-In case you change the target (from debug to opt or the other way around), don not 
-forget to issue a "make clean" in between.
-
-##### Tsa and Arolla
-
-First, you have to source a setup  
-source /oprusers/osm/.opr_setup_dir  
-Then append the module path  
-export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles 
-Finally load the two modules  
-module load PrgEnv-gnu/19.2  
-module load netcdf-fortran/4.4.4-gnu-8.3.0-with-system-zlib  
-
-Then simply type "make" to compile with optimization options or
-"make debug" to compile with debug options.
-In case you change the target (from debug to opt or the other way around), don't 
-forget to issue a "make clean" in between.
-
+##### Tsa
+Run configure.tsa.gcc  
+source modules.env  
+make
 #### On the DKRZ machine mistral
+Run configure.mistral.*your_compiler*, where *your_compiler* can be gcc, intel or nag  
+source modules.env  
+make
 
-Finally, following the libraries and tools installation, extpar can be
-installed using the command
-
-MACH=mistral.gcc make
+#### Restart build from scratch
+make distclean 
 
 ### Run
 
 Some runscript examples are available under /run_scripts.
 Just adapt them to your needs!
-
-
 ### Check
 
 1. that you haven't got any error message at runtime,
