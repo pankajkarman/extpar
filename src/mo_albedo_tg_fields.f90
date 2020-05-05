@@ -30,7 +30,6 @@ MODULE mo_albedo_tg_fields
     &       alnid_field_mom, &
     &       aluvd_field_mom, &
     &       allocate_alb_target_fields, &
-    &       deallocate_alb_target_fields, &
     &       alb_interpol
 
 
@@ -57,127 +56,100 @@ MODULE mo_albedo_tg_fields
 
     CALL logging%info('Enter routine: allocate_alb_target_fields')
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_field_mom', alb_field_mom, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(alb_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+    IF (l_use_array_cache) THEN
+       CALL allocate_cached('alb_field_mom', alb_field_mom, [tg%ie,tg%je,tg%ke,nt])
+    ELSE
+       allocate(alb_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+    ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_field_mom',__FILE__,__LINE__)
     alb_field_mom = 0.0
 
   !> the following fields are always used in the interface write_netcdf_cosmo_grid_extpar
-  !> and must be allocated even if not used
+  !> and must be allocated even IF not used
     IF (raw_id == 2) THEN
-if (l_use_array_cache) then
-   call allocate_cached('alb_dry', alb_dry, [tg%ie,tg%je,tg%ke])
-else
-   allocate(alb_dry(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_dry', alb_dry, [tg%ie,tg%je,tg%ke])
+      ELSE
+         allocate(alb_dry(tg%ie,tg%je,tg%ke), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_dry',__FILE__,__LINE__)
       alb_dry = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_sat', alb_sat, [tg%ie,tg%je,tg%ke])
-else
-   allocate(alb_sat(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_sat', alb_sat, [tg%ie,tg%je,tg%ke])
+      ELSE
+         allocate(alb_sat(tg%ie,tg%je,tg%ke), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_sat',__FILE__,__LINE__)
       alb_sat = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alnid_field_mom', alnid_field_mom, [0,0,0,0])
-else
-   allocate(alnid_field_mom(0,0,0,0), stat=errorcode)
-endif
-      IF(errorcode.NE.0) CALL logging%error('Cant allocate array alnid_field_mom',__FILE__,__LINE__)
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alnid_field_mom', alnid_field_mom, [0,0,0,0])
+      ELSE
+         allocate(alnid_field_mom(0,0,0,0), stat=errorcode)
+      ENDIF
+        IF(errorcode.NE.0) CALL logging%error('Cant allocate array alnid_field_mom',__FILE__,__LINE__)
       alnid_field_mom = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('aluvd_field_mom', aluvd_field_mom, [0,0,0,0])
-else
-   allocate(aluvd_field_mom(0,0,0,0), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('aluvd_field_mom', aluvd_field_mom, [0,0,0,0])
+      ELSE
+         allocate(aluvd_field_mom(0,0,0,0), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array aluvd_field_mom',__FILE__,__LINE__)
       aluvd_field_mom = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_interpol', alb_interpol, [0,0,0,0])
-else
-   allocate(alb_interpol(0,0,0,0), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_interpol', alb_interpol, [0,0,0,0])
+      ELSE
+         allocate(alb_interpol(0,0,0,0), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_interpol',__FILE__,__LINE__)
       alb_interpol = 0.0
 
     ELSE
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_dry', alb_dry, [0,0,0])
-else
-   allocate(alb_dry(0,0,0), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_dry', alb_dry, [0,0,0])
+      ELSE
+         allocate(alb_dry(0,0,0), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_dry',__FILE__,__LINE__)
       alb_dry = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_sat', alb_sat, [0,0,0])
-else
-   allocate(alb_sat(0,0,0), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_sat', alb_sat, [0,0,0])
+      ELSE
+         allocate(alb_sat(0,0,0), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_sat',__FILE__,__LINE__)
       alb_sat = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alnid_field_mom', alnid_field_mom, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(alnid_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alnid_field_mom', alnid_field_mom, [tg%ie,tg%je,tg%ke,nt])
+      ELSE
+         allocate(alnid_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alnid_field_mom',__FILE__,__LINE__)
       alnid_field_mom = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('aluvd_field_mom', aluvd_field_mom, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(aluvd_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('aluvd_field_mom', aluvd_field_mom, [tg%ie,tg%je,tg%ke,nt])
+      ELSE
+         allocate(aluvd_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array aluvd_field_mom',__FILE__,__LINE__)
       aluvd_field_mom = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('alb_interpol', alb_interpol, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(alb_interpol(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+      IF (l_use_array_cache) THEN
+         CALL allocate_cached('alb_interpol', alb_interpol, [tg%ie,tg%je,tg%ke,nt])
+      ELSE
+         allocate(alb_interpol(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+      ENDIF
       IF(errorcode.NE.0) CALL logging%error('Cant allocate array alb_interpol',__FILE__,__LINE__)
       alb_interpol = 0.0
     ENDIF
 
   END SUBROUTINE allocate_alb_target_fields
 
-  !> deallocate fields for albedo target data
-  SUBROUTINE deallocate_alb_target_fields()
-
-    INTEGER (KIND=i4) :: errorcode !< error status variable
-
-    CALL logging%info('Enter routine: deallocate_alb_target_fields')
-
-    DEALLOCATE (alb_field_mom, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate array alb_field_mom',__FILE__,__LINE__)
-
-    DEALLOCATE (alb_dry, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate array alb_dry',__FILE__,__LINE__)
-
-    DEALLOCATE (alb_sat, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate array alb_sat',__FILE__,__LINE__)
-
-    DEALLOCATE (alnid_field_mom, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate array alnid_field_mom',__FILE__,__LINE__)
-
-    DEALLOCATE (aluvd_field_mom, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate array aluvd_field_mom',__FILE__,__LINE__)
-
-    DEALLOCATE (alb_interpol, STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant deallocate arrayalb_interpol',__FILE__,__LINE__)
-
-  END SUBROUTINE deallocate_alb_target_fields
-
-END Module mo_albedo_tg_fields
+END MODULE mo_albedo_tg_fields

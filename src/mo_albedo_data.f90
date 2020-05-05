@@ -22,35 +22,18 @@ MODULE mo_albedo_data
 
   PRIVATE
 
-  PUBLIC    allocate_raw_alb_fields, &
-    &       deallocate_raw_alb_fields, &
-    &       alb_raw_data_grid, &
-    &       alb_field_row, &
-    &       lon_alb, &
-    &       lat_alb, &
-    &       ntime_alb, &
+  PUBLIC    ntime_alb, &
     &       ialb_type, &
-
     &       undef_alb, minimal_alb, &
-
     &       undef_alb_bs, minimal_alb_dry, maximal_alb_dry, minimal_alb_sat, &
     &       maximal_alb_sat, &
-
     &       zalso, wso_min, wso_max, csalb, csalbw, &
-
     &       allocate_alb_interp_fields,   &
     &       alb_interp_data
 
-  TYPE(reg_lonlat_grid)        :: alb_raw_data_grid
-                           
-  REAL (KIND=wp), ALLOCATABLE  :: lon_alb(:), &  !< longitide coordinates, dimension (nlon_reg)
-    &                             lat_alb(:), &  !< latitude coordinates, dimension (nlat_reg)
-
-    &                             alb_field_row(:), &      !< field for one row of albedo data
-    &                             zalso(:,:), &
+  REAL (KIND=wp), ALLOCATABLE  :: zalso(:,:), &
     &                             wso_min(:), wso_max(:), &
     &                             csalb(:), csalbw(:)
-
 
   INTEGER (KIND=i4)            :: ntime_alb = 12 !< number of timesteps (12 for monthly mean values)
   INTEGER (KIND=i4)            :: ialb_type = 1 ! two possible values 
@@ -66,30 +49,6 @@ MODULE mo_albedo_data
     &                             maximal_alb_sat = 0.3825 !< maximum value for saturated soil
 
   CONTAINS
-
-  !> allocate raw data fields
-  SUBROUTINE allocate_raw_alb_fields(ncolumns,nrows)
-    IMPLICIT NONE
-
-    INTEGER , INTENT(IN) :: ncolumns, nrows
-
-    INTEGER              :: errorcode !< error status variable
-
-    CALL logging%info('Enter routine: allocate_raw_alb_fields')
-
-    ALLOCATE(alb_field_row(1:ncolumns), STAT=errorcode) 
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the field alb_field_row',__FILE__,__LINE__)
-    alb_field_row = 0. 
-
-    ALLOCATE(lat_alb(1:nrows), STAT=errorcode) 
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the field lat_alb',__FILE__,__LINE__)
-    lat_alb = 0. 
-
-    ALLOCATE(lon_alb(1:ncolumns), STAT=errorcode) 
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the field lon_alb',__FILE__,__LINE__)
-    lon_alb = 0. 
-
-  END  SUBROUTINE allocate_raw_alb_fields
 
   SUBROUTINE allocate_alb_interp_fields(nt)
 
@@ -146,26 +105,6 @@ MODULE mo_albedo_data
      csalbw(8) = 0.1
      csalbw(9) = 0
     
-
   END SUBROUTINE alb_interp_data
 
-  SUBROUTINE deallocate_raw_alb_fields
-
-
-  IMPLICIT NONE 
-    
-  INTEGER :: errorcode !< error status variable
-    
-  CALL logging%info('Enter routine: deallocate_raw_alb_fields')
-
-  DEALLOCATE(alb_field_row, STAT=errorcode) 
-  IF(errorcode.NE.0) CALL logging%error('Cant deallocate array alb_field_row',__FILE__,__LINE__)
-    
-  DEALLOCATE(lat_alb, STAT=errorcode) 
-  IF(errorcode.NE.0) CALL logging%error('Cant deallocate array lat_alb',__FILE__,__LINE__)
-  DEALLOCATE(lon_alb, STAT=errorcode) 
-  IF(errorcode.NE.0) CALL logging%error('Cant deallocate array lon_alb',__FILE__,__LINE__)
-
-  END SUBROUTINE deallocate_raw_alb_fields
-  
 END MODULE mo_albedo_data

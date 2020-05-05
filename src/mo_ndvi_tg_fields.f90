@@ -48,35 +48,35 @@ MODULE mo_ndvi_tg_fields
 
     CALL logging%info('Enter routine: allocate_ndvi_target_fields')
 
-if (l_use_array_cache) then
-   call allocate_cached('ndvi_field', ndvi_field, [tg%ie,tg%je,tg%ke])
-else
-   allocate(ndvi_field(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+    IF (l_use_array_cache) THEN
+       call allocate_cached('ndvi_field', ndvi_field, [tg%ie,tg%je,tg%ke])
+    ELSE
+       allocate(ndvi_field(tg%ie,tg%je,tg%ke), stat=errorcode)
+    ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array ndvi_field',__FILE__,__LINE__)
     ndvi_field = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('ndvi_max', ndvi_max, [tg%ie,tg%je,tg%ke])
-else
-   allocate(ndvi_max(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+    IF (l_use_array_cache) THEN
+       call allocate_cached('ndvi_max', ndvi_max, [tg%ie,tg%je,tg%ke])
+    ELSE
+       allocate(ndvi_max(tg%ie,tg%je,tg%ke), stat=errorcode)
+    ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array ndvi_max',__FILE__,__LINE__)
     ndvi_max = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('ndvi_field_mom', ndvi_field_mom, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(ndvi_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+    IF (l_use_array_cache) THEN
+       call allocate_cached('ndvi_field_mom', ndvi_field_mom, [tg%ie,tg%je,tg%ke,nt])
+    ELSE
+       allocate(ndvi_field_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+    ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array ndvi_field_mom',__FILE__,__LINE__)
     ndvi_field_mom = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('ndvi_ratio_mom', ndvi_ratio_mom, [tg%ie,tg%je,tg%ke,nt])
-else
-   allocate(ndvi_ratio_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
-endif
+    IF (l_use_array_cache) THEN
+       call allocate_cached('ndvi_ratio_mom', ndvi_ratio_mom, [tg%ie,tg%je,tg%ke,nt])
+    ELSE
+       allocate(ndvi_ratio_mom(tg%ie,tg%je,tg%ke,nt), stat=errorcode)
+    ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array ndvi_ratio_mom',__FILE__,__LINE__)
     ndvi_ratio_mom = 0.0
 

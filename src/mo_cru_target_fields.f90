@@ -61,35 +61,37 @@ MODULE mo_cru_target_fields
 
     CALL logging%info('Enter routine: allocate_cru_target_fields')
 
-if (l_use_array_cache) then
-   call allocate_cached('crutemp', crutemp, [tg%ie,tg%je,tg%ke])
-else
-   allocate(crutemp(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+    IF (l_use_array_cache) then
+       CALL allocate_cached('crutemp', crutemp, [tg%ie,tg%je,tg%ke])
+    ELSE
+       ALLOCATE(crutemp(tg%ie,tg%je,tg%ke), stat=errorcode)
+    ENDIF
+
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array crutemp',__FILE__,__LINE__)
     crutemp = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('crutemp2', crutemp2, [tg%ie,tg%je,tg%ke])
-else
-   allocate(crutemp2(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+    IF (l_use_array_cache) then
+       CALL allocate_cached('crutemp2', crutemp2, [tg%ie,tg%je,tg%ke])
+    ELSE
+       ALLOCATE(crutemp2(tg%ie,tg%je,tg%ke), stat=errorcode)
+    ENDIF
+
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array crutemp',__FILE__,__LINE__)
     crutemp2 = 0.0
 
-if (l_use_array_cache) then
-   call allocate_cached('cruelev', cruelev, [tg%ie,tg%je,tg%ke])
-else
-   allocate(cruelev(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
+    IF (l_use_array_cache) then
+       CALL allocate_cached('cruelev', cruelev, [tg%ie,tg%je,tg%ke])
+    ELSE
+       ALLOCATE(cruelev(tg%ie,tg%je,tg%ke), stat=errorcode)
+    ENDIF
+
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array cruelev',__FILE__,__LINE__)
     cruelev = 0.0
-
 
     meta_crutemp%varname = 'tem_clim'
     meta_crutemp%n_dim = 3
 
-    allocate(meta_crutemp%diminfo(meta_crutemp%n_dim), stat=errorcode)
+    ALLOCATE(meta_crutemp%diminfo(meta_crutemp%n_dim), stat=errorcode)
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_crutemp%diminfo',__FILE__,__LINE__)
 
     meta_crutemp%diminfo(1)%dimname = 'ie'
@@ -106,7 +108,7 @@ endif
     meta_cruelev%varname = 'elev_clim'
     meta_cruelev%n_dim = 3
 
-    allocate(meta_cruelev%diminfo(meta_cruelev%n_dim), stat=errorcode)
+    ALLOCATE(meta_cruelev%diminfo(meta_cruelev%n_dim), stat=errorcode)
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array meta_cruelev%diminfo',__FILE__,__LINE__)
 
     meta_cruelev%diminfo(1)%dimname = 'ie'
@@ -123,4 +125,3 @@ endif
   END SUBROUTINE allocate_cru_target_fields
 
 END MODULE mo_cru_target_fields
-
