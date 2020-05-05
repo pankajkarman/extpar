@@ -581,7 +581,7 @@ PACKAGE_STRING='extpar 5.3.0'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="src/extpar_alb_to_buffer.f90"
+ac_unique_file="src/extpar_aot_to_buffer.f90"
 enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
