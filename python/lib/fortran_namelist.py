@@ -144,10 +144,6 @@ class InputAlb:
         self.variables.update({'&alb_io_extpar':{'alb_buffer_file',
                                                  'alb_output_file'}})
 
-        self.variables.update({'&alb_source_file':{'alb_source',
-                                                   'alnid_source',
-                                                   'aluvd_source'}})
-
 
 class InputNdvi:
     ''' 

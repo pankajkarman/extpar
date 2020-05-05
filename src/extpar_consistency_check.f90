@@ -168,27 +168,6 @@ PROGRAM extpar_consistency_check
        &                              plcov12_lu, &
        &                              allocate_lu_target_fields, allocate_add_lu_fields
 
-  USE mo_albedo_tg_fields,      ONLY: alb_dry, alb_sat, &
-       &                              alb_field_mom, &
-       &                              alnid_field_mom, &
-       &                              aluvd_field_mom, &
-       &                              allocate_alb_target_fields
-
-  USE mo_albedo_data,           ONLY: ntime_alb, &
-       &                              wso_min,wso_max,csalb,csalbw,zalso, &
-       &                              allocate_alb_interp_fields, &
-       &                              alb_interp_data, &
-       &                              minimal_alb_dry, maximal_alb_dry, &
-       &                              ntime_alb, &
-       &                              minimal_alb_sat, maximal_alb_sat, undef_alb_bs, &
-       &                              ialb_type
-
-  USE mo_albedo_output_nc,      ONLY: read_netcdf_buffer_alb
-
-  USE mo_albedo_routines,       ONLY: open_netcdf_ALB_data, &
-       &                              const_check_interpol_alb,&
-       &                              read_namelists_extpar_alb
-
   USE mo_isa_tg_fields,         ONLY: isa_field, &
        &                              isa_tot_npixel, &
        &                              allocate_isa_target_fields, &
@@ -205,34 +184,11 @@ PROGRAM extpar_consistency_check
 
   USE mo_ahf_routines,          ONLY: read_namelists_extpar_ahf
 
-  USE mo_ndvi_tg_fields,        ONLY: ndvi_max, &
-       &                              ndvi_field_mom, &
-       &                              ndvi_ratio_mom, &
-       &                              allocate_ndvi_target_fields
-
-  USE mo_emiss_tg_fields,       ONLY: emiss_max, &
-       &                              emiss_field_mom, &
-       &                              emiss_ratio_mom, &
-       &                              allocate_emiss_target_fields
-
   USE mo_era_tg_fields,         ONLY: sst_field, &
        &                              wsnow_field, &
        &                              t2m_field, &
        &                              hsurf_field, &
        &                              allocate_era_target_fields
-
-
-  USE mo_ndvi_data,             ONLY: ntime_ndvi, &
-       &                              undef_ndvi, minimal_ndvi
-
-  USE mo_ndvi_output_nc,        ONLY: read_netcdf_buffer_ndvi
-
-  USE mo_emiss_data,            ONLY: ntime_emiss, &
-       &                              minimal_emiss
-
-  USE mo_emiss_output_nc,       ONLY: read_netcdf_buffer_emiss
-
-  USE mo_emiss_routines,        ONLY: read_namelists_extpar_emiss
 
   USE mo_era_output_nc,         ONLY: read_netcdf_buffer_sst,&
        &                              read_netcdf_buffer_t2m
@@ -268,16 +224,7 @@ PROGRAM extpar_consistency_check
        &                              MAC_ssa_tg,&
        &                              MAC_asy_tg
 
-
   USE mo_aot_output_nc,         ONLY: read_netcdf_buffer_aot, read_netcdf_buffer_aot_MAC
-
-  USE mo_cru_target_fields,     ONLY: allocate_cru_target_fields,   &
-       &                              crutemp, crutemp2, cruelev,&
-       &                              i_t_cru_fine, i_t_cru_coarse
-
-  USE mo_cru_data,              ONLY: read_namelists_extpar_t_clim
-
-  USE mo_cru_output_nc,         ONLY: read_netcdf_buffer_cru
 
   USE mo_aot_data,              ONLY: ntype_aot, ntime_aot, iaot_type, n_spectr, nspb_aot
 
@@ -311,7 +258,56 @@ PROGRAM extpar_consistency_check
   USE mo_isa_data,              ONLY: max_tiles_isa, &
        &                              undef_isa, minimal_isa, isa_type
 
-  USE mo_ndvi_routines,         ONLY: read_namelists_extpar_ndvi
+  USE mo_python_data,           ONLY: &
+  ! emiss                                      
+       &                              ntime_emiss, &
+       &                              minimal_emiss, &
+  ! ndvi                                      
+       &                              ntime_ndvi, &
+       &                              undef_ndvi, minimal_ndvi, &
+  ! albedo                                      
+       &                              ntime_alb, &
+       &                              wso_min,wso_max,csalb,csalbw,zalso, &
+       &                              allocate_alb_interp_fields, &
+       &                              alb_interp_data, &
+       &                              minimal_alb_dry, maximal_alb_dry, &
+       &                              ntime_alb, &
+       &                              minimal_alb_sat, maximal_alb_sat, undef_alb_bs, &
+       &                              ialb_type
+
+  USE mo_python_routines,       ONLY: read_namelists_extpar_emiss, &
+       &                              read_namelists_extpar_t_clim, &
+       &                              read_namelists_extpar_ndvi, &
+       &                              read_namelists_extpar_alb, &
+       &                              open_netcdf_ALB_data, &
+       &                              const_check_interpol_alb
+
+  USE mo_python_tg_fields,      ONLY: &
+  ! emiss                                      
+       &                              emiss_max, &
+       &                              emiss_field_mom, &
+       &                              emiss_ratio_mom, &
+       &                              allocate_emiss_target_fields, &
+  ! ndvi                                      
+       &                              ndvi_max, &
+       &                              ndvi_field_mom, &
+       &                              ndvi_ratio_mom, &
+       &                              allocate_ndvi_target_fields, &
+       &                              allocate_cru_target_fields,   &
+  ! cru                                      
+       &                              ndvi_max, &
+       &                              crutemp, crutemp2, cruelev, &
+  ! albedo                                      
+       &                              alb_dry, alb_sat, &
+       &                              alb_field_mom, &
+       &                              alnid_field_mom, &
+       &                              aluvd_field_mom, &
+       &                              allocate_alb_target_fields
+
+  USE mo_python_output_nc,      ONLY: read_netcdf_buffer_emiss, &
+       &                              read_netcdf_buffer_ndvi, &
+       &                              read_netcdf_buffer_cru, &
+       &                              read_netcdf_buffer_alb
 
   IMPLICIT NONE
 
@@ -392,7 +388,6 @@ PROGRAM extpar_consistency_check
        &                                           flake_output_file, &
   !special points                               
        &                                           path_alb_file, &
-       &                                           alb_source, alnid_source, aluvd_source, &
        &                                           namelist_alb_data_input, &
   ! Namelist values for topography scale separation
        &                                           raw_data_scale_sep_orography_path, & !< path to raw data
@@ -598,10 +593,7 @@ PROGRAM extpar_consistency_check
        &                                  raw_data_aluvd_filename, &
        &                                  ialb_type,        &
        &                                  alb_buffer_file, &
-       &                                  alb_output_file, &
-       &                                  alb_source, &
-       &                                  alnid_source, &
-       &                                  aluvd_source)
+       &                                  alb_output_file)
 
   !--------------------------------------------------------------
   ! get namelist for aerosol fields
@@ -1101,12 +1093,12 @@ PROGRAM extpar_consistency_check
   CALL logging%info('CRU')
 
   SELECT CASE(it_cl_type)
-    CASE(i_t_cru_fine)
+    CASE(1)
       CALL read_netcdf_buffer_cru(t_clim_buffer_file,&
        &                                     tg,       &
        &                                     crutemp,  &
        &                                     cruelev)  
-    CASE(i_t_cru_coarse)
+    CASE(2)
       CALL read_netcdf_buffer_cru(t_clim_buffer_file, &
        &                                     tg,        &
        &                                     crutemp)
@@ -1835,10 +1827,7 @@ PROGRAM extpar_consistency_check
          &                                  raw_data_aluvd_filename, &
          &                                  ialb_type, &
          &                                  alb_buffer_file, &
-         &                                  alb_output_file, &
-         &                                  alb_source, &
-         &                                  alnid_source, &
-         &                                  aluvd_source)
+         &                                  alb_output_file)
 
     path_alb_file = TRIM(raw_data_alb_path)//TRIM(raw_data_alb_filename)
 
@@ -2003,7 +1992,7 @@ PROGRAM extpar_consistency_check
 
   IF (igrid_type == igrid_cosmo) THEN
     SELECT CASE(it_cl_type)
-      CASE(i_t_cru_fine)
+      CASE(1)
 
         crutemp2 = crutemp
         DO j=1,tg%je

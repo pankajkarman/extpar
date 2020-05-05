@@ -14,9 +14,6 @@ input_alb = {
         'raw_data_aluvd_filename': 'aluvd_new.nc',
         'alb_buffer_file': 'albedo_buffer.nc',
         'alb_output_file': 'albedo_cosmo.nc',
-        'alb_source': 'al',
-        'alnid_source': 'alnid',
-        'aluvd_source': 'aluvd'
         }
 
 input_ndvi = {

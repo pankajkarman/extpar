@@ -74,13 +74,6 @@ MODULE mo_extpar_output_nc
 
   USE mo_io_units,                 ONLY: filename_max
 
-  USE mo_albedo_data,              ONLY: ntime_alb, &
-       &                                 ialb_type, undef_alb_bs
-
-  USE mo_ndvi_data,                ONLY: ntime_ndvi
-
-  USE mo_emiss_data,               ONLY: ntime_emiss
-
   USE mo_aot_data,                 ONLY: ntype_aot, ntime_aot,n_spectr, &
        &                                 iaot_type
 
@@ -97,6 +90,12 @@ MODULE mo_extpar_output_nc
   USE mo_icon_grid_data,           ONLY: icon_grid_region, &
        &                                 clon, clat, &
        &                                 allocate_icon_coor
+
+  USE mo_python_data,              ONLY: ntime_alb, &
+       &                                 ialb_type, &
+       &                                 undef_alb_bs, &
+       &                                 ntime_ndvi, &
+       &                                 ntime_emiss
 
   IMPLICIT NONE
 

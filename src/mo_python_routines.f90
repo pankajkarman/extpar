@@ -1,40 +1,20 @@
-!+ Fortran module with Albedo data handling routines
-!
-! History:
-! Version      Date       Name
-! ------------ ---------- ----
-! V1_8         2013-03-12 Frank Brenner
-!  introduced MODIS albedo dataset(s) as new external parameter(s)
-! V1_11        2013/04/16 Juergen Helmert
-!  Adaptions for using external land-sea mask  
-! V1_12        2013-04-24 Frank Brenner
-!  bug fix regarding old file paths         
-! V1_13        2013-05-29 Frank Brenner
-!  missing values fixed         
-! V2_0_3       2015-01-12 Juergen Helmert
-!  Bugfix in ICON part
-!
-! Code Description:
-! Language: Fortran 2003.
-!=======================================================================
-!> Fortran module with Albedo data handling routines
-!> \author Hermann Asensio, Frank Brenner
-!>
-MODULE mo_albedo_routines
+MODULE mo_python_routines
 
   USE mo_logging
-  USE mo_kind,                    ONLY: wp, i4
-  USE mo_utilities_extpar,        ONLY: free_un ! function to get free unit number
-  USE mo_io_units,                ONLY: filename_max
+  USE mo_kind,                  ONLY:  i4, wp
+
+  USE mo_utilities_extpar,      ONLY: free_un ! function to get free unit number
+
+  USE mo_io_utilities,          ONLY: check_netcdf
+
+  USE mo_io_units,              ONLY: filename_max
 
   USE netcdf,                     ONLY:   &
     &                                   nf90_open,              &
     &                                   nf90_close,             &
     &                                   nf90_nowrite
 
-  USE mo_io_utilities,            ONLY: check_netcdf
-
-  USE mo_albedo_tg_fields,        ONLY: alb_interpol
+  USE mo_python_tg_fields,        ONLY: alb_interpol
   USE mo_soil_tg_fields,          ONLY: soiltype_fao
   USE mo_target_grid_data,        ONLY: tg, &
     &                                   lon_geo,lat_geo
@@ -42,18 +22,163 @@ MODULE mo_albedo_routines
   USE mo_bilinterpol,             ONLY: calc_weight_bilinear_interpol, &
     &                                   calc_value_bilinear_interpol
 
-  USE mo_albedo_data,             ONLY: zalso
-  USE  mo_icon_grid_data,         ONLY: icon_grid_region
+  USE mo_python_data,             ONLY: zalso
+  USE mo_icon_grid_data,          ONLY: icon_grid_region
 
   IMPLICIT NONE
 
-  PRIVATE
-
-  PUBLIC    open_netcdf_ALB_data, &
-    &       read_namelists_extpar_alb, &
-    &       const_check_interpol_alb
+  PUBLIC :: &
+  ! emiss
+       &    read_namelists_extpar_emiss, &
+  ! cru
+       &    read_namelists_extpar_t_clim, &
+  ! ndvi
+       &    read_namelists_extpar_ndvi, &
+  ! albedo
+       &    read_namelists_extpar_alb, &
+       &    open_netcdf_ALB_data, &
+       &    const_check_interpol_alb
 
   CONTAINS
+
+  !---------------------------------------------------------------------------
+  !> subroutine to read namelist for EMISS data settings for EXTPAR 
+  SUBROUTINE read_namelists_extpar_emiss(namelist_file, &
+       &                                 raw_data_emiss_path, &
+       &                                 raw_data_emiss_filename, &
+       &                                 emiss_buffer_file, &
+       &                                 emiss_output_file)
+
+    CHARACTER (len=*), INTENT(IN)            :: namelist_file !< filename with namelists for for EXTPAR settings
+
+    CHARACTER (len=filename_max),INTENT(OUT) :: raw_data_emiss_path, &         !< path to raw data
+         &                                      raw_data_emiss_filename, &  !< filename EMISS raw data
+         &                                      emiss_buffer_file, &  !< name for EMISS buffer file
+         &                                      emiss_output_file !< name for EMISS output file
+
+    INTEGER(KIND=i4)                         :: nuin, ierr
+
+    !> namelist with filenames for EMISS data input
+    NAMELIST /emiss_raw_data/ raw_data_emiss_path, raw_data_emiss_filename
+    !> namelist with filenames for EMISS data output
+    NAMELIST /emiss_io_extpar/ emiss_buffer_file, emiss_output_file
+
+    nuin = free_un()  ! functioin free_un returns free Fortran unit number
+    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(message_text,*)'Cannot open ', TRIM(namelist_file)
+      CALL logging%error(message_text,__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=emiss_raw_data, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('Cannot read in namelist emiss_raw_data',__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=emiss_io_extpar, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('Cannot read in namelist emiss_io_extpar',__FILE__, __LINE__) 
+    ENDIF
+
+    CLOSE(nuin)
+
+  END SUBROUTINE read_namelists_extpar_emiss
+
+  !---------------------------------------------------------------------------
+  !> subroutine to read namelist for t_clim data settings for EXTPAR 
+  SUBROUTINE read_namelists_extpar_t_clim(namelist_file,            &
+       &                                  it_cl_type,               &
+       &                                  raw_data_t_clim_path,     &
+       &                                  raw_data_t_clim_filename, &
+       &                                  t_clim_buffer_file,       &
+       &                                  t_clim_output_file)
+
+    CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
+    INTEGER (KIND=i4), INTENT(OUT)            :: it_cl_type    !< integer switch to choose a land use raw data set
+    ! 1 CRU fine (new), 2 CRU coarse (old) temperature climatology
+    CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_path, &        !< path to raw data
+         &                                       raw_data_t_clim_filename, &    !< filename temperature climatology raw data
+         &                                       t_clim_buffer_file, & !< name for temperature climatology buffer
+         &                                       t_clim_output_file !< name for temperature climatology output file
+    
+
+    INTEGER (KIND=i4)                         :: nuin, ierr
+
+    !> namelist with filename for temperature climatlogy data output
+    NAMELIST /t_clim_raw_data/ raw_data_t_clim_path, raw_data_t_clim_filename, it_cl_type
+
+    !> namelist with filename for temperature climatlogy data output
+    NAMELIST /t_clim_io_extpar/ t_clim_buffer_file, t_clim_output_file
+
+    it_cl_type = -1
+    
+    raw_data_t_clim_path = ''
+    raw_data_t_clim_filename = ''
+
+    t_clim_buffer_file = ''
+    t_clim_output_file = ''
+
+    OPEN(NEWUNIT=nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('CRU namelist open error ', __FILE__, __LINE__)
+    ENDIF
+    READ(nuin, NML=t_clim_raw_data, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(0,NML=t_clim_raw_data)
+      CALL logging%error('CRU raw data namelist read error ', __FILE__, __LINE__)      
+    ENDIF
+    READ(nuin, NML=t_clim_io_extpar, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(0,NML=t_clim_io_extpar)
+      CALL logging%error('CRU io namelist read error ', __FILE__, __LINE__)      
+    ENDIF
+    CLOSE(nuin)
+    
+  END SUBROUTINE read_namelists_extpar_t_clim
+
+  !> subroutine to read namelist for NDVI data settings for EXTPAR 
+  SUBROUTINE read_namelists_extpar_ndvi(namelist_file, &
+       &                                raw_data_ndvi_path, &
+       &                                raw_data_ndvi_filename, &
+       &                                ndvi_buffer_file, &
+       &                                ndvi_output_file)
+
+
+
+    CHARACTER (len=*), INTENT(IN) :: namelist_file !< filename with namelists for for EXTPAR settings
+
+    CHARACTER (len=filename_max)             :: raw_data_ndvi_path, &        !< path to raw data
+         &                                      raw_data_ndvi_filename, & !< filename NDVI raw data
+         &                                      ndvi_buffer_file, & !< name for NDVI buffer file
+         &                                      ndvi_output_file !< name for NDVI output file
+       
+    INTEGER (KIND=i4)                        :: ierr, nuin
+
+    !> namelist with filenames for NDVI data input
+    NAMELIST /ndvi_raw_data/ raw_data_ndvi_path, raw_data_ndvi_filename
+    !> namelist with filenames for NDVI data output
+    NAMELIST /ndvi_io_extpar/ ndvi_buffer_file, ndvi_output_file
+
+    nuin = free_un()  ! functioin free_un returns free Fortran unit number
+    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(message_text,*)'Cannot open ', TRIM(namelist_file)
+      CALL logging%error(message_text,__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=ndvi_raw_data, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('Cannot read in namelist ndvi_raw_data',__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=ndvi_io_extpar, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      CALL logging%error('Cannot read in namelist ndvi_io_extpar',__FILE__, __LINE__) 
+    ENDIF
+
+    CLOSE(nuin)
+
+  END SUBROUTINE read_namelists_extpar_ndvi
 
   !---------------------------------------------------------------------------
   !> subroutine to read namelist including albedo data settings for EXTPAR 
@@ -64,28 +189,18 @@ MODULE mo_albedo_routines
       &                                  raw_data_aluvd_filename, &
       &                                  ialb_type,         &
       &                                  alb_buffer_file, &
-      &                                  alb_output_file, &
-      &                                  alb_source, &
-      &                                  alnid_source, &
-      &                                  aluvd_source)
-
-
-
+      &                                  alb_output_file)
     
-    CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
+    CHARACTER (len=*), INTENT(IN)  :: namelist_file !< filename with namelists for for EXTPAR settings
 
-  ! NDVI
-    CHARACTER (len=filename_max)              :: raw_data_alb_path, &        !< path to raw data
-      &                                          raw_data_alb_filename, & !< filenames albedo raw data
-      &                                          raw_data_alnid_filename, &
-      &                                          raw_data_aluvd_filename, &
-      &                                          alb_buffer_file, & !< name for albedo buffer file
-      &                                          alb_output_file, & !< name for albedo output file
-      &                                          alb_source, &
-      &                                          alnid_source, &
-      &                                          aluvd_source
+    CHARACTER (len=filename_max)   :: raw_data_alb_path, &        !< path to raw data
+      &                               raw_data_alb_filename, & !< filenames albedo raw data
+      &                               raw_data_alnid_filename, &
+      &                               raw_data_aluvd_filename, &
+      &                               alb_buffer_file, & !< name for albedo buffer file
+      &                               alb_output_file !< name for albedo output file
 
-    INTEGER (KIND=i4)                         :: ialb_type, nuin, ierr
+    INTEGER (KIND=i4)              :: ialb_type, nuin, ierr
 
   !> namelist with filenames for albedo data input
     NAMELIST /alb_raw_data/ raw_data_alb_path, raw_data_alb_filename, ialb_type
@@ -93,7 +208,6 @@ MODULE mo_albedo_routines
     NAMELIST /aluvd_raw_data/ raw_data_alb_path, raw_data_aluvd_filename
   !> namelist with filenames for albedo data output
     NAMELIST /alb_io_extpar/ alb_buffer_file, alb_output_file
-    NAMELIST /alb_source_file/ alb_source, alnid_source, aluvd_source
 
     nuin = free_un()  ! functioin free_un returns free Fortran unit number
 
@@ -130,16 +244,9 @@ MODULE mo_albedo_routines
       CALL logging%error('Cannot read in namelist alb_io_extpar',__FILE__, __LINE__) 
     ENDIF
 
-    IF (ialb_type /= 2) THEN
-      READ(nuin, NML=alb_source_file, IOSTAT=ierr)
-      IF (ierr /= 0) THEN
-        CALL logging%error('Cannot read in namelist alb_source_file',__FILE__, __LINE__) 
-      ENDIF
-    ENDIF
     CLOSE(nuin)
     
   END SUBROUTINE read_namelists_extpar_alb
-  !---------------------------------------------------------------------------
 
   !> open netcdf-file and get netcdf unit file number
   SUBROUTINE open_netcdf_ALB_data(path_alb_file, &
@@ -339,4 +446,4 @@ MODULE mo_albedo_routines
      
   END SUBROUTINE const_check_interpol_alb
 
-END MODULE mo_albedo_routines
+END MODULE mo_python_routines

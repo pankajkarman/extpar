@@ -6,15 +6,12 @@ import os
 files = [ "mo_soil_tg_fields.f90",
           "mo_glcc_tg_fields.f90", 
           "mo_landuse_tg_fields.f90",       
-          "mo_albedo_tg_fields.f90",   
           "mo_isa_tg_fields.f90",      
           "mo_ahf_tg_fields.f90",      
-          "mo_ndvi_tg_fields.f90",     
-          "mo_emiss_tg_fields.f90",    
           "mo_era_tg_fields.f90",      
           "mo_topo_tg_fields.f90",     
           "mo_aot_target_fields.f90",  
-          "mo_cru_target_fields.f90",  
+          "mo_python_target_fields.f90",  
           "mo_flake_tg_fields.f90"
         ]
 
