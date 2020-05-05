@@ -55,6 +55,7 @@ netcdf_fortran-*
 eccodes-*
 include
 lib
+!python/lib
 share
 work
 !bin/gen_info.sh

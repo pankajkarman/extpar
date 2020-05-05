@@ -1,6 +1,6 @@
 &aerosol_raw_data
   raw_data_aot_path='',
-  raw_data_aot_filename='aerocomm_aod_monthly.nc'
+  raw_data_aot_filename='aod_AeroCom1.nc'
   iaot_type=2
 /  
 &aerosol_io_extpar

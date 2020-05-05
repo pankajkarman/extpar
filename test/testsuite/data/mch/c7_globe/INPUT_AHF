@@ -1,6 +1,6 @@
 &ahf_raw_data
    raw_data_ahf_path = './'
-   raw_data_ahf_filename ='AHF_2006_2.5min_latreverse.nc'
+   raw_data_ahf_filename ='AHF_2006_2.5min.nc'
    iahf_type=1
 /
 &ahf_io_extpar
