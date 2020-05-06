@@ -68,8 +68,7 @@ PROGRAM extpar_ahf_to_buffer
        &                         path_ahf_file, &      !< filename with path for AHF raw data
        &                         netcdf_filename, &      !< filename for netcdf file with AHF data on COSMO grid
        &                         raw_data_ahf_path, &        !< path to raw data
-       &                         ahf_buffer_file, & !< name for AHF buffer file
-       &                         ahf_output_file !< name for AHF output file
+       &                         ahf_buffer_file !< name for AHF buffer file
 
   INTEGER (KIND=i4)           :: ncid_ahf, &  !< netcdf unit file number for AHF data netcdf file
        &                         nlon_ahf, & !< number of grid elements in zonal direction for AHF data
@@ -112,8 +111,7 @@ PROGRAM extpar_ahf_to_buffer
     &                                  iahf_type,    & !_br 14.04.16
     &                                  raw_data_ahf_path, &
     &                                  raw_data_ahf_filename, &
-    &                                  ahf_buffer_file, &
-    &                                  ahf_output_file)
+    &                                  ahf_buffer_file)
      
   path_ahf_file = TRIM(raw_data_ahf_path)//TRIM(raw_data_ahf_filename)
        

@@ -7,7 +7,6 @@
 /
 &soil_io_extpar
   soil_buffer_file='soil_buffer.nc',
-  soil_output_file='soil_COSMO.nc'
 /
 &HWSD_index_files
  path_HWSD_index_files='',

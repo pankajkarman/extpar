@@ -172,11 +172,9 @@ PROGRAM extpar_landuse_to_buffer
        &                                     raw_data_lu_filename(1:max_tiles_lu), &  !< filename glc2000 raw data
        &                                     glcc_file(1), & 
        &                                     lu_buffer_file, &  !< name for glc2000 buffer file
-       &                                     lu_output_file, &  !< name for glc2000 output file
        &                                     raw_data_glcc_path, &         !< path to raw data
        &                                     raw_data_glcc_filename, &  !< filename glcc raw data
        &                                     glcc_buffer_file, &  !< name for glcc buffer file
-       &                                     glcc_output_file, &  !< name for glcc output file
        &                                     lu_dataset !< name of landuse data set
 
   CHARACTER(len=filename_max), ALLOCATABLE:: lu_file(:)
@@ -232,12 +230,10 @@ PROGRAM extpar_landuse_to_buffer
     &                                 raw_data_lu_filename,   &
     &                                 ilookup_table_lu,       &
     &                                 lu_buffer_file,         &
-    &                                 lu_output_file,         &
     &                                 raw_data_glcc_path,     &
     &                                 raw_data_glcc_filename, &
     &                                 ilookup_table_glcc,     &
-    &                                 glcc_buffer_file,       &
-    &                                 glcc_output_file)
+    &                                 glcc_buffer_file)
 
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------

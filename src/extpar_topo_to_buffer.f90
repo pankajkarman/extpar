@@ -135,7 +135,6 @@ PROGRAM extpar_topo_to_buffer
        &                            topo_files(1:max_tiles), &      !< filenames globe raw data
        &                            sgsl_files(1:max_tiles), &      !< filenames subgrid-slope
        &                            orography_buffer_file, &        !< name for orography buffer file
-       &                            orography_output_file, &        !< name for orography output file
        &                            sgsl_output_file,      &        !< name for sgsl output file
        &                            raw_data_orography_path, &      !< path to raw data
        &                            raw_data_scale_sep_orography_path, & !< path to raw data
@@ -207,7 +206,6 @@ PROGRAM extpar_topo_to_buffer
        &                               lsso_param,                &
        &                               lsubtract_mean_slope,      &
        &                               orography_buffer_file,     &
-       &                               orography_output_file,     &
        &                               sgsl_output_file)
 
   IF (lcompute_sgsl) THEN 
@@ -545,9 +543,6 @@ PROGRAM extpar_topo_to_buffer
        &                        skyview_topo,    &
        &                        vertex_param,    &
        &                        sgsl)
-
-
-  netcdf_filename = TRIM(orography_output_file)
 
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------

@@ -93,7 +93,7 @@ PROGRAM extpar_consistency_check
        &                              soiltype_fao, soiltype_hwsd, soiltype_deep,soiltype_hwsd_s, &
        &                              allocate_soil_target_fields
 
-  USE mo_soil_consistency,      ONLY:  calculate_soiltype
+  USE mo_soil_consistency,      ONLY: calculate_soiltype
                                 
   USE mo_soil_output_nc,        ONLY: read_netcdf_soil_buffer
                                 
@@ -318,7 +318,6 @@ PROGRAM extpar_consistency_check
        &                                           namelist_file, & !< filename with namelists for for EXTPAR settings
   ! soil                                        
        &                                           soil_buffer_file, &  !< name for soil buffer file
-       &                                           soil_output_file, &  !< name for soil output file
        &                                           soil_buffer_file_consistent, & !< name for soil buffer file after consistency check
        &                                           soil_output_file_consistent, & !< name for soil output file after consistency check
        &                                           raw_data_soil_path, &        !< path to raw data
@@ -326,7 +325,6 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_deep_soil_filename, & !< filename deep soil raw data
   ! orography                                   
        &                                           orography_buffer_file, & !< name for orography buffer file
-       &                                           orography_output_file, & !< name for orography output file
        &                                           raw_data_orography_path, &        !< path to raw data
   ! subgrid-scale slope                         
        &                                           sgsl_files(1:max_tiles), &  !< filenames globe raw data
@@ -337,7 +335,6 @@ PROGRAM extpar_consistency_check
        &                                           name_lookup_table_lu, & !< name for look up table
        &                                           lu_dataset, & !< name of landuse data set
        &                                           lu_buffer_file, & !< name for glc2000 buffer file
-       &                                           lu_output_file, & !< name for glc2000 output file
        &                                           raw_data_path, &
        &                                           glcc_buffer_file, &    !< name for glcc buffer file
   ! albedo                                      
@@ -356,7 +353,6 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_ahf_path, &        !< path to raw data
        &                                           raw_data_ahf_filename, & !< filename NDVI raw data
        &                                           ahf_buffer_file, & !< name for NDVI buffer file
-       &                                           ahf_output_file, & !< name for NDVI output file
   ! NDVI                                        
        &                                           raw_data_ndvi_path, &
        &                                           raw_data_ndvi_filename, &
@@ -379,13 +375,11 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_aot_path, &        !< path to raw data
        &                                           raw_data_aot_filename, & !< filename temperature climatology raw data
        &                                           aot_buffer_file, & !< name for aerosol buffer file
-       &                                           aot_output_file, & !< name for aerosol output file
        &                                           topo_files(1:max_tiles), & !< filenames globe raw data
   ! flake
        &                                           raw_data_flake_path, &
        &                                           raw_data_flake_filename, &
        &                                           flake_buffer_file, &  !< name for flake buffer file
-       &                                           flake_output_file, &
   !special points                               
        &                                           path_alb_file, &
        &                                           namelist_alb_data_input, &
@@ -521,8 +515,7 @@ PROGRAM extpar_consistency_check
   CALL read_namelists_extpar_flake(namelist_file, &
        &                           raw_data_flake_path, &
        &                           raw_data_flake_filename, &
-       &                           flake_buffer_file, &
-       &                           flake_output_file)
+       &                           flake_buffer_file)
 
   ! Get ndvi buffer file name from namelist
   namelist_file = 'INPUT_NDVI'
@@ -554,7 +547,6 @@ PROGRAM extpar_consistency_check
        &                               lsso_param,             &
        &                               lsubtract_mean_slope,   &
        &                               orography_buffer_file,  &
-       &                               orography_output_file,  &
        &                               sgsl_buffer_file)
 
   IF (l_use_sgsl) THEN
@@ -573,7 +565,6 @@ PROGRAM extpar_consistency_check
        raw_data_soil_filename,     &
        raw_data_deep_soil_filename,&
        soil_buffer_file,           &
-       soil_output_file,           &
        soil_buffer_file_consistent,&
        soil_output_file_consistent)
 
@@ -603,8 +594,7 @@ PROGRAM extpar_consistency_check
        &                                  iaot_type,    &
        &                                  raw_data_aot_path, &
        &                                  raw_data_aot_filename, &
-       &                                  aot_buffer_file, &
-       &                                  aot_output_file)
+       &                                  aot_buffer_file)
 
   !--------------------------------------------------------------------------------------------------------
   !--------------------------------------------------------------
@@ -659,7 +649,6 @@ PROGRAM extpar_consistency_check
        &                                 raw_data_lu_filename, &
        &                                 ilookup_table_lu, &
        &                                 lu_buffer_file, &
-       &                                 lu_output_file, &
        &                                 raw_data_glcc_path_opt = raw_data_path, &
        &                                 glcc_buffer_file_opt = glcc_buffer_file)
 
@@ -715,8 +704,7 @@ PROGRAM extpar_consistency_check
           &                                  iahf_type,    & !_br 14.04.16
           &                                  raw_data_ahf_path, &
           &                                  raw_data_ahf_filename, &
-          &                                  ahf_buffer_file, &
-          &                                  ahf_output_file)
+          &                                  ahf_buffer_file)
   END IF
 
 

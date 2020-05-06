@@ -126,8 +126,7 @@ PROGRAM extpar_aot_to_buffer
     &                            input_namelist_file, &
     &                            raw_data_aot_path, &        !< path to raw data
     &                            raw_data_aot_filename, & !< filename temperature climatology raw data
-    &                            aot_buffer_file, & !< name for aerosol buffer file
-    &                            aot_output_file !< name for aerosol output file
+    &                            aot_buffer_file !< name for aerosol buffer file
 
   REAL (KIND=wp) :: undefined
 
@@ -169,8 +168,7 @@ PROGRAM extpar_aot_to_buffer
    &                                  iaot_type,    &
    &                                  raw_data_aot_path, &
    &                                  raw_data_aot_filename, &
-   &                                  aot_buffer_file, &
-   &                                  aot_output_file)
+   &                                  aot_buffer_file)
 
 
   filename = TRIM(raw_data_aot_path) // TRIM(raw_data_aot_filename)

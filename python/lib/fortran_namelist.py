@@ -141,8 +141,7 @@ class InputAlb:
                                                   'raw_data_aluvd_filename',
                                                   }})
 
-        self.variables.update({'&alb_io_extpar':{'alb_buffer_file',
-                                                 'alb_output_file'}})
+        self.variables.update({'&alb_io_extpar':{'alb_buffer_file'}})
 
 
 class InputNdvi:
@@ -155,8 +154,7 @@ class InputNdvi:
         self.variables = {'&ndvi_raw_data':{'raw_data_ndvi_path',
                                             'raw_data_ndvi_filename'}}
 
-        self.variables.update({'&ndvi_io_extpar':{'ndvi_buffer_file',
-                                                  'ndvi_output_file'}})
+        self.variables.update({'&ndvi_io_extpar':{'ndvi_buffer_file'}})
 
 
 class InputEmiss:
@@ -169,5 +167,4 @@ class InputEmiss:
         self.variables = {'&emiss_raw_data':{'raw_data_emiss_path',
                                              'raw_data_emiss_filename'}}
 
-        self.variables.update({'&emiss_io_extpar': {'emiss_buffer_file',
-                                                    'emiss_output_file'}})
+        self.variables.update({'&emiss_io_extpar': {'emiss_buffer_file'}})

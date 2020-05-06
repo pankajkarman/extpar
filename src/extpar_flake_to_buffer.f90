@@ -74,8 +74,7 @@ PROGRAM extpar_flake_to_buffer
        &                         flake_file, & 
        &                         raw_data_flake_path, &         !< path to raw data
        &                         raw_data_flake_filename, &  !< filename flake raw data
-       &                         flake_buffer_file, &  !< name for flake buffer file
-       &                         flake_output_file !< name for flake output file
+       &                         flake_buffer_file  !< name for flake buffer file
 
   REAL (KIND=wp)              :: undefined
 
@@ -112,8 +111,7 @@ PROGRAM extpar_flake_to_buffer
   CALL read_namelists_extpar_flake(input_flake_namelist_file, &
     &                                      raw_data_flake_path, &
                                            raw_data_flake_filename, &
-                                           flake_buffer_file, &
-                                           flake_output_file)
+                                           flake_buffer_file)
 
 
   flake_file = TRIM(raw_data_flake_path) // TRIM(raw_data_flake_filename)

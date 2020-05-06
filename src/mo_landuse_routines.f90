@@ -81,15 +81,13 @@ MODULE mo_landuse_routines
                                            raw_data_lu_filename,      &
                                            ilookup_table_lu,          &
                                            lu_buffer_file,            &
-                                           lu_output_file,            &
                                            raw_data_glcc_path_opt,    &
                                            raw_data_glcc_filename_opt,&
                                            ilookup_table_glcc_opt,    &
-                                           glcc_buffer_file_opt,      &
-                                           glcc_output_file_opt)
+                                           glcc_buffer_file_opt)
 
 
-     CHARACTER (len=*), INTENT(IN)            :: namelist_file !< filename with namelists for for EXTPAR settings
+     CHARACTER (len=*), INTENT(IN)                      :: namelist_file !< filename with namelists for for EXTPAR settings
 
     LOGICAL, INTENT(OUT)                                :: l_use_corine  !< flag to use corine datasete instead of globcover
 
@@ -101,18 +99,15 @@ MODULE mo_landuse_routines
 
     CHARACTER (len=filename_max), INTENT(OUT)           :: raw_data_lu_path, &         !< path to raw data
          &                                                 raw_data_lu_filename(1:max_tiles_lu), &  !< filename lu raw data
-         &                                                 lu_buffer_file, &  !< name for landuse buffer file
-         &                                                 lu_output_file !< name for landuse output file
+         &                                                 lu_buffer_file  !< name for landuse buffer file
 
     CHARACTER (len=filename_max), INTENT(OUT), OPTIONAL :: raw_data_glcc_path_opt, &         !< path to raw data
          &                                                 raw_data_glcc_filename_opt, &  !< filename glc2000 raw data
-         &                                                 glcc_buffer_file_opt, &     !< name for glcc buffer file
-         &                                                 glcc_output_file_opt    !< name for glcc output file
+         &                                                 glcc_buffer_file_opt     !< name for glcc buffer file
 
     CHARACTER (len=filename_max)                       :: raw_data_glcc_path, &         !< path to raw data
          &                                                raw_data_glcc_filename, &  !< filename glc2000 raw data
-         &                                                glcc_buffer_file, &     !< name for glcc buffer file
-         &                                                glcc_output_file    !< name for glcc output file
+         &                                                glcc_buffer_file     !< name for glcc buffer file
 
     INTEGER(KIND=i4)                                   :: ilookup_table_glcc, &   !< integer switch to choose a lookup table
          &                                                nuin, &  !< unit number
@@ -122,13 +117,13 @@ MODULE mo_landuse_routines
     NAMELIST /lu_raw_data/ raw_data_lu_path, raw_data_lu_filename, i_landuse_data, ilookup_table_lu, &
                            ntiles_globcover, ncolumn_tiles, l_use_corine
     !> namelist with filenames for land use data output
-    NAMELIST /lu_io_extpar/ lu_buffer_file, lu_output_file
+    NAMELIST /lu_io_extpar/ lu_buffer_file
 
     !> namelist with land use data input, glcc
     NAMELIST /glcc_raw_data/ raw_data_glcc_path, raw_data_glcc_filename, ilookup_table_glcc
 
     !> namelist with filenames for land use data output. glcc data
-    NAMELIST /glcc_io_extpar/  glcc_buffer_file, glcc_output_file
+    NAMELIST /glcc_io_extpar/  glcc_buffer_file
 
     nuin = free_un()  ! functioin free_un returns free Fortran unit number
     OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
@@ -176,7 +171,6 @@ MODULE mo_landuse_routines
     IF (PRESENT(glcc_buffer_file_opt)) glcc_buffer_file_opt = TRIM(glcc_buffer_file)
 
      ! If optional argument is present for output, copy the value from the local variable to the output argument variable
-    IF (PRESENT(glcc_output_file_opt)) glcc_output_file_opt = TRIM(glcc_output_file)
 
     IF (ntiles_globcover == 1) THEN
       nrow_tiles = 1

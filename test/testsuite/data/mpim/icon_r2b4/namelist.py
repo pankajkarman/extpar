@@ -12,22 +12,19 @@ input_alb = {
         'raw_data_alb_filename': 'alb_new.nc',
         'raw_data_alnid_filename': 'alnid_new.nc',
         'raw_data_aluvd_filename': 'aluvd_new.nc',
-        'alb_buffer_file': 'albedo_buffer.nc',
-        'alb_output_file': 'albedo_cosmo.nc',
+        'alb_buffer_file': 'albedo_buffer.nc'
         }
 
 input_emiss = { 
         'iemiss_type': 2,
         'raw_data_emiss_path': '',
         'raw_data_emiss_filename': 'CAMEL_bbe_lw_2010-2015.nc',
-        'emiss_buffer_file': 'emiss_buffer.nc',
-        'emiss_output_file': 'emiss_icon.nc'
+        'emiss_buffer_file': 'emiss_buffer.nc'
         }
 
 input_ndvi = {
         'raw_data_ndvi_path': '',
         'raw_data_ndvi_filename': 'NDVI_1998_2003.nc',
-        'ndvi_buffer_file': 'ndvi_buffer.nc',
-        'ndvi_output_file': 'ndvi_extpar_cosmo.nc'
+        'ndvi_buffer_file': 'ndvi_buffer.nc'
         }
 

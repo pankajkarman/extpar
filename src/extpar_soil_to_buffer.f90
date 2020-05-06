@@ -76,7 +76,6 @@ PROGRAM extpar_soil_to_buffer
        &                         path_soil_file, &      !< filename with path for soil raw data     
        &                         path_deep_soil_file, &      !< filename with path for soil raw data
        &                         soil_buffer_file, &  !< name for soil buffer file
-       &                         soil_output_file, &  !< name for soil output file
        &                         soil_buffer_file_consistent, & !< name for soil buffer file after consistency check
        &                         soil_output_file_consistent, & !< name for soil output file after consistency check
        &                         raw_data_soil_path, &        !< path to raw data
@@ -145,7 +144,6 @@ PROGRAM extpar_soil_to_buffer
                                        raw_data_soil_filename,     &
                                        raw_data_deep_soil_filename,&
                                        soil_buffer_file,           &
-                                       soil_output_file,           &
                                        soil_buffer_file_consistent,&
                                        soil_output_file_consistent)
   
