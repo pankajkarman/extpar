@@ -85,9 +85,6 @@ PROGRAM extpar_aot_to_buffer
   USE mo_kind,                  ONLY: wp, i4
   USE info_extpar,              ONLY: info_print
   
-  USE mo_grid_structures,       ONLY: igrid_icon, &
-    &                                 igrid_cosmo
-
   USE mo_target_grid_data,      ONLY: lon_geo, &
     &                                 lat_geo, &
     &                                 tg

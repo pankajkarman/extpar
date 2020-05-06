@@ -27,12 +27,10 @@ MODULE mo_topo_output_nc
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
-       &                              icosahedral_triangular_grid, &
-       &                              target_grid_def, &
+  USE mo_grid_structures,       ONLY: target_grid_def, &
        &                              igrid_icon, &
        &                              igrid_cosmo 
-  USE mo_cosmo_grid,            ONLY: cosmo_grid, nborder, lon_rot, lat_rot
+  USE mo_cosmo_grid,            ONLY: cosmo_grid, nborder
   USE mo_icon_grid_data,        ONLY: icon_grid
                                 
   USE mo_topo_tg_fields,        ONLY: add_parameters_domain
@@ -41,11 +39,9 @@ MODULE mo_topo_output_nc
                                 
   USE mo_io_utilities,          ONLY: netcdf_attributes, dim_meta_info,        &
        &                              netcdf_get_var, netcdf_put_var,          &
-       &                              open_new_netcdf_file, close_netcdf_file, &
-       &                              netcdf_def_grid_mapping
+       &                              open_new_netcdf_file, close_netcdf_file
 
   USE mo_var_meta_data,         ONLY: dim_3d_tg, dim_4d_tg, def_dimension_info_buffer,   &
-       &                              def_dimension_info_cosmo, def_dimension_info_icon, &
        &                              lon_geo_meta, lat_geo_meta,                        &
        &                              def_com_target_fields_meta, def_topo_meta,         &
        &                              def_topo_vertex_meta, dim_buffer_vertex,           & 
@@ -56,10 +52,7 @@ MODULE mo_topo_output_nc
        &                              hh_vert_meta, z0_topo_meta,                        &
        &                              slope_asp_topo_meta, slope_ang_topo_meta,          &
        &                              horizon_topo_meta, skyview_topo_meta,              &
-       &                              nc_grid_def_cosmo, set_nc_grid_def_cosmo,          &
-       &                              dim_rlon_cosmo, dim_rlat_cosmo, dim_nhori_cosmo,   &
-       &                              dim_2d_cosmo, dim_3d_cosmo, rlon_meta, rlat_meta,  &
-       &                              dim_icon, set_nc_grid_def_icon, sgsl_meta
+       &                              sgsl_meta
   
   IMPLICIT NONE
 

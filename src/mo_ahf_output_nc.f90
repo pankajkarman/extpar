@@ -25,17 +25,14 @@ MODULE mo_ahf_output_nc
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
-       &                              icosahedral_triangular_grid, &
-       &                              target_grid_def
+  USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_io_utilities,          ONLY: netcdf_attributes, &
        &                              dim_meta_info, &
        &                              netcdf_put_var, &
        &                              open_new_netcdf_file, &
        &                              close_netcdf_file, &
-       &                              netcdf_get_var, &
-       &                              netcdf_def_grid_mapping
+       &                              netcdf_get_var
 
   USE mo_var_meta_data,         ONLY: dim_3d_tg, &
        &                              def_dimension_info_buffer, &
@@ -44,21 +41,7 @@ MODULE mo_ahf_output_nc
        &                              def_ahf_meta, &
        &                              lon_geo_meta, &
        &                              lat_geo_meta, &
-       &                              def_com_target_fields_meta, &  
-       &                              nc_grid_def_cosmo, &
-       &                              set_nc_grid_def_cosmo, &
-       &                              dim_rlon_cosmo, &
-       &                              dim_rlat_cosmo, &
-       &                              dim_2d_cosmo,   &
-       &                              rlon_meta,      &
-       &                              rlat_meta,      &
-       &                              dim_icon, &
-       &                              def_dimension_info_icon, &
-       &                              set_nc_grid_def_icon, &
-       &                              def_dimension_info_buffer, &
-       &                              def_dimension_info_cosmo
-
-  USE mo_cosmo_grid,            ONLY: lon_rot, lat_rot
+       &                              def_com_target_fields_meta
 
   IMPLICIT NONE
 

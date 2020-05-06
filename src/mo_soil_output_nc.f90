@@ -21,9 +21,7 @@ MODULE mo_soil_output_nc
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
-       &                              icosahedral_triangular_grid, &
-       &                              target_grid_def
+  USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_io_utilities,         ONLY: netcdf_attributes, &
        &                             dim_meta_info, &
@@ -31,7 +29,6 @@ MODULE mo_soil_output_nc
        &                             open_new_netcdf_file, &
        &                             close_netcdf_file, &
        &                             netcdf_get_var, &
-       &                             netcdf_def_grid_mapping, &
        &                             dim_meta_info
 
   USE mo_soil_data,            ONLY: FAO_data, HWSD_data
@@ -40,30 +37,17 @@ MODULE mo_soil_output_nc
        &                             lon_geo_meta, &
        &                             lat_geo_meta, &
        &                             def_com_target_fields_meta, &  
-       &                             dim_icon, &
-       &                             def_dimension_info_icon, &
-       &                             set_nc_grid_def_icon, &
        &                             def_soil_meta, &
        &                             fr_land_soil_meta, &
        &                             soiltype_fao_meta, &
        &                             def_com_target_fields_meta, &
-       &                             nc_grid_def_cosmo, &
-       &                             set_nc_grid_def_cosmo, &
        &                             soiltype_FAO_deep_meta, &
-       &                             dim_rlon_cosmo, &
-       &                             dim_rlat_cosmo, &
-       &                             dim_2d_cosmo,   &
-       &                             rlon_meta,      &
        &                             dim_3d_tg,&
-       &                             rlat_meta,      &
        &                             lon_geo_meta, &
        &                             lat_geo_meta, &
        &                             soiltype_hwsd_meta, &
-       &                             soiltype_HWSD_deep_meta, &
-       &                             def_dimension_info_cosmo
+       &                             soiltype_HWSD_deep_meta
   
-
-  USE mo_cosmo_grid,            ONLY: lon_rot, lat_rot
   
   IMPLICIT NONE
 

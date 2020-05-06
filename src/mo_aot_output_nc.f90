@@ -24,16 +24,13 @@ MODULE mo_aot_output_nc
   USE mo_logging
   USE mo_kind,                  ONLY: wp,i4
 
-  USE mo_grid_structures,       ONLY: target_grid_def, &
-    &                                 rotated_lonlat_grid, &
-    &                                 icosahedral_triangular_grid
+  USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_io_utilities,          ONLY: netcdf_attributes, &
     &                                 netcdf_put_var, &
     &                                 open_new_netcdf_file, &
     &                                 close_netcdf_file, &
     &                                 set_date_mm_extpar_field, &
-    &                                 netcdf_def_grid_mapping, &
     &                                 netcdf_get_var, &
     &                                 dim_meta_info
 
@@ -47,19 +44,7 @@ MODULE mo_aot_output_nc
     &                                 lat_geo_meta, &
     &                                 def_com_target_fields_meta, &
     &                                 lon_geo_meta, &
-    &                                 dim_rlon_cosmo, &
-    &                                 dim_rlat_cosmo, &
-    &                                 dim_2d_cosmo,   &
-    &                                 rlon_meta,      &
-    &                                 rlat_meta,      &
-    &                                 def_dimension_info_cosmo, &
-    &                                 nc_grid_def_cosmo, &
-    &                                 set_nc_grid_def_cosmo, &
-    &                                 def_dimension_info_icon, &
-    &                                 set_nc_grid_def_icon, &
     &                                 aot_tg_meta
-
-  USE mo_cosmo_grid,            ONLY: lon_rot, lat_rot
 
   IMPLICIT NONE
 

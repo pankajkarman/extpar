@@ -38,9 +38,6 @@ PROGRAM extpar_soil_to_buffer
 
   USE mo_target_grid_routines,  ONLY: init_target_grid
 
-  USE mo_grid_structures,       ONLY: igrid_icon, &
-       &                              igrid_cosmo
-
   USE mo_agg_soil,              ONLY: agg_soil_data_to_target_grid, &
        &                              nearest_soil_data_to_target_grid
 

@@ -37,9 +37,6 @@ PROGRAM extpar_ahf_to_buffer
 
   USE mo_target_grid_routines,  ONLY: init_target_grid
                                 
-  USE mo_grid_structures,       ONLY: igrid_icon, &
-       &                              igrid_cosmo
-                                
   USE mo_ahf_routines,          ONLY: read_namelists_extpar_ahf
 
   USE mo_ahf_data,              ONLY: ahf_raw_data_grid, &

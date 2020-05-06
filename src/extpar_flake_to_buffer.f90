@@ -38,9 +38,6 @@ PROGRAM extpar_flake_to_buffer
   
   USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures,       ONLY: igrid_icon, & 
-      &                               igrid_cosmo
-
   USE mo_target_grid_data,      ONLY: lon_geo, &
       &                               lat_geo
 

@@ -19,9 +19,7 @@ MODULE mo_flake_output_nc
   USE mo_logging
   USE mo_kind,                  ONLY: wp, i4
 
-  USE mo_grid_structures,       ONLY: rotated_lonlat_grid, &
-       &                              icosahedral_triangular_grid, &
-       &                              target_grid_def
+  USE mo_grid_structures,       ONLY: target_grid_def
 
   USE mo_io_utilities,          ONLY: netcdf_attributes, &
        &                              dim_meta_info, &
@@ -37,19 +35,7 @@ MODULE mo_flake_output_nc
       &                               def_flake_fields_meta, &
       &                               def_com_target_fields_meta, &
       &                               lake_depth_meta, fr_lake_meta, &
-      &                               dim_rlon_cosmo, &
-      &                               dim_rlat_cosmo, &
-      &                               dim_2d_cosmo,   &
-      &                               rlon_meta,      &
-      &                               rlat_meta,      &
-      &                               def_dimension_info_cosmo, &
-      &                               set_nc_grid_def_cosmo, &
-      &                               dim_icon, &
-      &                               def_dimension_info_icon, &
-      &                               set_nc_grid_def_icon, &
       &                               flake_tot_npixel_meta
-
-  USE mo_cosmo_grid,            ONLY: lon_rot, lat_rot
 
   IMPLICIT NONE
 

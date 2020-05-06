@@ -25,18 +25,13 @@ MODULE mo_landuse_output_nc
 
   USE mo_io_units,              ONLY: filename_max
 
-  USE mo_cosmo_grid,            ONLY: lon_rot, lat_rot
-
-  USE mo_grid_structures,       ONLY: igrid_icon,                  &
-       &                              rotated_lonlat_grid,         &
-       &                              target_grid_def
+  USE mo_grid_structures,       ONLY: igrid_icon, target_grid_def
 
   USE mo_io_utilities,          ONLY: netcdf_attributes, &
        &                              dim_meta_info, &
        &                              netcdf_put_var, &
        &                              open_new_netcdf_file, &
        &                              close_netcdf_file, &
-       &                              netcdf_def_grid_mapping, &
        &                              netcdf_get_var, &
        &                              set_date_mm_extpar_field
 
@@ -80,9 +75,7 @@ MODULE mo_landuse_output_nc
        &                              plcov12_lu_meta, &
        &                              z012_lu_meta, &
        &                              lai12_lu_meta, &
-       &                              nc_grid_def_cosmo, &
        &                              def_glcc_fields_meta, &
-       &                              set_nc_grid_def_cosmo, &
        &                              fr_land_glcc_meta, glcc_tot_npixel_meta, &
        &                              glcc_class_fraction_meta, glcc_class_npixel_meta, &
        &                              ice_glcc_meta, z0_glcc_meta, &
@@ -91,13 +84,7 @@ MODULE mo_landuse_output_nc
        &                              rs_min_glcc_meta, urban_glcc_meta, &
        &                              for_d_glcc_meta, for_e_glcc_meta, &
        &                              emissivity_glcc_meta, root_glcc_meta, &
-       &                              dim_rlon_cosmo, &
-       &                              dim_rlat_cosmo, &
-       &                              dim_2d_cosmo,   &
-       &                              rlon_meta,      &
-       &                              rlat_meta,      &
-       &                              dim_glcc_tg, &
-       &                              def_dimension_info_cosmo
+       &                              dim_glcc_tg
 
   USE mo_lu_tg_fields,        ONLY :  i_lu_globcover, i_lu_glc2000, i_lu_glcc, &
        &                              i_lu_ecoclimap
