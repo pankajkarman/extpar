@@ -48,10 +48,6 @@ PROGRAM extpar_flake_to_buffer
   
   USE mo_target_grid_routines,  ONLY: init_target_grid
 
-  USE mo_icon_grid_data,        ONLY: ICON_grid  !< structure which contains the definition of the ICON grid
- 
-  USE  mo_cosmo_grid,           ONLY: COSMO_grid
-
   USE mo_agg_flake,             ONLY : agg_flake_data_to_target_grid
 
   USE mo_flake_routines,        ONLY: read_namelists_extpar_flake, &
@@ -70,9 +66,7 @@ PROGRAM extpar_flake_to_buffer
       &                               allocate_flake_target_fields
                                 
 
-  USE mo_flake_output_nc,      ONLY: write_netcdf_buffer_flake, &
-    &                                write_netcdf_cosmo_grid_flake, &
-    &                                write_netcdf_icon_grid_flake
+  USE mo_flake_output_nc,      ONLY: write_netcdf_buffer_flake
 
   
   IMPLICIT NONE
@@ -186,47 +180,6 @@ PROGRAM extpar_flake_to_buffer
     &                                     lake_depth, &
     &                                     fr_lake,    &
     &                                     flake_tot_npixel)
-
-
-
-    SELECT CASE(igrid_type)
-
-      CASE(igrid_icon) ! ICON GRID
-        
-        netcdf_filename = TRIM(flake_output_file)
-
-        CALL write_netcdf_icon_grid_flake(TRIM(netcdf_filename),  &
-    &                                     icon_grid,       &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, &
-    &                                     lake_depth, &
-    &                                     fr_lake,    &
-    &                                     flake_tot_npixel)
-
-
-
-
-         
-      CASE(igrid_cosmo) ! COSMO grid
-
-         netcdf_filename = TRIM(flake_output_file)
-
-         CALL write_netcdf_cosmo_grid_flake(TRIM(netcdf_filename), &
-    &                                     cosmo_grid,       &
-    &                                     tg,         &
-    &                                     undefined, &
-    &                                     undef_int,   &
-    &                                     lon_geo,     &
-    &                                     lat_geo, &
-    &                                     lake_depth, &
-    &                                     fr_lake,    &
-    &                                     flake_tot_npixel)
-
-
-    END SELECT
 
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------

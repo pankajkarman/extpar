@@ -95,7 +95,7 @@ MODULE mo_python_routines
 
     CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
     INTEGER (KIND=i4), INTENT(OUT)            :: it_cl_type    !< integer switch to choose a land use raw data set
-    ! 1 CRU fine (new), 2 CRU coarse (old) temperature climatology
+
     CHARACTER (len=filename_max), INTENT(OUT) :: raw_data_t_clim_path, &        !< path to raw data
          &                                       raw_data_t_clim_filename, &    !< filename temperature climatology raw data
          &                                       t_clim_buffer_file, & !< name for temperature climatology buffer

@@ -40,10 +40,6 @@ PROGRAM extpar_ahf_to_buffer
   USE mo_grid_structures,       ONLY: igrid_icon, &
        &                              igrid_cosmo
                                 
-  USE  mo_icon_grid_data,       ONLY: ICON_grid !< structure which contains the definition of the ICON grid
-                                
-  USE  mo_cosmo_grid,           ONLY: COSMO_grid
-                                
   USE mo_ahf_routines,          ONLY: read_namelists_extpar_ahf
 
   USE mo_ahf_data,              ONLY: ahf_raw_data_grid, &
@@ -65,9 +61,7 @@ PROGRAM extpar_ahf_to_buffer
 
   USE mo_agg_ahf,               ONLY: agg_ahf_data_to_target_grid
                                 
-  USE mo_ahf_output_nc,         ONLY: write_netcdf_buffer_ahf, &
-       &                              write_netcdf_cosmo_grid_ahf, &
-       &                              write_netcdf_icon_grid_ahf
+  USE mo_ahf_output_nc,         ONLY: write_netcdf_buffer_ahf
 
   IMPLICIT NONE
 
@@ -185,38 +179,6 @@ PROGRAM extpar_ahf_to_buffer
   CALL logging%info( '')
   CALL logging%info('============= write data to netcdf==============')
   CALL logging%info( '')
-
-  SELECT CASE(igrid_type)
-
-    CASE(igrid_icon) ! ICON GRID
-
-      netcdf_filename = TRIM(ahf_output_file)
-      undefined = -500.
-
-      CALL write_netcdf_icon_grid_ahf(netcdf_filename,  &
-   &                                     icon_grid,         &
-   &                                     tg,         &
-   &                                     undefined, &
-   &                                     lon_geo,     &
-   &                                     lat_geo,   &
-   &                                     ahf_field)
-
-
-
-
-
-    CASE(igrid_cosmo) ! COSMO grid
-    
-      netcdf_filename = TRIM(ahf_output_file)
-      undefined = -500.
-
-      CALL write_netcdf_cosmo_grid_ahf(netcdf_filename,  &
-   &                                     cosmo_grid,         &
-   &                                     tg,         &
-   &                                     undefined, &
-   &                                     ahf_field)
-
-  END SELECT
 
   netcdf_filename = TRIM(ahf_buffer_file)
   undefined = -500.
