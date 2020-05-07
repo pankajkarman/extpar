@@ -74,10 +74,6 @@ class AlbMeta:
     def __init__(self):
         self.type = np.float32
         self.units = '%'
-        self.dim = { 0: 'time',
-                     1: 'ke', 
-                     2: 'je',
-                     3: 'ie'}
 
 
 class AL(AlbMeta):
