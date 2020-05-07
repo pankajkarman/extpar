@@ -432,7 +432,9 @@ Finally NetCDF files for the orography based external parameters are created, wh
 \item data input (ASTER): ASTER\_T001.nc - ASTER\_T240.nc
 \item data input (filtered): GLOBE\_A\_filt\_lanczos\_window.nc - GLOBE\_P\_filt\_lanczos\_window.nc, \\
     GLOBE\_A\_filt\_tukey\_0.75\_3.0\_it4.nc - GLOBE\_P\_filt\_tukey\_0.75\_3.0\_it4.nc
-\item Output: buffer file with orography data (/orography\_io\_extpar/ orography\_buffer\_file)
+\item Output: buffer file with orography data (/orography\_io\_extpar/ orography\_buffer\_file) \\
+              output file with orography data (used in extpar\_cru\_to\_buffer)\\
+              (/orography\_io\_extpar/ orography\_output\_file)
 \end{itemize}
 
 \subsection{extpar\_landuse\_to\_buffer}\label{extpar_landuse_to_buffer}
@@ -1191,6 +1193,9 @@ SSO parameters for ICON
 \endhead
 \hline
 orography\_buffer\_file & character & &  & name for orography buffer file
+\tabularnewline
+\hline
+orography\_output\_file & character & &  & name for orography output file
 \tabularnewline
 \bottomrule
 \end{longtable}
