@@ -98,7 +98,6 @@ ln -s -f ${data_dir}/*.nc .
 type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
 
-cp ${rootdir}/test/testsuite/data/$type_of_test/$name_of_test/*.py .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------

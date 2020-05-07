@@ -20,9 +20,6 @@ if [[ $hostname == m* ]]; then
 
     export OMP_NUM_THREADS=8
     
-    # used for GRID_SUBSET on local icon grids
-    ncks=/sw/rhel6-x64/nco/nco-4.7.5-gcc64/bin/ncks
-
     # directories
     datadir=/scratch/b/b381001/extpar-input-data/linked_data
 
@@ -94,9 +91,6 @@ elif [[ $type_of_test == dwd ]]; then
 
     ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc .
     ln -sf ${icon_grid_dir}/ei_an1986-2015_domain2_DOM01_BUFFER.nc .
-    
-    # GRID_SUBSET for non-global icon grids use in cdo and python scripts
-    $ncks -v clat,clon,cell_area,clon_vertices,clat_vertices ${icon_grid_dir}/${icon_grid_file} GRID_SUBSET.nc
 
 # ecmwf
 elif [[ $type_of_test == ecmwf ]]; then
@@ -106,9 +100,6 @@ elif [[ $type_of_test == ecmwf ]]; then
 
     ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_0099_R19B10_BUFFER.nc
     ln -sf ${icon_grid_dir}/ei_an1986-2015_0099_R19B10_BUFFER.nc
-
-    # GRID_SUBSET for non-global icon grids use in cdo and python scripts
-    $ncks -v clat,clon,cell_area,clon_vertices,clat_vertices ${icon_grid_dir}/${icon_grid_file} GRID_SUBSET.nc
 
 #unknown test
 
@@ -120,7 +111,7 @@ else
 fi
 
 ln -sf ${icon_grid_dir}/${icon_grid_file} .
-cp ${icon_grid_dir}/*.py .
+
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------

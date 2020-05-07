@@ -4,5 +4,4 @@
 /
 &flake_io_extpar
    flake_buffer_file='flake_BUFFER.nc'
-   flake_output_file='ext_par_flake_COSMO.nc'
 /
