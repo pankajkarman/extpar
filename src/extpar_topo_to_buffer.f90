@@ -56,10 +56,10 @@ PROGRAM extpar_topo_to_buffer
   USE mo_target_grid_routines,  ONLY: init_target_grid
                                 
   USE mo_grid_structures,       ONLY: igrid_icon, igrid_cosmo
-
-  USE mo_cosmo_grid,            ONLY: cosmo_grid
                                 
-  USE mo_icon_grid_data,        ONLY: icon_grid_region
+  USE mo_cosmo_grid,            ONLY: COSMO_grid
+                                
+  USE mo_icon_grid_data,        ONLY: ICON_grid, icon_grid_region
                                 
   USE mo_io_units,              ONLY: filename_max
                                 
@@ -114,7 +114,9 @@ PROGRAM extpar_topo_to_buffer
   USE mo_agg_topo_icon,         ONLY: agg_topo_data_to_target_grid_icon
   USE mo_agg_topo_cosmo,        ONLY: agg_topo_data_to_target_grid_cosmo
                                 
-  USE mo_topo_output_nc,        ONLY: write_netcdf_buffer_topo
+  USE mo_topo_output_nc,        ONLY: write_netcdf_buffer_topo,    &
+       &                              write_netcdf_icon_grid_topo, &
+       &                              write_netcdf_cosmo_grid_topo
                                 
   USE mo_oro_filter,            ONLY: read_namelists_extpar_orosmooth
   USE mo_lradtopo,              ONLY: read_namelists_extpar_lradtopo, &
@@ -135,6 +137,7 @@ PROGRAM extpar_topo_to_buffer
        &                            topo_files(1:max_tiles), &      !< filenames globe raw data
        &                            sgsl_files(1:max_tiles), &      !< filenames subgrid-slope
        &                            orography_buffer_file, &        !< name for orography buffer file
+       &                            orography_output_file, &        !< name for orography output file
        &                            sgsl_output_file,      &        !< name for sgsl output file
        &                            raw_data_orography_path, &      !< path to raw data
        &                            raw_data_scale_sep_orography_path, & !< path to raw data
@@ -206,6 +209,7 @@ PROGRAM extpar_topo_to_buffer
        &                               lsso_param,                &
        &                               lsubtract_mean_slope,      &
        &                               orography_buffer_file,     &
+       &                               orography_output_file,     &
        &                               sgsl_output_file)
 
   IF (lcompute_sgsl) THEN 
@@ -543,6 +547,57 @@ PROGRAM extpar_topo_to_buffer
        &                        skyview_topo,    &
        &                        vertex_param,    &
        &                        sgsl)
+
+
+  netcdf_filename = TRIM(orography_output_file)
+
+  SELECT CASE(igrid_type)
+
+  CASE(igrid_icon)
+    CALL write_netcdf_icon_grid_topo(netcdf_filename,         &
+         &                           icon_grid,               &
+         &                           tg,                      &
+         &                           undefined,               &
+         &                           lon_geo,                 &
+         &                           lat_geo,                 &
+         &                           fr_land_topo,            &
+         &                           hh_topo,                 &
+         &                           stdh_topo,               &
+         &                           z0_topo,                 &
+         &                           lsso_param,              &
+         &                           vertex_param,            &
+         &                           hh_topo_max,             &
+         &                           hh_topo_min,             &
+         &                           theta_topo,              &
+         &                           aniso_topo,              &
+         &                           slope_topo)          
+
+  CASE(igrid_cosmo) ! COSMO grid
+    CALL write_netcdf_cosmo_grid_topo(netcdf_filename, &
+         &                        cosmo_grid,      &
+         &                        tg,              &
+         &                        undefined,       &
+         &                        lon_geo,         &
+         &                        lat_geo,         &
+         &                        fr_land_topo,    &
+         &                        hh_topo,         &
+         &                        stdh_topo,       &
+         &                        z0_topo,         &
+         &                        lradtopo,        &
+         &                        lsso_param,      &
+         &                        lcompute_sgsl,   &
+         &                        nhori,           &
+         &                        theta_topo,      &
+         &                        aniso_topo,      &
+         &                        slope_topo,      &
+         &                        slope_asp_topo,  &
+         &                        slope_ang_topo,  &
+         &                        horizon_topo,    &
+         &                        skyview_topo,    &
+         &                        sgsl)
+
+
+  END SELECT
 
   !-------------------------------------------------------------------------------
   !-------------------------------------------------------------------------------

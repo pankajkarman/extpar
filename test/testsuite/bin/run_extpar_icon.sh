@@ -5,7 +5,7 @@
 
 ulimit -s unlimited
 ulimit -c 0
-set -x 
+
 # get hostname
 hostname="`echo $HOSTNAME`"
 logfile="extpar_runscript.log"

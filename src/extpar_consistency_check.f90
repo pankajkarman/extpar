@@ -324,6 +324,7 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_soil_filename, & !< filename soil raw data
        &                                           raw_data_deep_soil_filename, & !< filename deep soil raw data
   ! orography                                   
+       &                                           orography_output_file,  &
        &                                           orography_buffer_file, & !< name for orography buffer file
        &                                           raw_data_orography_path, &        !< path to raw data
   ! subgrid-scale slope                         
@@ -547,6 +548,7 @@ PROGRAM extpar_consistency_check
        &                               lsso_param,             &
        &                               lsubtract_mean_slope,   &
        &                               orography_buffer_file,  &
+       &                               orography_output_file,  &
        &                               sgsl_buffer_file)
 
   IF (l_use_sgsl) THEN
