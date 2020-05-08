@@ -6,7 +6,8 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
 * Rewrite of 4 Extpar programmes in Python
    - Modules extpar_alb_to_buffer.py, extpar_cru_to_buffer.py, extpar_emiss_to_buffer.py and extpar_ndvi_to_buffer.py
    - Aggregate the coarse data only in extpar_cru_to_buffer.py is no longer supported
-   - Small changes of the fields compared to the former Fortran implementation, especially at the coastlines.  
+   - Small changes of the fields compared to the former Fortran implementation due to different interpolation methods, especially at the coastlines  
+   - A review involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed
    - All Python programmes read from the same namelist file *namelist.py* containing Python dictionaries for each Extpar program.
    - Read the users guide for detailed information about the rewritten programmes.
    
@@ -16,7 +17,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Remove folder raw_data_tools from Extpar repository
    - Some fields are renamed for better understanding, so please check your runscripts to adapt the new names.
    - Location on CSCS: */store/c2sm/extpar_raw_data/linked_data*
-   - Location on Mistral: /work/pd1167/extpar-input-data/linked_data
+   - Location on Mistral: */work/pd1167/extpar-input-data/linked_data*
 * New build-system  
    - TODO
    
@@ -33,7 +34,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Allow round-off for certain fields in output
 
 * CDI library for icon grids
-   - CDI write routine replaces write_netcdf_icon_grid routine
+   - [CDI](https://code.mpimet.mpg.de/projects/cdi) write routine replaces write_netcdf_icon_grid routine
    
 * Mmap-caching
    - allows run of Extpar on machines with only little memory
