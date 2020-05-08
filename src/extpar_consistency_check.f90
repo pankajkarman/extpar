@@ -746,7 +746,8 @@ PROGRAM extpar_consistency_check
          lwrite_grib,           &
          number_special_points, &
          tile_mode,             &
-         lflake_correction)
+         lflake_correction,     &
+         l_use_array_cache)
 
     INQUIRE(file=TRIM(glcc_buffer_file),exist=l_use_glcc)
   END SELECT

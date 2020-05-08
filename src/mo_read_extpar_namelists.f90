@@ -34,6 +34,7 @@ MODULE mo_read_extpar_namelists
   USE mo_kind,                  ONLY: wp, i4
   USE mo_utilities_extpar,      ONLY: check_input_file
   USE mo_io_units,              ONLY: filename_max
+  USE info_extpar,              ONLY: INFO_CompilerVersion
 
   IMPLICIT NONE
 
@@ -170,8 +171,19 @@ MODULE mo_read_extpar_namelists
     CALL logging%info(message_text)
     WRITE(message_text,'(a,i0)') 'Tile mode: ',  tile_mode
     CALL logging%info(message_text)
+
     IF (l_use_array_cache) THEN
       CALL logging%info('array caching (less memory consumption) is activated!')
+      
+      ! list of compilers not working with array-caching
+      IF ( (index(INFO_CompilerVersion,'intel') /= 0) .OR. &
+           (index(INFO_CompilerVersion,'INTEL') /= 0) .OR. &
+           (index(INFO_CompilerVersion,'Intel') /= 0) ) THEN
+
+        WRITE(message_text,*) 'Array-caching not supported for', &
+             &                TRIM(INFO_CompilerVersion),' compiler!'
+        CALL logging%error(message_text,__FILE__,__LINE__)
+      ENDIF
     ENDIF
     
     CALL logging%info('Exit routine: read_namelists_extpar_check_icon')
@@ -189,7 +201,8 @@ MODULE mo_read_extpar_namelists
        &                                       lwrite_grib,           &
        &                                       number_special_points, &
        &                                       tile_mode,             &
-       &                                       lflake_correction)
+       &                                       lflake_correction,     &
+       &                                       l_use_array_cache)
 
     CHARACTER (len=*), INTENT(IN)             :: namelist_file !< filename with namelists for for EXTPAR settings
 
@@ -201,7 +214,8 @@ MODULE mo_read_extpar_namelists
     INTEGER(KIND=i4), INTENT(OUT)             :: number_special_points, i_lsm_data, &
          &                                       tile_mode
 
-    LOGICAL, INTENT(OUT)                      :: lwrite_netcdf, lwrite_grib, lflake_correction
+    LOGICAL, INTENT(OUT)                      :: lwrite_netcdf, lwrite_grib, lflake_correction, &
+                                                 l_use_array_cache
 
     INTEGER(KIND=i4)                          :: nuin, ierr
 
@@ -215,12 +229,14 @@ MODULE mo_read_extpar_namelists
          lwrite_grib, &
          tile_mode, &
          number_special_points, &
-         lflake_correction
+         lflake_correction, &
+         l_use_array_cache 
 
     lwrite_netcdf = .TRUE.
     lwrite_grib   = .FALSE.
     lflake_correction = .TRUE.
     tile_mode = 0
+    l_use_array_cache  = .FALSE.   ! Might be slower, but required for really high resolution
 
     CALL logging%info('Enter routine: read_namelists_extpar_check_cosmo')
 
@@ -248,6 +264,20 @@ MODULE mo_read_extpar_namelists
     CALL logging%info(message_text)
     WRITE(message_text,*) 'Flake corrrection: ', lflake_correction
     CALL logging%info(message_text)
+
+    IF (l_use_array_cache) THEN
+      CALL logging%info('array caching (less memory consumption) is activated!')
+      
+      ! list of compilers not working with array-caching
+      IF ( (index(INFO_CompilerVersion,'intel') /= 0) .OR. &
+           (index(INFO_CompilerVersion,'INTEL') /= 0) .OR. &
+           (index(INFO_CompilerVersion,'Intel') /= 0) ) THEN
+
+        WRITE(message_text,*) 'Array-caching not supported for', &
+             &                TRIM(INFO_CompilerVersion),' compiler!'
+        CALL logging%error(message_text,__FILE__,__LINE__)
+      ENDIF
+    ENDIF
 
     CALL logging%info('Exit routine: read_namelists_extpar_check_cosmo')
 
