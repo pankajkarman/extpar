@@ -815,8 +815,36 @@ Be aware that the definition of special points has only been tested for the COSM
 \caption{Usage of the namelist parameter number\_special\_points.}
 \label{tab:number_special_points}
 \end{longtable}
+
+\paragraph{Reduced main memory usage}\ \par\medskip\noindent
+
+\noindent Since Exptar Version 5.4 a new feature allows to run the
+extpar\_consistency\_check even for very high resolution global
+grids. A POSIX mmap based implemetation of disk caching arrays is
+used to use main memory as much as possible and, if more memory
+is required, the duty to handle this request is delegated to the
+kernel. A requirement to run this properly is the provision of
+swap space in the expected total memory use. With this technique
+we could process a global R2B11 ICON grid (around 1.25 \textit{km} grid
+resolution) on a server with 256 GB main memory. Of course
+processing gets quite slow, but is still in the order of a couple
+of cups of coffee. 
+
+\noindent The feature can be enabled with the namelist
+variable \\ \textit{l\_use\_array\_cache = .TRUE.} in namelist
+\textit{extpar\_consistency\_check\_io}. The namelist variable default is \\
+\textit{l\_use\_array\_cache =.FALSE.}, which is selecting the standard heap allocation by
+Fortran's \textit{ALLOCATE} statement.
+
 \paragraph{Writing output}\ \par\medskip\noindent
 The final results are written into a netcdf file. The output file name can be specified in the namelist 'INPUT\_CHECK'.\par\medskip\noindent
+Since Extpar Version 5.4 the output possibilities have been extended for ICON. 
+As ICON and a lot of its associated tools (eg. CDO, DWD icontools)
+are already using a single abstract interfacing library CDI, a
+re-implementation for the final Extpar output procedure with CDI to
+prepare for future developments is provided. For a detailed description of
+CDI look at \\
+\url{https://code.mpimet.mpg.de/projects/cdi}. 
 \paragraph{Used namelist files and data in-/output}\ \par\medskip\noindent
 \begin{itemize}
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_CHECK, INPUT\_*
