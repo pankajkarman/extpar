@@ -4,8 +4,17 @@
 #
 # This script checks whether the Extpar code output is different
 # from the reference using the cdo diffv function.  
-# One can define fields, that are allowed to differ less than
-# 0.001. 
+
+# Fields allowed to be not bit-identical can be declared in fields_with_roundoff
+#
+# The following fields are not bit-identical between Tsa and Mistral
+# because of different versions of Python, CDO and GCC:
+#
+#   -NDVI
+#   -NDVI_MAX
+#   -NDVI_MRAT
+#   -ALB_DIF12
+#   -ALNID12
 #
 # ############ Remarks ##############
 
@@ -121,8 +130,14 @@ else # fields differ
             head field_step_${last_iteration} 1>&1
             exit 20 #FAIL
 
-        # field not bit-identical, but OK
-        else
+        else # field not bit-identical, but OK
+
+            # count number of fields not bit-identical
+            nr_of_fields=`grep -v "$pattern_to_ignore\|Date" $log | wc -l | awk '{print $1}'`
+
+            # print info to logfile of testsuite
+            echo "$nr_of_fields fields not bit-identical" 1>&1
+            [[ $VERBOSE -gt 1 ]] && grep -v "$pattern_to_ignore" $log 1>&1
             rm field_step_*
             exit 10 # OK
         fi

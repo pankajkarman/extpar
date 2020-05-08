@@ -20,25 +20,13 @@ if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostna
 
 
     # NetCDF raw data for external parameter
-    data_dir=/scratch/juckerj/extpar-input-data/linked_data/
-
-    # NetCDF raw data file names
-    raw_data_glc2000='GLC2000_byte.nc'
-    raw_data_glcc='GLCC_usgs_class_byte.nc'
-    aster_prefix='ASTER_orig'
-    raw_data_flake='GLDB_lakedepth.nc'
+    data_dir=/store/c2sm/extpar_raw_data/linked_data
 
 # mistral
 elif [[ $hostname == m* ]]; then
 
     # NetCDF raw data for external parameter
     data_dir=/scratch/b/b381001/extpar-input-data/linked_data
-
-    # NetCDF raw data file names
-    raw_data_glc2000='GLC2000_byte.nc'
-    raw_data_glcc='GLCC_usgs_class_byte.nc'
-    aster_prefix='ASTER_orig'
-    raw_data_flake='GLDB_lakedepth.nc'
 
 # unkown host
 else
@@ -48,11 +36,6 @@ else
     exit 1
 fi
 
-# substitute host-dependent namelist parameters
-sed -i 's#@raw_data_lu_filename@#'"$raw_data_glc2000"'#' INPUT_LU
-sed -i 's#@raw_data_glcc_filename@#'"$raw_data_glcc"'#' INPUT_LU
-sed -i 's#@aster_prefix@#'"$aster_prefix"'#g' INPUT_ORO
-sed -i 's#@raw_data_flake_filename@#'"$raw_data_flake"'#' INPUT_FLAKE
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
