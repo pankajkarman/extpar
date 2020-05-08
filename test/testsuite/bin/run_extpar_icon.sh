@@ -95,9 +95,6 @@ elif [[ $type_of_test == dwd ]]; then
 # ecmwf
 elif [[ $type_of_test == ecmwf ]]; then
 
-    # run TCLIM with COARSE and FINE
-    cp INPUT_TCLIM_COARSE INPUT_TCLIM
-
     ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_0099_R19B10_BUFFER.nc
     ln -sf ${icon_grid_dir}/ei_an1986-2015_0099_R19B10_BUFFER.nc
 
