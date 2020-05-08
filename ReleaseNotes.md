@@ -29,7 +29,13 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Location on CSCS: */store/c2sm/extpar_raw_data/linked_data*
    - Location on Mistral: */work/pd1167/extpar-input-data/linked_data*
 * New build-system  
-   - TODO
+   - New system follows the configure/make/make install paradigm
+   - Out-of-source build supported
+   - 3 steps to compile Extpar into binaries:
+      - Run configure.*your_machine*.*your_compiler*
+      - source modules.env
+      - make or make -j 4 (for faster compilation)
+    - Kesch at CSCS is no longer supported
    
 * Corine landuse data
    - Additional landuse data set covering Europe
