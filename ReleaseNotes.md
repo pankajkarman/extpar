@@ -5,11 +5,21 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
 
 * Rewrite of 4 Extpar programmes in Python
    - Modules extpar_alb_to_buffer.py, extpar_cru_to_buffer.py, extpar_emiss_to_buffer.py and extpar_ndvi_to_buffer.py
-   - Aggregate the coarse data only in extpar_cru_to_buffer.py is no longer supported
-   - Small changes of the fields compared to the former Fortran implementation due to different interpolation methods, especially at the coastlines  
+   - Small changes of the fields compared to the former Fortran implementation due to different interpolation methods, especially at the coastlines
+   - Fields changed:
+      - NDVI, NDVI_MAX, NDVI_MRAT
+      - ALB_SAT, ALB_DRY
+      - ALB, ALUVD, ALNID
+      - T_CL
+      - EMISS_RAD
    - A review involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed
    - All Python programmes read from the same namelist file *namelist.py* containing Python dictionaries for each Extpar program.
-   - Read the users guide for detailed information about the rewritten programmes.
+   - Support of the old and coarse data (it_cl_type = 2) in extpar_cru_to_buffer expires and is replaced the following:
+      - it_cl_type = 2 aggregates the coarse data over sea **and** the fine data over land
+      - it_cl_type = 1 aggregates the fine data over land, sea points are not considered
+      - For aggregation of the coarse data over land and sea only, use Extpar 5.3 or older
+      
+   - Read the [users guide](doc/user_and_implementation_manual.pdf) for detailed information about the rewritten programmes.
    
 * git-LFS input data repository
    - All input data that can be processed with Extpar is stored in a unified data repository [extpar-input-data](https://gitlab.dkrz.de/extpar-data/extpar-input-data)
@@ -35,11 +45,15 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
 
 * CDI library for icon grids
    - [CDI](https://code.mpimet.mpg.de/projects/cdi) write routine replaces write_netcdf_icon_grid routine
+   - Output of icon grids **always** involves CDI, output without CDI no longer supported
+   - CDI contained as a git submodule inside the Extpar repository
+   - See [compile_run](doc/README.compile_run.md) for instructions to clone Extpar from GitHub correctly
    
 * Mmap-caching
    - allows run of Extpar on machines with only little memory
    - new logical parameter *l_use_array_cache = .true. * in namelist file *INPUT_CHECK* activates mmap-caching
    - Bitwise-identical with and without mmap-caching
+   - Only supported and tested for GCC compiler
 
 * Fortran Code changes
    - Remove all *filename_max* from INTENT(IN)
