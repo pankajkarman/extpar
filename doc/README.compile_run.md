@@ -53,6 +53,7 @@ Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub
 
 Next step is to create a configure wrapper script to ease the
 configure process. For now we provide scripts for all machines listed below.
+Instead of *make* one can also use *make -j 4* for a faster compilation.
 
 #### On the CSCS machines
 
