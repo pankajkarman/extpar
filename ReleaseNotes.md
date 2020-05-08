@@ -30,6 +30,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Icon test for DWD for all compilers
    - Convert testsuite src-code from Python2 to Python3
    - Pep8-Coding style test for Python code
+   - Allow round-off for certain fields in output
 
 * CDI library for icon grids
    - CDI write routine replaces write_netcdf_icon_grid routine
@@ -42,6 +43,9 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
 * Fortran Code changes
    - Remove all *filename_max* from INTENT(IN)
    - Output of *COSMO/ICON* netCDF-files in the buffer modules no longer supported
+   - Remove all unused modules/programmes replaced by Python modules
+   - Remaining code still needed in Fortan now contained in modules *mo_python_data.f90*,  
+     *mo_python_routines.f90*, and *mo_python_tg_fields.f90*
    
  ## 5.3
  This is an intermediate release that reduces code complexity for topo_to_buffer.exe, enhances the testing for INTEL compiler and further cleans the code
