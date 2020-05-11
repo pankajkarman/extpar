@@ -98,8 +98,9 @@ else # fields differ
 
     # fields differ more than 0.001
     if [ $? -ne 0 ] ; then
-       echo "Differences from reference file found" 1>&1
-       exit 20 # FAIL
+        echo "Differences from reference file found" 1>&1
+        [[ $VERBOSE -gt 1 ]] && grep -v "$pattern_to_ignore" $log 1>&1
+        exit 20 # FAIL
 
     else # fields differ less than 0.001
 

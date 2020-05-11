@@ -15,8 +15,14 @@ rm ${logfile}
 #--------------------------------------------------------------------------------
 # define host-dependent paths and variables
 
+# CSCS
+if [[ $hostname == daint* || $hostname == nid* ]]; then
+
+    # NetCDF raw data for external parameter
+    data_dir=/store/c2sm/extpar_raw_data/linked_data
+
 # mistral
-if [[ $hostname == m* ]]; then
+elif [[ $hostname == m* ]]; then
 
     export OMP_NUM_THREADS=8
     
