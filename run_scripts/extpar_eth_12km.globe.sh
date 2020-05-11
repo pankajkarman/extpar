@@ -31,8 +31,7 @@ src_python=${scriptdir}/../python/lib
 
 # change dir to src_python to get absolute path
 cd $src_python
-unset PYTHONPATH
-export PYTHONPATH=$(pwd)
+export PYTHONPATH=$PYTHONPATH:$(pwd)
 cd - > /dev/null 2>&1
 
 # directory of compiled extpar executables

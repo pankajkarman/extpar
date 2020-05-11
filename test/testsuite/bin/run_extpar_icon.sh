@@ -1,6 +1,5 @@
 #!/bin/ksh
 
-set -x
 # import functions to launch Extpar executables
 . ./runcontrol_functions.sh
 
@@ -49,8 +48,7 @@ src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
 cd $src_python
-unset PYTHONPATH
-export PYTHONPATH=$(pwd)
+export PYTHONPATH=$PYTHONPATH:$(pwd)
 cd - >> ${logfile}
 
 echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
