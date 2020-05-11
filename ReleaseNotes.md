@@ -31,10 +31,11 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
 * New build-system  
    - New system follows the configure/make/make install paradigm
    - Out-of-source build supported
-   - 3 steps to compile Extpar into binaries:
+   - 4 basic steps to compile Extpar into binaries:
       - Run configure.*your_machine*.*your_compiler*
       - source modules.env
       - make or make -j 4 (for faster compilation)
+      - make install
     - Kesch at CSCS is no longer supported
    
 * Corine landuse data
@@ -45,6 +46,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    
 * Enhanced testsuite
    - Icon test for DWD for all compilers
+   - Jenkins on Mistral, Tsa and Daint
    - Convert testsuite src-code from Python2 to Python3
    - Pep8-Coding style test for Python code
    - Allow round-off for certain fields in output
