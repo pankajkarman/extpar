@@ -7,7 +7,8 @@
 
 # Fields allowed to be not bit-identical can be declared in fields_with_roundoff
 #
-# The following fields are not bit-identical between Tsa and Mistral
+# The following fields are not bit-identical for Tsa and Daint
+# in comparison to Mistral
 # because of different versions of Python, CDO and GCC:
 #
 #   -NDVI
@@ -15,6 +16,7 @@
 #   -NDVI_MRAT
 #   -ALB_DIF12
 #   -ALNID12
+#   -ALUVD
 #
 # ############ Remarks ##############
 
@@ -33,7 +35,7 @@ log='diffv.log'
 # define fields that can have round-offs smaller than 0.001
 # names that occur in other names (NDVI -> NDVI_MRAT) must
 # have a leading and trailing whitespace
-fields_with_roundoff=(" NDVI " "NDVI_MRAT" "NDVI_MAX" "ALB_DIF12" "ALNID12")
+fields_with_roundoff=(" NDVI " "NDVI_MRAT" "NDVI_MAX" "ALB_DIF12" "ALNID12" "ALUVD")
 
 # CDO output that is not interesting for this checker
 pattern_to_ignore="diffn\|differ\|nhori\|Warning"
