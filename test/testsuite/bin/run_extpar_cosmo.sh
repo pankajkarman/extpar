@@ -1,5 +1,6 @@
 #!/bin/ksh
       
+set -x
 # import functions to launch Extpar executables
 . ./runcontrol_functions.sh
 
@@ -17,7 +18,6 @@ rm ${logfile}
 
 # CSCS
 if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostname == arolla* || $hostname == nid* ]]; then
-
 
     # NetCDF raw data for external parameter
     data_dir=/store/c2sm/extpar_raw_data/linked_data
@@ -47,6 +47,7 @@ rootdir=${currentdir}/../../../../..
 src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
+echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 cd $src_python
 unset PYTHONPATH
 export PYTHONPATH=$(pwd)

@@ -1,5 +1,6 @@
 #!/bin/ksh
 
+set -x
 # import functions to launch Extpar executables
 . ./runcontrol_functions.sh
 
@@ -27,7 +28,7 @@ elif [[ $hostname == m* ]]; then
     export OMP_NUM_THREADS=8
     
     # directories
-    datadir=/scratch/b/b381001/extpar-input-data/linked_data
+    data_dir=/scratch/b/b381001/extpar-input-data/linked_data
 
 # unkown host
 else
@@ -72,7 +73,7 @@ binary_isa=extpar_isa_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # link raw data files to local workdir
-ln -s -f ${datadir}/*.nc .
+ln -s -f ${data_dir}/*.nc .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
@@ -135,8 +136,6 @@ run_sequential ${binary_alb}
 run_sequential ${binary_ndvi}
 
 run_sequential ${binary_tclim}
-
-run_sequential ${binary_ndvi}
 
 run_sequential ${binary_aot}
 
