@@ -1,4 +1,4 @@
-# EXTPAR: how to compile and run
+# How to clone, compile and run
 ## Code structure
 EXTPAR contains FORTAN-Code as well as hybrid Python-CDO scripts.
 Both code bases need external libraries and installations.
@@ -40,49 +40,47 @@ is supposed to be GCC.
 This script fetches all required libraries and tools, compiles and
 installs in $HOME/local.gcc.
 
-### Compilation
-
-Since Version 5.4 Extpar follows the configure/make/make install paradigm of
-providing executables. Furthermore, out-of-source builds are
-supported.
+### Cloning from GitHub
 Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub the following:
 
 * git clone --recursive git@github.com:C2SM-RCM/extpar.git
 * git submodule update
 
+### Compilation
+Since Version 5.4, Extpar is built with an autotool based build-system. This has been necessary to accomodate for the additional C source code files and newly required libraries.
 
-Next step is to create a configure wrapper script to ease the
-configure process. For now we provide scripts for all machines listed below.
-Instead of *make* one can also use *make -j 4* for a faster compilation.
+Note the classical configure option --prefix=*path_to_installation_directory* 
+This is quite usefull for clean installations.
 
-#### On the CSCS machines
+There are two options to compile Extpar: 
 
-##### Piz Daint
-Run configure.daint.gcc  
+#### In-source build
+./configure.*hostname.compiler*  
 source modules.env  
 make  
-##### Kesch
+make install  
 
-Since Extpart Version 5.4, Kesch is no longer supported.
-
-##### Tsa
-Run configure.tsa.gcc  
+#### Out-of-source build
+mkdir build-*my_self_defined_note*  
+cd build-*my_self_defined_note*  
+*path_to_the_extpar_installation*/configure.*hostname.compiler*  
 source modules.env  
-make
-#### On the DKRZ machine mistral
-Run configure.mistral.*your_compiler*, where *your_compiler* can be gcc, intel or nag  
-source modules.env  
-make
+make  
+make install  
 
 #### Restart build from scratch
 make distclean 
 
-### Run
+#### Configure for new machines
+The first step in creating a new machine setup is to take one of
+the existing configure wrapper scripts and adapt it to your local
+environment. The scripts are called configure.*hostname.compiler*.
 
+### Run
 Some runscript examples are available under /run_scripts.
 Just adapt them to your needs!
-### Check
 
+### Check
 1. that you haven't got any error message at runtime,
 2. that you got a file in NetCDF format (.nc), and
 3. in case of use with cosmo that Int2lm is able to read these 2 files 
