@@ -42,11 +42,17 @@ exedir=$scriptdir/../bin
 # define host-dependent paths and variables
 
 # CSCS-machines
-if [[ $hostname == kesch* || $hostname == tsa* || $hostname == arolla* ]]; then
+if [[ $hostname == tsa* || $hostname == arolla* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/scratch/juckerj/extpar-input-data/linked_data
+    data_dir=/store/c2sm/extpar_raw_data/linked_data
 
+# unkown host
+else
+
+    # exit script in case of unknown host
+    echo ERROR: Unkown host: $hostname >> ${logfile}
+    exit 1
 fi
 
 #---------------------------------------------------------------------------------------------------------
@@ -97,9 +103,9 @@ elif [[ $model == "c2" ]]; then
     topo_files="'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'"
 
     #orography smoothing
-    ilow_pass_oro=4
-    numfilt_oro=1
-    eps_filter=0.1
+    ilow_pass_oro=1
+    numfilt_oro=2
+    eps_filter=1.7
 
 elif [[ $model == "c7" ]]; then
 
@@ -162,23 +168,18 @@ raw_data_alb='alb_new.nc'
 raw_data_alnid='alnid_new.nc'
 raw_data_aluvd='aluvd_new.nc'
 buffer_alb='month_alb_buffer.nc'
-output_alb='month_alb_extpar_cosmo.nc'
 
 raw_data_aot='aot_GACP.nc'
 buffer_aot='extpar_buffer_aot.nc'
-output_aot='aot_extpar_cosmo.nc'
 
 raw_data_tclim_coarse='CRU_T2M_SURF_clim.nc'
 raw_data_tclim_fine='CRU_T_SOIL_clim.nc'
 buffer_tclim='crutemp_clim_extpar_buffer.nc'
-output_tclim='crutemp_clim_extpar_cosmo.nc'
 
 raw_data_glc2000='GLC2000_byte.nc'
 buffer_glc2000='extpar_landuse_buffer.nc'
-output_glc2000='extpar_landuse_cosmo.nc'
 raw_data_glcc='GLCC_usgs_class_byte.nc'
 buffer_glcc='glcc_landuse_buffer.nc'
-output_glcc='glcc_landuse_cosmo.nc'
 
 raw_data_globcover_0='GLOBCOVER_0_16bit.nc'
 raw_data_globcover_1='GLOBCOVER_1_16bit.nc'
@@ -188,7 +189,6 @@ raw_data_globcover_4='GLOBCOVER_4_16bit.nc'
 raw_data_globcover_5='GLOBCOVER_5_16bit.nc'
 
 buffer_lu='extpar_landuse_buffer.nc'
-output_lu='extpar_landuse_cosmo.nc'
 
 # lanczos filter is recommended when activating scale separation
 raw_filt_globe_A10='GLOBE_A_filt_lanczos_window.nc'
@@ -214,13 +214,11 @@ output_topo='topography_COSMO.nc'
 
 raw_data_ndvi='NDVI_1998_2003.nc'
 buffer_ndvi='ndvi_buffer.nc'
-output_ndvi='ndvi_extpar_cosmo.nc'
 
 raw_data_soil_FAO='FAO_DSMW_double.nc'
 raw_data_soil_HWSD='HWSD0_30_topsoil.nc'
 raw_data_deep_soil='HWSD30_100_subsoil.nc'
 buffer_soil='soil_buffer.nc'
-output_soil='soil_cosmo.nc'
 
 raw_lookup_table_HWSD='LU_TAB_HWSD_UF.data'
 raw_HWSD_data='HWSD_DATA_COSMO.data'
@@ -229,7 +227,6 @@ raw_HWSD_data_extpar='HWSD_DATA_COSMO_EXTPAR.asc'
 
 raw_data_flake='GLDB_lakedepth.nc'
 buffer_flake='flake_buffer.nc'
-output_flake='flake_cosmo.nc'
 
 #--------------------------------------------------------------------------------
 # Prepare working directory and create namelists
@@ -265,10 +262,6 @@ input_alb = {
         'raw_data_alnid_filename': '${raw_data_alnid}',
         'raw_data_aluvd_filename': '${raw_data_aluvd}',
         'alb_buffer_file': '${buffer_alb}',
-        'alb_output_file': '${output_alb}',
-        'alb_source': 'al',
-        'alnid_source': 'alnid',
-        'aluvd_source': 'aluvd'
         }
 
 input_tclim = {
@@ -276,7 +269,6 @@ input_tclim = {
         'raw_data_tclim_coarse': '',
         'raw_data_tclim_fine': '${raw_data_tclim_fine}',
         't_clim_buffer_file': '${buffer_tclim}',
-        't_clim_output_file':'${output_tclim}',
         'it_cl_type': 1
         }
 
@@ -284,7 +276,6 @@ input_ndvi = {
         'raw_data_ndvi_path': '',
         'raw_data_ndvi_filename': '${raw_data_ndvi}',
         'ndvi_buffer_file': '${buffer_ndvi}',
-        'ndvi_output_file': '${output_ndvi}'
         }
 EOF_namelist_python
 
@@ -316,7 +307,6 @@ cat > INPUT_AOT << EOF_aot
 /  
 &aerosol_io_extpar
   aot_buffer_file='${buffer_aot}',
-  aot_output_file='${output_aot}'
 /
 EOF_aot
 #---
@@ -330,7 +320,6 @@ cat > INPUT_LU << EOF_lu
 /
 &lu_io_extpar
    lu_buffer_file='${buffer_lu}',
-   lu_output_file='${output_lu}'
 /
 &glcc_raw_data
    raw_data_glcc_path='',
@@ -338,7 +327,6 @@ cat > INPUT_LU << EOF_lu
 /
 &glcc_io_extpar
    glcc_buffer_file='${buffer_glcc}',
-   glcc_output_file='${output_glcc}'
 /
 EOF_lu
 #---
@@ -400,7 +388,6 @@ cat > INPUT_SOIL << EOF_soil
 /
 &soil_io_extpar
   soil_buffer_file='${buffer_soil}',
-  soil_output_file='${output_soil}'
 /
 &HWSD_index_files
  path_HWSD_index_files='',
@@ -418,7 +405,6 @@ cat > INPUT_FLAKE << EOF_flake
 /
 &flake_io_extpar
    flake_buffer_file='${buffer_flake}'
-   flake_output_file='${output_flake}'
 /
 EOF_flake
 #---
