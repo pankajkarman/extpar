@@ -297,7 +297,7 @@ cat > INPUT_ORO << EOF_oro
  topo_files = '${raw_data_globe_A10}' '${raw_data_globe_B10}'  '${raw_data_globe_C10}'  '${raw_data_globe_D10}'  '${raw_data_globe_E10}'  '${raw_data_globe_F10}'  '${raw_data_globe_G10}'  '${raw_data_globe_H10}'  '${raw_data_globe_I10}'  '${raw_data_globe_J10}'  '${raw_data_globe_K10}'  '${raw_data_globe_L10}'  '${raw_data_globe_M10}'  '${raw_data_globe_N10}'  '${raw_data_globe_O10}'  '${raw_data_globe_P10}' 
 /
 &sgsl_io_extpar
- lpreproc_oro=.TRUE.
+ lpreproc_oro=.FALSE.
  sgsl_buffer_file='sgsl_buffer.nc',
  sgsl_files = '${raw_data_sgsl_A10}' '${raw_data_sgsl_B10}'  '${raw_data_sgsl_C10}'  '${raw_data_sgsl_D10}'  '${raw_data_sgsl_E10}'  '${raw_data_sgsl_F10}'  '${raw_data_sgsl_G10}'  '${raw_data_sgsl_H10}'  '${raw_data_sgsl_I10}'  '${raw_data_sgsl_J10}'  '${raw_data_sgsl_K10}'  '${raw_data_sgsl_L10}'  '${raw_data_sgsl_M10}'  '${raw_data_sgsl_N10}'  '${raw_data_sgsl_O10}'  '${raw_data_sgsl_P10}'
     /
