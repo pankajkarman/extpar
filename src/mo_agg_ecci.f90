@@ -72,9 +72,6 @@ MODULE mo_agg_ecci
        &            nf90_get_var,   &
        &            nf90_nowrite
 
-#ifdef _OPENMP
-  USE omp_lib
-#endif
 
   IMPLICIT NONE
 
@@ -219,9 +216,6 @@ CONTAINS
     REAL (wp) :: bound_east_cosmo  !< eastern  boundary for COSMO target domain
 
     ! Some stuff for OpenMP parallelization
-#ifdef _OPENMP    
-    REAL(dp) :: region_start, region_end, region_wallclock, loop_start, loop_end, loop_wallclock
-#endif
     INTEGER :: num_blocks, ib, il, blk_len, istartlon, iendlon, nlon_sub, ishift
     !$   INTEGER :: omp_get_max_threads, omp_get_thread_num, thread_id
     !$   INTEGER (i4), ALLOCATABLE :: start_cell_arr(:)
@@ -242,7 +236,6 @@ CONTAINS
 
     apix_e  = re * re * deg2rad* ABS(ecci_grid%dlon_reg) * deg2rad * ABS(ecci_grid%dlat_reg)
     ! area of ecci raw data pixel at equator
-    PRINT *,'area pixel at equator: ',apix_e
 
     hp   = 30.0      ! height of Prandtl-layer
     lnhp = LOG(hp)
@@ -366,15 +359,9 @@ CONTAINS
     !$   start_cell_arr(:) = 1
 !    PRINT*, 'nlon_sub, num_blocks, blk_len: ',nlon_sub, num_blocks, blk_len
 
-#ifdef _OPENMP
-    region_wallclock = 0.0_dp
-#endif
 !    print*, 'Start loop over ECCI rows'
     ecci_rows: DO mlat = 1,ecci_grid%nlat_reg
 
-#ifdef _OPENMP
-      loop_start = omp_get_wtime()
-#endif
       block_row= block_row + 1
       IF(block_row > ta_grid%nlat_reg) THEN ! read in new block
         block_row_start = mlat
@@ -412,10 +399,6 @@ CONTAINS
         je_vec(:) = 0
         ke_vec(:) = 0
       ENDIF
-#ifdef _OPENMP
-      region_start = omp_get_wtime()
-!$OMP PARALLEL DO PRIVATE(ib,il,i_col,ii1,ii2,ishift,point_lon,thread_id,start_cell_id)
-#endif
       DO ib = 1, num_blocks
 
         !$     thread_id = omp_get_thread_num()+1
@@ -449,11 +432,6 @@ CONTAINS
         ENDDO columns1
         !$     start_cell_arr(thread_id) = start_cell_id
       ENDDO
-#ifdef _OPENMP
-!$OMP END PARALLEL DO
-      region_end = omp_get_wtime()      
-      region_wallclock = region_end - region_start
-#endif
       
       columns2: DO i_col = istartlon, iendlon
         ! find the corresponding target grid indices
@@ -536,16 +514,6 @@ CONTAINS
 
         ! end loops
       ENDDO columns2
-#ifdef _OPENMP
-      IF (mlat == 1.OR.(MOD(mlat,3600) == 0)) THEN
-        loop_end = omp_get_wtime()
-        loop_wallclock = loop_end-loop_start
-!        PRINT '(a,i6,a,f7.2,a,f18.12,a,f18.12,a)', &
-!             & 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat), ' time: ', loop_wallclock, ' s openmp: ', region_wallclock, ' s'      
-      ENDIF
-#else
-!      IF (MOD(mlat,200) == 0) PRINT '(a,i6,a,f7.2)', 'ECCI row:', mlat, ' latitude: ', lat_ecci(mlat)
-#endif
     ENDDO ecci_rows
 
     DEALLOCATE(ie_vec,je_vec,ke_vec)

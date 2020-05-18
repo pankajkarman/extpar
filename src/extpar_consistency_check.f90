@@ -129,7 +129,7 @@ PROGRAM extpar_consistency_check
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover, &
        &                                get_name_globcover_lookup_tables
 
-  USE mo_ecci_lookup_tables, ONLY: nclass_ecci, &
+  USE mo_ecci_lookup_tables,      ONLY: nclass_ecci, &
       &                                 get_name_ecci_lookup_tables
 
   USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap, &
