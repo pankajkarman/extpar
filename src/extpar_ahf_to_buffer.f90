@@ -195,6 +195,6 @@ PROGRAM extpar_ahf_to_buffer
   CALL deallocate_ahf_fields()
 
   CALL logging%info( '')
-  CALL logging%info( '============= start ahf_to_buffer ==============')
+  CALL logging%info( '============= finish ahf_to_buffer ==============')
 
 END PROGRAM extpar_ahf_to_buffer
