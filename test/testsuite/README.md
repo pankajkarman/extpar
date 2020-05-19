@@ -10,7 +10,7 @@
 
   3.  Copy the Extpar executables to the /bin folder: cp ../../bin/* bin
 
-  4.  If you want to run on a new machine, make a run script called run_extpar_machinename.sh and put       it in the /bin folder with the executables.
+  4.  If you want to run on a new machine, add all host-dependent paths and variables to the runscripts for ICON and COSMO in the /bin folder.
 
   5.  To run the testsuite, either make a submit script that calls the testsuite 
       (like the submit.tsa.sh script) or call the testsuite directly from the command line:
@@ -26,7 +26,7 @@
      testlist XML file (with a new name).  The testlist which is run can be chosen from the testsuite
      command line.  
 
-  2. Make a folder in the data folder for the new test containing the INPUT_* files.  
+  2. Make a folder in the data folder for the new test containing the INPUT_* files and the namelist.py for the Python-CDO modules.  
 
   3. Send me (katherine.osterried@env.ethz.ch) any binary reference files to upload to the ftp site. 
      I will also modify the get_data.sh script accordingly.  
