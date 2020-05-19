@@ -838,11 +838,11 @@ Fortran's \textit{ALLOCATE} statement.
 
 \paragraph{Writing output}\ \par\medskip\noindent
 The final results are written into a netcdf file. The output file name can be specified in the namelist 'INPUT\_CHECK'.\par\medskip\noindent
-Since Extpar Version 5.4 the output possibilities have been extended for ICON. 
+Since Extpar Version 5.4 the output possibilities have been extended for ICON only. The Extpar output procedure for COSMO did not change with Version 5.4. 
 As ICON and a lot of its associated tools (eg. CDO, DWD icontools)
 are already using a single abstract interfacing library CDI, a
 re-implementation for the final Extpar output procedure with CDI to
-prepare for future developments is provided. For a detailed description of
+prepare for future developments is provided. Note, that this re-implementation replaces the former writing-routine completely. For a detailed description of
 CDI look at \\
 \url{https://code.mpimet.mpg.de/projects/cdi}. 
 \paragraph{Used namelist files and data in-/output}\ \par\medskip\noindent
