@@ -122,6 +122,8 @@ PROGRAM extpar_ahf_to_buffer
   CALL logging%info( '============= allocate fields ==================')
   CALL logging%info( '')
 
+  CALL logging%info('l_use_array_cache=.FALSE. -> can only be used in consistency_check')
+
   ! open netcdf file with AHF data
   CALL open_netcdf_AHF_data(path_ahf_file, &
     &                           ncid_ahf)

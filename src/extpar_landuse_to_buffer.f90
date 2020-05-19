@@ -242,6 +242,8 @@ PROGRAM extpar_landuse_to_buffer
   CALL logging%info('============= allocate fields ==================')
   CALL logging%info( '')
 
+  CALL logging%info('l_use_array_cache=.FALSE. -> can only be used in consistency_check')
+
   CALL allocate_lu_target_fields(tg, l_use_array_cache=.FALSE.)
 
   ntiles_lu = 1

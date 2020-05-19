@@ -189,6 +189,8 @@ PROGRAM extpar_aot_to_buffer
   CALL logging%info('============= allocate fields ==================')
   CALL logging%info('')
   
+  CALL logging%info('l_use_array_cache=.FALSE. -> can only be used in consistency_check')
+
   ! allocate aot raw data fields
   CALL allocate_aot_data(iaot_type,nrows,ncolumns,ntime,ntype,n_spectr)
 
