@@ -65,6 +65,7 @@ make
 
 #### Install binaries only in external directory
 ./configure.*hostname.compiler* --prefix=*my_external_directory*  
+source modules.env  
 make install  
 The binaries will be installed in  *my_external_directory/bin*
 
