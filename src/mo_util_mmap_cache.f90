@@ -6,12 +6,18 @@ module mo_util_mmap_cache
 
   public
   
+  !DO NOT DELETE!
+
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !C signature corresponding to the iso_c_binding implementation:
+  !
   ! C prototype: void *allocate_cache(char *variable, size_t length);
   !
-  ! type(c_ptr) :: addr
-  ! real(wp), pointer :: array(:)
-  ! addr = allocate_cache(c_char_"<variable name>"//c_null_char, length)
-  ! call c_f_pointer(addr, array)
+  !     type(c_ptr) :: addr
+  !     real(wp), pointer :: array(:)
+  !     addr = allocate_cache(c_char_"<variable name>"//c_null_char, length)
+  !     call c_f_pointer(addr, array)
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   interface
     function allocate_cache(variable, length) result(addr) bind(c)
