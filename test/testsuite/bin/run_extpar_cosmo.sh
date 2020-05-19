@@ -46,7 +46,6 @@ rootdir=${currentdir}/../../../../..
 src_python=${rootdir}/python/lib
 
 # change dir to src_python to get absolute path
-echo PYTHONPATH: ${PYTHONPATH} >> ${logfile}
 cd $src_python
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 cd - >> ${logfile}
@@ -80,6 +79,7 @@ ln -s -f ${data_dir}/*.nc .
 type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
 
+echo Current test is $type_of_test/$name_of_test  >> ${logfile}
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
