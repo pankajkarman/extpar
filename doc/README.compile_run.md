@@ -41,7 +41,7 @@ This script fetches all required libraries and tools, compiles and
 installs in $HOME/local.gcc.
 
 ### Cloning from GitHub
-Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub the following:
+Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub using the following commands:
 
 * git clone --recursive git@github.com:C2SM-RCM/extpar.git
 * git submodule update
@@ -50,7 +50,7 @@ Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub
 Since Version 5.4, Extpar is built with an autotool based build-system. This has been necessary to accomodate for the additional C source code files and newly required libraries.
 
 Note the classical configure option --prefix=*path_to_installation_directory* 
-This is quite usefull for clean installations.
+This is quite useful for clean installations.
 
 There are two options to compile Extpar: 
 
