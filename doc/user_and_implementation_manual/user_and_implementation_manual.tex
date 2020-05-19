@@ -818,9 +818,10 @@ Be aware that the definition of special points has only been tested for the COSM
 
 \paragraph{Reduced main memory usage}\ \par\medskip\noindent
 
-\noindent Since Exptar Version 5.4 a new feature allows to run the
-extpar\_consistency\_check even for very high resolution global
-grids. A POSIX mmap based implemetation of disk caching arrays is
+\noindent Since Exptar Version 5.4 a new feature was introduced 
+which allows the running of extpar\_consistency\_check for very 
+high resolution global grids without any restrictions on the hardware memory specifications.
+A POSIX mmap based implemetation of disk caching arrays is
 used to use main memory as much as possible and, if more memory
 is required, the duty to handle this request is delegated to the
 kernel. A requirement to run this properly is the provision of
