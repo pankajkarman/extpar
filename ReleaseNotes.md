@@ -35,7 +35,6 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
       - Run configure.*your_machine*.*your_compiler*
       - source modules.env
       - make or make -j 4 (for faster compilation)
-      - make install
     - Kesch at CSCS is no longer supported
    
 * Corine landuse data
@@ -50,6 +49,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Convert testsuite src-code from Python2 to Python3
    - Pep8-Coding style test for Python code
    - Allow round-off for certain fields in output
+   - Copy all required files from namelistdir (icon grids, clim-fields and Python-files) through testsuite itself
 
 * CDI library for icon grids
    - [CDI](https://code.mpimet.mpg.de/projects/cdi) write routine replaces write_netcdf_icon_grid routine
