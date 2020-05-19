@@ -1,8 +1,8 @@
 &extpar_consistency_check_io
   netcdf_output_filename = 'external_parameter_icon_0013_R02B04_G_tiles.nc'
-  sst_icon_file = 'ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc'
+  sst_icon_file = 'clim_tsea_icon_r2b4.nc'
   tile_mode = 1
-  t2m_icon_file = 'ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc'
+  t2m_icon_file = 'clim_t2m_icon_r2b4.nc'
   land_sea_mask_file = ""
   number_special_points = 0
 /

@@ -29,7 +29,6 @@ module mo_array_cache
 #endif
   end type variable
 
-  !! type(variable) :: cached_variables(512)
   !! allocate vector in blocks of this size (> 0)
   integer, parameter :: chunk_size = 256 
   type(variable), allocatable ::  cached_variables(:)

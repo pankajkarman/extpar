@@ -36,8 +36,8 @@ cd -
 
 cd dwd/icon_d2
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/icon_grid_DOM01.nc'
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc'
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/ei_an1986-2015_domain2_DOM01_BUFFER.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/clim_t2m_icon_d2.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/clim_tsea_icon_d2.nc'
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_icon_domain2_DOM01_tiles_PR164.nc'
 cd -
 
@@ -45,8 +45,8 @@ cd -
 test -d mpim || exit 1
 cd mpim/icon_r2b4
 wget --quiet 'http://icon-downloads.mpimet.mpg.de/grids/public/mpim/0013/icon_grid_0013_R02B04_G.nc'
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/silvertk/ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc'
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/silvertk/ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/clim_t2m_icon_r2b4.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/clim_tsea_icon_r2b4.nc'
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_icon_mpim_PR164.nc'
 cd -
 

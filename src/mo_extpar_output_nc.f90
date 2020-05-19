@@ -1767,7 +1767,6 @@ MODULE mo_extpar_output_nc
     global_attributes(10)%attname = 'Revision Hash'
     global_attributes(10)%attributetext = TRIM(INFO_RevisionHash)//" ("//TRIM(INFO_CodeIsModified)//")"
 
-    ! TODO: that is not true!!!!!!!!!
     global_attributes(11)%attname = 'Conventions'
     global_attributes(11)%attributetext = 'CF-1.5'
 

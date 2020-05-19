@@ -1,1 +1,0 @@
-../icon_d2/icon_grid_DOM01.nc

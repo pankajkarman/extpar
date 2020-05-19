@@ -79,40 +79,19 @@ ln -s -f ${data_dir}/*.nc .
 
 type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
-icon_grid_dir=$rootdir/test/testsuite/data/$type_of_test/$name_of_test/
-icon_grid_file=icon_grid*
 
-# mpim
-if [[ $type_of_test == mpim ]]; then
+# allowed tests for testsuite
+if [[ $type_of_test == mpim || $type_of_test == dwd || $type_of_test == ecmwf ]]; then
 
-    ln -sf ${icon_grid_dir}/ei_sst_an1986-2015_0013_R02B04_G_BUFFER.nc .
-    ln -sf ${icon_grid_dir}/ei_t2m_an1986-2015_0013_R02B04_G_BUFFER.nc .
-
-    # jj_tmp: hack to replace missing Fortran namelist to launch emiss_to_buffer.py
-    touch INPUT_EMISS
-
-# dwd
-elif [[ $type_of_test == dwd ]]; then
-
-    ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_domain2_DOM01_BUFFER.nc .
-    ln -sf ${icon_grid_dir}/ei_an1986-2015_domain2_DOM01_BUFFER.nc .
-
-# ecmwf
-elif [[ $type_of_test == ecmwf ]]; then
-
-    ln -sf ${icon_grid_dir}/ei_2t_an1986-2015_0099_R19B10_BUFFER.nc
-    ln -sf ${icon_grid_dir}/ei_an1986-2015_0099_R19B10_BUFFER.nc
+    echo Current test is $type_of_test/$name_of_test  >> ${logfile}
 
 #unknown test
-
 else
 
     # exit script in case of unknown host
     echo ERROR: Unkown test: $type_of_test >> ${logfile}
     exit 1
 fi
-
-ln -sf ${icon_grid_dir}/${icon_grid_file} .
 
 #--------------------------------------------------------------------------------
 
@@ -121,7 +100,7 @@ ln -sf ${icon_grid_dir}/${icon_grid_file} .
 
 echo ">>>> Data will be processed and produced in `pwd` <<<<"
 
-# 1) topography needs to be processed first - result is input fro the
+# 1) topography needs to be processed first - result is input for the
 #    CRU data processing
 
 run_sequential ${binary_topo}
@@ -143,7 +122,7 @@ run_sequential ${binary_soil}
 
 run_sequential ${binary_flake}
 
-if [ -f INPUT_EMISS ] ; then
+if [[ $type_of_test == mpim ]]; then
     run_sequential ${binary_emiss}
 fi
 
