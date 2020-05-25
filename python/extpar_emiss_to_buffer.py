@@ -143,8 +143,9 @@ utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
 utils.launch_shell('cdo', '-f', 'nc4', '-P', omp,
                    'setmisstonn', emiss_cdo_3, emiss_cdo_4)
 
-# regrid 1
-utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, 
+# regrid 1 
+# -L option prevents crash for non-threads save compilations of HDF5-library
+utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, '-L', 
                    f'settaxis,1111-01-01,0,1mo',
                    f'-remap,{grid},{weights}', emiss_cdo_4, emiss_cdo_5)
 
