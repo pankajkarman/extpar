@@ -7,9 +7,9 @@
 
 source /oprusers/osm/.opr_setup_dir
 export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
-source /users/juckerj/venv_jenkins/bin/activate
+source /project/g110/extpar_envs/venv_jenkins_tsa/bin/activate
 source ../../modules.env
 module load cdo
 export HDF5_DISABLE_VERSION_CHECK=1
 
-./src/testsuite.py --exe=run_extpar_cosmo.sh -v 1 -o testsuite.out --testlist=testlist_cosmo.xml --mpicmd='srun -u -n'
+./src/testsuite.py  --exe=run_extpar_cosmo.sh -v 1 -o testsuite.out --testlist=testlist_cosmo.xml --mpicmd='srun -u -n'
