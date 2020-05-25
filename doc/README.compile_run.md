@@ -25,7 +25,9 @@ instructions provided with the libraries.
 
 #### On the CSCS machines
 
-All the required libraries are already installed on the CSCS machines. 
+All the required libraries are already installed on the CSCS machines.  
+Ready-to-use Python environments for Tsa and Daint can be found at */project/g110/extpar_envs/venv_jenkins_your_machine*.  
+Just *source /project/g110/extpar_envs/venv_jenkins_your_machine/bin/activate* in your Extpar runscript to activate these Python environments.
 
 #### On the DKRZ machine mistral
 
