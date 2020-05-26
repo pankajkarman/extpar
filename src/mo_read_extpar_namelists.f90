@@ -178,7 +178,7 @@ MODULE mo_read_extpar_namelists
     lwrite_netcdf = .TRUE.
     lwrite_grib   = .FALSE.
     ltcl_merge    = .TRUE.
-    l_use_glcc    = .FALSE. ! Assume that GLCC land-use data file exists!
+    l_use_glcc    = .FALSE.
 
     OPEN(NEWUNIT=nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
     IF (ierr /= 0) THEN

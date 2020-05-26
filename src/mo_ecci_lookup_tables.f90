@@ -1,24 +1,5 @@
 !+ Fortran Module with lookup-tables for the ecci data
 !
-! History:
-! Version      Date       Name
-! ------------ ---------- ----
-! V1_3         2011/04/19 Hermann Asensio
-!  Initial release
-! V1_6         2011/11/29 Jan-Peter Schulz
-!  Let land use class no. 09 (open needleleaved deciduous or evergreen
-!  forest) contribute to FOR_E instead of FOR_D. This appears to be more
-!  realistic in high latitudes with evergreen forest. (Jan-Peter Schulz)
-!  Calculate the urban fraction in the same way as for GLC2000, i.e.
-!  set it to 1.0 instead of 0.8 for land use class no. 19 (artificial
-!  surfaces). (Kristina Trusilova)
-!
-! Code Description:
-! Language: Fortran 2003.
-!=======================================================================
-!> Fortran Module with lookup-tables for the ecci data
-!> \author Hermann Asensio
-!!
 !! Description:
 !! The ecci dataset contains the following land use classification scheme
 ! class value         description
@@ -1364,7 +1345,7 @@ REAL (KIND=wp) :: zrs_min_experimental(nclass_ecci) =(/ &
 !!$ &  'permanent snow and ice                        ' , &    ! 22.        
 !!$ &  'undefined                                     ' /)     ! 23.
 
-CHARACTER(len=45) :: ecci_legend(nclass_ecci) = (/&    ! No.
+CHARACTER(len=47) :: ecci_legend(nclass_ecci) = (/&    ! No.
 &  'No data                                        ' , &    ! 1.
 &  'Cropland, rainfed                              ' , &    ! 2.
 &  'Herbaceous cover                               ' , &    ! 3.
@@ -1500,7 +1481,7 @@ CONTAINS
 
     ! local variable
     INTEGER :: i !< counter
-    REAL :: arg
+    REAL(KIND=wp) :: arg
 
       SELECT CASE (ilookup_table_ecci)
         CASE(i_extpar_lookup_table)
@@ -1539,7 +1520,7 @@ CONTAINS
       DO i=1,nclass_ecci
         IF (z0_lt_ecci(i) > 0.) THEN
           arg = z0_lt_ecci(i)
-          lnz0_lt_ecci(i) = ALOG(arg)
+          lnz0_lt_ecci(i) = LOG(arg)
         ENDIF
       ENDDO
 
@@ -1787,15 +1768,8 @@ CONTAINS
      CASE (220) ! ecci_value(38)
        nclass = 38 
 
-
-
-
-
-  END SELECT
-
+    END SELECT
 
   END SUBROUTINE get_ecci_idx
 
-
 END MODULE mo_ecci_lookup_tables
-

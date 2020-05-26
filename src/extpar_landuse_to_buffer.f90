@@ -82,21 +82,21 @@ PROGRAM extpar_landuse_to_buffer
 
   USE mo_ecoclimap_data,        ONLY: deallocate_ecoclimap_fields
 
-  USE mo_ecci_data, ONLY: ecci_grid,                &
-    &                          lon_ecci,                 &
-    &                          lat_ecci,                 &
-    &                          ecci_tiles_grid,          &
-    &                          ntiles_ecci,              &
-    &                          max_tiles_lu_ecci,                  &
-    &                          lu_tiles_lon_min_ecci,              &
-    &                          lu_tiles_lon_max_ecci,              &
-    &                          lu_tiles_lat_min_ecci,              &
-    &                          lu_tiles_lat_max_ecci,              &
-    &                          nc_tiles_lu_ecci,                   &
-    &                          allocate_raw_ecci_fields, &
-    &                          allocate_ecci_data,       &
-    &                          fill_ecci_data,           &
-    &                          deallocate_landuse_data_ecci
+  USE mo_ecci_data,             ONLY: ecci_grid,                &
+    &                                 lon_ecci,                 &
+    &                                 lat_ecci,                 &
+    &                                 ecci_tiles_grid,          &
+    &                                 ntiles_ecci,              &
+    &                                 max_tiles_lu_ecci,                  &
+    &                                 lu_tiles_lon_min_ecci,              &
+    &                                 lu_tiles_lon_max_ecci,              &
+    &                                 lu_tiles_lat_min_ecci,              &
+    &                                 lu_tiles_lat_max_ecci,              &
+    &                                 nc_tiles_lu_ecci,                   &
+    &                                 allocate_raw_ecci_fields, &
+    &                                 allocate_ecci_data,       &
+    &                                 fill_ecci_data,           &
+    &                                 deallocate_landuse_data_ecci
 
 
 
@@ -107,7 +107,7 @@ PROGRAM extpar_landuse_to_buffer
 
   USE mo_agg_glc2000,           ONLY: agg_glc2000_data_to_target_grid
 
-  USE mo_agg_ecci, ONLY : agg_ecci_data_to_target_grid
+  USE mo_agg_ecci,              ONLY: agg_ecci_data_to_target_grid
 
   USE mo_glcc_tg_fields,        ONLY: fr_land_glcc,       &
        &                              glcc_class_fraction,&
@@ -159,7 +159,7 @@ PROGRAM extpar_landuse_to_buffer
 
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover
 
-  USE mo_ecci_lookup_tables, ONLY: nclass_ecci
+  USE mo_ecci_lookup_tables,    ONLY: nclass_ecci
 
   USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap
 
@@ -325,7 +325,6 @@ PROGRAM extpar_landuse_to_buffer
             lu_tiles_lon_max_ecci(i) > MAXVAL(lon_geo).AND. &
             lu_tiles_lat_min_ecci(i) < MINVAL(lat_geo).AND. &
             lu_tiles_lat_max_ecci(i) > MAXVAL(lat_geo)) THEN
-!          PRINT *,'MODEL DOMAIN COVERED BY ECCI TILE ',i
        END IF
        END DO
   END SELECT
@@ -378,19 +377,8 @@ PROGRAM extpar_landuse_to_buffer
         &                              lon_ecci,  &
         &                              lat_ecci,  &
         &                              ecci_grid)
-        !HA debug
-        PRINT *,'ecci_grid: ',ecci_grid
-        ! If southern boundary of target grid is south of southern boundary of Ecci data
-        ! (Ecci 2009 does not include Antarctica) then also process GLCC data)
-!!$        IF (tg_southern_bound < ecci_grid%end_lat_reg) THEN
-!!$          l_use_glcc=.TRUE.
-!!$          CALL allocate_glcc_target_fields(tg)
-!!$        ENDIF 
 
-! >mes
       CALL get_ecci_tiles_grid(ecci_tiles_grid)
-      print*,'ecci_tiles_grid(1): ', ecci_tiles_grid(1)
-! <mes
 
 
 

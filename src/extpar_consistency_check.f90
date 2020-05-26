@@ -2335,49 +2335,50 @@ PROGRAM extpar_consistency_check
 
               CASE (i_lu_ecci)
 
-ecci_class(1)=   'No data                                        '     ! 1.
-ecci_class(2)=   'Cropland, rainfed                              '     ! 2.
-ecci_class(3)=   'Herbaceous cover                               '     ! 3.
-ecci_class(4)=   'Tree or shrub cover                            '     ! 4.
-ecci_class(5)=   'Cropland, irrigated or post-flooding           '     ! 5.
-ecci_class(6)=   'Mosaic cropland(>50%)/natural vegetation(<50%) '     ! 6.
-ecci_class(7)=   'Mosaic natural vegetation(>50%)/cropland(<50%) '     ! 7.
-ecci_class(8)=   'TC, BL, evergreen, closed to open (>15%)       '     ! 8.
-ecci_class(9)=   'TC, BL, deciduous, closed to open (>15%)       '     ! 9.
-ecci_class(10)=   'TC, BL, deciduous, closed (>40%)               '     ! 10.
-ecci_class(11)=   'TC, BL, deciduous, open (15-40%)               '     ! 11.
-ecci_class(12)=   'TC, NL, evergreen, closed to open (>15%)       '     ! 12.
-ecci_class(13)=   'TC, NL, evergreen, closed (>40%)               '     ! 13.
-ecci_class(14)=   'TC, NL, evergreen, open (15-40%)               '     ! 14.
-ecci_class(15)=   'TC, NL, deciduous, closed to open (>15%)       '     ! 15.
-ecci_class(16)=   'TC, NL, deciduous, closed (>40%)               '     ! 16.
-ecci_class(17)=   'TC, NL, deciduous, open (15-40%)               '     ! 17.
-ecci_class(18)=   'TC, mixed leaf type (BL and NL)                '     ! 18.
-ecci_class(19)=   'Mosaic tree and shrub (>50%)/HC (<50%)         '     ! 19.
-ecci_class(20)=   'Mosaic HC (>50%) / tree and shrub (<50%)       '     ! 20.
-ecci_class(21)=   'Shrubland                                      '     ! 21.
-ecci_class(22)=   'Shrubland evergreen                            '     ! 22.
-ecci_class(23)=   'Shrubland deciduous                            '     ! 23.
-ecci_class(24)=   'Grassland                                      '     ! 24.
-ecci_class(25)=   'Lichens and mosses                             '     ! 25.
-ecci_class(26)=   'Sparse vegetation (tree, shrub, HC) (<15%)     '     ! 26.
-ecci_class(27)=   'Sparse tree (<15%)                             '     ! 27.
-ecci_class(28)=   'Sparse shrub (<15%)                            '     ! 28.
-ecci_class(29)=   'Sparse herbaceous cover (<15%)                 '     ! 29.
-ecci_class(30)=   'TC, flooded, fresh or brakish water            '     ! 30.
-ecci_class(31)=   'TC, flooded, saline water                      '     ! 31.
-ecci_class(32)=   'Shrub or HC,flooded,fresh/saline/brakish water '     ! 32.
-ecci_class(33)=   'Urban areas                                    '     ! 33.
-ecci_class(34)=   'Bare areas                                     '     ! 34.
-ecci_class(35)=   'Consolidated bare areas                        '     ! 35.
-ecci_class(36)=   'Unconsolidated bare areas                      '     ! 36.
-ecci_class(37)=   'Water bodies                                   '     ! 37.
-ecci_class(38)=   'Permanent snow and ice                         '     ! 38.
-                 DO i=1,nclass_ecci
+                ecci_class(1)=   'No data                                        '     ! 1.
+                ecci_class(2)=   'Cropland, rainfed                              '     ! 2.
+                ecci_class(3)=   'Herbaceous cover                               '     ! 3.
+                ecci_class(4)=   'Tree or shrub cover                            '     ! 4.
+                ecci_class(5)=   'Cropland, irrigated or post-flooding           '     ! 5.
+                ecci_class(6)=   'Mosaic cropland(>50%)/natural vegetation(<50%) '     ! 6.
+                ecci_class(7)=   'Mosaic natural vegetation(>50%)/cropland(<50%) '     ! 7.
+                ecci_class(8)=   'TC, BL, evergreen, closed to open (>15%)       '     ! 8.
+                ecci_class(9)=   'TC, BL, deciduous, closed to open (>15%)       '     ! 9.
+                ecci_class(10)=   'TC, BL, deciduous, closed (>40%)               '     ! 10.
+                ecci_class(11)=   'TC, BL, deciduous, open (15-40%)               '     ! 11.
+                ecci_class(12)=   'TC, NL, evergreen, closed to open (>15%)       '     ! 12.
+                ecci_class(13)=   'TC, NL, evergreen, closed (>40%)               '     ! 13.
+                ecci_class(14)=   'TC, NL, evergreen, open (15-40%)               '     ! 14.
+                ecci_class(15)=   'TC, NL, deciduous, closed to open (>15%)       '     ! 15.
+                ecci_class(16)=   'TC, NL, deciduous, closed (>40%)               '     ! 16.
+                ecci_class(17)=   'TC, NL, deciduous, open (15-40%)               '     ! 17.
+                ecci_class(18)=   'TC, mixed leaf type (BL and NL)                '     ! 18.
+                ecci_class(19)=   'Mosaic tree and shrub (>50%)/HC (<50%)         '     ! 19.
+                ecci_class(20)=   'Mosaic HC (>50%) / tree and shrub (<50%)       '     ! 20.
+                ecci_class(21)=   'Shrubland                                      '     ! 21.
+                ecci_class(22)=   'Shrubland evergreen                            '     ! 22.
+                ecci_class(23)=   'Shrubland deciduous                            '     ! 23.
+                ecci_class(24)=   'Grassland                                      '     ! 24.
+                ecci_class(25)=   'Lichens and mosses                             '     ! 25.
+                ecci_class(26)=   'Sparse vegetation (tree, shrub, HC) (<15%)     '     ! 26.
+                ecci_class(27)=   'Sparse tree (<15%)                             '     ! 27.
+                ecci_class(28)=   'Sparse shrub (<15%)                            '     ! 28.
+                ecci_class(29)=   'Sparse herbaceous cover (<15%)                 '     ! 29.
+                ecci_class(30)=   'TC, flooded, fresh or brakish water            '     ! 30.
+                ecci_class(31)=   'TC, flooded, saline water                      '     ! 31.
+                ecci_class(32)=   'Shrub or HC,flooded,fresh/saline/brakish water '     ! 32.
+                ecci_class(33)=   'Urban areas                                    '     ! 33.
+                ecci_class(34)=   'Bare areas                                     '     ! 34.
+                ecci_class(35)=   'Consolidated bare areas                        '     ! 35.
+                ecci_class(36)=   'Unconsolidated bare areas                      '     ! 36.
+                ecci_class(37)=   'Water bodies                                   '     ! 37.
+                ecci_class(38)=   'Permanent snow and ice                         '     ! 38.
+
+                DO i=1,nclass_ecci
                   WRITE(message_text,'(A33,1X,A85,2X,F8.4)') "Land-Use Fractions for ESA CCI class  ", &
-                         ecci_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
+                        ecci_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
                   CALL logging%info(message_text)
-                 ENDDO
+                ENDDO
 
             END SELECT
           ENDIF
