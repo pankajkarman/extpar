@@ -12,7 +12,7 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
       - ALB, ALUVD, ALNID
       - T_CL
       - EMISS_RAD
-   - A review involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed
+   - A [review](https://github.com/C2SM-RCM/extpar/wiki/Review-of-fields-for-Extpar-Version-5.4) involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed
    - All Python programmes read from the same namelist file *namelist.py* containing Python dictionaries for each Extpar program.
    - Support of the old and coarse data (it_cl_type = 2) in extpar_cru_to_buffer expires and is replaced the following:
       - it_cl_type = 2 aggregates the coarse data over sea **and** the fine data over land
