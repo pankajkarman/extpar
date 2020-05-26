@@ -16,6 +16,7 @@
 #   -NDVI_MRAT
 #   -ALB_DIF12
 #   -ALNID12
+#   -ALUVD
 #
 # ############ Remarks ##############
 
@@ -34,7 +35,7 @@ log='diffv.log'
 # define fields that can have round-offs smaller than 0.001
 # names that occur in other names (NDVI -> NDVI_MRAT) must
 # have a leading and trailing whitespace
-fields_with_roundoff=(" NDVI " "NDVI_MRAT" "NDVI_MAX" "ALB_DIF12" "ALNID12" )
+fields_with_roundoff=(" NDVI " "NDVI_MRAT" "NDVI_MAX" "ALB_DIF12" "ALNID12" "ALUVD" )
 
 # CDO output that is not interesting for this checker
 pattern_to_ignore="diffn\|differ\|nhori\|Warning"
@@ -111,7 +112,7 @@ else # fields differ
             if [[ $counter == "0" ]]; then
 
                 # remove all lines with uninteresting content for this checker
-                # remove one field from log
+                # and remove one field from log
                 grep -v "$pattern_to_ignore" $log | grep -v "$field"  > field_step_${counter}
             else
                 # remove another field from log
