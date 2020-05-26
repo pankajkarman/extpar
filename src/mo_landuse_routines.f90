@@ -50,7 +50,7 @@ MODULE mo_landuse_routines
        &                              lu_tiles_ncolumns,  &
        &                              lu_tiles_nrows
 
-  USE mo_ecci_data,             ONLY: max_tiles_lu_ecci, ncolumn_tiles_ecci, &
+  USE mo_ecci_data,             ONLY: ncolumn_tiles_ecci, &
        &                              nrow_tiles_ecci, ntiles_ecci, &
        &                              len_lu_lon_ecci, len_lu_lat_ecci, &
        &                              lu_tiles_lat_min_ecci, &

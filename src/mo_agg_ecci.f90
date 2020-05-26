@@ -13,8 +13,6 @@ MODULE mo_agg_ecci
 
   USE mo_search_ll_grid,        ONLY: find_reg_lonlat_grid_element_index
                                 
-  USE mo_io_units,              ONLY: filename_max
-                                
   USE mo_io_utilities,          ONLY: check_netcdf
 
   USE mo_search_target_grid,    ONLY: find_nearest_target_grid_element

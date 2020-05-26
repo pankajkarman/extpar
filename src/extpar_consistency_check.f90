@@ -123,8 +123,6 @@ PROGRAM extpar_consistency_check
        &                              nclass_glc2000
 
   USE mo_globcover_data,        ONLY: max_tiles_lu
-  USE mo_ecci_data,             ONLY: max_tiles_lu_ecci  
-
 
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover, &
        &                                get_name_globcover_lookup_tables

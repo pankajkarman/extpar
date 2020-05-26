@@ -87,7 +87,6 @@ PROGRAM extpar_landuse_to_buffer
     &                                 lat_ecci,                 &
     &                                 ecci_tiles_grid,          &
     &                                 ntiles_ecci,              &
-    &                                 max_tiles_lu_ecci,                  &
     &                                 lu_tiles_lon_min_ecci,              &
     &                                 lu_tiles_lon_max_ecci,              &
     &                                 lu_tiles_lat_min_ecci,              &

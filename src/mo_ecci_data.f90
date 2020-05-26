@@ -26,8 +26,6 @@ MODULE mo_ecci_data
 
   USE mo_io_utilities,          ONLY: check_netcdf
 
-  USE mo_io_units,              ONLY: filename_max
-
   USE mo_lu_tg_fields,          ONLY: fr_land_lu,       &
        &                              ice_lu,           &
        &                              z0_lu,            &
