@@ -122,7 +122,7 @@ logging.info('============= CDO: remap to target grid ========')
 logging.info('')
 
 # calculate weights
-utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, f'genycon,{grid}',
+utils.launch_shell('cdo', '-f', 'nc4', '-P', omp, '--silent',f'genycon,{grid}',
                    raw_data_emiss, weights)
 
 
