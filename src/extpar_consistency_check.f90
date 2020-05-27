@@ -1268,8 +1268,10 @@ PROGRAM extpar_consistency_check
           ENDDO
         ENDDO
         
-        PRINT*,"Number of corrected false glacier points in EXTPAR: ", &
+        WRITE(message_text,*)"Number of corrected false glacier points in EXTPAR: ", &
                       count_ice2tclim, " with fraction >= 0.05 (TILE): ",count_ice2tclim_tile
+
+        CALL logging%info(message_text)
 
      END IF
 
