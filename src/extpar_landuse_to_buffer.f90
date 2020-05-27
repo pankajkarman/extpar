@@ -367,7 +367,7 @@ PROGRAM extpar_landuse_to_buffer
       CALL get_dimension_ecci_data(nlon_ecci, &
         &                                  nlat_ecci)
       CALL allocate_raw_ecci_fields(nlat_ecci,nlon_ecci)
-      CALL allocate_add_lu_fields(tg,nclass_ecci)
+      CALL allocate_add_lu_fields(tg,nclass_ecci, l_use_array_cache=.FALSE.)
       CALL get_lonlat_ecci_data( &
         &                              nlon_ecci, &
         &                              nlat_ecci, &

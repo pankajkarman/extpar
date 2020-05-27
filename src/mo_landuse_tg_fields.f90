@@ -78,7 +78,7 @@ MODULE mo_lu_tg_fields
 
   PUBLIC :: allocate_lu_ds_target_fields
 
-  INTEGER (KIND=i4), ALLOCATABLE :: lu_class_npixel(:,:,:,:), &  
+  INTEGER (KIND=i4), POINTER     :: lu_class_npixel(:,:,:,:), &  
        &                            lu_tot_npixel(:,:,:)  
 
   INTEGER(KIND=i4), PARAMETER    :: i_lu_globcover = 1, &  !< id for landuse data set Globcover 2009
@@ -87,7 +87,7 @@ MODULE mo_lu_tg_fields
        &                            i_lu_ecoclimap = 4, &  !< id for landuse data set ecoclimap
        &                            i_lu_ecci      = 5     !< id for landuse data set ESA CCI
 
- REAL (KIND=wp), ALLOCATABLE    :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
+ REAL (KIND=wp), POINTER         :: fr_land_lu(:,:,:), &  !< fraction land due to land use raw data
        &                            fr_land_mask(:,:,:), &  !< fraction land due to external target data
        &                            ice_lu(:,:,:), &      !< fraction of ice due to land use raw data
        &                            z0_lu(:,:,:), &       !< roughness length due to land use land use data
