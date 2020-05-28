@@ -55,8 +55,6 @@ MODULE mo_ecci_lookup_tables
   INTEGER (KIND=i4), PARAMETER :: nclass_ecci = 38, & !< ecci has 23 classes for the land use description
        &                          i_extpar_lookup_table = 1, & !< lookup_table for ecci land use classes (IGBP correspondence)
        &                          i_extpar_test_lookup_table = 3 !< lookup_table for ecci land use classes
-       &                                                         !< (IGBP correspondence) for experimental setting, analogue to
-                                                                 !< look-up tables of ECOCLIMAP (Masson 2003)
 
   INTEGER (KIND=i4)            :: ilookup_table_ecci !< integer switch to choose a lookup table
   CHARACTER (LEN=filename_max) :: name_lookup_table_ecci !< name of lookup table
