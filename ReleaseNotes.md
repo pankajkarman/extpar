@@ -1,7 +1,7 @@
 # Release notes
 ## 5.4
 This is a major release that introduces a rewrite of 4 Extpar programmes in Python, a common git-LFS input data repository,
-a new build-system, an additional landuse data set, CDI-library for icon grids in consistency check, mmap-caching for consistency check for less memory usage, some small improvements in the Fortran code and some minor changes in the testsuite.
+a new build-system, 2 additional landuse data sets, CDI-library for icon grids in consistency check, mmap-caching for consistency check for less memory usage, some small improvements in the Fortran code and some minor changes in the testsuite.
 
 * Rewrite of 4 Extpar programmes in Python
    - Modules extpar_alb_to_buffer.py, extpar_cru_to_buffer.py, extpar_emiss_to_buffer.py and extpar_ndvi_to_buffer.py
@@ -41,7 +41,12 @@ a new build-system, an additional landuse data set, CDI-library for icon grids i
    - Additional landuse data set covering Europe
    - Can only be used in combination with GLOBCOVER (i_landuse_data=1)
    - Set switch l_use_corine=.true. in namelist *lu_raw_data* to aggregate the new data set
-   - The corine landuse data set is not tested regularly in the testuite!
+   - The corine landuse data set is only tested on Mistral at DKRZ
+
+* ECCI landuse data
+   - Global landuse data set split in 6 tiles
+   - Set switch i_landuse_data=5, ntiles_globcover=6 and ilookup_table_lu = 1 in namelist *lu_raw_data* to aggregate the new data set
+   - The ECCI landuse data is only tested on Mistral at DKRZ
    
 * Enhanced testsuite
    - Icon test for DWD for all compilers
