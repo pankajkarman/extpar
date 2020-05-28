@@ -89,6 +89,7 @@ Globcover 2009 &ESA &10'' \tabularnewline\hline
 GLC2000 land use &JRC Ispra &30'' \tabularnewline\hline
 GLCC land use &USGS &30'' \tabularnewline\hline
 Ecoclimap 2 land use &Meteo France &30'' \tabularnewline\hline
+ESA CCI-LC &ESA &10'' \tabularnewline\hline
 DSMW Digital Soil Map of the World  &FAO  &5' \tabularnewline\hline
 HWSD Harmonized World Soil Database & FAO/IIASA/ISRIC/ISSCAS/JRC& 30'' \tabularnewline\hline
 NDVI Climatology, SEAWiFS &NASA/GSFC  &2.5' \tabularnewline\hline
@@ -159,29 +160,29 @@ deep soil fraction of organic carbon & SUB\_\-FR\_\-OC & \% & HWSD
 \tabularnewline \hline
 deep soil bulk density & SUB\_\-BULK\_\-DENS & $g cm^{-3}$  & HWSD
 \tabularnewline \hline
-fraction land cover  &FR\_\-LAND  & 1 &GLC2000/Globcover/ Ecoclimap 
+fraction land cover  &FR\_\-LAND  & 1 &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC 
 \tabularnewline \hline
-ground fraction covered by plants max (vegetation period) & PLCOV\_\-MX & 1 & GLC2000/Globcover/ Ecoclimap
+ground fraction covered by plants max (vegetation period) & PLCOV\_\-MX & 1 & GLC2000/Globcover/ Ecoclimap/ESA CCI-LC
 \tabularnewline \hline
-ground fraction covered by plants min (vegetation period) & PLCOV\_\-MN & 1 & GLC2000/Globcover/ EcoClimap
+ground fraction covered by plants min (vegetation period) & PLCOV\_\-MN & 1 & GLC2000/Globcover/ EcoClimap/ESA CCI-LC
 \tabularnewline \hline
-ground fraction covered by artificial (urban) areas  &URBAN  &1  &GLC2000/Globcover/ Ecoclimap  
+ground fraction covered by artificial (urban) areas  &URBAN  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
-ground fraction covered by evergreen forest  &FOR\_\-E  &1  &GLC2000/Globcover/ Ecoclimap 
+ground fraction covered by evergreen forest  &FOR\_\-E  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC 
 \tabularnewline \hline
-ground fraction covered by deciduous forest  &FOR\_\-D  &1  &GLC2000/Globcover/ Ecoclimap 
+ground fraction covered by deciduous forest  &FOR\_\-D  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC 
 \tabularnewline \hline
-skin conductivity  &SKC  &$W m^{-1} K^{-1}$  &Globcover
+skin conductivity  &SKC  &$W m^{-1} K^{-1}$  &Globcover/ESA CCI-LC
 \tabularnewline \hline
-root depth  &ROOTDP  &$m$  &GLC2000/Globcover/ Ecoclimap  
+root depth  &ROOTDP  &$m$  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
-leaf area index max(vegetation period)  &LAI\_\-MX  &1  &GLC2000/Globcover/ Ecoclimap  
+leaf area index max(vegetation period)  &LAI\_\-MX  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
-leaf area index min (vegetation period)  &LAI\_\-MN  &1  &GLC2000/Globcover/ Ecoclimap  
+leaf area index min (vegetation period)  &LAI\_\-MN  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
-plant resistance  &PRS\_\-MIN  &$s m^{-1}$  &GLC2000/Globcover/ Ecoclimap  
+plant resistance  &PRS\_\-MIN  &$s m^{-1}$  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
-long wave surface emissivity  &EMISS\_\-RAD  &1  &GLC2000/Globcover/ Ecoclimap  
+long wave surface emissivity  &EMISS\_\-RAD  &1  &GLC2000/Globcover/ Ecoclimap/ESA CCI-LC  
 \tabularnewline \hline
 climatology of monthly leaf area index  &LAI12  &1  &Ecoclimap
 \tabularnewline \hline
@@ -432,17 +433,20 @@ Finally NetCDF files for the orography based external parameters are created, wh
 \item data input (ASTER): ASTER\_T001.nc - ASTER\_T240.nc
 \item data input (filtered): GLOBE\_A\_filt\_lanczos\_window.nc - GLOBE\_P\_filt\_lanczos\_window.nc, \\
     GLOBE\_A\_filt\_tukey\_0.75\_3.0\_it4.nc - GLOBE\_P\_filt\_tukey\_0.75\_3.0\_it4.nc
-\item Output: buffer file with orography data (/orography\_io\_extpar/ orography\_buffer\_file)
+\item Output: buffer file with orography data (/orography\_io\_extpar/ orography\_buffer\_file) \\
+              output file with orography data (used in extpar\_cru\_to\_buffer)\\
+              (/orography\_io\_extpar/ orography\_output\_file)
 \end{itemize}
 
 \subsection{extpar\_landuse\_to\_buffer}\label{extpar_landuse_to_buffer}
 \subsubsection{Short description of the subprogram \textit{extpar\_landuse\_to\_buffer}}
-The executable \textit{extpar\_landuse\_to\_buffer} aggregates the land use data to the target grid. Four different raw datasets can be processed: Globcover, GLC2000, Ecoclimap-2 and GLCC; as GLC2000 and Globcover do not include Antarctica, GLCC data can be used for the missing areas.
+The executable \textit{extpar\_landuse\_to\_buffer} aggregates the land use data to the target grid. Four different raw datasets can be processed: Globcover, GLC2000, Ecoclimap-2, GLCC and ESA CCI-LC; as GLC2000 and Globcover do not include Antarctica, GLCC or ESA CCI-LC data can be used for the missing areas.
 \paragraph{Target grid definition}\ \par\medskip\noindent
 The definition of the target grid is done by reading the namelist 'INPUT\_grid\_org'. This namelist contains the information about the grid type, which can either be ICON or COSMO. With the information about the grid type, the namelist containing the grid definition can be read. The name of the namelist must be changed manually by the user, according to the chosen grid type. The namelist must either be 'INPUT\_ICON' or 'INPUT\_COSMO'. For a more exact description of the target grid definition, read the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}. After specifying the grid definition the southern band of the target grid is defined. This information is important, as the two raw data sets GLC2000 and Globcover do not cover the region below 60 degrees south. If this region is desired by the user, the third data set must be considered for the domain below the southern band. Additionally the target fields for the land use data are allocated. \par\medskip\noindent
+ 
 \paragraph{Raw landuse data} \ \par\medskip\noindent
-In a next step the namelist 'INPUT\_LU' is read. It contains an integer switch (\textit{i\_landuse\_data}) that gives the possibility to choose between the four different raw data sets e.g., 1 (Globcover), 2 (GLC2000), 3 (GLCC) and 4 (Ecoclimap). For Globcover one can additionally choose to use the corine landuse dataset by setting the logical switch (\textit{l\_use\_corine}) to TRUE.  Furthermore the path and the filename of the desired raw data and of GLCC are specified there. The user must adjust the filename and path manually according to the chosen raw data in \textit{i\_landuse\_data}. In addition the name of the desired lookup table is read, which again can be chosen by the user using an integer switch \textit{ilookup\_table\_lu}. This switch has no effect if the Ecoclimap dataset is chosen. The lookup tables are described in more detail in table \ref{tab:look_up_table}. Finally, the names of the buffer files for the target landuse fields and for the target GLCC fields are specified. \par\medskip\noindent
-After having read the namelists, the number of tiles of the raw data set is defined. The number of tiles is set to 1 as default and must only be changed for the raw data set Globcover, which is composed of 6 tiles. The basic information of the Globcover tiles, such as the latitude and longitude edges and the resolution is allocated according to the number of tiles. Later these variables are filled with the respective information, read from the NetCDF files directly. \par\medskip\noindent
+In a next step the namelist 'INPUT\_LU' is read. It contains an integer switch (\textit{i\_landuse\_data}) that gives the possibility to choose between the four different raw data sets e.g., 1 (Globcover), 2 (GLC2000), 3 (GLCC) and 4 (Ecoclimap) 5 (ESA CCI-LC). For Globcover one can additionally choose to use the corine landuse dataset by setting the logical switch (\textit{l\_use\_corine}) to TRUE.  Furthermore the path and the filename of the desired raw data and of GLCC are specified there. The user must adjust the filename and path manually according to the chosen raw data in \textit{i\_landuse\_data}. In addition the name of the desired lookup table is read, which again can be chosen by the user using an integer switch \textit{ilookup\_table\_lu}. This switch has no effect if the Ecoclimap dataset is chosen. The lookup tables are described in more detail in table \ref{tab:look_up_table}. Finally, the names of the buffer files for the target landuse fields and for the target GLCC fields are specified. \par\medskip\noindent
+After having read the namelists, the number of tiles of the raw data set is defined. The number of tiles is set to 1 as default and must only be changed for the raw data set Globcover or ESA CCI-LC, which are composed of 6 tiles. The basic information of the Globcover tiles, such as the latitude and longitude edges and the resolution is allocated according to the number of tiles. Later these variables are filled with the respective information, read from the NetCDF files directly. \par\medskip\noindent
 \textit{For the remaining procedures the three different raw land use data have their separate routines, which are constructed identically.}  \par\medskip\noindent
 The allocation of the data is done using the number of grid points in the latitudinal and longitudinal direction. Furthermore the land-use target fields are allocated using the target grid for the dimension size and the number of land-use classes. The land-use classes differ for the three raw data sets and are described in more detail in table \ref{tab:land_use_classes}. \par\medskip\noindent
 \begin{longtable}{p{4.25cm}p{2.75cm}p{7.5cm}}
@@ -571,6 +575,7 @@ GLCC & 1 & operational settings of GME & Ritter, 2007 \tabularnewline\hline
      & 2 & operational settings of COSMO & Heise, 2005 \tabularnewline\hline
      & 3 & experimental settings, analog to lookup tables of ECOCLIMAP & Asensio, 2010 \tabularnewline\hline
 Ecoclimap & n.a. & Ecoclimap lookup table & ecoclimap\_lookup.TAB \tabularnewline
+ESA CCI-LC & 1 & experimental settings & Helmert, 2019 \tabularnewline
 \bottomrule
 \caption{Names of the lookup tables and the different possible settings for each raw land-use data set.}
 \label{tab:look_up_table}
@@ -579,7 +584,7 @@ Ecoclimap & n.a. & Ecoclimap lookup table & ecoclimap\_lookup.TAB \tabularnewlin
 \textit{The following paragraphs describe computations on the raw data grid.} \par\medskip\noindent
 For GLC2000 and GLCC, the raw data is read in lines of a complete longitude going from 180 degrees east to 180 degrees west, through a loop over the latitude. Before any calculation is performed, it is tested if the value of the latitude is contained inside the targed domain. In case it is not, the loop is cycled. Reading of the data line-wise can be done from the NetCDF file directly. \par\medskip\noindent
  Using the routine \textit{find\_nearest\_target\_grid\_element} each raw data pixel is assigned to a target grid point. A more precise description and a figure that describes the procedure can be found in paragraph \textit{'Aggregation of the raw topography to the target grid'} and in Fig. \ref{fig:aggregation_figure} in section \ref{extpar_topo_to_buffer}.\par\medskip\noindent
-As Globcover is composed of six tiles, the reading of the raw data must be performed in a different way than for the other three data sets. The reading of the data for Globcover is done in the same way as for the topography. Compare the paragraph \textit{'Aggregation of the raw topography to the target grid'} in section \ref{extpar_topo_to_buffer}. (As there is no need to calculate gradients for the land use, the corresponding variable, which contains three lines of raw data, is not used. \par\medskip\noindent
+As Globcover and ESA CCI-LC are composed of six tiles, the reading of the raw data must be performed in a different way than for the other three data sets. The reading of the data for Globcover is done in the same way as for the topography. Compare the paragraph \textit{'Aggregation of the raw topography to the target grid'} in section \ref{extpar_topo_to_buffer}. (As there is no need to calculate gradients for the land use, the corresponding variable, which contains three lines of raw data, is not used. \par\medskip\noindent
 The lookup table is then fed with the land use class, which gives a value for all the target fields listed in table \ref{tab:target_fields_lu}.\par\medskip
 \begin{longtable}{lll}
 \textbf{Variable long name} & \textbf{Variable short name} &  \textbf{Remark} \tabularnewline
@@ -616,7 +621,8 @@ The target fields are written to a NetCDF buffer file, which can later be used f
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_LU 
  \item data input:  GLC2000\_byte.nc, GLCC\_usgs\_class\_byte.nc, \\
      ECOCLIMAP\_byte.nc, CORINE\_globcover.nc, \\ 
-     GLOBCOVER\_0\_16bit.nc - GLOBCOVER\_5\_16bit.nc,              
+     GLOBCOVER\_0\_16bit.nc - GLOBCOVER\_5\_16bit.nc, \\
+ECCI\_300m\_0.nc -  ECCI\_300m\_5.nc             
  \item Output: buffer file with landuse data (/lu\_io\_extpar/ lu\_buffer\_file) and buffer file with GLCC data (/glcc\_io\_extpar/ glcc\_buffer\_file)
 \end{itemize}
 
@@ -811,8 +817,37 @@ Be aware that the definition of special points has only been tested for the COSM
 \caption{Usage of the namelist parameter number\_special\_points.}
 \label{tab:number_special_points}
 \end{longtable}
+
+\paragraph{Reduced main memory usage}\ \par\medskip\noindent
+
+\noindent Since Exptar Version 5.4 a new feature was introduced 
+which allows the running of extpar\_consistency\_check for very 
+high resolution global grids without any restrictions on the hardware memory specifications.
+A POSIX mmap based implemetation of disk caching arrays is
+used to use main memory as much as possible and, if more memory
+is required, the duty to handle this request is delegated to the
+kernel. A requirement to run this properly is the provision of
+swap space in the expected total memory use. With this technique
+we could process a global R2B11 ICON grid (around 1.25 \textit{km} grid
+resolution) on a server with 256 GB main memory. Of course
+processing gets quite slow, but is still in the order of a couple
+of cups of coffee. 
+
+\noindent The feature can be enabled with the namelist
+variable \\ \textit{l\_use\_array\_cache = .TRUE.} in namelist
+\textit{extpar\_consistency\_check\_io}. The namelist variable default is \\
+\textit{l\_use\_array\_cache =.FALSE.}, which is selecting the standard heap allocation by
+Fortran's \textit{ALLOCATE} statement.
+
 \paragraph{Writing output}\ \par\medskip\noindent
 The final results are written into a netcdf file. The output file name can be specified in the namelist 'INPUT\_CHECK'.\par\medskip\noindent
+Since Extpar Version 5.4 the output possibilities have been extended for ICON only. The Extpar output procedure for COSMO did not change with Version 5.4. 
+As ICON and a lot of its associated tools (eg. CDO, DWD icontools)
+are already using a single abstract interfacing library CDI, a
+re-implementation for the final Extpar output procedure with CDI to
+prepare for future developments is provided. Note, that this re-implementation replaces the former writing-routine completely. For a detailed description of
+CDI look at \\
+\url{https://code.mpimet.mpg.de/projects/cdi}. 
 \paragraph{Used namelist files and data in-/output}\ \par\medskip\noindent
 \begin{itemize}
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_CHECK, INPUT\_*
@@ -961,6 +996,7 @@ The EXTPAR software is subject to several limitations:
 \item The GME output is not supported anymore.
 \item The OpenMP implementation is tested for ICON only.
 \item GRIB output is not supported anymore.  
+\item Array-caching in the consistency\_check is only supported for GCC compiler.
 \end{itemize}
 
 \clearpage
@@ -1190,9 +1226,9 @@ SSO parameters for ICON
 \hline
 orography\_buffer\_file & character & &  & name for orography buffer file
 \tabularnewline
-\hline 
-orography\_output\_file & character & &  & name for orography output file \tabularnewline
 \hline
+orography\_output\_file & character & &  & name for orography output file
+\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -1299,7 +1335,7 @@ raw\_data\_lu\_path & character & &  & path to landuse data \tabularnewline
 \hline 
 raw\_data\_lu\_filename & character & &  & filename of landuse raw data \tabularnewline
 \hline
-i\_landuse\_data & integer & & &  switch to choose a land use raw data set; 1 Globcover2009, 2 GLC2000, 3 GLCC, 4 ECOCLIMAP \tabularnewline
+i\_landuse\_data & integer & & &  switch to choose a land use raw data set; 1 Globcover2009, 2 GLC2000, 3 GLCC, 4 ECOCLIMAP  5 ESA CCI-LC\tabularnewline
 \hline
 l\_use\_corine & logical & .false. && switch to use corine landuse dataset; only possible if i\_landuse\_data = 1 \tabularnewline
 \hline
@@ -1312,6 +1348,8 @@ ilookup\_table\_lu & integer & & &  switch to choose a lookup table
  & & & & GLOBCOVER 2009: \tabularnewline
  & & & & 1: operational settings (Asensio, 2011)\tabularnewline
  & & & & 2: experimental settings, analog to look-up tables of ECOCLIMAP (Asensio 2010) \tabularnewline
+ & & & & ESA CCI-LC: \tabularnewline
+ & & & & 1: experimental settings (Helmert, 2019)\tabularnewline
 \hline
 ntiles\_globcover & integer & 6 & & number of tiles for GLOBCOVER data \tabularnewline
 \hline
@@ -1352,9 +1390,6 @@ ilookup\_table\_glcc & integer & & &  switch to choose a lookup table
 \hline
 glcc\_buffer\_file & character & &  & name for glcc buffer file
 \tabularnewline
-\hline 
-glcc\_output\_file & character & &  & name for glcc output file \tabularnewline
-\hline
 \bottomrule
 \end{longtable}
 
@@ -1388,8 +1423,6 @@ iaot\_type & integer &1 &  & index to specify AOD raw data set: 1:Tegen 2:AeroCo
 \hline
 aot\_buffer\_file & character & &  & name for aerosol buffer file
 \tabularnewline
-\hline 
-aot\_output\_file & character & &  & name for aerosol output file \tabularnewline
 \hline
 \bottomrule
 \end{longtable}
@@ -1476,8 +1509,6 @@ raw\_data\_deep\_soil\_\-filename & character & &  & filename of deep soil raw d
 \hline
 soil\_buffer\_file & character & &  & name for soil buffer file
 \tabularnewline
-\hline 
-soil\_output\_file & character & &  & name for soil output file \tabularnewline
 \hline
 soil\_buffer\_file\_consistent & character & &  & name for soil buffer file after consistency check \tabularnewline
 \hline
@@ -1540,9 +1571,6 @@ raw\_data\_flake\_filename & character & &  & filename of flake raw data \tabula
 \hline
 flake\_buffer\_file & character & &  & name for flake buffer file
 \tabularnewline
-\hline 
-flake\_output\_file & character & &  & name for flake output file \tabularnewline
-\hline
 \bottomrule
 \end{longtable}
 
@@ -1574,16 +1602,6 @@ ialb\_type & integer &  & & switch to indicate albedo type 1:total albedo 2:soil
 \hline
 alb\_buffer\_file & character & & & name for the albedo buffer file
 \tabularnewline
-\hline
-alb\_source & character & 'al' & & variable name of the albedo netcdf file
-\tabularnewline
-\hline
-alnid\_source & character & 'alnid' & & variable name of the NIR-albedo netcdf file
-\tabularnewline
-\hline
-aluvd\_source & character & 'aluvd' & & variable name of the UV-albedo netcdf file
-\tabularnewline
-\hline
 \bottomrule
 \end{longtable}
 
@@ -1653,8 +1671,6 @@ iahf\_type & integer & 1 &  & type of used AHF data source \tabularnewline
 \hline
 ahf\_buffer\_file & character & &  & name for AHF buffer file
 \tabularnewline
-ahf\_output\_file & character & &  & name for AHF output file
-\tabularnewline
 \hline 
 \bottomrule
 \end{longtable}
@@ -1694,6 +1710,8 @@ emiss\_buffer\_file & character & &  & name for emissivity parameter buffer file
 \tabularnewline
 \hline
 \endhead
+\hline 
+l\_use\_array\_cache & flag &F &  & flag indicating whether mmap-caching is used (reduced memory consumption, but longer runtime)\tabularnewline
 \hline 
 netcdf\_output\_filename & character & &  & filename for netcdf output filename \tabularnewline
 \hline 

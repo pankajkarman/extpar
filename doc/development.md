@@ -106,10 +106,9 @@ in, out, and inout.
 The organization of the Python programmes is slightly different to the Fortran ones, because Python does not need to be compiled prior to execution.   
 The main python scripts *extpar_alb_to_buffer.py*, *extpar_cru_to_buffer.py*, *extpar_ndvi_to_buffer.py* and *emiss_to_buffer.py* can be treated like the Fortran binaries and copied to the run-directory. Make sure the *namelist.py* is also present at the run-directory.  
 
-All self-written Python-modules are stored in [lib](../python/lib) and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set the following:  
-
-unset PYTHONPATH  
-export PYTHONPATH=*absolute_path_to_python/lib*
+All self-written Python-modules are stored in [lib](../python/lib) and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set to the following:  
+ 
+export PYTHONPATH=$PYTHONPATH:*absolute_path_to_python/lib*
 
 ### Logging
 In case you want to add some additional prints in Extpar, please use the logger described below.
