@@ -341,6 +341,17 @@ class Test:
         # explicit copy of the namelists (copy is required since we will apply the change_par)
         status = system_command('/bin/cp -f '+self.namelistdir+'INPUT* .', self.logger)
 
+        # explicit copy of the namelists for the Python modules of Extpar
+        status = system_command('/bin/cp -f '+self.namelistdir+'*.py .', self.logger)
+
+        # copy the icon grid if exists
+        if not glob.glob(dir_path(self.namelistdir) + 'icon_grid_*')==[]:
+            status = system_command('/bin/cp -f '+self.namelistdir+'icon_grid_* ./', self.logger)
+
+        # copy of the climatological fields needed for the icon test if exists
+        if not glob.glob(dir_path(self.namelistdir) + 'clim_*')==[]:
+            status = system_command('/bin/cp -f '+self.namelistdir+'clim_* ./', self.logger)
+
         # copy of the auxiliary input parameters if exists
         if not glob.glob(os.path.join(dir_path(self.inputdir)+'in_aux/', '*'))==[]:
             status = system_command('/bin/cp -f -r '+dir_path(self.inputdir)+'in_aux/* ./', self.logger)

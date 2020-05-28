@@ -13,5 +13,5 @@ lcompute_sgsl=.false.
  raw_data_orography_path = './'
  ntiles_column = 1
  ntiles_row = 1
- topo_files = 'topo.ASTER_orig_T019.nc'
+ topo_files = 'ASTER_orig_T019.nc'
 /
