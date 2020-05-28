@@ -127,6 +127,9 @@ PROGRAM extpar_consistency_check
   USE mo_globcover_lookup_tables, ONLY: nclass_globcover, &
        &                                get_name_globcover_lookup_tables
 
+  USE mo_ecci_lookup_tables,      ONLY: nclass_ecci, &
+      &                                 get_name_ecci_lookup_tables
+
   USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap, &
        &                                get_name_ecoclimap_lookup_tables
 
@@ -142,7 +145,7 @@ PROGRAM extpar_consistency_check
   USE mo_landuse_routines,      ONLY: read_namelists_extpar_land_use
 
   USE mo_lu_tg_fields,          ONLY: i_lu_globcover, i_lu_glc2000, i_lu_glcc, &
-       &                              i_lu_ecoclimap, &
+       &                              i_lu_ecoclimap, i_lu_ecci, & 
        &                              fr_land_lu, &
        &                              fr_land_mask, &
        &                              ice_lu, &
@@ -389,6 +392,7 @@ PROGRAM extpar_consistency_check
        &                                           scale_sep_files(1:max_tiles)  !< filenames globe raw data
 
   CHARACTER (LEN=filename_max), DIMENSION(1:23) :: glc_class
+  CHARACTER (LEN=filename_max), DIMENSION(1:38) :: ecci_class
   ! define string used for global attributes:
   CHARACTER (LEN=255)                           :: y_orofilter
 
@@ -431,7 +435,9 @@ PROGRAM extpar_consistency_check
 
   INTEGER (KIND=i4), PARAMETER                  :: mpy=12, &     !< month per year
        &                                           i_gcv__snow_ice = 22, & ! GlobCover land-use class for glaciers
-       &                                           i_gcv_bare_soil = 20 ! GlobCover land-use class for bare-soil
+       &                                           i_gcv_bare_soil = 20, & ! GlobCover land-use class for bare-soil
+       &                                           i_ecci__snow_ice = 38, & ! ESA CCI LU CLASS for glaciers
+       &                                           i_ecci_bare_soil = 34    ! ESA CCI LU CLASS for bare-soil
 
 
   LOGICAL                                       :: last=.FALSE., & ! in TCL leave loop
@@ -676,6 +682,11 @@ PROGRAM extpar_consistency_check
        CALL get_name_glcc_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
        nclass_lu = nclass_glcc
        lu_data_southern_boundary = -90.0
+    CASE (i_lu_ecci)
+     lu_dataset = 'ESA CCI'
+     CALL get_name_ecci_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
+     nclass_lu = nclass_ecci
+     lu_data_southern_boundary = -90.0 ! No need to capture the Antarctic peninsula
   END SELECT
 
   WRITE(message_text,*)'Land use datatset    : '//TRIM(lu_dataset)
@@ -860,7 +871,7 @@ PROGRAM extpar_consistency_check
             &                                     emissivity_lu)
 
 
-    CASE(i_lu_globcover, i_lu_glc2000 )
+    CASE(i_lu_globcover, i_lu_glc2000, i_lu_ecci)
        CALL read_netcdf_buffer_lu(lu_buffer_file,  &
             &                                     tg,         &
             &                                     nclass_lu, &
@@ -1181,6 +1192,8 @@ PROGRAM extpar_consistency_check
       lu_class_fraction(:,:,:,21)=ice_lu(:,:,:)
     CASE (i_lu_globcover)
       lu_class_fraction(:,:,:,22)=ice_lu(:,:,:)
+  CASE (i_lu_ecci)
+     lu_class_fraction(:,:,:,38)=ice_lu(:,:,:)
   END SELECT
 
   !----------------------- FIX for wrong classified Glacier points - Land-Use  --------------------------
@@ -1225,7 +1238,44 @@ PROGRAM extpar_consistency_check
          &               count_ice2tclim, " with fraction >= 0.05 (TILE): ",count_ice2tclim_tile
     CALL logging%info(message_text)
   END IF
-     
+    
+      IF (i_landuse_data == i_lu_ecci) THEN
+         count_ice2tclim = 0
+         count_ice2tclim_tile = 0
+        DO k=1,tg%ke
+          DO j=1,tg%je
+            DO i=1,tg%ie
+              t2mclim_hc = MAXVAL(t2m_field(i,j,k,:)) + dtdz_clim *                &
+                         ( hh_topo(i,j,k) + 1.5_wp*stdh_topo(i,j,k) - hsurf_field(i,j,k))
+
+              ! consistency corrections for glaciered points
+              ! a) set soiltype to ice if landuse = ice (already done in extpar for dominant glacier points)
+              !
+              ! a) plausibility check for glacier points based on T2M climatology (if available):
+              !    if the warmest month exceeds 10 deg C, then it is unlikely for glaciers to exist
+
+              IF ( t2mclim_hc > (tmelt + 10.0_wp) ) THEN
+                IF (lu_class_fraction(i,j,k,i_ecci__snow_ice)> 0._wp) count_ice2tclim=count_ice2tclim + 1
+                IF (lu_class_fraction(i,j,k,i_ecci__snow_ice)>= frlndtile_thrhld) THEN
+                   count_ice2tclim_tile = count_ice2tclim_tile + 1  ! Statistics >= frlndtile_thrhld in ICON           
+                ENDIF
+                lu_class_fraction(i,j,k,i_ecci_bare_soil) = lu_class_fraction(i,j,k,i_ecci_bare_soil) + &
+                lu_class_fraction(i,j,k,i_ecci__snow_ice) ! add always wrong ice frac to bare soil
+                lu_class_fraction(i,j,k,i_ecci__snow_ice) = 0._wp ! remove always wrong ice frac
+                ice_lu(i,j,k)  = 0._wp
+              ENDIF ! t2mclim_hc(i,j,k) > tmelt + 10.0_wp
+            ENDDO
+          ENDDO
+        ENDDO
+        
+        WRITE(message_text,*)"Number of corrected false glacier points in EXTPAR: ", &
+                      count_ice2tclim, " with fraction >= 0.05 (TILE): ",count_ice2tclim_tile
+
+        CALL logging%info(message_text)
+
+     END IF
+
+ 
   IF (tile_mode < 1) THEN   ! values are kept for ICON because of tile approach
     WHERE (fr_land_lu < 0.5)  ! set vegetation to undefined (0.) for water grid elements
       ! z0, emissivity, and skin_conductivity are not set to undefined_lu
@@ -2228,6 +2278,54 @@ PROGRAM extpar_consistency_check
                          glc_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
                   CALL logging%info(message_text)
                 ENDDO
+
+              CASE (i_lu_ecci)
+
+                ecci_class(1)=   'No data                                        '     ! 1.
+                ecci_class(2)=   'Cropland, rainfed                              '     ! 2.
+                ecci_class(3)=   'Herbaceous cover                               '     ! 3.
+                ecci_class(4)=   'Tree or shrub cover                            '     ! 4.
+                ecci_class(5)=   'Cropland, irrigated or post-flooding           '     ! 5.
+                ecci_class(6)=   'Mosaic cropland(>50%)/natural vegetation(<50%) '     ! 6.
+                ecci_class(7)=   'Mosaic natural vegetation(>50%)/cropland(<50%) '     ! 7.
+                ecci_class(8)=   'TC, BL, evergreen, closed to open (>15%)       '     ! 8.
+                ecci_class(9)=   'TC, BL, deciduous, closed to open (>15%)       '     ! 9.
+                ecci_class(10)=   'TC, BL, deciduous, closed (>40%)               '     ! 10.
+                ecci_class(11)=   'TC, BL, deciduous, open (15-40%)               '     ! 11.
+                ecci_class(12)=   'TC, NL, evergreen, closed to open (>15%)       '     ! 12.
+                ecci_class(13)=   'TC, NL, evergreen, closed (>40%)               '     ! 13.
+                ecci_class(14)=   'TC, NL, evergreen, open (15-40%)               '     ! 14.
+                ecci_class(15)=   'TC, NL, deciduous, closed to open (>15%)       '     ! 15.
+                ecci_class(16)=   'TC, NL, deciduous, closed (>40%)               '     ! 16.
+                ecci_class(17)=   'TC, NL, deciduous, open (15-40%)               '     ! 17.
+                ecci_class(18)=   'TC, mixed leaf type (BL and NL)                '     ! 18.
+                ecci_class(19)=   'Mosaic tree and shrub (>50%)/HC (<50%)         '     ! 19.
+                ecci_class(20)=   'Mosaic HC (>50%) / tree and shrub (<50%)       '     ! 20.
+                ecci_class(21)=   'Shrubland                                      '     ! 21.
+                ecci_class(22)=   'Shrubland evergreen                            '     ! 22.
+                ecci_class(23)=   'Shrubland deciduous                            '     ! 23.
+                ecci_class(24)=   'Grassland                                      '     ! 24.
+                ecci_class(25)=   'Lichens and mosses                             '     ! 25.
+                ecci_class(26)=   'Sparse vegetation (tree, shrub, HC) (<15%)     '     ! 26.
+                ecci_class(27)=   'Sparse tree (<15%)                             '     ! 27.
+                ecci_class(28)=   'Sparse shrub (<15%)                            '     ! 28.
+                ecci_class(29)=   'Sparse herbaceous cover (<15%)                 '     ! 29.
+                ecci_class(30)=   'TC, flooded, fresh or brakish water            '     ! 30.
+                ecci_class(31)=   'TC, flooded, saline water                      '     ! 31.
+                ecci_class(32)=   'Shrub or HC,flooded,fresh/saline/brakish water '     ! 32.
+                ecci_class(33)=   'Urban areas                                    '     ! 33.
+                ecci_class(34)=   'Bare areas                                     '     ! 34.
+                ecci_class(35)=   'Consolidated bare areas                        '     ! 35.
+                ecci_class(36)=   'Unconsolidated bare areas                      '     ! 36.
+                ecci_class(37)=   'Water bodies                                   '     ! 37.
+                ecci_class(38)=   'Permanent snow and ice                         '     ! 38.
+
+                DO i=1,nclass_ecci
+                  WRITE(message_text,'(A33,1X,A85,2X,F8.4)') "Land-Use Fractions for ESA CCI class  ", &
+                        ecci_class(i),lu_class_fraction(i_sp,j_sp,k_sp,i)
+                  CALL logging%info(message_text)
+                ENDDO
+
             END SELECT
           ENDIF
 
