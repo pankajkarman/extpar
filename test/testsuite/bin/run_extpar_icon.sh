@@ -27,7 +27,7 @@ elif [[ $hostname == m* ]]; then
     export OMP_NUM_THREADS=8
     
     # directories
-    data_dir=/scratch/b/b381001/extpar-input-data/linked_data
+    data_dir=/work/pd1167/extpar-input-data/linked_data
 
 # unkown host
 else

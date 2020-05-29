@@ -25,7 +25,7 @@ if [[ $hostname == kesch* || $hostname == daint* || $hostname == tsa* || $hostna
 elif [[ $hostname == m* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/scratch/b/b381001/extpar-input-data/linked_data
+    data_dir=/work/pd1167/extpar-input-data/linked_data
 
 # unkown host
 else
