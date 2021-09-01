@@ -24,6 +24,12 @@ it contains:
 
 -check_albtype: check whether ialb_type from namelist is correct
 
+-check_ahftype: check whether iahf_type from namelist is correct
+
+-check_isatype: check whether isa_type from namelist is correct
+
+-check_emisstype: check whether emiss_type from namelist is correct
+
 -determine_albedo_varnames: assign correct varnames for different ialb_type
 '''
 
@@ -148,6 +154,44 @@ def check_albtype(alb_type):
         logging.info('process albedo data  for VIS only')
 
     return alb_type
+
+
+def check_ahftype(ahf_type):
+    '''
+    check ahf_type for correctnes and return value, 
+    if not exit programme
+    '''
+
+    if (ahf_type > 2 or ahf_type < 1):
+        logging.error(f'iahf_type {ahf_type} does not exist.')
+        sys.exit(1)
+
+    if (ahf_type == 1):
+        logging.info('process ahf data with spatial resolution of 2.5 min')
+
+    if (ahf_type == 2):
+        logging.info('process ahf data with spatial resolution of 30 sec')
+
+    return ahf_type
+
+
+def check_isatype(isa_type):
+    '''
+    check isa_type for correctnes and return value, 
+    if not exit programme
+    '''
+
+    if (isa_type > 2 or isa_type < 1):
+        logging.error(f'isa_type {isa_type} does not exist.')
+        sys.exit(1)
+
+    if (isa_type == 1):
+        logging.info('process isa data with spatial resolution of 30sec')
+
+    if (isa_type == 2):
+        logging.info('process isa data with spatial resolution of 10sec')
+
+    return isa_type
 
 
 def check_emisstype(emiss_type):
