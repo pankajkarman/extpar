@@ -80,6 +80,29 @@ the existing configure wrapper scripts and adapt it to your local
 environment. The scripts are called configure.*hostname.compiler*.
 
 ### Run
+The Fortran executables 
+*   *extpar_aot_to_buffer.exe*
+*   *extpar_landuse_to_buffer.exe*
+*   *extpar_topo_to_buffer.exe*
+*   *extpar_flake_to_buffer.exe*  
+
+can simply be copied to the run-directory.
+ 
+The main python scripts 
+*   *extpar_alb_to_buffer.py*
+*   *extpar_cru_to_buffer.py*
+*   *extpar_ndvi_to_buffer.py*
+*   *extpar_emiss_to_buffer.py*
+*   *exptar_era_to_buffer.py*
+*   *extpar_ahf_to_buffer.py*
+*   *extpar_isa_to_buffer.py*  
+
+can be treated like the Fortran binaries and copied to the run-directory. Make sure the *namelist.py* is also present at the run-directory.  
+
+All self-written Python-modules are stored in [lib](../python/lib) and do not need to be copied to the respective run-directory, rather the environment variable **PYTHONPATH** needs to be set to the following:  
+ 
+export PYTHONPATH=$PYTHONPATH:*absolute_path_to_python/lib*
+
 Some runscript examples are available under /run_scripts.
 Just adapt them to your needs!
 
