@@ -42,8 +42,6 @@ MODULE mo_aot_data
     &                                 MAC_ssa_tg, &
     &                                 MAC_asy_tg 
 
-  USE info_extpar,              ONLY: INFO_CompilerVersion
-
   IMPLICIT NONE
 
   PRIVATE
