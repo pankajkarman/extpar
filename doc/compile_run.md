@@ -1,4 +1,5 @@
 # How to compile and run
+
 ## Code structure
 EXTPAR contains FORTAN-Code as well as hybrid Python-CDO scripts.
 Both code bases need external libraries and installations.
@@ -26,8 +27,6 @@ instructions provided with the libraries.
 #### On the CSCS machines
 
 All the required libraries are already installed on the CSCS machines.  
-Ready-to-use Python environments for Tsa and Daint can be found at */project/g110/extpar_envs/venv_jenkins_your_machine*.  
-Just *source /project/g110/extpar_envs/venv_jenkins_your_machine/bin/activate* in your Extpar runscript to activate these Python environments.
 
 #### On the DKRZ machine mistral
 
@@ -42,34 +41,15 @@ is supposed to be GCC.
 This script fetches all required libraries and tools, compiles and
 installs in $HOME/local.gcc.
 
-### Cloning from GitHub
-Because of the embedded submodule CDI in Extpar, please clone Extpar from GitHub using the following commands:
-
-* git clone --recursive git@github.com:C2SM-RCM/extpar.git
-* git submodule update
-
 ### Compilation
 Since Version 5.4, Extpar is built with an autotool based build-system. This has been necessary to accomodate for the additional C source code files and newly required libraries.
 
-There are three options to compile Extpar: 
+There is 1 option to compile Extpar: 
 
 #### In-source build
 ./configure.*hostname.compiler*  
 source modules.env  
 make   
-
-#### Out-of-source build
-mkdir build-*my_self_defined_note*  
-cd build-*my_self_defined_note*  
-*path_to_the_extpar_installation*/configure.*hostname.compiler*  
-source modules.env  
-make  
-
-#### Install binaries only in external directory
-./configure.*hostname.compiler* --prefix=*my_external_directory*  
-source modules.env  
-make install  
-The binaries will be installed in  *my_external_directory/bin*
 
 #### Restart build from scratch
 make distclean 
