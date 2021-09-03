@@ -15,6 +15,9 @@ A full documentation of code can be found in the [manual](doc/user_and_implement
 ### Daint
 
 ```
+git clone --recursive git@github.com:C2SM-RCM/extpar.git
+cd extpar
+git submodule update
 ./configure.daint.gcc
 source modules.env
 make -j 4
@@ -27,6 +30,9 @@ export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 ### Tsa
 
 ```
+git clone --recursive git@github.com:C2SM-RCM/extpar.git
+cd extpar
+git submodule update
 ./configure.tsa.gcc
 source modules.env
 make -j 4
@@ -37,9 +43,12 @@ module load cdo
 export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 ```
 
-### DKRZ
+### Mistral
 
 ```
+git clone --recursive git@github.com:C2SM-RCM/extpar.git
+cd extpar
+git submodule update
 ./configure.mistral.gcc # or ./configure.mistral.intel
 source modules.env
 make -j 4
