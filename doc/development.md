@@ -43,7 +43,7 @@ the synchronization of the code and input-data repositories.
 Once a developer has finished developing a new feature or bug fix, they should make a 
 pull request on the Github repository from their topic branch into the develop branch.  
 Then, they should write the following comment into the pull request conversation: "launch jenkins"
-This will start the automated testing, and the code will be compiled and tested on Kesch and mistral.
+This will start the automated testing, and the code will be compiled and tested on Tsa, Piz Daint and Mistral.
 
 If the tests fail, then the developer should fix the issues and resubmit the testing on Jenkins.  
 Once all of the tests are passing, then they should notify the source code administrator that the pull
