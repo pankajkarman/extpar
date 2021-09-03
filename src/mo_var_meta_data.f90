@@ -1458,10 +1458,7 @@ MODULE mo_var_meta_data
       dim_aot_tg(1)%dimname = diminfo(1)%dimname
       dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
 
-      IF (iaot_type == 4) THEN
-        dim_aot_tg(2)%dimname = 'spectr'
-        dim_aot_tg(2)%dimsize = nspb
-      ELSEIF(iaot_type == 5) THEN
+      IF(iaot_type == 5) THEN
         dim_aot_tg(2)%dimname = 'level'
         dim_aot_tg(2)%dimsize = nlevel_cams
       ELSE
@@ -1512,6 +1509,7 @@ MODULE mo_var_meta_data
         dim_aot_tg(3)%dimsize = diminfo(3)%dimsize
         dim_aot_tg(4)%dimname = 'ntype'
         dim_aot_tg(4)%dimsize = ntype
+
         dim_aot_ty(1) = dim_aot_tg(1)
         dim_aot_ty(2) = dim_aot_tg(2)
         dim_aot_ty(3) = dim_aot_tg(3)
