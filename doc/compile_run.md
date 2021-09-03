@@ -1,4 +1,4 @@
-# How to clone, compile and run
+# How to compile and run
 ## Code structure
 EXTPAR contains FORTAN-Code as well as hybrid Python-CDO scripts.
 Both code bases need external libraries and installations.
