@@ -5,7 +5,7 @@ EXTPAR (External Parameters for Numerical Weather Prediction and Climate Applica
 
 The code is written in Fortran 90 and in Python. The Python scripts use CDO for the most compute-intensive parts.  Currently the code is tested regularly using the gcc, NAG, and Intel Fortran compilers.  The code is also accelerated in some places with OpenMP parallelization.  
 
-The code once compiled generates 8 Fortran executables and 4 Python scripts, which can be run simultaneously except for the final extpar_consistency_check.exe, which is used to tie together all the external parameter results into one output file.  
+The code once compiled generates 6 Fortran executables and 7 Python scripts, which can be run simultaneously except for the final extpar_consistency_check.exe, which is used to tie together all the external parameter results into one output file.  
 
 In order to run Extpar, input data files for the external parameter variables are needed.  These input files are currently available on CSCS machines, DWD machines, and on mistral at DKRZ.  The input data files are also stored in a git-LFS data repository found at: https://gitlab.dkrz.de/extpar-data/extpar-input-data.  Instructions to download or update the input data files can be found in this repository.  To gain access to the git-LFS input data repository, contact the Extpar source code administrator (Jonas Jucker) at jonas.jucker@c2sm.ethz.ch.
 
