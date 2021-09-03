@@ -1433,62 +1433,76 @@ MODULE mo_var_meta_data
       dim_aot_tg(4)%dimname = 'time'
       dim_aot_tg(4)%dimsize = ntime
 
-    ELSEIF (iaot_type == 5) THEN
-      dim_aot_tg(1)%dimname = diminfo(1)%dimname
-      dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_aot_tg(2)%dimname = diminfo(2)%dimname
-      dim_aot_tg(2)%dimsize = diminfo(2)%dimsize
-      dim_aot_tg(3)%dimname = 'level'
-      dim_aot_tg(3)%dimsize = nlevel_cams
-      dim_aot_tg(4)%dimname = 'time'
-      dim_aot_tg(4)%dimsize = ntime
-  
     ELSE
-    SELECT CASE(n_dim)
-    CASE (1)
-      dim_aot_tg(1)%dimname = diminfo(1)%dimname
-      dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_aot_tg(2)%dimname = 'ntype'
-      dim_aot_tg(2)%dimsize = ntype
-      dim_aot_tg(3)%dimname = 'time'
-      dim_aot_tg(3)%dimsize = ntime
 
-      dim_aot_ty(1) = dim_aot_tg(1)
-      dim_aot_ty(2) = dim_aot_tg(3)
+      SELECT CASE(n_dim)
+      CASE (1)
+        dim_aot_tg(1)%dimname = diminfo(1)%dimname
+        dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
 
-    CASE (2)
-      dim_aot_tg(1)%dimname = diminfo(1)%dimname
-      dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_aot_tg(2)%dimname = diminfo(2)%dimname
-      dim_aot_tg(2)%dimsize = diminfo(2)%dimsize 
-      dim_aot_tg(3)%dimname = 'ntype'
-      dim_aot_tg(3)%dimsize = ntype
-      dim_aot_tg(4)%dimname = 'time'
-      dim_aot_tg(4)%dimsize = ntime
+        IF(iaot_type == 5) THEN
+          dim_aot_tg(2)%dimname = 'level'
+          dim_aot_tg(2)%dimsize = nlevel_cams
+        ELSE
+          dim_aot_tg(2)%dimname = 'ntype'
+          dim_aot_tg(2)%dimsize = ntype
+        ENDIF
 
-      dim_aot_ty(1) = dim_aot_tg(1)
-      dim_aot_ty(2) = dim_aot_tg(2)
-      dim_aot_ty(3) = dim_aot_tg(4)
+        dim_aot_tg(3)%dimname = 'time'
+        dim_aot_tg(3)%dimsize = ntime
 
-    CASE (3)
-      dim_aot_tg(1)%dimname = diminfo(1)%dimname
-      dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_aot_tg(2)%dimname = diminfo(2)%dimname
-      dim_aot_tg(2)%dimsize = diminfo(2)%dimsize
-      dim_aot_tg(3)%dimname = diminfo(3)%dimname
-      dim_aot_tg(3)%dimsize = diminfo(3)%dimsize
-      dim_aot_tg(4)%dimname = 'ntype'
-      dim_aot_tg(4)%dimsize = ntype
-      dim_aot_tg(5)%dimname = 'time'
-      dim_aot_tg(5)%dimsize = ntime
+        dim_aot_ty(1) = dim_aot_tg(1)
+        dim_aot_ty(2) = dim_aot_tg(3)
 
-      dim_aot_ty(1) = dim_aot_tg(1)
-      dim_aot_ty(2) = dim_aot_tg(2)
-      dim_aot_ty(3) = dim_aot_tg(3)
-      dim_aot_ty(4) = dim_aot_tg(5)
+      CASE (2)
+        dim_aot_tg(1)%dimname = diminfo(1)%dimname
+        dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
+        dim_aot_tg(2)%dimname = diminfo(2)%dimname
+        dim_aot_tg(2)%dimsize = diminfo(2)%dimsize 
 
-    END SELECT
-      ! set meta information for strucutre dim_aot_tg
+        IF(iaot_type == 5) THEN
+          dim_aot_tg(3)%dimname = 'level'
+          dim_aot_tg(3)%dimsize = nlevel_cams
+        ELSE
+          dim_aot_tg(3)%dimname = 'ntype'
+          dim_aot_tg(3)%dimsize = ntype
+        ENDIF
+
+        dim_aot_tg(4)%dimname = 'time'
+        dim_aot_tg(4)%dimsize = ntime
+
+        dim_aot_ty(1) = dim_aot_tg(1)
+        dim_aot_ty(2) = dim_aot_tg(2)
+        dim_aot_ty(3) = dim_aot_tg(4)
+
+      CASE (3)
+        dim_aot_tg(1)%dimname = diminfo(1)%dimname
+        dim_aot_tg(1)%dimsize = diminfo(1)%dimsize
+        dim_aot_tg(2)%dimname = diminfo(2)%dimname
+        dim_aot_tg(2)%dimsize = diminfo(2)%dimsize
+
+        IF(iaot_type == 5) THEN
+          dim_aot_tg(3)%dimname = 'level'
+          dim_aot_tg(3)%dimsize = nlevel_cams
+          dim_aot_tg(4)%dimname = 'time'
+          dim_aot_tg(4)%dimsize = ntime
+        ELSE
+          dim_aot_tg(3)%dimname = diminfo(3)%dimname
+          dim_aot_tg(3)%dimsize = diminfo(3)%dimsize
+          dim_aot_tg(4)%dimname = 'ntype'
+          dim_aot_tg(4)%dimsize = ntype
+          dim_aot_tg(5)%dimname = 'time'
+          dim_aot_tg(5)%dimsize = ntime
+
+          dim_aot_ty(1) = dim_aot_tg(1)
+          dim_aot_ty(2) = dim_aot_tg(2)
+          dim_aot_ty(3) = dim_aot_tg(3)
+          dim_aot_ty(4) = dim_aot_tg(5)
+        ENDIF
+
+
+      END SELECT
+        ! set meta information for strucutre dim_aot_tg
     ENDIF
 
     IF (iaot_type == 4) THEN
@@ -1534,7 +1548,7 @@ MODULE mo_var_meta_data
       asy_tg_MAC_meta%coordinates = coord
       asy_tg_MAC_meta%data_set = dataset
     ELSEIF (iaot_type == 5) THEN 
-	  
+
       CAMS_SS1_tg_meta%varname = 'Sea_Salt_bin1'
       CAMS_SS1_tg_meta%n_dim = n_dim + 2
       CAMS_SS1_tg_meta%diminfo => dim_aot_tg
