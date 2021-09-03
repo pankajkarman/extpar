@@ -11,10 +11,45 @@ In order to run Extpar, input data files for the external parameter variables ar
 
 A full documentation of code can be found in the [manual](doc/user_and_implementation_manual.pdf)
 
-# Getting started
-For compilation instructions see: [README.compile_run](doc/README.compile_run.md)
+# Quick Start
+### Daint
 
-Once you have a compiled version, there are several sample run scripts available in the run_scripts folder of this repository.  You should be able to adapt one of these for your needs.  
+```
+./configure.daint.gcc
+source modules.env
+make -j 4
+module load daint-gpu
+module load CDO
+source /project/g110/extpar_envs/venv_jenkins_daint/bin/activate
+export PYTHONPATH=$PYTHONPATH:python/lib
+```
+
+### Tsa
+
+```
+./configure.tsa.gcc
+source modules.env
+make -j 4
+source /oprusers/osm/.opr_setup_dir
+export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
+source /project/g110/extpar_envs/venv_jenkins_tsa/bin/activate
+module load cdo
+export PYTHONPATH=$PYTHONPATH:python/lib
+```
+
+### DKRZ
+
+```
+./configure.mistral.gcc # or ./configure.mistral.intel
+source modules.env
+make -j 4
+export PYTHONPATH=$PYTHONPATH:python/lib
+```
+
+The final step includes for all target machines to copy 
+the .exe and .py files from [bin](bin) to the directory in which the namelist and all required input-data is present.
+
+For more detailed compilation instructions see: [README.compile_run](doc/README.compile_run.md)
 
 # Testing
 The extpar code comes with a technical testsuite to ensure the accuracy of the results.  More information about the testsuite can be found [here](test/testsuite/README.md)
