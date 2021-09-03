@@ -21,7 +21,7 @@ make -j 4
 module load daint-gpu
 module load CDO
 source /project/g110/extpar_envs/venv_jenkins_daint/bin/activate
-export PYTHONPATH=$PYTHONPATH:python/lib
+export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 ```
 
 ### Tsa
@@ -34,7 +34,7 @@ source /oprusers/osm/.opr_setup_dir
 export MODULEPATH=$MODULEPATH\:$OPR_SETUP_DIR/modules/modulefiles
 source /project/g110/extpar_envs/venv_jenkins_tsa/bin/activate
 module load cdo
-export PYTHONPATH=$PYTHONPATH:python/lib
+export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 ```
 
 ### DKRZ
@@ -43,7 +43,7 @@ export PYTHONPATH=$PYTHONPATH:python/lib
 ./configure.mistral.gcc # or ./configure.mistral.intel
 source modules.env
 make -j 4
-export PYTHONPATH=$PYTHONPATH:python/lib
+export PYTHONPATH=$PYTHONPATH:$(pwd)/python/lib
 ```
 
 The final step includes for all target machines to copy 
