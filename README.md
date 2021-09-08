@@ -63,7 +63,7 @@ For more detailed compilation instructions see: [compile_run](doc/compile_run.md
 
 # Input Data
 
-## Data Location
+#### Data Location
 In order to run Extpar, input data files for the external parameter variables are needed. The data is provided on all supported machines:
 *  Tsa: _/store/c2sm/extpar_raw_data/linked_data_
 *  Daint: _/store/c2sm/extpar_raw_data/linked_data_
@@ -73,7 +73,7 @@ The input data files are also stored in a git-LFS data repository found at: http
 Instructions to download or update the input data files can be found in this repository.  
 To gain access to the git-LFS input data repository, contact the Extpar source code administrator.
 
-## Fast Data Access
+#### Fast Data Access
 On CSCS-machines, access from comupte-nodes to _/store_ is generally slow. Instead copy all required input-data prior to your Exptar runs to $SCRATCH.
 The script [extract_inputfiles_from_namelist.py](test/testsuite/bin/extract_inputfiles_from_namelist.py) is able to to extract all input-data needed from any given set of Extpar namelists (INPUT_* and namelist.py).
 
