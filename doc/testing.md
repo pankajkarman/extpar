@@ -36,7 +36,8 @@ sbatch submit.mistral.sh # or submit.mistral.intel.sh
 
 The results of the testsuite can be found in file _testsuite.out_
 
-An example output could look as follows:
+An example output could look as follows:  
+<img width="400" alt="Testsuite_log" src="https://user-images.githubusercontent.com/39263956/132489686-1987e5f7-3d26-4994-8af2-ae459a908b44.png">
 
 ## Testlists
 There are many different testlist, each containing a set of tests for different setups, compiler or models:
