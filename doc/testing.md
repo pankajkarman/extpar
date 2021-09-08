@@ -51,7 +51,17 @@ There are many different testlist, each containing a set of tests for different 
 * [ICON](../test/testsuite/testlist_icon_intel.xml)
  
  
- To add a test to the Extpar testsuite:
+ ## Tolerances
+ It is possible to define an optional tolerance threshold for each test and each field.
+ To allow deviations for the test _icon_d2_ for example, just dit the the [tolerances-file](test/testsuite/data/dwd/icon_d2/tolerances).
+ The syntax is as follows:
+ ```
+ PARAMETER, abs_diff
+ NDVI, 9.0e-08
+ W_SNOW, 5.0e-05
+ ```
+ 
+ ## Add a new test
 
   1. Modify the testlist.xml file to add the new test.  Alternatively, you could also add a new 
      testlist XML file (with a new name).  The testlist which is run can be chosen from the testsuite
@@ -59,5 +69,4 @@ There are many different testlist, each containing a set of tests for different 
 
   2. Make a folder in the data folder for the new test containing the INPUT_* files and the namelist.py for the Python-CDO modules.  
 
-  3. Send me (katherine.osterried@env.ethz.ch) any binary reference files to upload to the ftp site. 
-     I will also modify the get_data.sh script accordingly.  
+  3. Send any binary reference files to upload to the ftp site to the source code administrator. 
