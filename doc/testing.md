@@ -54,7 +54,7 @@ There are many different testlist, each containing a set of tests for different 
  
  ## Tolerances
  It is possible to define an optional tolerance threshold for each test and each field.
- To allow deviations for the test _icon_d2_ for example, just dit the the [tolerances-file](test/testsuite/data/dwd/icon_d2/tolerances).
+ To allow deviations for the test _icon_d2_ for example, just dit the the [tolerances-file](../test/testsuite/data/dwd/icon_d2/tolerances).
  The syntax is as follows:
  ```
  PARAMETER, abs_diff
