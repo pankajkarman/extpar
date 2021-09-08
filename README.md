@@ -80,7 +80,12 @@ The script [extract_inputfiles_from_namelist.py](test/testsuite/bin/extract_inpu
 For Mistral no such performance penalty has been observed.
 
 # Testing
-The extpar code comes with a technical testsuite to ensure the accuracy of the results.  More information about the testsuite can be found [here](test/testsuite/README.md)
+The extpar code comes with a technical testsuite to ensure the accuracy of the results. Weekly tests run for compilers
+* GCC
+* Daint
+* Nag
+
+For more information about how the testsuite can be run or new test added see [testsuite-documentation](doc/testing.md)
 
 # Information for developers
 The coding rules and development workflow for Extpar can be found [here](doc/development.md)
