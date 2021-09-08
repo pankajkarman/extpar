@@ -1,26 +1,57 @@
-This README is for the Extpar testsuite, which is adapted from the COSMO technical testsuite.
+# Testing
+Extpar is tested with an adapted version of the [COSMO technical testsuite](https://github.com/C2SM-RCM/testsuite).
 
+## Run Tests
+First step is to compile the code following the instructions in [compile_run](compile_run.md).
 
-  To run the Extpar testsuite:
+#### Daint
 
-  1.  Compile the Extpar code following the instructions in the main directory.
+```
+cp bin/* test/testsuite/bin/.
+cd test/testsuite
+./data/get_data.sh
+./bin/extract_inputfiles_from_namelist.py
+sbatch --wait ./submit.daint.transfer.sh
+sbatch submit.daint.sh
+```
 
-  2.  Download the testsuite data by running the get_data.sh script in the data folder:
-      cd data; ./get_data.sh; cd ..
+#### Tsa
+```
+cp bin/* test/testsuite/bin/.
+cd test/testsuite
+./data/get_data.sh
+./bin/extract_inputfiles_from_namelist.py
+sbatch --wait ./submit.tsa.transfer.sh
+sbatch submit.tsa.sh
+```
 
-  3.  Copy the Extpar executables to the /bin folder: cp ../../bin/* bin
+#### Mistral
 
-  4.  If you want to run on a new machine, add all host-dependent paths and variables to the runscripts for ICON and COSMO in the /bin folder.
+```
+cp bin/* test/testsuite/bin/.
+cd test/testsuite
+./data/get_data.sh
+sbatch submit.mistral.sh # or submit.mistral.intel.sh
+```
 
-  5.  To run the testsuite, either make a submit script that calls the testsuite 
-      (like the submit.tsa.sh script) or call the testsuite directly from the command line:
-      ./src/testsuite.py -v 1 --exe=your_run_script -o testsuite.out
-      This will generate a testsuite.out file which contains the results of the testsuite.  
-      More information about the testsuite can be found in the src/doc folder.  
-      The testsuite script options can be found with the help options:
-      ./src/testsuite.py -h
+The results of the testsuite can be found in file _testsuite.out_
 
-  To add a test to the Extpar testsuite:
+An example output could look as follows:
+
+## Testlists
+There are many different testlist, each containing a set of tests for different setups, compiler or models:
+
+#### GCC
+* [COSMO](../test/testsuite/testlist_cosmo.xml)
+* [ICON](../test/testsuite/testlist_icon.xml)
+* [Landuse](../test/testsuite/testlist_landuse.xml)
+
+#### Intel
+* [COSMO](../test/testsuite/testlist_cosmo_intel.xml)
+* [ICON](../test/testsuite/testlist_icon_intel.xml)
+ 
+ 
+ To add a test to the Extpar testsuite:
 
   1. Modify the testlist.xml file to add the new test.  Alternatively, you could also add a new 
      testlist XML file (with a new name).  The testlist which is run can be chosen from the testsuite
