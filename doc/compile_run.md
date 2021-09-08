@@ -33,8 +33,10 @@ environment. The scripts are called configure.*hostname.compiler*.
 The Fortran executables 
 *   *extpar_aot_to_buffer.exe*
 *   *extpar_landuse_to_buffer.exe*
+*   *exptar_soil_to_buffer.exe*
 *   *extpar_topo_to_buffer.exe*
-*   *extpar_flake_to_buffer.exe*  
+*   *extpar_flake_to_buffer.exe* 
+*   *extpar_consistency_check.exe* 
 
 can simply be copied to the run-directory.
  
