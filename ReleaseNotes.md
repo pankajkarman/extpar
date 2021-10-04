@@ -1,4 +1,43 @@
 # Release notes
+## 5.7
+This is an intermediate release that introduces two Python-CDO scripts, modifications for reduced memory usage
+for non-global grids and a bugfix for the CAMS-aersosol dataset.
+* extpar_isa_to_buffer
+   - Replace Fortran code with Python-CDO
+   - Change in results for fields
+        - Impervous Surface Area (ISA)
+   - Read the [users guide](doc/user_and_implementation_manual.pdf) for detailed information about details of the implementation of *extpar_isa_to_buffer*
+* exptar_ahf_to_buffer
+   - Replace Fortran code with Python-CDO
+   - Change in results for fields
+      - Antropogenic Heat Flux (AHF)
+   - Read the [users guide](doc/user_and_implementation_manual.pdf) for detailed information about details of the implementation of *extpar_ahf_to_buffer*
+* Reduce memory usage for Python-CDO
+   - Automatic determination of the extent of the target grid
+   - Use CDO operator **-sellonlat** to read subset of input data
+* Bugfix for CAMS dataset
+   - Remove assertion for GCC-compiler
+   - Fix wrong dimensions in meta-data for the ICON-grid
+
+## 5.6
+This is an intermediate release that introduces a new topography dataset and the CAMS-aerosol climatologies, 
+OpenMP support for CSCS-machines, enhanced testing on CSCS-machines, a script to extract the input-data from namelist, 
+progress bars for logfiles of extpar_topo_to_buffer and consistent names for all logfiles.
+
+* Merit/Rema topography
+  - Set switch itopo_type = 3 to process Merit-Rema data
+* CAMS aerosol climatology for ICON
+  - Set switch iaot_type = 5 to process CAMS-aerosol data
+  - Due to an unresolved bug only available for Intel compiler
+* Testsuite
+  - Remove COSMO-D2 test from testsuite
+  - Enable landuse tests for all supported machines
+  - All tests run on 12 OpenMP threads on Piz Daint and Tsa for COSMO and ICON
+  - Introduce the script [extract_inputfiles_from_namelist.py](test/testsuite/bin/extract_inputfiles_from_namelist.py) for faster data access at CSCS. It is recommended to use this skript for your own Extpar runs as well.
+* Logging
+  - Progress bar (0% to 100%) for topography processing
+  - Change logfile-name for extpar_consistency_check to extpar_consistency_check.log
+
 ## 5.5.1
 This is a minor release that fixes the inconsistent usage of netCDF versions across Extpar and small documentation changes.
 

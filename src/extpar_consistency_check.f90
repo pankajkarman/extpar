@@ -140,8 +140,6 @@ PROGRAM extpar_consistency_check
        &                              read_netcdf_buffer_lu, &
        &                              read_netcdf_buffer_ecoclimap
 
-  USE mo_isa_output_nc,         ONLY: read_netcdf_buffer_isa
-
   USE mo_landuse_routines,      ONLY: read_namelists_extpar_land_use
 
   USE mo_lu_tg_fields,          ONLY: i_lu_globcover, i_lu_glc2000, i_lu_glcc, &
@@ -171,21 +169,6 @@ PROGRAM extpar_consistency_check
        &                              plcov12_lu, &
        &                              allocate_lu_target_fields, allocate_add_lu_fields
 
-  USE mo_isa_tg_fields,         ONLY: isa_field, &
-       &                              isa_tot_npixel, &
-       &                              allocate_isa_target_fields, &
-       &                              allocate_add_isa_fields
-
-  USE mo_isa_routines,          ONLY: read_namelists_extpar_isa
-
-  USE mo_ahf_tg_fields,         ONLY: ahf_field, &
-       &                              allocate_ahf_target_fields
-
-  USE mo_ahf_data,              ONLY: undef_ahf, minimal_ahf, iahf_type
-
-  USE mo_ahf_output_nc,         ONLY: read_netcdf_buffer_ahf
-
-  USE mo_ahf_routines,          ONLY: read_namelists_extpar_ahf
 
   USE mo_topo_tg_fields,        ONLY: fr_land_topo,       &
        &                              hh_topo,            &
@@ -217,11 +200,20 @@ PROGRAM extpar_consistency_check
        &                              aot_tg,&
        &                              MAC_aot_tg,&
        &                              MAC_ssa_tg,&
-       &                              MAC_asy_tg
+       &                              MAC_asy_tg, &
+       &                              CAMS_tg
 
-  USE mo_aot_output_nc,         ONLY: read_netcdf_buffer_aot, read_netcdf_buffer_aot_MAC
+  USE mo_aot_output_nc,         ONLY: read_netcdf_buffer_aot, &
+      &                               read_netcdf_buffer_aot_MAC, &
+      &                               read_netcdf_buffer_aot_CAMS 
 
-  USE mo_aot_data,              ONLY: ntype_aot, ntime_aot, iaot_type, n_spectr, nspb_aot
+  USE mo_aot_data,              ONLY: ntype_aot, & 
+      &                               ntime_aot, &
+      &                               iaot_type, &
+      &                               n_spectr , &
+      &                               ntype_cams, &
+      &                               nspb_aot, &
+      &                               nlevel_cams 
 
   USE mo_aot_data,              ONLY: read_namelists_extpar_aerosol
 
@@ -250,9 +242,6 @@ PROGRAM extpar_consistency_check
 
   USE mo_oro_filter,            ONLY: read_namelists_extpar_orosmooth
 
-  USE mo_isa_data,              ONLY: max_tiles_isa, &
-       &                              undef_isa, minimal_isa, isa_type
-
   USE mo_python_data,           ONLY: &
   ! emiss                                      
        &                              ntime_emiss, &
@@ -271,7 +260,17 @@ PROGRAM extpar_consistency_check
        &                              ialb_type, &
   ! era
        &                              iera_type, &
-       &                              ntime_era
+       &                              ntime_era, &
+  ! ahf
+       &                              undef_ahf, &
+       &                              minimal_ahf, &
+       &                              iahf_type, &
+  ! isa
+       &                              max_tiles_isa, &
+       &                              undef_isa, &
+       &                              minimal_isa, &
+       &                              isa_type
+
 
   USE mo_python_routines,       ONLY: read_namelists_extpar_emiss, &
        &                              read_namelists_extpar_t_clim, &
@@ -279,7 +278,9 @@ PROGRAM extpar_consistency_check
        &                              read_namelists_extpar_alb, &
        &                              open_netcdf_ALB_data, &
        &                              const_check_interpol_alb, &
-       &                              read_namelists_extpar_era
+       &                              read_namelists_extpar_era, &
+       &                              read_namelists_extpar_ahf, &
+       &                              read_namelists_extpar_isa
 
   USE mo_python_tg_fields,      ONLY: &
   ! emiss                                      
@@ -307,13 +308,22 @@ PROGRAM extpar_consistency_check
        &                              wsnow_field, &
        &                              t2m_field, &
        &                              hsurf_field, &
-       &                              allocate_era_target_fields
+       &                              allocate_era_target_fields, &
+  ! ahf
+       &                              ahf_field, &
+       &                              allocate_ahf_target_fields, &
+  ! isa
+       &                              isa_field, &
+       &                              allocate_isa_target_fields
+
 
   USE mo_python_output_nc,      ONLY: read_netcdf_buffer_emiss, &
        &                              read_netcdf_buffer_ndvi, &
        &                              read_netcdf_buffer_cru, &
        &                              read_netcdf_buffer_alb, &
-       &                              read_netcdf_buffer_era
+       &                              read_netcdf_buffer_era, &
+       &                              read_netcdf_buffer_ahf, &
+       &                              read_netcdf_buffer_isa
 
   USE mo_io_utilities,          ONLY: join_path 
   
@@ -508,7 +518,7 @@ PROGRAM extpar_consistency_check
   !---------------------------------------------------------------------------------------------------------
   !---------------------------------------------------------------------------------------------------------
 
-  CALL initialize_logging("extpar_consistency.log")
+  CALL initialize_logging("extpar_consistency_check.log")
   CALL info_print ()
 
   !--------------------------------------------------------------------------------------------------------
@@ -837,7 +847,6 @@ PROGRAM extpar_consistency_check
   END IF
   IF (l_use_isa) THEN
     CALL allocate_isa_target_fields(tg, l_use_array_cache)
-    CALL allocate_add_isa_fields(tg, l_use_array_cache)
   END IF
 
   CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_cache)
@@ -853,7 +862,8 @@ PROGRAM extpar_consistency_check
 
   CALL allocate_topo_target_fields(tg,nhori,l_use_sgsl, l_use_array_cache)
 
-  CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot, l_use_array_cache)
+  CALL allocate_aot_target_fields(tg, iaot_type, ntime_aot, ntype_aot, nspb_aot, & 
+                                  nlevel_cams, ntype_cams, l_use_array_cache)
 
   CALL allocate_cru_target_fields(tg, l_use_array_cache)
 
@@ -976,8 +986,7 @@ PROGRAM extpar_consistency_check
     CALL logging%info('ISA')
     CALL read_netcdf_buffer_isa(isa_buffer_file,  &
           &                      tg,         &
-          &                      isa_field, &
-          &                      isa_tot_npixel )
+          &                      isa_field)
   END IF
 
   !-------------------------------------------------------------------------
@@ -1104,6 +1113,12 @@ PROGRAM extpar_consistency_check
           &                                     MAC_aot_tg,     &
           &                                     MAC_ssa_tg,     &
           &                                     MAC_asy_tg)
+  ELSEIF (iaot_type == 5) THEN
+     CALL read_netcdf_buffer_aot_CAMS (aot_buffer_file,         &
+          &                                     tg,             &
+          &                                     ntime_aot,      &
+          &                                     ntype_cams,     &
+          &                                     CAMS_tg)
   ELSE
      CALL read_netcdf_buffer_aot(aot_buffer_file,    &
           &                                     tg,       &
@@ -1957,9 +1972,6 @@ PROGRAM extpar_consistency_check
     CALL logging%info( '')
     CALL logging%info('AHF/ISA')
 
-     !minimal_ndvi = 0.09 ! bare soil value
-     !undef_ndvi   = 0.0  ! no vegetation
-
      WHERE (fr_land_lu < MERGE(0.01,0.5,tile_mask)) ! set undefined ISA value (0.0) for water grid elements
        isa_field = undef_isa
      ELSEWHERE ! fr_land_lu >= 0.5
@@ -1979,7 +1991,11 @@ PROGRAM extpar_consistency_check
      WHERE (fr_land_lu < 0.5)  ! set water soiltype for water grid elements
        isa_field=0.
      ENDWHERE
+    ! Scale ISA from 0-100% to 0-1 for FR_PAVED
+    isa_field=0.01_wp*isa_field
+
   END IF
+
 
   !-------------------------------------------------------------------------
   CALL logging%info( '')
@@ -2454,6 +2470,7 @@ PROGRAM extpar_consistency_check
          &                                     aniso_topo,                    &
          &                                     slope_topo,                    &
          &                                     aot_tg,                        &
+         &                                     CAMS_tg,                       &
          &                                     crutemp,                       &
          &                                     alb_field_mom,                 &
          &                                     alnid_field_mom,               &
@@ -2534,6 +2551,7 @@ PROGRAM extpar_consistency_check
          &                                     MAC_aot_tg,                    &
          &                                     MAC_ssa_tg,                    &
          &                                     MAC_asy_tg,                    &
+         &                                     CAMS_tg,                       &
          &                                     crutemp,                       &
          &                                     alb_field_mom,                 &
          &                                     alnid_field_mom,               &
@@ -2616,6 +2634,7 @@ PROGRAM extpar_consistency_check
          &                                     MAC_aot_tg,                    &
          &                                     MAC_ssa_tg,                    &
          &                                     MAC_asy_tg,                    &
+         &                                     CAMS_tg,                       &
          &                                     crutemp,                       &
          &                                     alb_field_mom,                 &
          &                                     alnid_field_mom,               &

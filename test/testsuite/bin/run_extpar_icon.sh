@@ -8,24 +8,27 @@ ulimit -c 0
 
 # get hostname
 hostname="`echo $HOSTNAME`"
-logfile="extpar_runscript.log"
+logfile="runscript.log"
 
 rm ${logfile}
 
 #--------------------------------------------------------------------------------
 # define host-dependent paths and variables
 
-# CSCS
-if [[ $hostname == daint* || $hostname == nid* || $hostname == tsa* ]]; then
+# Daint
+if [[ $hostname == daint* || $hostname == nid* ]]; then
+
+    data_dir="$PWD/../../../input-data"
+
+# Tsa
+elif [[ $hostname == tsa* || $hostname == arolla* ]]; then
 
     # NetCDF raw data for external parameter
-    data_dir=/store/c2sm/extpar_raw_data/linked_data
+    data_dir="$PWD/../../../input-data"
 
 # mistral
 elif [[ $hostname == m* ]]; then
 
-    export OMP_NUM_THREADS=2
-    
     # directories
     data_dir=/work/pd1167/extpar-input-data/linked_data
 
@@ -61,6 +64,8 @@ binary_ndvi=extpar_ndvi_to_buffer.py
 binary_emiss=extpar_emiss_to_buffer.py
 binary_tclim=extpar_cru_to_buffer.py
 binary_era=extpar_era_to_buffer.py
+binary_isa=extpar_isa_to_buffer.py
+binary_ahf=extpar_ahf_to_buffer.py
 
 # fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
@@ -68,7 +73,6 @@ binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
-binary_isa=extpar_isa_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # link raw data files to local workdir
@@ -129,6 +133,11 @@ fi
 
 if [[ $name_of_test == icon_d2 || $name_of_test == icon_d2_caching ]]; then
     run_sequential ${binary_era}
+fi
+
+if [[ $type_of_test == ecmwf ]]; then
+    run_sequential ${binary_isa}
+    run_sequential ${binary_ahf}
 fi
 
 run_sequential ${binary_consistency_check}
