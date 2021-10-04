@@ -88,7 +88,7 @@ The extpar code comes with a technical testsuite to ensure the accuracy of the r
 For more information about how the testsuite can be run or new test added see [testsuite-documentation](doc/testing.md)
 
 # Information for developers
-The coding rules and development workflow for Extpar can be found [here](doc/development.md)
+In case you want to contribute to Extpar please have a look at our [coding rules and development workflow](doc/development.md).
 
 # Support 
 In the case of issues or questions, please contact the current source code administrator (Jonas Jucker) at jonas.jucker@c2sm.ethz.ch.  
