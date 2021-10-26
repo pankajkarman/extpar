@@ -1,4 +1,11 @@
 # Release notes
+## 5.7.1
+This is a minor release with two bugfixes, one for the build-system and one for extpar_topo_to_buffer.
+* Build-system:
+  - Install Python-CDO script in bin-folder directly in Makefile
+  - Out-of-source build include Python-CDO scripts as well
+ * extpar_topo_to_buffer:
+   - Abort Extpar for itopo_type = 3
 ## 5.7
 This is an intermediate release that introduces two Python-CDO scripts, modifications for reduced memory usage
 for non-global grids and a bugfix for the CAMS-aersosol dataset.
