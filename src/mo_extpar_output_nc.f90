@@ -1135,6 +1135,7 @@ MODULE mo_extpar_output_nc
          &     surfaceID,  &
          &     class_luID, &
          &     nhoriID,    &
+         &     nlevelcamsID, &
          &     taxisID,    &
          &     vlistID,    &
          &     tsID,       &
@@ -1369,6 +1370,11 @@ MODULE mo_extpar_output_nc
       CALL zaxisDefName(nhoriID, "nhori");
     ENDIF
 
+    IF (iaot_type == 5) THEN
+      nlevelcamsID = zaxisCreate(ZAXIS_GENERIC, nlevel_cams)
+      CALL zaxisDefName(nlevelcamsID, "nlevel_cams");
+    ENDIF
+
     taxisID = taxisCreate(TAXIS_ABSOLUTE)
 
     vlistID = vlistCreate()
@@ -1450,18 +1456,18 @@ MODULE mo_extpar_output_nc
     ndvi_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_field_mom_meta, undefined)
     ndvi_ratio_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_ratio_mom_meta, undefined)
     IF (iaot_type == 5) THEN
-      CAMS_SS1_ID      = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_SS1_tg_meta     , undefined)
-      CAMS_SS2_ID      = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_SS2_tg_meta     , undefined)
-      CAMS_SS3_ID      = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_SS3_tg_meta     , undefined)
-      CAMS_DUST1_ID    = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_DUST1_tg_meta   , undefined)
-      CAMS_DUST2_ID    = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_DUST2_tg_meta   , undefined)
-      CAMS_DUST3_ID    = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_DUST3_tg_meta   , undefined)
-      CAMS_OCphilic_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_OCphilic_tg_meta, undefined)
-      CAMS_OCphobic_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_OCphobic_tg_meta, undefined)
-      CAMS_BCphilic_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_BCphilic_tg_meta, undefined)
-      CAMS_BCphobic_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_BCphobic_tg_meta, undefined)
-      CAMS_SU_ID       = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_SU_tg_meta      , undefined)
-      CAMS_p_lev_ID    = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, CAMS_plev_tg_meta    , undefined)
+      CAMS_SS1_ID      = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_SS1_tg_meta     , undefined)
+      CAMS_SS2_ID      = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_SS2_tg_meta     , undefined)
+      CAMS_SS3_ID      = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_SS3_tg_meta     , undefined)
+      CAMS_DUST1_ID    = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_DUST1_tg_meta   , undefined)
+      CAMS_DUST2_ID    = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_DUST2_tg_meta   , undefined)
+      CAMS_DUST3_ID    = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_DUST3_tg_meta   , undefined)
+      CAMS_OCphilic_ID = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_OCphilic_tg_meta, undefined)
+      CAMS_OCphobic_ID = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_OCphobic_tg_meta, undefined)
+      CAMS_BCphilic_ID = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_BCphilic_tg_meta, undefined)
+      CAMS_BCphobic_ID = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_BCphobic_tg_meta, undefined)
+      CAMS_SU_ID       = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_SU_tg_meta      , undefined)
+      CAMS_p_lev_ID    = defineVariable(vlistID, gridID, nlevelcamsID, TIME_VARYING, CAMS_plev_tg_meta    , undefined)
     ELSE
       aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
       aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
@@ -1684,7 +1690,10 @@ MODULE mo_extpar_output_nc
     n=1 ! lu_class_fraction
     CALL streamWriteVar(fileID, lu_class_fraction_ID, lu_class_fraction(1:icon_grid%ncell,1,1,1:nclass_lu), 0_i8)
 
+    CALL logging%info('time-dependent fields:')
     DO tsID = 1, ntime_ndvi
+      WRITE(message_text,'(a,i2)') '  time-level ',tsID
+      CALL logging%info(message_text)
       CALL taxisDefVdate(taxisID, INT(time(tsID),i8))
       CALL taxisDefVtime(taxisID, 0)
       iret = streamDefTimestep(fileID, tsID - 1)
@@ -1760,7 +1769,7 @@ MODULE mo_extpar_output_nc
         CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
       ENDIF
 
-    END DO
+    ENDDO
 
     !-----------------------------------------------------------------
 
@@ -1770,6 +1779,7 @@ MODULE mo_extpar_output_nc
     CALL zaxisDestroy(surfaceID)
     CALL zaxisDestroy(class_luID)
     IF(l_radtopo) CALL zaxisDestroy(nhoriID)
+    IF (iaot_type == 5) CALL zaxisDestroy(nlevel_cams)
 
     !-----------------------------------------------------------------
     CALL streamClose(fileID)
