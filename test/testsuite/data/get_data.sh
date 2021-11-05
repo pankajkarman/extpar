@@ -85,7 +85,7 @@ cd -
 test -d dwd || exit 1
 
 cd dwd/icon_d2
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_intel_icon_d2_PR207.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_intel_icon_d2_PR261.nc'
 cd -
 
 # mpim
