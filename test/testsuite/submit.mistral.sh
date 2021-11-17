@@ -1,13 +1,14 @@
 #!/bin/bash
 #SBATCH --job-name="extpar"
-#SBATCH --mem-per-cpu=10G
-#SBATCH --ntasks=12
+#SBATCH --mem-per-cpu=3G
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=12 
 #SBATCH --output="job.out"
 #SBATCH --time=02:00:00
-#SBATCH --partition=prepost,shared,gpu
+#SBATCH --partition=compute,compute2,gpu,prepost,shared
 #SBATCH --account=mh0287
 
-export OMP_NUM_THREADS=12
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 source ../../modules.env
 
