@@ -12,11 +12,11 @@
 # variables to define by user
 #--------------------------------------------------------------------------------
 
-# define model for which Extpar should run: c1, c2, i1
-model="i1_dev"
+# define model for which Extpar should run: c1, c2, i1, i2, i1_dev, i2_dev
+model="i1"
 
 # Sandbox (make sure you have enough disk place at that location)!
-sandboxdir=$SCRATCH/output_extpar/icon-1
+sandboxdir=$SCRATCH/output_extpar/i1
 
 
 #--------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ source /project/g110/extpar/venv_tsa/bin/activate
 source ../modules.env
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK # manually set to 1 if run as ./script.sh
 
-#export HDF5_DISABLE_VERSION_CHECK=1
 export NETCDF_OUTPUT_FILETYPE=NETCDF4
 
 # import functions to launch Extpar executables
@@ -205,11 +204,70 @@ elif [[ $model == "i2_dev" ]]; then
     model_grid_type=1
     name_model_grid='INPUT_ICON_GRID'
 
+elif [[ $model == "i1" ]]; then
+
+    #output file names
+    netcdf_output_filename="external_parameter_icon_grid_0001_R19B08_mch.nc"
+
+    # grid definition
+    grid_dir="/store/s83/tsm/ICON_INPUT/icon-1e/"
+    grid_nc="icon_grid_0001_R19B08_mch.nc"
+
+    lsso_param='.TRUE.'
+    lsubtract_mean_slope='.FALSE.'
+
+    # orography raw data
+    ntiles_column=2
+    ntiles_row=4
+    topo_files="'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'"
+
+    #orography smoothing
+    lsmooth_oro='.FALSE.'
+    ilow_pass_oro=1
+    numfilt_oro=2
+    eps_filter=1.7
+
+    # soil: tiles
+    itile_mode=1
+
+    # model grid type
+    model_grid_type=1
+    name_model_grid='INPUT_ICON_GRID'
+
+elif [[ $model == "i2" ]]; then
+
+    #output file names
+    netcdf_output_filename="external_parameter_icon_grid_0002_R19B07_mch.nc"
+
+    # grid definition
+    grid_dir="/store/s83/tsm/ICON_INPUT/icon-2e/"
+    grid_nc="icon_grid_0002_R19B07_mch.nc"
+
+    lsso_param='.TRUE.'
+    lsubtract_mean_slope='.FALSE.'
+
+    # orography raw data
+    ntiles_column=2
+    ntiles_row=4
+    topo_files="'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'"
+
+    #orography smoothing
+    lsmooth_oro='.FALSE.'
+    ilow_pass_oro=1
+    numfilt_oro=2
+    eps_filter=1.7
+
+    # soil: tiles
+    itile_mode=1
+
+    # model grid type
+    model_grid_type=1
+    name_model_grid='INPUT_ICON_GRID'
 
 
 else
     echo $model
-    echo " Please specify one of the following models: Cosmo1 => c1, Cosmo2 => c2, or Icon1 => i1"
+    echo " Please specify one of the following models: c1, c2, i1, i2, i1_dev, i2_dev"
     exit
 
 fi
@@ -471,7 +529,7 @@ cat > INPUT_OROSMOOTH << EOF_orosm
   rxso_mask=750.0,
   eps_filter=${eps_filter},
   rfill_valley=0.0,
-  ifill_valley=7
+  ifill_valley=2
 /
 EOF_orosm
 
@@ -542,29 +600,28 @@ EOF_check
 
 # 1. run topography first (is needed for CRU data processing)
 #--------------------------------
-#run_sequential ${binary_topo}    # topography
+run_sequential ${binary_topo}    # topography
 
 # 2. run rest which is needed for ICON
 #--------------------------------
 run_sequential ${binary_alb}      # albedo
 run_sequential ${binary_aot}      # aerosol optical thickness
+run_sequential ${binary_emiss}    # emissivity
+run_sequential ${binary_era}      # era climatology
 run_sequential ${binary_flake}    # fraction lake
 run_sequential ${binary_lu}       # land use
 run_sequential ${binary_ndvi}     # normalized difference vegetation index
 run_sequential ${binary_tclim}    # cru: temperature climatology
 run_sequential ${binary_soil}     # soil
 
-# binaries which are normally not needed for icon-nwp
+
+# 3. binaries which are normally not needed for icon-nwp
+#--------------------------------
 # run_sequential ${binary_ahf}    # anthropogenic heat flux
-# run_sequential ${binary_era}    # era climatology
-# run_sequential ${binary_emiss}  # emissivity
 # run_sequential ${binary_isa}    # impervious surface area
 
 
-# 3. not mandatory for running icon
-#--------------------------------
-
-# finally: run consistency check
+# 4. finally: run consistency check
 #--------------------------------
 run_sequential ${binary_consistency_check}
 
