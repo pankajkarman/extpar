@@ -21,7 +21,7 @@
 #  - unst_1_nofilter
 #  - unst_3_filter
 #  - unst_3_nofilter
-model="reg_3_filter"
+model="reg_3_nofilter"
 
 # Sandbox (make sure you have enough disk place at that location)!
 sandboxdir=$SCRATCH/output_extpar/teamx/${model}
@@ -118,6 +118,39 @@ if [[ $model == "reg_1_filter" ]]; then
     model_grid_type=2
     name_model_grid="INPUT_COSMO_GRID"
 
+elif [[ $model == "reg_1_nofilter" ]]; then
+
+    #output file names
+    netcdf_output_filename="external_parameter_${model}.nc"
+
+    # grid definition
+    rot_pol_lon=-168.6 # -170.0 , Innsbruck @ 11.4°E
+    rot_pol_lat=42.7 # 43.0,      Innsbruck @ 47.3°N
+    startlon_tot=-7.8
+    startlat_tot=-4.6
+    dlon=0.01
+    dlat=0.01
+    ie_tot=1182
+    je_tot=762
+
+    lsso_param=".TRUE."
+    lsubtract_mean_slope=".FALSE."
+
+    # orography raw data
+    ntiles_column=2
+    ntiles_row=4
+    topo_files="'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'"
+
+    #orography smoothing
+    lsmooth_oro=".FALSE."
+
+    # soil: tiles
+    itile_mode=0
+
+    # model grid
+    model_grid_type=2
+    name_model_grid="INPUT_COSMO_GRID"
+
 elif [[ $model == "reg_3_filter" ]]; then
 
     #output file names
@@ -153,6 +186,40 @@ elif [[ $model == "reg_3_filter" ]]; then
     # model grid
     model_grid_type=2
     name_model_grid="INPUT_COSMO_GRID"
+
+elif [[ $model == "reg_3_nofilter" ]]; then
+
+    #output file names
+    netcdf_output_filename="external_parameter_${model}.nc"
+
+    # grid definition
+    rot_pol_lon=-168.6 # -170.0 , Innsbruck @ 11.4°E
+    rot_pol_lat=42.7 # 43.0,      Innsbruck @ 47.3°N
+    startlon_tot=-7.8
+    startlat_tot=-4.6
+    dlon=0.03
+    dlat=0.03
+    ie_tot=394
+    je_tot=254
+
+    lsso_param=".TRUE."
+    lsubtract_mean_slope=".FALSE."
+
+    # orography raw data
+    ntiles_column=2
+    ntiles_row=4
+    topo_files="'ASTER_orig_T006.nc' 'ASTER_orig_T007.nc' 'ASTER_orig_T018.nc' 'ASTER_orig_T019.nc' 'ASTER_orig_T030.nc' 'ASTER_orig_T031.nc' 'ASTER_orig_T042.nc' 'ASTER_orig_T043.nc'"
+
+    #orography smoothing
+    lsmooth_oro=".FALSE."
+
+    # soil: tiles
+    itile_mode=0
+
+    # model grid
+    model_grid_type=2
+    name_model_grid="INPUT_COSMO_GRID"
+
 
 
 elif [[ $model == "i1_dev" ]]; then
