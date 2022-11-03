@@ -42,7 +42,6 @@ MODULE mo_soil_data
 
   PUBLIC :: FAO_data, HWSD_data, HWSD_map
   PUBLIC :: soil_data
-  PUBLIC :: deep_soil
 
   PUBLIC :: lon_full, lat_full
 
@@ -104,11 +103,9 @@ MODULE mo_soil_data
        &                          HWSD_data = 2, &
        &                          HWSD_map = 3
 
-  LOGICAL                      :: deep_soil
-
   CONTAINS
 
-  SUBROUTINE define_soiltype(isoil_data, ldeep_soil, &
+  SUBROUTINE define_soiltype(isoil_data, &
                              undef_soiltype,         &
                              default_soiltype,       &
                              soiltype_ice,           &
@@ -118,7 +115,6 @@ MODULE mo_soil_data
     IMPLICIT NONE
 
     INTEGER(KIND=i4),  INTENT(IN)  :: isoil_data
-    LOGICAL,           INTENT(IN)  :: ldeep_soil
     INTEGER (KIND=i4), INTENT(OUT) :: undef_soiltype, &
          &                            default_soiltype, &
          &                            soiltype_ice, &
@@ -126,7 +122,6 @@ MODULE mo_soil_data
          &                            soil_data
 
     soil_data = isoil_data
-    deep_soil = ldeep_soil
 
     SELECT CASE(isoil_data)
       CASE(FAO_data, HWSD_map)

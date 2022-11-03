@@ -71,33 +71,26 @@ MODULE mo_soil_routines
   !> subroutine to read namelist for soil data settings for EXTPAR 
   SUBROUTINE read_namelists_extpar_soil(namelist_file,                 &
                                          isoil_data,                 &
-                                         ldeep_soil,                 &
                                          raw_data_soil_path,         &
                                          raw_data_soil_filename,     &
-                                         raw_data_deep_soil_filename,&
-                                         soil_buffer_file,           &
-                                         soil_buffer_file_consistent,&
-                                         soil_output_file_consistent)
+                                         soil_buffer_file)
   
     CHARACTER (len=*), INTENT(IN)  :: namelist_file !< filename with namelists for for EXTPAR settings
     
     INTEGER (KIND=i4), INTENT(OUT) :: isoil_data !< 1 for FAO data , 2 for HWSD
-    LOGICAL,           INTENT(OUT) :: ldeep_soil !< can only be true if HWSD data is chosen
     
     CHARACTER (len=filename_max)   :: raw_data_soil_path, &        !< path to raw data
          &                            raw_data_soil_filename, & !< filename soil raw data
-         &                            raw_data_deep_soil_filename, & !< filename deep soil raw data
-         &                            soil_buffer_file, &  !< name for soil buffer file
-         &                            soil_buffer_file_consistent, & !< name for soil buffer file after consistency check
-         &                            soil_output_file_consistent !< name for soil output file after consistency check
+         &                            soil_buffer_file  !< name for soil buffer file
 
     INTEGER (KIND=i4)              :: ierr, nuin
+    LOGICAL                        :: ldeep_soil =.FALSE.
 
     !>Define the namelist group for soil raw data
-    NAMELIST /soil_raw_data/ isoil_data, ldeep_soil, raw_data_soil_path, raw_data_soil_filename, raw_data_deep_soil_filename
+    NAMELIST /soil_raw_data/ isoil_data, ldeep_soil, raw_data_soil_path, raw_data_soil_filename
 
     !> namelist with filenames for output of soil data
-    NAMELIST /soil_io_extpar/ soil_buffer_file, soil_buffer_file_consistent, soil_output_file_consistent
+    NAMELIST /soil_io_extpar/ soil_buffer_file
 
     nuin = free_un()  ! functioin free_un returns free Fortran unit number
     OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
@@ -117,6 +110,11 @@ MODULE mo_soil_routines
     ENDIF
 
     CLOSE(nuin)
+
+    IF (ldeep_soil) THEN
+      CALL logging%error('ldeep_soil = .TRUE. not supported anymore in Extpar Release 5.11',__FILE__, __LINE__) 
+    ENDIF
+
   
   END SUBROUTINE read_namelists_extpar_soil
 
