@@ -44,9 +44,7 @@ MODULE mo_soil_routines
        &                              lon_soil, &
        &                              lat_soil, &
        &                              soil_texslo, &
-       &                              soil_texslo_deep, &
        &                              dsmw_soil_unit, &
-       &                              dsmw_deep_soil_unit, &
        &                              n_unit, &
        &                              dsmw_grid
 
@@ -247,7 +245,6 @@ MODULE mo_soil_routines
       CALL check_netcdf( nf90_inquire_dimension(ncid,dimid, dimname, length) )
       IF ( TRIM(dimname) == 'soil_unit') n_unit=length        ! here I know that the name of unit dimension is 'soil_unit'
     ENDDO
-    ! the deep soil has the same dimensions as the top soil
     !; the varid in netcdf files is counted from 1 to nVars
     !; look for variable names, number of dimension, var_dimids etc with nf90_inquire_variable
     !; nf90_inquire_variable input: ncid, varid; nf90_inquire_variable output name xtype, ndim, var_dimids, nAtts

@@ -29,9 +29,7 @@ MODULE mo_soil_data
        &    allocate_raw_soil_fields,      &
        &    dsmw_legend,                   & 
        &    soil_texslo,                   &
-       &    soil_texslo_deep,              &
        &    dsmw_soil_unit,                &
-       &    dsmw_deep_soil_unit,           &
        &    n_unit,                        &
        &    dsmw_grid,                     &
        &    lon_soil,                      &
@@ -67,8 +65,7 @@ MODULE mo_soil_data
 
   END TYPE dsmw_legend
 
-  TYPE(dsmw_legend), ALLOCATABLE :: soil_texslo(:), &                  !< legend for DSMW with texture and slope information
-       &                            soil_texslo_deep(:)             !< legend for DSMW with texture and slope information
+  TYPE(dsmw_legend), ALLOCATABLE :: soil_texslo(:)                  !< legend for DSMW with texture and slope information
 
   TYPE(reg_lonlat_grid)          :: dsmw_grid
 
@@ -76,8 +73,6 @@ MODULE mo_soil_data
 
   ! FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo)
   INTEGER (KIND=i4), ALLOCATABLE :: dsmw_soil_unit(:,:)
-  ! FAO Digital Soil Map of the World, the values represent the soil unit number (see for legend in variable soil_texslo) 
-  INTEGER (KIND=i4), ALLOCATABLE :: dsmw_deep_soil_unit(:,:) 
 
   ! longitide coordinates of the soil grid in the geographical (lonlat) system, dimension (nlon_reg)
   REAL (KIND=wp), ALLOCATABLE    :: lon_soil(:)

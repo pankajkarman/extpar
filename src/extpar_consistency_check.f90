@@ -1372,13 +1372,13 @@ PROGRAM extpar_consistency_check
     CASE(HWSD_data)
 
       CALL calculate_soiltype(tg,            &
-          &                          soiltype_FAO,  &
-          &                          soiltype_HWSD,  &
-          &                          fr_sand,       &
-          &                          fr_silt,       &
-          &                          fr_clay,       &
-          &                          fr_oc,         &
-          &                          fr_bd          )
+          &                   soiltype_FAO,  &
+          &                   soiltype_HWSD,  &
+          &                   fr_sand,       &
+          &                   fr_silt,       &
+          &                   fr_clay,       &
+          &                   fr_oc,         &
+          &                   fr_bd          )
 
       ! Use land-use data for setting glacier points to soiltype ice
       db_ice_counter = 0

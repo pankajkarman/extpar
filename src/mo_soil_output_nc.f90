@@ -41,7 +41,6 @@ MODULE mo_soil_output_nc
        &                             fr_land_soil_meta, &
        &                             soiltype_fao_meta, &
        &                             def_com_target_fields_meta, &
-       &                             soiltype_FAO_deep_meta, &
        &                             dim_3d_tg,&
        &                             lon_geo_meta, &
        &                             lat_geo_meta, &
