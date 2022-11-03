@@ -39,7 +39,6 @@ MODULE mo_soil_consistency
   CONTAINS
 
   SUBROUTINE calculate_soiltype(tg,            &
-        &                       ldeep_soil,    &
         &                       soiltype_fao,  &
         &                       soiltype_hwsd,  &
         &                       fr_sand,       &
@@ -54,7 +53,6 @@ MODULE mo_soil_consistency
         &                       fr_bd_deep     )
 
     TYPE(target_grid_def), INTENT(IN)    :: tg
-    LOGICAL, INTENT(IN)                  :: ldeep_soil
     INTEGER (KIND=i4), INTENT(INOUT)     :: soiltype_hwsd(:,:,:), &!(1:tg%ie,1:tg%je,1:tg%ke)
          &                                  soiltype_fao(:,:,:)!(1:tg%ie,1:tg%je,1:tg%ke)
    
@@ -136,17 +134,6 @@ MODULE mo_soil_consistency
     END DO
     CLOSE(nuin)
 
-    IF (ldeep_soil) THEN
-      nuin = free_un()
-      path_HWSD_data_deep = join_path(path_HWSD_index_files,HWSD_data_deep)
-      OPEN(nuin,file=TRIM(path_HWSD_data_deep), status='old')
-      READ(nuin,*) !header
-      DO i=1,n_soil_db
-        READ(nuin,*) HWSD_SU_DB_S(i),S_SAND(i),S_SILT(i),S_CLAY(i),S_OC(i),S_BD(i)
-      END DO
-      CLOSE(nuin)
-    ENDIF
-
     nuin = free_un()
     path_HWSD_data_extpar = join_path(path_HWSD_index_files,HWSD_data_extpar)
     OPEN(nuin,file=TRIM(path_HWSD_data_extpar), status='unknown')
@@ -164,17 +151,6 @@ MODULE mo_soil_consistency
               fr_oc(i,j,k)=T_OC(i_soil_db)
               fr_bd(i,j,k)=T_BD(i_soil_db)
             END IF
-            IF (ldeep_soil) THEN
-              IF(INT(HWSD_SU(ic))==HWSD_SU_DB_S(i_soil_db)) THEN
-              
-                fr_sand_deep(i,j,k)=S_SAND(i_soil_db)
-                fr_silt_deep(i,j,k)=S_SILT(i_soil_db)
-                fr_clay_deep(i,j,k)=S_CLAY(i_soil_db)
-                fr_oc_deep(i,j,k)=S_OC(i_soil_db)
-                fr_bd_deep(i,j,k)=S_BD(i_soil_db)
-                              
-              END IF
-            ENDIF
             
             IF(HWSD_TERRA(ic)>0._wp.AND.HWSD_TERRA(ic).le.9._wp) soiltype_fao(i,j,k)=INT(HWSD_TERRA(ic))
             IF(HWSD_TERRA(ic)>9._wp) soiltype_fao(i,j,k)=5 ! for undef soiltypes (<9 and 255) use loam

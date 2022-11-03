@@ -55,7 +55,6 @@ MODULE mo_soil_routines
   PRIVATE
 
   PUBLIC :: get_soil_data
-  PUBLIC :: get_deep_soil_data
   PUBLIC :: get_dimension_soil_data
   PUBLIC :: read_namelists_extpar_soil
 
@@ -305,75 +304,4 @@ MODULE mo_soil_routines
        
   END SUBROUTINE get_soil_data
      !------------------------------------------------------------------------------------------------------------
-
-        !> get coordintates, legend and data for soil raw data 
-  SUBROUTINE get_deep_soil_data(path_deep_soil_file,start)
-
-    INTEGER , INTENT(IN)          :: start(2)
-    CHARACTER (LEN=*), INTENT(IN) :: path_deep_soil_file !< filename with path for deep soil raw data
-
-    !local variables
-    INTEGER(KIND=i4)              :: ncid_deep, &                        !< netcdf unit file number
-         &                           ndimension_deep, &                       !< number of dimensions in netcdf file
-         &                           nVars_deep, &                            !< number of variables in netcdf file
-         &                           nGlobalAtts_deep, &                      !< number of gloabal Attributes in netcdf file
-         &                           unlimdimid_deep, &                       !< id of unlimited dimension (e.g. time) in netcdf file
-         &                           varid_deep, &                            !< id of variable
-         &                           xtype_deep, &                            !< netcdf type of variable/attribute
-         &                           ndim_deep, &                             !< number of dimensions of variable
-         &                           errorcode, &                        !< error status variable
-         &                           nAtts_deep                       !< number of attributes for a netcdf variable
-
-    CHARACTER (LEN=80)            :: varname_deep               !< name of variable
-
-    INTEGER(KIND=i4), ALLOCATABLE :: var_dimids_deep(:)  !< id of variable dimensions, vector, maximal dimension ndimension
-
-    CALL check_netcdf( nf90_open(TRIM(path_deep_soil_file),NF90_NOWRITE, ncid_deep))
-
-    CALL check_netcdf (nf90_inquire(ncid_deep,ndimension_deep, nVars_deep, nGlobalAtts_deep,unlimdimid_deep))
-        
-    ALLOCATE (var_dimids_deep(ndimension_deep), STAT=errorcode)
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array var_dimids_deep',__FILE__,__LINE__)
-    var_dimids_deep = 0
-        
-    variables_deep: DO varid_deep=1,nVars_deep
-      CALL check_netcdf(nf90_inquire_variable(ncid_deep,varid_deep,varname_deep, & !_br 21.02.14 splitted too long line
-                            xtype_deep, ndim_deep, var_dimids_deep, nAtts_deep))    !_br 21.02.14
-        getvar_deep: SELECT CASE(TRIM(varname_deep))
-            
-          CASE('code')    !  here I know that the variable with the dsmw_code is called 'code'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%dsmw_code) )
-            
-          CASE('tex_coarse')!  here I know that the variable with the  coarse texture part is called 'tex_coarse'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%tex_coarse) )
-            
-          CASE('tex_medium')!  here I know that the variable with the medium texture part is called 'tex_medium'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%tex_medium) )
-            
-          CASE('tex_fine')!  here I know that the variable with the fine texture part is called 'tex_fine'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%tex_fine) )
-
-          CASE('undefined')!  here I know that the variable with the undefined soil part is called 'undefined'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%part_undefined) )
-            
-          CASE('flat')!  here I know that the variable with the flat area part is called 'flat'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%flat) )
-            
-          CASE('hilly')!  here I know that the variable with the hilly area part is called 'hilly'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%hilly) )
-            
-          CASE('steep')!  here I know that the variable with the steep area part is called 'steep'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,soil_texslo_deep(:)%steep) )
-            
-          CASE('Soil')  !  here I know that the variable with the DSMW soil units is called 'Soil'
-            CALL check_netcdf(nf90_get_var(ncid_deep,varid_deep,dsmw_deep_soil_unit,start=start,count=(/ nlon_soil, nlat_soil /)) )
-            
-      END SELECT getvar_deep
-          
-    ENDDO variables_deep
-        
-    CALL check_netcdf( nf90_close( ncid_deep))
-
-  END SUBROUTINE get_deep_soil_data
-
 END MODULE mo_soil_routines

@@ -43,12 +43,10 @@ PROGRAM extpar_soil_to_buffer
 
   USE mo_soil_routines,         ONLY: read_namelists_extpar_soil, &
        &                              get_soil_data, &
-       &                              get_deep_soil_data, &
        &                              nlon_soil, nlat_soil, &
        &                              get_dimension_soil_data
 
   USE mo_soil_data,             ONLY: allocate_raw_soil_fields, &
-       &                              allocate_raw_deep_soil_fields, &
        &                              define_soiltype,    &
        &                              soil_texslo,        &
        &                              dsmw_soil_unit,     &

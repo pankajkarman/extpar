@@ -86,11 +86,8 @@ PROGRAM extpar_consistency_check
 
   USE mo_soil_tg_fields,        ONLY: fr_sand,fr_silt,fr_clay, &
        &                              fr_oc, fr_bd, &
-       &                              fr_sand_deep,fr_silt_deep, &
-       &                              fr_clay_deep, fr_oc_deep,  &
-       &                              fr_bd_deep, &
        &                              fr_land_soil, &
-       &                              soiltype_fao, soiltype_hwsd, soiltype_deep,soiltype_hwsd_s, &
+       &                              soiltype_fao, soiltype_hwsd, &
        &                              allocate_soil_target_fields
 
   USE mo_soil_consistency,      ONLY: calculate_soiltype
@@ -455,7 +452,6 @@ PROGRAM extpar_consistency_check
   LOGICAL                                       :: last=.FALSE., & ! in TCL leave loop
        &                                           foundtcl=.FALSE., & ! in TCL
        &                                           lsso_param,lsubtract_mean_slope, &
-       &                                           ldeep_soil, &
        &                                           l_use_isa =.FALSE., & !< flag if additional urban data are present
        &                                           l_use_ahf =.FALSE., & !< flag if additional urban data are present
        &                                           l_use_sgsl=.FALSE., & !< flag if sgsl is used in topo
@@ -1376,7 +1372,6 @@ PROGRAM extpar_consistency_check
     CASE(HWSD_data)
 
       CALL calculate_soiltype(tg,            &
-          &                          .false.,       & ! switch off deep soil for top soil calculation
           &                          soiltype_FAO,  &
           &                          soiltype_HWSD,  &
           &                          fr_sand,       &
@@ -2386,7 +2381,6 @@ PROGRAM extpar_consistency_check
          &                                     icon_grid,                     &
          &                                     tg,                            &
          &                                     isoil_data,                    &
-         &                                     ldeep_soil, &
          &                                     itopo_type,                    &
          &                                     lsso_param,                    &
          &                                     l_use_isa,                     &
@@ -2439,12 +2433,6 @@ PROGRAM extpar_consistency_check
          &                                     fr_clay = fr_clay,             &
          &                                     fr_oc = fr_oc,                 &
          &                                     fr_bd = fr_bd,                 &
-         &                                     soiltype_deep=soiltype_deep,   &
-         &                                     fr_sand_deep=fr_sand_deep,     &
-         &                                     fr_silt_deep=fr_silt_deep,     &
-         &                                     fr_clay_deep=fr_clay_deep,     &
-         &                                     fr_oc_deep=fr_oc_deep,         &
-         &                                     fr_bd_deep=fr_bd_deep,         &
          &                                     isa_field=isa_field,           &
          &                                     ahf_field=ahf_field,           &
          &                                     sst_field=sst_field,           &

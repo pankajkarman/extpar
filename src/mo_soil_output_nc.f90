@@ -45,8 +45,7 @@ MODULE mo_soil_output_nc
        &                             dim_3d_tg,&
        &                             lon_geo_meta, &
        &                             lat_geo_meta, &
-       &                             soiltype_hwsd_meta, &
-       &                             soiltype_HWSD_deep_meta
+       &                             soiltype_hwsd_meta
   
   
   IMPLICIT NONE
@@ -211,9 +210,7 @@ MODULE mo_soil_output_nc
        &                                 isoil_data,   &
        &                                 fr_land_soil, &
        &                                 soiltype_fao, &
-       &                                 soiltype_hwsd, &
-       &                                 soiltype_fao_deep, &
-       &                                 soiltype_hwsd_deep  )
+       &                                 soiltype_hwsd)
 
 
     CHARACTER (len=*), INTENT(IN)           :: netcdf_filename !< filename for the netcdf file
@@ -224,9 +221,6 @@ MODULE mo_soil_output_nc
                                             
     INTEGER(KIND=i4), INTENT(OUT)           :: soiltype_fao(:,:,:), & !< soiltype due to FAO Digital Soil map of the World
          &                                     soiltype_hwsd(:,:,:) !< soiltype due to FAO Digital Soil map of the World
-
-    INTEGER(KIND=i4), INTENT(OUT), OPTIONAL :: soiltype_FAO_deep(:,:,:), & !< soiltype due to FAO Digital Soil map of the World
-         &                                     soiltype_HWSD_deep(:,:,:) !< soiltype due to FAO Digital Soil map of the World
 
     CALL logging%info('Enter routine: read_netcdf_soil_buffer')
 
@@ -244,11 +238,6 @@ MODULE mo_soil_output_nc
 
     CALL netcdf_get_var(TRIM(netcdf_filename),soiltype_fao_meta,soiltype_fao)
     CALL netcdf_get_var(TRIM(netcdf_filename),soiltype_hwsd_meta,soiltype_hwsd)
-
-    IF(PRESENT(soiltype_FAO_deep)) THEN
-      CALL netcdf_get_var(TRIM(netcdf_filename),soiltype_FAO_deep_meta,soiltype_FAO_deep)
-      CALL netcdf_get_var(TRIM(netcdf_filename),soiltype_HWSD_deep_meta,soiltype_HWSD_deep)
-    ENDIF
 
     CALL logging%info('Exit routine: read_netcdf_soil_buffer')
 

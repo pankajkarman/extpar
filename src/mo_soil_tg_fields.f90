@@ -28,19 +28,13 @@ MODULE mo_soil_tg_fields
   PUBLIC :: fr_land_soil
   PUBLIC :: soiltype_fao
   PUBLIC :: soiltype_hwsd
-  PUBLIC :: soiltype_hwsd_s
-  PUBLIC :: soiltype_deep
   PUBLIC :: fr_sand,fr_silt,fr_clay,fr_oc,fr_bd,fr_dm
-  PUBLIC :: fr_sand_deep,fr_silt_deep,fr_clay_deep, &
-            fr_oc_deep,fr_bd_deep,fr_dm_deep
 
   PUBLIC :: allocate_soil_target_fields
 
 
   INTEGER(KIND=i4), POINTER ::     soiltype_fao(:,:,:), & !< soiltype due to FAO Digital Soil map of the World
-       &                           soiltype_hwsd(:,:,:), & !< soiltype due to HWSD
-       &                           soiltype_hwsd_s(:,:,:), & !< soiltype due to HWSD SUBSOIL
-       &                           soiltype_deep(:,:,:) !< deep soiltype due to HWSD data
+       &                           soiltype_hwsd(:,:,:) !< soiltype due to HWSD
 
   REAL(KIND=wp), POINTER        :: fr_land_soil(:,:,:), & !< fraction land due to FAO Digital Soil map of the World
        &                           fr_sand(:,:,:), & !< fraction sand due to HWSD
@@ -48,15 +42,7 @@ MODULE mo_soil_tg_fields
        &                           fr_clay(:,:,:), & !< fraction clay due to HWSD
        &                           fr_oc(:,:,:), & !< fraction oc due to HWSD
        &                           fr_bd(:,:,:), & !< fraction bd due to HWSD
-       &                           fr_dm(:,:,:), & !< dummy of HWSD
-       &                           fr_sand_deep(:,:,:), & !< fraction sand due to HWSD
-       &                           fr_silt_deep(:,:,:), & !< fraction silt due to HWSD
-       &                           fr_clay_deep(:,:,:), & !< fraction clay due to HWSD
-       &                           fr_oc_deep(:,:,:), & !< fraction oc due to HWSD
-       &                           fr_bd_deep(:,:,:), & !< fraction bd due to HWSD
-       &                           fr_dm_deep(:,:,:) !< dummy of HWSD
-
-  INTEGER(KIND=i4)              :: size_ie, size_je, size_ke
+       &                           fr_dm(:,:,:) !< dummy of HWSD
 
   CONTAINS
 
@@ -96,15 +82,6 @@ endif
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array soiltype_hwsd',__FILE__,__LINE__)
 
     soiltype_hwsd = 0
-
-if (l_use_array_cache) then
-   call allocate_cached('soiltype_hwsd_s', soiltype_hwsd_s, [tg%ie,tg%je,tg%ke])
-else
-   allocate(soiltype_hwsd_s(tg%ie,tg%je,tg%ke), stat=errorcode)
-endif
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array soiltype_hwsd',__FILE__,__LINE__)
-
-    soiltype_hwsd_s = 0
 
 if (l_use_array_cache) then
    call allocate_cached('fr_sand', fr_sand, [tg%ie,tg%je,tg%ke])
