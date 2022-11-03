@@ -736,11 +736,10 @@ The executable \textit{extpar\_soil\_to\_buffer} aggregates soil data of the FAO
 \paragraph{Target grid definition} \ \par\medskip\noindent
 The definition of the target grid is again done using the namelist 'INPUT\_grid\_org'. As the subroutines are exactly the same as the ones used in \textit{extpar\_topo\_to\_buffer}, it is referred to the subsection \textit{'Target grid definition'} in section \ref{extpar_topo_to_buffer}, where the procedure is explained in more detail. \par\medskip\noindent
 \paragraph{Raw soil data}\ \par\medskip\noindent
-The variables for the raw soil data are read from the namelist 'INPUT\_SOIL'. These variables are the path and the names of the raw data files and two switches to decide whether the FAO or the HWSD data should be used and if the deep soil data is desired or not. The integer switch \textit{isoil\_data} determines the raw data and processing used: 1 for FAO, 2 for the HWSD data-set\footnote{Release 5.0 of COSMO and 2.0 of INT2LM do not support HWSD data, as the representation of the soil associated with this new data set has changed and is based on the use of pedotransfer functions and on fraction of soil components (e.g. clay, silt, ...)} and 3 for the use of HWSD data with mapping to TERRA soil types. The switch to choose the production of deep soil information is a logical (only applicable to isoil\_data=2). Additionally, the names of the buffer files are specified. Be aware that a change of the integer switch from FAO to HWSD requires also the manual replacement of the raw data file  names in the namelist. \par\medskip\noindent
-After reading the namelist, a check is made on the production of subsoil characteristics. This is only supported for HWSD data, and a warning is issued in case of bad usage.\par\medskip\noindent
+The variables for the raw soil data are read from the namelist 'INPUT\_SOIL'. These variables are the path and the names of the raw data files and two switches to decide whether the FAO or the HWSD data should be used. The integer switch \textit{isoil\_data} determines the raw data and processing used: 1 for FAO, 2 for the HWSD data-set\footnote{Release 5.0 of COSMO and 2.0 of INT2LM do not support HWSD data, as the representation of the soil associated with this new data set has changed and is based on the use of pedotransfer functions and on fraction of soil components (e.g. clay, silt, ...)} and 3 for the use of HWSD data with mapping to TERRA soil types. Additionally, the names of the buffer files are specified. Be aware that a change of the integer switch from FAO to HWSD requires also the manual replacement of the raw data file  names in the namelist. \par\medskip\noindent
 The dimensions of the raw soil data are defined, which include the number of grid points in the latitudinal and longitudinal direction, as well as the number of soil data code of the raw data. These values are needed to allocate the soil data with the proper size. \par\medskip\noindent
 The mapping between raw data sets specific codes and some standard soil types is defined; this concerns the soil types 'undefined', 'default', 'ice' and 'water'. \par\medskip\noindent
-As the soil data is provided in one single file, all data can be read in one shot. The data that are read from the NetCDF file are the texture and the slope of the soil data and the soil code. The aggregation of the data is done in a different way for the FAO and HWSD data, as these result in two completely different variables. Moreover, for HWSD data, to conserve memory, the topsoil data are allocated first and aggregated to the target grid, before the same is done for the subsoil. \par\medskip\noindent
+As the soil data is provided in one single file, all data can be read in one shot. The data that are read from the NetCDF file are the texture and the slope of the soil data and the soil code. The aggregation of the data is done in a different way for the FAO and HWSD data, as these result in two completely different variables. \par\medskip\noindent
 \paragraph{Aggregation of the FAO and HWSD data with TERRA mapping to the target grid}\ \par\medskip\noindent
 \textit{The following paragraphs describe computations on the raw data grid.}\par\medskip\noindent
 The soil data is read using a loop over the latitude and the longitude. This results in a point-wise reading of the raw data. As soon as the point is read, its corresponding target grid element is defined. If the regular latitude/longitude grid point is not contained in the target grid, a new point is read. If however the point is inside the target grid, the aggregation can begin. \par\medskip\noindent
@@ -790,7 +789,7 @@ The soiltypes and the fraction land, together with the undefined value, the lati
 \begin{itemize}
  \item namelists files: INPUT\_grid\_org, INPUT\_COSMO\_GRID, INPUT\_ICON\_GRID, INPUT\_SOIL
 \item data input: FAO\_DSMW\_double.nc, FAO\_DSMW\_float.nc, \\
-    HWSD0\_30\_topsoil.nc, HWSD30\_100\_subsoil.nc
+    HWSD0\_30\_topsoil.nc
 \item Lookup tables for HWSD: LU\_TAB\_HWSD\_UF.data, HWSD\_DATA\_COSMO.data,\\ HWSD\_DATA\_COSMO\_S.data
 \item Output: buffer file with soil data (/soil\_io\_extpar/ soil\_buffer\_file)
 \end{itemize}
@@ -1580,13 +1579,9 @@ ndvi\_buffer\_file & character & &  & name for ndvi buffer file
 \hline
 isoil\_data & integer & & & switch to choose between the raw soil data, 1: FAO, 2: HWSD, 3:HWSD with terra mapping \tabularnewline
 \hline
-ldeep\_soil & logical & & & switch for the deep soil, can only be set to .TRUE. if the top and sub soil are deduced from the HWSD data \tabularnewline
-\hline
 raw\_data\_soil\_path & character & &  & path to soil raw data \tabularnewline
 \hline 
 raw\_data\_soil\_filename & character & &  & filename of soil raw data \tabularnewline
-\hline
-raw\_data\_deep\_soil\_\-filename & character & &  & filename of deep soil raw data \tabularnewline
 \hline
 \bottomrule
 \end{longtable}
@@ -1601,10 +1596,6 @@ raw\_data\_deep\_soil\_\-filename & character & &  & filename of deep soil raw d
 \hline
 soil\_buffer\_file & character & &  & name for soil buffer file
 \tabularnewline
-\hline
-soil\_buffer\_file\_consistent & character & &  & name for soil buffer file after consistency check \tabularnewline
-\hline
-soil\_output\_file\_consistent & character & &  & name for soil output file after consistency check \tabularnewline
 \hline
 \bottomrule
 \end{longtable}
@@ -1624,12 +1615,6 @@ lookup\_table\_HWSD & character & &  & lookup table to convert soiltype index fr
 \tabularnewline
 \hline
 HWSD\_data & character & &  & lookup table to convert the global soiltype in fractions of sand, silt, clay and organic carbon and in bulk density for the topsoil 
-\tabularnewline
-\hline
-HWSD\_data\_deep & character & &  & lookup table to convert the global soiltype in fractions of sand, silt, clay and organic carbon and in bulk density for the subsoil 
-\tabularnewline
-\hline
-HWSD\_data\_extpar & character & & & parameter used only for development purposes   
 \tabularnewline
 \hline
 \bottomrule
