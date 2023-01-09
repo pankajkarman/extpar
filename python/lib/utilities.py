@@ -4,7 +4,12 @@ import os
 import subprocess
 import netCDF4 as nc
 
-from fortran_namelist import read_variable
+
+try:
+    from extpar.lib.fortran_namelist import read_variable
+except ImportError:  # package not installed -> use PYTHONPATH
+    from fortran_namelist import read_variable
+
 '''
 Module utilities provides a bunch of helpful functions for Extpar,
 it contains:
@@ -84,7 +89,7 @@ def launch_shell(bin, *args):
 
 
 def remove(file):
-    ''' 
+    '''
     remove file from system if exists
     '''
 
@@ -138,7 +143,7 @@ def check_eratype(era_type):
 
 def check_albtype(alb_type):
     '''
-    check alb_type for correctnes and return value, 
+    check alb_type for correctnes and return value,
     if not exit programme
     '''
 
@@ -160,7 +165,7 @@ def check_albtype(alb_type):
 
 def check_ahftype(ahf_type):
     '''
-    check ahf_type for correctnes and return value, 
+    check ahf_type for correctnes and return value,
     if not exit programme
     '''
 
@@ -179,7 +184,7 @@ def check_ahftype(ahf_type):
 
 def check_isatype(isa_type):
     '''
-    check isa_type for correctnes and return value, 
+    check isa_type for correctnes and return value,
     if not exit programme
     '''
 
@@ -198,7 +203,7 @@ def check_isatype(isa_type):
 
 def check_emisstype(emiss_type):
     '''
-    check emiss_type for correctness and return value, 
+    check emiss_type for correctness and return value,
     if not exit programme
     '''
     if (emiss_type < 1 or emiss_type > 2):

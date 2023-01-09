@@ -1,7 +1,11 @@
 import logging
 import sys
 
-import utilities as utils
+try:
+    import extpar.lib.utilities as utils
+except ImportError:  # package not installed -> use PYTHONPATH
+    import utilities as utils
+
 '''
 Module providing function and classes needed for writing/reading
 Fortran-namelists with the python version of Extpar,
@@ -17,7 +21,7 @@ it contains:
         -InputEmiss
         -InputNdvi
         -InputEra
-        -InputAhf 
+        -InputAhf
         -InputIsa
 '''
 
@@ -168,7 +172,7 @@ class InputAlb:
 
 
 class InputNdvi:
-    ''' 
+    '''
     define structure of former namelist "INPUT_NDVI"
     '''
 

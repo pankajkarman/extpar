@@ -1,7 +1,11 @@
 import sys
 import os
 import logging
-import utilities as utils
+try:
+    import extpar.lib.utilities as utils
+except ImportError:  # package not installed -> use PYTHONPATH
+    import utilities as utils
+
 '''
 Module environment provides functions that interact with
 the system Extpar is running on, it contains:
@@ -12,7 +16,7 @@ the system Extpar is running on, it contains:
 
 -get_omp_num_threads: get value of environment variable for OpenMP
 
--check_hdf5_threadsafe: checks if HDF5 compilation is threadsafe 
+-check_hdf5_threadsafe: checks if HDF5 compilation is threadsafe
 '''
 
 

@@ -7,12 +7,22 @@ import netCDF4 as nc
 import numpy as np
 
 # extpar modules from lib
-import utilities as utils
-import grid_def
-import buffer
-import metadata
-import fortran_namelist
-import environment as env
+try:
+    from extpar.lib import (
+        utilities as utils,
+        grid_def,
+        buffer,
+        metadata,
+        fortran_namelist,
+        environment as env,
+    )
+except ImportError:
+    import utilities as utils
+    import grid_def
+    import buffer
+    import metadata
+    import fortran_namelist
+    import environment as env
 from namelist import input_era as iera
 
 # initialize logger
@@ -142,23 +152,32 @@ utils.launch_shell('cdo', '-f', 'nc4', lock, '-P', omp, f'genycon,{grid}',
 
 # regrid SST
 utils.launch_shell('cdo', '-f', 'nc4', lock, '-P', omp,
-                   f'settaxis,1111-01-01,0,1mo', f'-remap,{grid},{weights}',
-                   tg.cdo_sellonlat(), raw_data_sst, sst_cdo)
+                   f'settaxis,1111-01-01,0,1mo',
+                   f'-remap,{grid},{weights}',
+                   tg.cdo_sellonlat(),
+                   raw_data_sst, sst_cdo)
 
 # regrid T2M
 utils.launch_shell('cdo', '-f', 'nc4', lock, '-P', omp,
-                   f'settaxis,1111-01-01,0,1mo', f'-remap,{grid},{weights}',
-                   tg.cdo_sellonlat(), raw_data_t2m, t2m_cdo)
+                   f'settaxis,1111-01-01,0,1mo',
+                   f'-remap,{grid},{weights}',
+                   tg.cdo_sellonlat(),
+                   raw_data_t2m, t2m_cdo)
 
 # regrid ORO
 utils.launch_shell('cdo', '-f', 'nc4', lock, '-P', omp,
-                   f'settaxis,1111-01-01,0,1mo', f'-remap,{grid},{weights}',
-                   tg.cdo_sellonlat(), raw_data_oro, oro_cdo)
+                   f'settaxis,1111-01-01,0,1mo',
+                   f'-remap,{grid},{weights}',
+                   tg.cdo_sellonlat(),
+                   raw_data_oro, oro_cdo)
 
 # regrid SD
 utils.launch_shell('cdo', '-f', 'nc4', lock, '-P', omp,
-                   f'settaxis,1111-01-01,0,1mo', f'-remap,{grid},{weights}',
-                   tg.cdo_sellonlat(), raw_data_sd, sd_cdo)
+                   f'settaxis,1111-01-01,0,1mo',
+                   f'-remap,{grid},{weights}',
+                   tg.cdo_sellonlat(),
+                   raw_data_sd, sd_cdo)
+
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -177,10 +196,10 @@ if (igrid_type == 1):
     ie_tot = len(sst_nc.dimensions['cell'])
     je_tot = 1
     ke_tot = 1
-    lon = np.rad2deg(
-        np.reshape(sst_nc.variables['clon'][:], (ke_tot, je_tot, ie_tot)))
-    lat = np.rad2deg(
-        np.reshape(sst_nc.variables['clat'][:], (ke_tot, je_tot, ie_tot)))
+    lon    = np.rad2deg(np.reshape(sst_nc.variables['clon'][:],
+                                   (ke_tot, je_tot, ie_tot)))
+    lat    = np.rad2deg(np.reshape(sst_nc.variables['clat'][:],
+                                   (ke_tot, je_tot, ie_tot)))
 
 else:
 
@@ -190,13 +209,17 @@ else:
     je_tot = tg.je_tot
     ke_tot = tg.ke_tot
 
-sst = np.reshape(sst_nc.variables['sst'][:, :], (12, ke_tot, je_tot, ie_tot))
+sst  = np.reshape(sst_nc.variables['sst'][:,:],
+                  (12, ke_tot, je_tot, ie_tot))
 
-t2m = np.reshape(t2m_nc.variables['2t'][:, :], (12, ke_tot, je_tot, ie_tot))
+t2m  = np.reshape(t2m_nc.variables['2t'][:,:],
+                  (12, ke_tot, je_tot, ie_tot))
 
-oro = np.reshape(oro_nc.variables['HSURF'][:, :], (ke_tot, je_tot, ie_tot))
+oro  = np.reshape(oro_nc.variables['HSURF'][:,:],
+                  (ke_tot, je_tot, ie_tot))
 
-sd = np.reshape(sd_nc.variables['sd'][:, :], (12, ke_tot, je_tot, ie_tot))
+sd  = np.reshape(sd_nc.variables['sd'][:,:],
+                 (12, ke_tot, je_tot, ie_tot))
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
