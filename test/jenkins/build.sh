@@ -28,6 +28,17 @@ case "$(hostname)" in
         run_command make &> compile.log
         echo          ...done
         echo See compile.log for more information!
+
+        if [[ $compiler == 'python-package' ]]; then
+            run_command module load cray-python
+            run_command python -m venv venv
+            . venv/bin/activate
+            run_command python setup.py sdist
+            run_command pip install dist/extpar-*.tar.gz
+            run_command python -m extpar.WrapExtpar -h
+            deactivate
+        fi
+
         ;;
 
     tsa*)
@@ -40,6 +51,10 @@ case "$(hostname)" in
         run_command make &> compile.log
         echo          ...done
         echo See compile.log for more information!
+        if [[ $compiler == 'python-package' ]]; then
+            echo 'python-package not built on Tsa'
+            exit 1
+        fi
         ;;
 
     # DKRZ machines    
@@ -50,12 +65,17 @@ case "$(hostname)" in
         fi
         run_command git submodule init
         run_command git submodule update
-        run_command ./configure.levante.$compiler
+        run_command ./configure.levante.gcc
         run_command source modules.env
         run_command make clean
         echo compile extpar...
         run_command make &> compile.log
         echo          ...done
         echo See compile.log for more information!
+
+        if [[ $compiler == 'python-package' ]]; then
+            echo 'python-package not built on Levante'
+            exit 1
+        fi
         ;;
 esac 

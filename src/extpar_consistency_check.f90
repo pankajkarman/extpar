@@ -130,20 +130,16 @@ PROGRAM extpar_consistency_check
   USE mo_ecci_lookup_tables,      ONLY: nclass_ecci, &
       &                                 get_name_ecci_lookup_tables
 
-  USE mo_ecoclimap_lookup_tables, ONLY: nclass_ecoclimap, &
-       &                                get_name_ecoclimap_lookup_tables
-
   USE mo_glcc_lookup_tables,    ONLY: get_name_glcc_lookup_tables
 
 
   USE mo_landuse_output_nc,     ONLY: read_netcdf_buffer_glcc, &
-       &                              read_netcdf_buffer_lu, &
-       &                              read_netcdf_buffer_ecoclimap
+       &                              read_netcdf_buffer_lu
 
   USE mo_landuse_routines,      ONLY: read_namelists_extpar_land_use
 
   USE mo_lu_tg_fields,          ONLY: i_lu_globcover, i_lu_glc2000, i_lu_glcc, &
-       &                              i_lu_ecoclimap, i_lu_ecci, & 
+       &                              i_lu_ecci, & 
        &                              fr_land_lu, &
        &                              fr_land_mask, &
        &                              ice_lu, &
@@ -164,9 +160,6 @@ PROGRAM extpar_consistency_check
        &                              lu_class_fraction,    &
        &                              lu_class_npixel, &
        &                              lu_tot_npixel,  &
-       &                              lai12_lu,     &
-       &                              z012_lu,      &
-       &                              plcov12_lu, &
        &                              allocate_lu_target_fields, allocate_add_lu_fields
 
 
@@ -635,11 +628,20 @@ PROGRAM extpar_consistency_check
   ENDIF
 
   !--------------------------------------------------------------------------------------------------------
+  ! get information on target grid, allocate target fields with coordinates and determin the coordinates
+  ! for th target grid
+
+  namelist_grid_def = 'INPUT_grid_org'
+  CALL  init_target_grid(namelist_grid_def)
+  igrid_type = tg%igrid_type
+
+  !--------------------------------------------------------------------------------------------------------
   !--------------------------------------------------------------
   ! get namelist for topography smoothing
   !--------------------------------------------------------------
   namelist_file = 'INPUT_OROSMOOTH'
   CALL read_namelists_extpar_orosmooth(namelist_file,            &
+       igrid_type,           &     
        lfilter_oro,          &
        ilow_pass_oro,        &
        numfilt_oro,          &
@@ -650,14 +652,6 @@ PROGRAM extpar_consistency_check
        numfilt_xso,          &
        lxso_first,           &
        rxso_mask)
-
-  !--------------------------------------------------------------------------------------------------------
-  ! get information on target grid, allocate target fields with coordinates and determin the coordinates
-  ! for th target grid
-
-  namelist_grid_def = 'INPUT_grid_org'
-  CALL  init_target_grid(namelist_grid_def)
-  igrid_type = tg%igrid_type
 
   ! get info on raw data file
   namelist_file = 'INPUT_LU'
@@ -673,11 +667,6 @@ PROGRAM extpar_consistency_check
 
   lu_data_southern_boundary = -91.0  
   SELECT CASE (i_landuse_data)
-    CASE (i_lu_ecoclimap)
-       lu_dataset = 'ECOCLIMAP'
-       CALL get_name_ecoclimap_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
-       nclass_lu = nclass_ecoclimap
-       lu_data_southern_boundary = -90.9
     CASE (i_lu_globcover)
        lu_dataset = 'GLOBCOVER2009'
        CALL get_name_globcover_lookup_tables(ilookup_table_lu, name_lookup_table_lu)
@@ -876,26 +865,6 @@ PROGRAM extpar_consistency_check
   CALL logging%info('Landuse')
 
   SELECT CASE (i_landuse_data)
-    CASE (i_lu_ecoclimap)
-       lu_dataset = 'ECOCLIMAP'
-       CALL read_netcdf_buffer_ecoclimap(lu_buffer_file,  &
-            &                                     tg,         &
-            &                                     nclass_lu, &
-            &                                     fr_land_lu, &
-            &                                     lu_class_fraction,    &
-            &                                     lu_class_npixel, &
-            &                                     lu_tot_npixel, &
-            &                                     ice_lu, &
-            &                                     z012_lu, &
-            &                                     root_lu, &
-            &                                     plcov12_lu, &
-            &                                     lai12_lu, &
-            &                                     rs_min_lu, &
-            &                                     urban_lu,  &
-            &                                     for_d_lu,  &
-            &                                     for_e_lu, &
-            &                                     emissivity_lu)
-
 
     CASE(i_lu_globcover, i_lu_glc2000, i_lu_ecci)
        CALL read_netcdf_buffer_lu(lu_buffer_file,  &
@@ -2518,7 +2487,6 @@ PROGRAM extpar_consistency_check
          &                                     fill_value_real,               &
          &                                     TRIM(name_lookup_table_lu),    &
          &                                     TRIM(lu_dataset),              &
-         &                                     i_landuse_data,                &
          &                                     nclass_lu,                     &
          &                                     lon_geo,                       &
          &                                     lat_geo,                       &
@@ -2526,15 +2494,11 @@ PROGRAM extpar_consistency_check
          &                                     lu_class_fraction,             &
          &                                     ice_lu,                        &
          &                                     z0_tot,                        &
-         &                                     z0_topo,                       &
-         &                                     z012_lu,                       &
          &                                     root_lu,                       &
          &                                     plcov_mn_lu,                   &
          &                                     plcov_mx_lu,                   &
-         &                                     plcov12_lu,                    &
          &                                     lai_mn_lu,                     &
          &                                     lai_mx_lu,                     &
-         &                                     lai12_lu,                      &
          &                                     rs_min_lu,                     &
          &                                     urban_lu,                      &
          &                                     for_d_lu,                      &
@@ -2601,7 +2565,6 @@ PROGRAM extpar_consistency_check
          &                                     fill_value_real,               &
          &                                     TRIM(name_lookup_table_lu),    &
          &                                     TRIM(lu_dataset),              &
-         &                                     i_landuse_data,                &
          &                                     nclass_lu,                     &
          &                                     lon_geo,                       &
          &                                     lat_geo,                       &
@@ -2609,15 +2572,11 @@ PROGRAM extpar_consistency_check
          &                                     lu_class_fraction,             &
          &                                     ice_lu,                        &
          &                                     z0_tot,                        &
-         &                                     z0_topo,                       &
-         &                                     z012_lu,                       &
          &                                     root_lu,                       &
          &                                     plcov_mn_lu,                   &
          &                                     plcov_mx_lu,                   &
-         &                                     plcov12_lu,                    &
          &                                     lai_mn_lu,                     &
          &                                     lai_mx_lu,                     &
-         &                                     lai12_lu,                      &
          &                                     rs_min_lu,                     &
          &                                     urban_lu,                      &
          &                                     for_d_lu,                      &

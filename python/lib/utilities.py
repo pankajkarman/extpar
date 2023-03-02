@@ -1,11 +1,12 @@
 import logging
-import sys
 import os
 import subprocess
 import netCDF4 as nc
 
-from fortran_namelist import read_variable
-
+try:
+    from extpar.lib.fortran_namelist import read_variable
+except ImportError:  # package not installed -> use PYTHONPATH
+    from fortran_namelist import read_variable
 '''
 Module utilities provides a bunch of helpful functions for Extpar,
 it contains:
@@ -34,7 +35,7 @@ it contains:
 '''
 
 
-def launch_shell(bin,*args):
+def launch_shell(bin, *args):
     '''
     wrapper to launch an external programme on the system
 
@@ -45,7 +46,7 @@ def launch_shell(bin,*args):
 
     #convert *args to string
     arg_list = []
-    arg_list.insert(0,str(bin))
+    arg_list.insert(0, str(bin))
     for arg in args:
         if arg:  # Prevents empty strings from being written into list
             arg_list.append(str(arg))
@@ -56,8 +57,10 @@ def launch_shell(bin,*args):
     logging.info('')
 
     try:
-        process = subprocess.run(arg_list, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, check=True,
+        process = subprocess.run(arg_list,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 check=True,
                                  universal_newlines=True)
         output = process.stdout + process.stderr
     except FileNotFoundError:
@@ -65,7 +68,7 @@ def launch_shell(bin,*args):
                         '-> it appears your shell does not know this command')
 
         logging.error('Shell command failed', exc_info=True)
-        sys.exit(1)
+        raise
 
     except subprocess.CalledProcessError as e:
         output = e.stderr
@@ -74,7 +77,7 @@ def launch_shell(bin,*args):
         logging.warning(f'{output}')
 
         logging.error('Shell command failed', exc_info=True)
-        sys.exit(1)
+        raise
 
     logging.info('Output:')
     logging.info(f'{output}')
@@ -83,7 +86,7 @@ def launch_shell(bin,*args):
 
 
 def remove(file):
-    ''' 
+    '''
     remove file from system if exists
     '''
 
@@ -109,7 +112,7 @@ def clean_path(dir, file):
 
     except FileNotFoundError:
         logging.error('File not found', exc_info=True)
-        sys.exit(1)
+        raise
 
     f.close()
 
@@ -124,12 +127,12 @@ def check_eratype(era_type):
 
     if (era_type > 2 or era_type < 1):
         logging.error(f'iera_type {era_type} does not exist')
-        sys.exit(1)
+        raise ValueError(f'iera_type {era_type} does not exist')
 
-    if(era_type == 1):
+    if (era_type == 1):
         logging.info('process ERA5 data')
 
-    if(era_type == 2):
+    if (era_type == 2):
         logging.info('process ERA-I data')
 
     return era_type
@@ -137,13 +140,13 @@ def check_eratype(era_type):
 
 def check_albtype(alb_type):
     '''
-    check alb_type for correctnes and return value, 
+    check alb_type for correctnes and return value,
     if not exit programme
     '''
 
     if (alb_type > 3 or alb_type < 1):
         logging.error(f'ialb_type {alb_type} does not exist.')
-        sys.exit(1)
+        raise ValueError(f'ialb_type {alb_type} does not exist.')
 
     if (alb_type == 1):
         logging.info('process albedo data  for VIS, NIR and UV spectra')
@@ -159,13 +162,13 @@ def check_albtype(alb_type):
 
 def check_ahftype(ahf_type):
     '''
-    check ahf_type for correctnes and return value, 
+    check ahf_type for correctnes and return value,
     if not exit programme
     '''
 
     if (ahf_type > 2 or ahf_type < 1):
         logging.error(f'iahf_type {ahf_type} does not exist.')
-        sys.exit(1)
+        raise ValueError(f'iahf_type {ahf_type} does not exist.')
 
     if (ahf_type == 1):
         logging.info('process ahf data with spatial resolution of 2.5 min')
@@ -178,13 +181,13 @@ def check_ahftype(ahf_type):
 
 def check_isatype(isa_type):
     '''
-    check isa_type for correctnes and return value, 
+    check isa_type for correctnes and return value,
     if not exit programme
     '''
 
     if (isa_type > 2 or isa_type < 1):
         logging.error(f'isa_type {isa_type} does not exist.')
-        sys.exit(1)
+        raise ValueError(f'isa_type {isa_type} does not exist.')
 
     if (isa_type == 1):
         logging.info('process isa data with spatial resolution of 30sec')
@@ -197,7 +200,7 @@ def check_isatype(isa_type):
 
 def check_emisstype(emiss_type):
     '''
-    check emiss_type for correctness and return value, 
+    check emiss_type for correctness and return value,
     if not exit programme
     '''
     if (emiss_type < 1 or emiss_type > 2):
@@ -226,16 +229,15 @@ def check_gridtype(input_grid_org):
 
     grid_type = read_variable(grid_org, 'igrid_type', int)
 
-    def_domain_namelist = read_variable(grid_org,
-                                        'domain_def_namelist',
-                                        str)
+    def_domain_namelist = read_variable(grid_org, 'domain_def_namelist', str)
 
-    grid_fortran_namelist = clean_path('',def_domain_namelist)
+    grid_fortran_namelist = clean_path('', def_domain_namelist)
 
     if (grid_type < 1 or grid_type > 2):
-        logging.error(f'grid_type {grid_type} does not exist. ' 
+        logging.error(f'grid_type {grid_type} does not exist. '
                       f'Use 1 (Icon) or 2 (Cosmo) instead!')
-        sys.exit(1)
+        raise ValueError(f'grid_type {grid_type} does not exist. '
+                         f'Use 1 (Icon) or 2 (Cosmo) instead!')
 
     return grid_type, grid_fortran_namelist
 
@@ -247,10 +249,11 @@ def check_itype_cru(itype_cru):
     '''
 
     if (itype_cru > 2 or itype_cru < 1):
-        logging.error(f'itype_cru {itype_cru} does not exist. ' 
+        logging.error(f'itype_cru {itype_cru} does not exist. '
                       f'Use 1 (fine) or 2 (coarse and fine) instead!')
 
-        sys.exit(1)
+        raise ValueError(f'itype_cru {itype_cru} does not exist. '
+                         f'Use 1 (fine) or 2 (coarse and fine) instead!')
 
     if (itype_cru == 1):
         logging.info('Process fine resolution for land')
