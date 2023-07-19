@@ -73,10 +73,12 @@ binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
+binary_hwsd=extpar_hwsdART_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # link raw data files to local workdir
 ln -s -f ${data_dir}/*.nc .
+ln -s -f ${data_dir}/*.data .
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
@@ -86,7 +88,7 @@ type_of_test=`echo $currentdir | rev | cut -d"/" -f2 | rev`
 name_of_test=`echo $currentdir | rev | cut -d"/" -f1 | rev`
 
 # allowed tests for testsuite
-if [[ $type_of_test == mpim || $type_of_test == dwd || $type_of_test == ecmwf ]]; then
+if [[ $type_of_test == mpim || $type_of_test == dwd || $type_of_test == ecmwf || $type_of_test == clm ]]; then
 
     echo Current test is $type_of_test/$name_of_test  >> ${logfile}
 
@@ -105,42 +107,46 @@ fi
 
 echo ">>>> Data will be processed and produced in `pwd` <<<<"
 
-# 1) topography needs to be processed first - result is input for the
-#    CRU data processing
+if [[ $name_of_test != hwsd_art ]]; then
+    # 1) topography needs to be processed first - result is input for the
+    #    CRU data processing
 
-run_sequential ${binary_topo}
+    run_sequential ${binary_topo}
 
-#________________________________________________________________________________
-# 2) all other executables
+    #________________________________________________________________________________
+    # 2) all other executables
 
-run_sequential ${binary_alb}
+    run_sequential ${binary_alb}
 
-run_sequential ${binary_ndvi}
+    run_sequential ${binary_ndvi}
 
-run_sequential ${binary_tclim}
+    run_sequential ${binary_tclim}
 
-run_sequential ${binary_aot}
+    run_sequential ${binary_aot}
 
-run_sequential ${binary_lu}
+    run_sequential ${binary_lu}
 
-run_sequential ${binary_soil}
+    run_sequential ${binary_soil}
 
-run_sequential ${binary_flake}
+    run_sequential ${binary_flake}
 
-if [[ $type_of_test == mpim ]]; then
-    run_sequential ${binary_emiss}
+    if [[ $type_of_test == mpim ]]; then
+        run_sequential ${binary_emiss}
+    fi
+
+    if [[ $name_of_test == icon_d2 || $name_of_test == icon_d2_caching || $name_of_test == ecoclimap_sg ]]; then
+        run_sequential ${binary_era}
+    fi
+
+    if [[ $type_of_test == ecmwf ]]; then
+        run_sequential ${binary_isa}
+        run_sequential ${binary_ahf}
+    fi
+
+    run_sequential ${binary_consistency_check}
+else
+    run_sequential ${binary_hwsd}
 fi
-
-if [[ $name_of_test == icon_d2 || $name_of_test == icon_d2_caching ]]; then
-    run_sequential ${binary_era}
-fi
-
-if [[ $type_of_test == ecmwf ]]; then
-    run_sequential ${binary_isa}
-    run_sequential ${binary_ahf}
-fi
-
-run_sequential ${binary_consistency_check}
 #________________________________________________________________________________
 
 echo ">>>> External parameters for ICON model generated <<<<"

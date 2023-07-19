@@ -28,6 +28,11 @@ cd clm/12km_globe
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_12km_globe_PR278.nc'
 cd -
 
+cd clm/ecoclimap_sg
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/icon_grid_bolivia.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_icon_eco_PR332.nc'
+cd -
+
 # dwd
 test -d dwd || exit 1
 
@@ -43,6 +48,10 @@ wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/clim_tsea_icon_ecci.nc'
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/external_parameter_icon_ecci_PR273.nc'
 cd -
 
+cd dwd/hwsd_art
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/icon_grid_DOM01.nc'
+cd -
+
 # mpim
 test -d mpim || exit 1
 cd mpim/icon_r2b4
@@ -56,7 +65,7 @@ cd -
 test -d ecmwf || exit 1
 cd ecmwf/corine_icon
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/corine/icon_grid_0099_R19B10.nc'
-wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/corine/external_parameter_icon_corine_PR273.nc'
+wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/corine/external_parameter_icon_corine_PR334.nc'
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/corine/clim_tsea_corine.nc'
 wget --quiet 'ftp://iacftp.ethz.ch/pub_read/juckerj/corine/clim_t2m_corine.nc'
 cd -
