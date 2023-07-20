@@ -1,0 +1,43 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+cflags=-I${prefix}/include
+fcflags=-I${prefix}/include -I${prefix}/include
+libs=-L${exec_prefix}/lib -lcdipio   -lcdi   -L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib -lnetcdf   -lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+threads_libs=
+threads_cflags=
+szlib_cflags=
+szlib_libs=
+netcdf_root=/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0
+netcdf_cflags= -I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include
+netcdf_libs= -L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib -lnetcdf
+grib_api_cflags=
+grib_api_libs=
+aux_libs=-lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+cdipio_build_cc=/hpc/sw/gnu/gcc/9.1.0/bin/gcc
+cdipio_build_cflags=-Wall -pedantic -O3 -g -pthread
+cdipio_build_cppflags=-I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include  
+cdipio_build_ldflags=-L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib 
+cdipio_build_libs=-lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+cdipio_build_fc=/hpc/sw/gnu/gcc/9.1.0/bin/gfortran
+cdipio_build_fcflags=-cpp -Wall -pedantic -fbacktrace -O3 -g -fopenmp -ffree-line-length-256
+cdipio_build_f77=no
+cdipio_build_fflags=
+cdipio_build_cxx=no
+cdipio_build_cxxflags=
+cdipio_build_enable_grib=yes
+cdipio_build_enable_cgribex=yes
+cdipio_build_enable_service=yes
+cdipio_build_enable_extra=yes
+cdipio_build_enable_ieg=yes
+
+Name: cdipio
+Description: CDI-PIO is the MPI-parallel layer of CDI
+URL: 
+Version: 1.9.8
+Requires: 
+Libs: ${libs}
+Cflags: ${cflags}
+FCflags: ${fcflags}
+

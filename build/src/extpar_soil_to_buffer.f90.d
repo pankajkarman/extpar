@@ -1,0 +1,2 @@
+src/extpar_soil_to_buffer.o src/extpar_soil_to_buffer.f90.d: /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/src/extpar_soil_to_buffer.f90
+src/extpar_soil_to_buffer.o: mod/mo_soil_output_nc.mod.proxy mod/mo_soil_tg_fields.mod.proxy mod/mo_soil_routines.mod.proxy mod/mo_kind.mod.proxy mod/mo_agg_soil.mod.proxy mod/mo_io_utilities.mod.proxy mod/mo_logging.mod.proxy mod/mo_io_units.mod.proxy mod/mo_target_grid_routines.mod.proxy mod/mo_soil_data.mod.proxy mod/info_extpar.mod.proxy mod/mo_target_grid_data.mod.proxy

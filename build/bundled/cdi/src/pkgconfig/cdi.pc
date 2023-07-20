@@ -1,0 +1,43 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+cflags=-I${prefix}/include
+fcflags=-I${prefix}/include -I${prefix}/include
+libs=-L${exec_prefix}/lib -lcdi   -L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib -lnetcdf   -lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+threads_libs=
+threads_cflags=
+szlib_cflags=
+szlib_libs=
+netcdf_root=/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0
+netcdf_cflags= -I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include
+netcdf_libs= -L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib -lnetcdf
+aux_libs=-lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+grib_api_cflags=
+grib_api_libs=
+cdi_build_cc=/hpc/sw/gnu/gcc/9.1.0/bin/gcc
+cdi_build_cflags=-Wall -pedantic -O3 -g -pthread
+cdi_build_cppflags=-I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include  
+cdi_build_ldflags=-L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib 
+cdi_build_libs=-lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+cdi_build_fc=/hpc/sw/gnu/gcc/9.1.0/bin/gfortran
+cdi_build_fcflags=-cpp -Wall -pedantic -fbacktrace -O3 -g -fopenmp -ffree-line-length-256
+cdi_build_f77=no
+cdi_build_fflags=
+cdi_build_cxx=no
+cdi_build_cxxflags=
+cdi_build_enable_grib=yes
+cdi_build_enable_cgribex=yes
+cdi_build_enable_service=yes
+cdi_build_enable_extra=yes
+cdi_build_enable_ieg=yes
+
+Name: cdi
+Description: CDI is an Interface to access Climate and NWP model Data.
+URL: 
+Version: 1.9.8
+Requires: 
+Libs: ${libs}
+Cflags: ${cflags}
+FCflags: ${fcflags}
+

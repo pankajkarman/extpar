@@ -1,0 +1,276 @@
+# Path to the root source directory:
+srcdir:= /hpc/uhome/jhelmert/EXTPAR_GIT/extpar
+
+# Relative paths to the directories with the source files:
+subdirs:= src
+
+# Relative paths to the directories of the bundled packages:
+bundled_subdirs= bundled/cdi
+
+# Path to the directory with the Fortran module files:
+moddir:= mod
+
+# Relative path to the directory with the resulting executables:
+bindir:= bin
+
+# Paths to the installation directories:
+prefix= /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/bin_intel
+exec_prefix= ${prefix}
+
+# Package tarname:
+PACKAGE_TARNAME= extpar-5.3.0
+
+# Compilers and utilities:
+SHELL= /bin/sh
+CC= /hpc/sw/intel/compilers_and_libraries_2020.0.166/linux/bin/intel64/icc
+FC= /hpc/sw/intel/compilers_and_libraries_2020.0.166/linux/bin/intel64/ifort
+PYTHON= python
+DEPLIST= ${PYTHON} $(srcdir)/mkhelper/deplist.py
+DEPGEN= ${PYTHON} $(srcdir)/mkhelper/depgen.py
+MODCMP= ${PYTHON} $(srcdir)/mkhelper/fortmodcmp.py
+INSTALL= /usr/bin/install -c
+GIT= git
+TAR= tar
+BZIP2 = bzip2
+
+# Fortran compiler flags:
+FCFLAGS= -fpp -O2 -march=native -g -fpe0 -fp-speculation safe -traceback -sox -qopenmp
+makefile_FCFLAGS= -I$(moddir) -module $(moddir) -Ibundled/cdi/src  -I/hpc/sw/netcdf4/4.7.3/x86/intel/include 
+
+# C compiler and preprocessor flags:
+CFLAGS= -O2 -g
+CPPFLAGS= 
+makefile_CPPFLAGS= -Isrc -DHAVE_CONFIG_H
+
+# Linker flags and libraries:
+LDFLAGS= -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib  -Wl,-rpath -Wl,/hpc/sw/netcdf4/4.7.3/x86/intel/lib -Wl,-rpath -Wl,/hpc/sw/hdf5/1.10.5/x86/intel/lib -pthread
+BUNDLED_LIBFILES= bundled/cdi/src/.libs/libcdi_f2003.a bundled/cdi/src/.libs/libcdi.a 
+LIBS= -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -Wl,-rpath -Wl,/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdff -lnetcdf  -lnetcdf   -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5
+
+# Dependency generator flags:
+DEPGEN_f90= --src-root='/hpc/uhome/jhelmert/EXTPAR_GIT/extpar' --pp-enable --pp-eval-expr --fc-enable \
+            --pp-inc-flag='-I' --pp-inc-order='src,cwd,flg' --pp-macro-flag='-D' \
+            --fc-mod-ext='mod.proxy' --fc-mod-upper='no' --fc-inc-flag='-I' \
+            --fc-inc-order='src,cwd,flg' --fc-mod-dir-flag='-module ' --fc-external-mods='f90_unix,omp_lib,netcdf'
+DEPGEN_c= --src-root='/hpc/uhome/jhelmert/EXTPAR_GIT/extpar' --pp-enable --pp-eval-expr
+DEPGEN_FCFLAGS=  -D_OPENMP=201611
+
+# Silent rule prefixes:
+V=1
+ifeq ($(V), 0)
+silent_CC=      @echo "  CC      " $@;
+silent_DEPGEN=  @echo "  DEPGEN  " $@;
+silent_FC=      @echo "  FC      " $@;
+silent_FCLD=    @echo "  FCLD    " $@;
+silent_GEN=     @echo "  GEN     " $@;
+silent_MKDIR=   @echo "  MKDIR   " $(@D);
+endif
+
+# Path suffixes (i.e. without $(srcdir) prefix) of the source files:
+src_roots:= $(addprefix $(srcdir)/,$(subdirs))
+src_files:= $(patsubst $(srcdir)/%,%,$(shell find $(src_roots) -name '*.f90' -o -name '*.c'))
+f90_files:= $(filter %.f90,$(src_files))
+# We need to treat src/info_extpar.f90 differently:
+f90_files:= $(filter-out src/info_extpar.f90,$(f90_files))
+c_files:= $(filter %.c,$(src_files))
+
+# Dependency files:
+dep_files:= $(addsuffix .d,$(f90_files) $(c_files))
+
+# Stamp files of the building subdirectories:
+dir_files= $(addsuffix .dirstamp, $(sort $(dir $(dep_files)))) $(moddir)/.dirstamp $(bindir)/.dirstamp
+
+# Selective search path:
+vpath %.f90 $(srcdir)
+vpath %.c $(srcdir)
+
+# Disable built-in suffix rules:
+.SUFFIXES:
+# Delete partially updated files:
+.DELETE_ON_ERROR:
+# Targets not associated with files:
+.PHONY: all depend dummy-depend mostlyclean clean distclean \
+        install sanitize-mod-proxies force-create-info dist
+# Targets that do not need the inclusion of the dependency files:
+NO_INC_TARGETS:= depend dummy-depend mostlyclean clean distclean dist
+# Call make inside the subdirectories unconditionally:
+.PHONY: $(bundled_subdirs)
+# Keep directory stamps:
+.PRECIOUS: $(dir_files)
+
+prog_names:=                 \
+    extpar_aot_to_buffer     \
+    extpar_consistency_check \
+    extpar_flake_to_buffer   \
+    extpar_landuse_to_buffer \
+    extpar_soil_to_buffer    \
+    extpar_topo_to_buffer    \
+    extpar_ahf_to_buffer     \
+    extpar_isa_to_buffer
+
+# Another option is to use the value from the configure script
+# (i.e. EXEEXT surrounded with @):
+EXEEXT:= .exe
+prog_files:= $(addprefix $(bindir)/,$(addsuffix $(EXEEXT),$(prog_names)))
+
+# Default rule:
+all: $(prog_files)
+
+# Explicit dependency generation rule:
+depend: $(dep_files)
+
+# Delete the results of compilation and linking:
+mostlyclean: $(bundled_subdirs)
+	rm -f $(addsuffix .o,$(basename $(f90_files) $(c_files))) src/info_extpar.o
+	rm -f $(moddir)/*.mod $(moddir)/*.mod.proxy
+	rm -f $(prog_files)
+
+# Delete files generated at the building stage:
+clean: mostlyclean
+	rm -f src/info_extpar.f90
+
+# Delete everything generated at the configure stage (and clean the created
+# directories if they are empty):
+distclean: clean
+	rm -f src/config.h config.log config.status
+	rm -f $(dep_files)
+	rm -f $(dir_files)
+	@for dir in $(bindir) $(moddir); do \
+	  if test -d "$$dir"; then \
+	    echo "find '$$dir' -type d -empty -delete"; \
+	    find "$$dir" -type d -empty -delete; \
+	  fi; \
+	done
+	@if test '.' != '$(srcdir)'; then \
+	  for dir in $(subdirs) bundled; do \
+	    if test -d "$$dir"; then \
+	      echo "find '$$dir' -type d -empty -delete"; \
+	      find "$$dir" -type d -empty -delete; \
+	    fi; \
+	  done; \
+	fi
+	rm -f Makefile
+	rm -f modules.env
+
+# Installation rules:
+install: $(prog_files)
+	$(INSTALL) -d $(DESTDIR)${exec_prefix}/bin && $(INSTALL) $^ $(DESTDIR)${exec_prefix}/bin
+
+# Check rule
+check: all
+	@test -z '$(bundled_subdirs)' && echo "The list of bundled libraries is empty: nothing to check." && exit 0; \
+	fail=; pass=; \
+	for d in $(bundled_subdirs); do \
+	  if $(MAKE) -C "$$d" check V=$(V); then pass="$$pass$$d "; \
+	  else fail="$$fail$$d "; fi; \
+	done; \
+	test -n "$$pass" && echo "PASS: $$pass"; \
+	if test -n "$$fail"; then echo "FAIL: $$fail" && false; fi # exit code of the last command must be zero if $fail is empty
+
+# Tarball creation rule:
+dist:
+	@if test ! -e /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/.git; then echo "'/hpc/uhome/jhelmert/EXTPAR_GIT/extpar' is not a git repository" >&2; exit 1; fi
+	$(GIT) -C /hpc/uhome/jhelmert/EXTPAR_GIT/extpar archive --prefix=$(PACKAGE_TARNAME)/ --format tar -o /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/$(PACKAGE_TARNAME).tar HEAD
+	$(GIT) -C /hpc/uhome/jhelmert/EXTPAR_GIT/extpar submodule foreach '$(GIT) archive --prefix=$(PACKAGE_TARNAME)/$$path/ --format tar -o /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/$$name.tar HEAD && $(TAR) -Af /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/$(PACKAGE_TARNAME).tar /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/$$name.tar && rm /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/$$name.tar'
+	rm -f $(PACKAGE_TARNAME).tar.bz2 && BZIP2=$${BZIP2--9} $(BZIP2) $(PACKAGE_TARNAME).tar
+
+prog_rule = $(bindir)/$(1)$$(EXEEXT): $$(filter %.o,$$(shell $(DEPLIST) --inc-oo -t src/$(1).o -f Makefile $$(dep_files))) $$(BUNDLED_LIBFILES)
+$(foreach name,$(prog_names),$(eval $(call prog_rule,$(name))))
+
+$(prog_files): | $(dir_files)
+	$(silent_FCLD)$(FC) -o $@ $(makefile_FCFLAGS) $(FCFLAGS) $(LDFLAGS) $+ $(LIBS)
+
+# C compilation rule:
+%.o: %.c | $(dir_files)
+	$(silent_CC)$(CC) -o $@ -c $(CFLAGS) $(makefile_CPPFLAGS) $(CPPFLAGS) $<
+
+# Fortran compilation rule:
+%.o: %.f90 | $(dir_files) $(bundled_subdirs)
+	$(silent_FC)$(FC) -o $@ -c $(makefile_FCFLAGS) $(FCFLAGS)  $<
+
+# Fortran module file rule:
+$(moddir)/%.mod.proxy:| sanitize-mod-proxies
+	@if test -z '$<'; then \
+	  echo "Cannot find Fortran source file providing module '$(basename $(@F:.proxy=))'." >&2; \
+	else \
+	  if test ! -f '$(@:.proxy=)'; then rm -f '$<'; $(MAKE) '$<'; fi; \
+	  if cmp '$@' '$(@:.proxy=)' >/dev/null 2>&1 || $(MODCMP) '$@' '$(@:.proxy=)' intel 2>/dev/null; then :; \
+	  else cp '$(@:.proxy=)' '$@' 2>/dev/null; fi; \
+	fi
+
+# Delete all Fortran module proxy files that do not have an existing module to
+# be a proxy of, i.e. if <filename>.proxy exists but <filename> does not,
+# delete <filename>.proxy:
+sanitize-mod-proxies:
+	@rm -f $(filter-out $(addsuffix .proxy,$(wildcard $(moddir)/*.mod)),$(wildcard $(moddir)/*.mod.proxy))
+
+# Make bundled libraries:
+$(bundled_subdirs):
+	@if test -f '$@/Makefile'; then \
+	  $(MAKE) -C $@ $(filter all mostlyclean clean distclean,$(MAKECMDGOALS)) V=$(V); \
+	else \
+	  test xdistclean = x$(filter distclean,$(MAKECMDGOALS)); \
+	fi
+
+# Relink executables if any of the source files of the bundled libraries
+# is updated (the semicolon is required to support parallel rebuild):
+$(BUNDLED_LIBFILES): $(bundled_subdirs);
+
+# Info source file generation rule:
+/hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/src/info_extpar.f90: force-create-info | $(dir_files)
+	$(silent_GEN):;{ \
+	  echo 'Compiler command : $(FC)' && \
+	  echo 'Compiler version : intel 19.1.0' && \
+	  echo 'Compiler includes: -I/hpc/sw/netcdf4/4.7.3/x86/intel/include ' && \
+	  echo 'Compiler flags   : $(FCFLAGS)' && \
+	  echo 'Linker command   : $(FC)' && \
+	  echo 'Linker version   : intel 19.1.0' && \
+	  echo 'Linker flags     : $(FCFLAGS) $(LDFLAGS)' && \
+	  echo 'Linker libraries : $(LIBS)'; \
+	} >.fconfig && \
+	$(srcdir)/bin/gen_info.sh .fconfig '$(srcdir)/src' 'src' || exit 1; \
+	rm -f .fconfig && test -f $@
+
+# Directory creation rule:
+%/.dirstamp:
+	$(silent_MKDIR)/usr/bin/mkdir -p $(@D) && touch $@
+
+# C dependency generation rule:
+%.c.d: %.c Makefile | $(dir_files)
+	$(silent_DEPGEN)$(DEPGEN) $(DEPGEN_c) -o $@ --obj-name $(@:.c.d=.o) -i $< -- $(CFLAGS) $(makefile_CPPFLAGS) $(CPPFLAGS)
+
+# Fortran dependency generation rule:
+%.f90.d: %.f90 Makefile | $(dir_files)
+	$(silent_DEPGEN)$(DEPGEN) $(DEPGEN_f90) -o $@ --obj-name $(@:.f90.d=.o) -i $< -- $(DEPGEN_FCFLAGS) $(makefile_FCFLAGS) $(FCFLAGS)
+
+# Dummy dependency file generation rule (called by config.status): 
+dummy-depend: | $(dir_files)
+	@for file in $(dep_files); do \
+	  test -e "$$file" || touch "$$file"; \
+	done
+
+# Additional dependencies:
+#   This section is parsed by $(DEPLIST), which does not understand variables.
+#   Therefore, we need to specify everythin literally.
+# 1. Source file 'info_extpar.f90' is unconditionally regenerated every time
+#    'make' processes this makefile. In our case, the file might be processed
+#    twice within one call to 'make': first time to update $(dep_files) if
+#    required and second time to update everything else if any of $(dep_files)
+#    has been updated during the first step. This means that we would generate
+#    'info_extpar.f90' twice per call to 'make' if we treated the file as
+#    other source file. To avoid that, we manually specify the dependencies
+#    here (note that we should treat the object file by the absolute path
+#    to account for out-of-source builds properly):
+/hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/src/info_extpar.o: mod/mo_logging.mod.proxy
+mod/info_extpar.mod.proxy: /hpc/uhome/jhelmert/EXTPAR_GIT/extpar/build/src/info_extpar.o
+# 2. The list of dependencies related to Fortran-to-C bindings:
+src/mo_util_mmap_cache.o:| src/util_mmap_cache.o
+
+current_targets:= $(strip $(MAKECMDGOALS))
+ifeq (,$(current_targets))
+current_targets:= all
+endif
+
+ifneq (,$(filter-out $(NO_INC_TARGETS),$(current_targets)))
+include $(dep_files)
+endif

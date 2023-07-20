@@ -1,0 +1,16 @@
+#! /bin/sh
+
+set -e
+format=grb
+if [ yes = yes ]; then
+  . ${srcdir}/test_cksum_base
+else
+  # skip tests for unsupported formats
+  exit 77
+fi
+
+#
+# Local Variables:
+# mode: sh
+# End:
+#

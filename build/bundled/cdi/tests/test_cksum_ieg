@@ -1,0 +1,10 @@
+#! /bin/sh
+
+set -e
+format=ieg
+if [ yes = yes ]; then
+  . ${srcdir}/test_cksum_base
+else
+  # skip tests for unsupported formats
+  exit 77
+fi

@@ -1,0 +1,10 @@
+#! /bin/sh
+set -e
+../libtool --mode=execute ${tool_wrap} \
+  ./test_resource_copy
+
+#
+# Local Variables:
+# mode: sh
+# End:
+#

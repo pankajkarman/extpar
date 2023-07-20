@@ -1,0 +1,69 @@
+{
+  "build" : {
+    "tools" : {
+      "CC"       : "/hpc/sw/gnu/gcc/9.1.0/bin/gcc",
+      "CPP"      : "/hpc/sw/gnu/gcc/9.1.0/bin/gcc -E",
+      "CPPFLAGS" : "-I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include  ",
+      "CFLAGS"   : "-Wall -pedantic -O3 -g -pthread",
+      "LDFLAGS"  : "-L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib ",
+      "LIBS"     : "-lnetcdf  -lm  -luuid -L/hpc/sw/hdf5/1.10.5/x86/intel/lib -L/hpc/sw/netcdf4/4.7.3/x86/intel/lib -lnetcdf -lnetcdff -lhdf5_hl -lhdf5",
+      "FC"       : "/hpc/sw/gnu/gcc/9.1.0/bin/gfortran",
+      "F77"      : "no",
+      "FCFLAGS"  : "-cpp -Wall -pedantic -fbacktrace -O3 -g -fopenmp -ffree-line-length-256",
+      "LD"       : "/usr/bin/ld -m elf_x86_64",
+      "NM"       : "/usr/bin/nm -B",
+      "AR"       : "ar",
+      "AS"       : "@AS@",
+      "DLLTOOL"  : "false",
+      "OBJDUMP"  : "objdump",
+      "STRIP"    : "strip",
+      "RANLIB"   : "ranlib",
+      "INSTALL"  : "/usr/bin/install -c"
+    },
+    "libraries" : {
+      "threads"    : {
+        "lib"      : "",
+        "include"  : ""
+      },
+      "mpi"        : {
+        "libs"     : "",
+        "cflags"   : "",
+        "fclibs"   : "",
+        "fcflags"  : ""
+      },
+      "szlib"    : {
+        "lib"      : "",
+        "include"  : ""
+      },
+      "netcdf"   : {
+        "lib"      : " -L/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/lib -lnetcdf",
+        "include"  : " -I/hpc/sw/netcdf4/4.7.3/x86/gnu-9.1.0/include"
+      },
+      "grib_api" : {
+        "lib"      : "",
+        "include"  : ""
+      },
+      "eccodes" : {
+        "lib"      : "",
+        "include"  : ""
+      }
+    },
+    "platform" : {
+      "USER_NAME"   : "@USER_NAME@",
+      "HOST_NAME"   : "@HOST_NAME@",
+      "SYSTEM_TYPE" : "x86_64-pc-linux-gnu"
+    }
+  },
+  "features" : {
+    "enable_cdi_lib" : true,
+    "grib"           : "yes",
+    "cgribex"        : "yes",
+    "service"        : "yes",
+    "extra"          : "yes",
+    "ieg"            : "yes",
+    "enable_mpi"     : false,
+    "parallel_nc4"   : 0,
+    "enable_python"  : false,
+    "enable_ruby"    : false
+  }
+}
