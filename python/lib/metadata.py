@@ -452,3 +452,24 @@ class Isa_10sec(IsaMeta):
     def __init__(self):
         super().__init__()
         self.long = 'European Environmental Agency 10sec'
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+# hwsdART
+        
+class HwsdMeta:
+
+    def __init__(self):
+        self.type = np.float32
+        self.units = '_'
+        self.standard = '_'
+        self.short = '_'
+
+
+class HwsdART(HwsdMeta):
+
+    def __init__(self):
+        super().__init__()
+        self.dim = {0: 'time', 1: 'ke', 2: 'je', 3: 'ie'}
+        self.name = 'hwsdART'
+        self.long = 'hwsdART'

@@ -18,6 +18,8 @@ dictionaries:
     -extpar_ahf_to_buffer.py:     input_ahf
 
     -extpar_isa_to_buffer.py:     input_isa  
+    
+    -extpar_hwsdART_to_buffer.py: input_hwsdART  
 '''
 
 input_tclim = {
@@ -74,4 +76,10 @@ input_isa = {
     'raw_data_isa_path': '',
     'raw_data_isa_filename': 'NOAA_ISA_CDO.nc',
     'isa_buffer_file': 'isa_buffer.nc',
+}
+
+input_hwsdART = {
+    'raw_data_hwsdART_path': '/work/bb1070/b380982/HWSD/',
+    'raw_data_hwsdART_filename': 'HWSD0_USDA.nc',
+    'hwsdART_buffer_file': 'hwsdART_extpar_BUFFER.nc',
 }
