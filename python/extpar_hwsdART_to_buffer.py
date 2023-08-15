@@ -33,7 +33,6 @@ except ImportError:
     import environment as env
 from namelist import input_hwsdART as ihwsdART
 
-<<<<<<< HEAD
 def index_from_latlon_new(lon_array, lat_array, lon_point, lat_point, metric='haversine'):
     lon_array, lat_array, lon_point, lat_point = [np.deg2rad(arr) for arr in [lon_array, lat_array, lon_point, lat_point]]
     lon_lat_array = np.column_stack((lon_array.flatten(), lat_array.flatten()))
@@ -49,10 +48,6 @@ def get_mmap(mat, filename_mmap):
     dump(mat, filename_mmap)
     mat = load(filename_mmap, mmap_mode='r+')
     return mat 
-=======
-from joblib import Parallel, delayed
-import multiprocessing
-from tqdm import tqdm
 
 def index_from_latlon(lon_array, lat_array, lon_point, lat_point):
     """Find the indices of closest cell in a grid, relative to a given latitude/longitude.
@@ -70,10 +65,6 @@ def index_from_latlon(lon_array, lat_array, lon_point, lat_point):
 def get_index(index, lons, lats, hlon, hlat, idxs):
     xx = np.ones((hlon.size))
     idxs[index, :] = index_from_latlon(lons, lats, hlon, hlat[index]*xx)
-<<<<<<< HEAD
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
-=======
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
 
 def calculate_fraction(lons, lus, idxs):
     """
@@ -89,15 +80,7 @@ def calculate_fraction(lons, lus, idxs):
         for cm in np.arange(lons.size):
             frac = np.array(cnt1[unq1==cm] / cnt[unq==cm]) 
             if len(frac)!=0:
-<<<<<<< HEAD
-<<<<<<< HEAD
                 fracs[cm, i] = frac                 
-=======
-                fracs[:, i] = frac                 
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
-=======
-                fracs[:, i] = frac                 
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
     return fracs
 
 def write_data_to_buffer(fracs, tg):
@@ -122,8 +105,6 @@ def write_data_to_buffer(fracs, tg):
     for i, (name, std_name, long_name) in enumerate(zip(fr_names, std_names, long_names)):
         xfr[name] = xr.DataArray(fracs[:, i], dims={'cell':np.arange(tg.lons.size)}, 
                                  attrs={'standard_name':std_name, 'long_name':long_name, 'units':'1'})    
-<<<<<<< HEAD
-<<<<<<< HEAD
     xfr = xfr.drop_vars("fr0")
     
     grd = xr.open_dataset(tg.gridfile)    
@@ -137,38 +118,8 @@ def write_data_to_buffer(fracs, tg):
                                attrs={'standard_name':'vertices latitude', 'long_name':'latitude of icon grid cell vertices', 'units':'radians'})    
     xfr.attrs['uuidOfHGrid'] = grd.attrs['uuidOfHGrid']
     xfr.attrs['number_of_grid_used'] = grd.attrs['number_of_grid_used']
-=======
-        
-    grd = xr.open_dataset(tg.gridfile)    
-    xfr['clon'] = xr.DataArray(tg.lons, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid longitude', 'long_name':'longitude of icon grid cell centre', 'units':'radians'})    
-    xfr['clat'] = xr.DataArray(tg.lats, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid latitude', 'long_name':'latitude of icon grid cell centre', 'units':'radians'})       
-    xfr['clon_vertices'] = xr.DataArray(grd.clon_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices longitude', 'long_name':'longitude of icon grid cell vertices', 'units':'radians'})
-    xfr['clat_vertices'] = xr.DataArray(grd.clat_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices latitude', 'long_name':'latitude of icon grid cell vertices', 'units':'radians'})    
-    xfr.attrs['uuidOfHGrid'] = grd.attrs['uuidOfHGrid']
-    xfr.attrs['number_of_grid_used'] = grd.attrs['number_of_grid_used']
-    xfr = xfr.drop_vars("fr0")
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
-=======
-        
-    grd = xr.open_dataset(tg.gridfile)    
-    xfr['clon'] = xr.DataArray(tg.lons, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid longitude', 'long_name':'longitude of icon grid cell centre', 'units':'radians'})    
-    xfr['clat'] = xr.DataArray(tg.lats, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid latitude', 'long_name':'latitude of icon grid cell centre', 'units':'radians'})       
-    xfr['clon_vertices'] = xr.DataArray(grd.clon_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices longitude', 'long_name':'longitude of icon grid cell vertices', 'units':'radians'})
-    xfr['clat_vertices'] = xr.DataArray(grd.clat_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices latitude', 'long_name':'latitude of icon grid cell vertices', 'units':'radians'})    
-    xfr.attrs['uuidOfHGrid'] = grd.attrs['uuidOfHGrid']
-    xfr.attrs['number_of_grid_used'] = grd.attrs['number_of_grid_used']
-    xfr = xfr.drop_vars("fr0")
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
     return xfr.astype('float32')
-
+    
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 # initialize logger
@@ -265,8 +216,6 @@ logging.info("")
 logging.info("============= Mapping raw pixel data to memory map for efficient use ========")
 logging.info("")
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 folder = '/tmp/joblib_memmap'
 try:
     os.mkdir(folder)
@@ -284,14 +233,10 @@ idxs = -1 * np.ones(raw.shape, int)
 ndi = np.arange(raw.lat.size)
 
 Parallel(n_jobs=45, max_nbytes='100M', mmap_mode='w+')(delayed(get_index)(i, lons, lats, hlon, hlat, idxs) for i in tqdm(ndi))
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
-=======
 idxs = -1 * np.ones(raw.shape, int)
 ndi = np.arange(raw.lat.size)
 
 Parallel(n_jobs=45, max_nbytes='100M', mmap_mode='w+')(delayed(get_index)(i, lons, lats, hlon, hlat, idxs) for i in tqdm(ndi))
->>>>>>> bfecdc0378a0addf7608dd52f9819e1af8f45060
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 logging.info("")
@@ -309,7 +254,6 @@ logging.info("============= Calculate LU Fraction for target grid ========")
 logging.info("")
 
 fracs = calculate_fraction(lons, lus, idxs)
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 logging.info("")
@@ -318,7 +262,6 @@ logging.info("")
 
 xfr = write_data_to_buffer(fracs, tg)
 xfr.to_netcdf(buffer_file)
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 logging.info("")
@@ -327,7 +270,6 @@ logging.info("")
 
 utils.remove(weights)
 os.system('rm -rf %s'%folder)
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 logging.info("")
