@@ -47,24 +47,7 @@ def get_index(index, lons, lats, hlon, hlat, idxs):
 def get_mmap(mat, filename_mmap):
     dump(mat, filename_mmap)
     mat = load(filename_mmap, mmap_mode='r+')
-    return mat 
-
-def index_from_latlon(lon_array, lat_array, lon_point, lat_point):
-    """Find the indices of closest cell in a grid, relative to a given latitude/longitude.
-
-    The function builds a BallTree from the provided 1D or 2D array of latitude and longitude and queries it to find n nearest neghbors to a given point.
-
-    Borrowed from [iconarray utilities](https://github.com/C2SM/iconarray/blob/main/iconarray/core/utilities.py)
-    """
-    lon_array, lat_array, lon_point, lat_point = [np.deg2rad(arr) for arr in [lon_array, lat_array, lon_point, lat_point]]
-    lon_lat_array = np.column_stack((lon_array.flatten(), lat_array.flatten()))
-    points = np.column_stack((lon_point, lat_point))
-    indices = BallTree(lon_lat_array, metric= metric, leaf_size=3).query(points, k=1)[1].squeeze()
-    return indices
-    
-def get_index(index, lons, lats, hlon, hlat, idxs):
-    xx = np.ones((hlon.size))
-    idxs[index, :] = index_from_latlon(lons, lats, hlon, hlat[index]*xx)
+    return mat
 
 def calculate_fraction(lons, lus, idxs):
     """
