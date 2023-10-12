@@ -85,14 +85,24 @@ icon_grid_dir=${work_dir}
 
 #cp $rootdir/test/testsuite/data/mpim/icon_r3b7/INPUT* .
 #cp /hpc/rhome/routfor/routfox/extpar/const/INP* .
-cp ${ROUTINE_CONST}/extpar/INP* .
+
+#GITLAB
+cp /hpc/rhome/routfor/routfox/extpar/gitlab/extpar/run_scripts/routfor/routfox/const/extpar/INP* .
+cp /hpc/rhome/routfor/routfox/extpar/gitlab/extpar/run_scripts/routfor/routfox/const/extpar/namelist.py .
+#OLD
+#cp ${ROUTINE_CONST}/extpar/INP* .
 
 #cp /hpc/uhome/jhelmert/const/extpar/*.py .
 # Copy Python Modules from the GIT into the WORKDIR 
-cp /hpc/rhome/routfor/routfox/extpar/job/extpar_*.py .
-cp /hpc/rhome/routfor/routfox/extpar/lib/*.py .
+##cp /hpc/rhome/routfor/routfox/extpar/job/extpar_*.py .
+##cp /hpc/rhome/routfor/routfox/extpar/lib/*.py .
+
+cp /hpc/rhome/routfor/routfox/extpar/gitlab/extpar/build/bin/*.py .
+
 #cp /hpc/rhome/routfor/routfox/extpar/const/namelist.py .
-cp ${ROUTINE_CONST}/extpar/namelist.py .
+#OLD
+#cp ${ROUTINE_CONST}/extpar/namelist.py .
+
 # Copy some ERA FILES
 #cp /hpc/rhome/routfor/routfox/extpar/const/*.nc .
 cp ${raw_data_dir%/}/ea_oro_1986.nc .
