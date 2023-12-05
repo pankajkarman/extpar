@@ -22,6 +22,7 @@ it contains:
         -InputEra
         -InputAhf
         -InputIsa
+        -InputCdnc
 '''
 
 
@@ -192,6 +193,16 @@ class InputEdgar:
     def __init__(self):
 
         self.variables = {'&edgar_io_extpar': {'edgar_buffer_file'}}
+
+
+class InputCdnc:
+    '''
+    define structure of  namelist "INPUT_CDNC"
+    '''
+
+    def __init__(self):
+
+        self.variables = ({'&cdnc_io_extpar': {'cdnc_buffer_file'}})
 
 
 class InputEmiss:

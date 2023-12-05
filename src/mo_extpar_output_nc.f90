@@ -93,7 +93,8 @@ MODULE mo_extpar_output_nc
        &                                 ialb_type, &
        &                                 undef_alb_bs, &
        &                                 ntime_ndvi, &
-       &                                 ntime_emiss
+       &                                 ntime_emiss, &
+       &                                 ntime_cdnc
 
   USE mo_terra_urb,                ONLY: l_terra_urb,            &
        &                                 terra_urb_write_netcdf, &
@@ -926,6 +927,7 @@ MODULE mo_extpar_output_nc
        &                                l_use_ahf,            &
        &                                l_use_emiss,          &
        &                                l_use_edgar,          &
+       &                                l_use_cdnc,           &
        &                                l_radtopo,            &
        &                                nhori,                &
        &                                undefined,            &
@@ -957,6 +959,7 @@ MODULE mo_extpar_output_nc
        &                                edgar_emi_bc,         &
        &                                edgar_emi_oc,         &
        &                                edgar_emi_so2,        &
+       &                                cdnc,                 &
        &                                emiss_field_mom,      &
        &                                hh_topo,              &
        &                                hh_topo_max,          &
@@ -1001,6 +1004,7 @@ MODULE mo_extpar_output_nc
          &                                             l_use_ahf, &
          &                                             l_use_emiss, &
          &                                             l_use_edgar, &
+         &                                             l_use_cdnc, &
          &                                             l_radtopo, &
          &                                             lsso
     INTEGER (KIND=i4), INTENT(in)                   :: itopo_type
@@ -1045,6 +1049,7 @@ MODULE mo_extpar_output_nc
          &                                             edgar_emi_bc(:,:,:),      & !< field for black carbon emission from edgar
          &                                             edgar_emi_oc(:,:,:),      & !< field for organic carbon emission from edgar
          &                                             edgar_emi_so2(:,:,:),     & !< field for sulfur dioxide emission from edgar
+         &                                             cdnc(:,:,:,:),            & !< field for cdnc climatology (12 months)
          &                                             emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
          &                                             sst_field(:,:,:,:),       & !< field for monthly mean sst data (12 months)
          &                                             wsnow_field(:,:,:,:),     & !< field for monthly mean wsnow data (12 months)
@@ -1165,6 +1170,7 @@ MODULE mo_extpar_output_nc
          &     edgar_emi_bc_ID,      &
          &     edgar_emi_oc_ID,      &
          &     edgar_emi_so2_ID,     &
+         &     cdnc_ID,              &
          &     emiss_field_mom_ID,   &
          &     aot_bc_ID,            &
          &     aot_dust_ID,          &
@@ -1283,6 +1289,8 @@ MODULE mo_extpar_output_nc
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
     IF (l_use_edgar) CALL def_edgar_meta(dim_1d_icon)
+
+    IF (l_use_cdnc) CALL def_cdnc_meta(ntime_cdnc, dim_1d_icon)
 
     CALL def_era_meta(ntime_ndvi,dim_1d_icon)
 
@@ -1473,6 +1481,11 @@ MODULE mo_extpar_output_nc
       edgar_emi_oc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_oc_meta, undefined)
       edgar_emi_so2_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_so2_meta, undefined)
     ENDIF
+
+    IF (l_use_cdnc) THEN
+      cdnc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, cdnc_meta, undefined)
+    ENDIF
+
     IF (iaot_type == 5) THEN
       CAMS_SS1_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS1_tg_meta     , undefined)
       CAMS_SS2_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS2_tg_meta     , undefined)
@@ -1798,6 +1811,11 @@ MODULE mo_extpar_output_nc
       IF (l_use_emiss) THEN
         n=21
         CALL streamWriteVar(fileID, emiss_field_mom_ID, emiss_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
+      ENDIF
+
+      IF (l_use_cdnc) THEN
+        n=22
+        CALL streamWriteVar(fileID, cdnc_ID, cdnc(1:icon_grid%ncell,1,1,tsID), 0_i8)
       ENDIF
 
     END DO
