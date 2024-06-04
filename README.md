@@ -69,6 +69,19 @@ source modules.env
 make -j 4
 ```
 
+### Balfrin
+
+```bash
+git clone --recursive git@github.com:C2SM-RCM/extpar.git
+./configure.balfrin.gcc
+source modules.env
+make -j 16
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
 ## Installing extpar
 
 After you prepared extpar (see above), you have to options to install and run
@@ -155,6 +168,7 @@ In order to run Extpar, input data files for the external parameter variables ar
 *  Tsa: _/store/c2sm/extpar_raw_data/linked_data_
 *  Daint: _/store/c2sm/extpar_raw_data/linked_data_
 *  Levante: _/work/pd1167/extpar-input-data/linked_data_
+*  Balfrin: _/store_new/mch/c2sm/extpar_raw_data/linked_data_
 
 The input data files are also stored in a git-LFS data repository found at: https://gitlab.dkrz.de/extpar-data/extpar-input-data.
 Instructions to download or update the input data files can be found in this repository.
