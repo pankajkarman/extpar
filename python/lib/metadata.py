@@ -230,6 +230,29 @@ class EdgarSO2(EdgarMeta):
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
+# cdnc
+
+
+class CdncMeta:
+
+    def __init__(self):
+        self.type = np.float32
+        self.units = 'cm-3'
+        self.standard = '_'
+        self.short = '_'
+
+
+class Cdnc(CdncMeta):
+
+    def __init__(self):
+        super().__init__()
+        self.dim = {0: 'time', 1: 'ke', 2: 'je', 3: 'ie'}
+        self.name = 'cdnc'
+        self.long = 'cloud droplet number density (characteristic value for atmospheric column). Source: National Aeronautics and Space Administration (NASA). MODerate resolution Imaging Spectroradiometer (MODIS), https://modis.gsfc.nasa.gov/data/'
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
 # Emiss
 # ->EmissMean
 # ->EmissMax
