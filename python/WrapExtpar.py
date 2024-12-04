@@ -2,19 +2,19 @@
 import argparse
 import os
 import stat
-import sys
 import shutil
 import logging
+import json
 
 import numpy as np
 
 # extpar modules from lib
 try:
-    from extpar.lib.grid_def import CosmoGrid
+    from extpar.lib.grid_def import CosmoGrid, IconGrid
     from extpar.lib.utilities import launch_shell
     DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 except ImportError:  # package not installed -> use PYTHONPATH
-    from grid_def import CosmoGrid
+    from grid_def import CosmoGrid, IconGrid
     from utilities import launch_shell
     DATA_DIR = ".."
 
@@ -26,50 +26,23 @@ def main():
 
     parser = argparse.ArgumentParser(description='Process some integers.')
 
-    parser.add_argument('--input_cosmo_grid',
+    parser.add_argument('--extpar-config',
                         type=str,
                         required=True,
-                        help='Fortran Namelist "INPUT_COSMO_GRID"')
+                        help='Path to extpar config file')
+
     parser.add_argument(
-        '--iaot_type',
-        type=int,
-        required=True,
-        help='1: Global Aerosol Climatology Project, 2: AeroCom1')
-    parser.add_argument('--ilu_type',
-                        type=int,
-                        required=True,
-                        help='1: GLOBCOVER 2: GLC2000')
-    parser.add_argument('--ialb_type',
-                        type=int,
-                        required=True,
-                        help='1: VIS,UV,NIR 2: SOIL 3: VIS')
-    parser.add_argument(
-        '--isoil_type',
-        type=int,
-        required=True,
-        help=
-        '1: FAO Digital Soil Map of the World, 2: Harmonized World Soil Database (with additional data for deepsoil): Harmonized World Soil Database (HWSD)'
+        '--input-grid',
+        type=str,
+        help='COSMO: Fortran Namelist "INPUT_COSMO_GRID", ICON: Icon grid file'
     )
-    parser.add_argument('--itopo_type',
-                        type=int,
-                        required=True,
-                        help='1: GLOBE, 2: ASTER, 3: MERIT')
-    parser.add_argument('--lsgsl',
-                        action='store_true',
-                        help='Compute subgrid-scale slope parameter (S_ORO)')
-    parser.add_argument('--lfilter_oro',
-                        action='store_true',
-                        help='Smooth orography')
+
     parser.add_argument(
-        '--lurban',
-        action='store_true',
-        help='Compute parameters for urban parametrizations (AHF and ISA)')
-    parser.add_argument(
-        '--raw_data_path',
+        '--raw-data-path',
         type=str,
         required=True,
         help='Path to folder "linked_data" of exptar-input-data repository')
-    parser.add_argument('--run_dir',
+    parser.add_argument('--run-dir',
                         type=str,
                         required=True,
                         help='Folder for running Extpar')
@@ -77,26 +50,38 @@ def main():
                         type=str,
                         required=True,
                         help='Account for slurm job')
-    parser.add_argument('--host',
-                        type=str,
-                        required=True,
-                        choices=('levante'),
-                        help='Host')
-    parser.add_argument('--no_batch_job',
+    parser.add_argument('--host', type=str, required=True, help='Host')
+    parser.add_argument('--no-batch-job',
                         action='store_true',
                         help="Run jobscript not as batch job")
 
     args = parser.parse_args()
 
-    generate_external_parameters(args.input_cosmo_grid, args.iaot_type,
-                                 args.ilu_type, args.ialb_type,
-                                 args.isoil_type, args.itopo_type,
+    # Read and parse the JSON configuration file
+    with open(args.extpar_config, 'r') as f:
+        config = json.load(f)
+
+    config = config['extpar']
+
+    igrid_type = config.get('igrid_type')
+    iaot_type = config.get('iaot_type')
+    ilu_type = config.get('ilu_type')
+    ialb_type = config.get('ialb_type')
+    isoil_type = config.get('isoil_type')
+    itopo_type = config.get('itopo_type')
+    lsgsl = config.get('lsgsl', False)
+    lfilter_oro = config.get('lfilter_oro', False)
+    lurban = config.get('lurban', False)
+
+    generate_external_parameters(igrid_type, args.input_grid, iaot_type,
+                                 ilu_type, ialb_type, isoil_type, itopo_type,
                                  args.raw_data_path, args.run_dir,
                                  args.account, args.host, args.no_batch_job,
-                                 args.lurban, args.lsgsl, args.lfilter_oro)
+                                 lurban, lsgsl, lfilter_oro)
 
 
-def generate_external_parameters(input_cosmo_grid,
+def generate_external_parameters(igrid_type,
+                                 input_grid,
                                  iaot_type,
                                  ilu_type,
                                  ialb_type,
@@ -117,10 +102,11 @@ def generate_external_parameters(input_cosmo_grid,
     # make all paths absolut
     raw_data_path = os.path.abspath(raw_data_path)
     run_dir = os.path.abspath(run_dir)
-    input_cosmo_grid = os.path.abspath(input_cosmo_grid)
+    input_grid = os.path.abspath(input_grid)
 
     args_dict = {
-        'input_cosmo_grid': input_cosmo_grid,
+        'input_grid': input_grid,
+        'igrid_type': igrid_type,
         'iaot_type': iaot_type,
         'ilu_type': ilu_type,
         'ialb_type': ialb_type,
@@ -184,21 +170,32 @@ def write_namelist(args, namelist):
     files = [
         'INPUT_ORO', 'INPUT_RADTOPO', 'INPUT_OROSMOOTH', 'INPUT_SGSL',
         'INPUT_AOT', 'INPUT_LU', 'INPUT_FLAKE', 'INPUT_SCALE_SEP',
-        'INPUT_SOIL', 'INPUT_CHECK', 'namelist.py'
+        'INPUT_SOIL', 'INPUT_CHECK', 'namelist'
     ]
 
     replace_placeholders(args, files, templates_dir, namelist)
 
+    igrid_type = args['igrid_type']
     # INPUT_grid_org
     with open(os.path.join(args['run_dir'], 'INPUT_grid_org'), 'w') as f:
         f.write('&GRID_DEF \n')
-        f.write('igrid_type = 2 \n')
-        f.write("domain_def_namelist = 'INPUT_COSMO_GRID' \n")
+        f.write(f'igrid_type = {igrid_type} \n')
+        f.write("domain_def_namelist = 'INPUT_GRID' \n")
         f.write('/ \n')
 
-    # INPUT_COSMO_GRID
-    shutil.copy(args['input_cosmo_grid'],
-                os.path.join(args['run_dir'], 'INPUT_COSMO_GRID'))
+    # COSMO_GRID
+    if igrid_type == 2:
+        shutil.copy(args['input_grid'],
+                    os.path.join(args['run_dir'], 'INPUT_GRID'))
+    # ICON_GRID
+    else:
+        grid_path = os.path.dirname(args['input_grid'])
+        grid_file = os.path.basename(args['input_grid'])
+        with open(os.path.join(args['run_dir'], 'INPUT_GRID'), 'w') as f:
+            f.write('&icon_grid_info \n')
+            f.write(f'icon_grid_dir = "{grid_path}" \n')
+            f.write(f"icon_grid_nc_file = '{grid_file}' \n")
+            f.write('/ \n')
 
 
 def copy_required_files(args, executables):
@@ -221,18 +218,27 @@ def copy_required_files(args, executables):
 
 def setup_oro_namelist(args):
 
-    tg = CosmoGrid(args['input_cosmo_grid'])
+    igrid_type = args['igrid_type']
 
-    namelist = {}
+    if igrid_type == 2:
+        return setup_oro_namelist_cosmo(args)
+    else:
+        return setup_oro_namelist_icon(args)
 
+
+def setup_oro_namelist_cosmo(args):
+
+    tg = CosmoGrid(args['input_grid'])
     if tg.dlon < 0.05 and tg.dlat < 0.05:
         lradtopo = True
     else:
         lradtopo = False
 
+    namelist = {}
+
     # &orography_io_extpar
     namelist['orography_buffer_file'] = 'oro_buffer.nc'
-    namelist['orography_output_file'] = 'oro_cosmo.nc'
+    namelist['orography_output_file'] = 'oro_grid.nc'
 
     # &oro_runcontrol
     if args['lsgsl']:
@@ -246,12 +252,19 @@ def setup_oro_namelist(args):
     namelist['itopo_type'] = args['itopo_type']
     namelist['raw_data_orography_path'] = args['raw_data_path']
 
+    if lradtopo:
+        tg_ext = extend_cosmo_grid_for_radtopo(args["run_dir"], tg)
+        tg_for_extent = tg_ext
+    else:
+        tg_for_extent = tg
+
+    lonmax = np.amax(tg_for_extent.lons)
+    lonmin = np.amin(tg_for_extent.lons)
+    latmin = np.amin(tg_for_extent.lats)
+    latmax = np.amax(tg_for_extent.lats)
+
     if args['itopo_type'] == 1:
-        namelist['topo_files'] = [
-            f"'GLOBE_{letter.upper()}10.nc' "
-            for letter in list(map(chr, range(ord('a'),
-                                              ord('p') + 1)))
-        ]
+        namelist['topo_files'] = generate_globe_filenames()
         namelist['ntiles_column'] = 4
         namelist['ntiles_row'] = 4
 
@@ -279,16 +292,28 @@ def setup_oro_namelist(args):
 
     elif args['itopo_type'] == 2:
         namelist.update(
-            compute_aster_tiles(args["run_dir"], tg, args['lsgsl'], lradtopo))
+            compute_aster_tiles(lonmax=lonmax,
+                                lonmin=lonmin,
+                                latmax=latmax,
+                                latmin=latmin,
+                                lsgsl=args['lsgsl']))
         namelist['lscale_separation'] = ".FALSE."
         namelist['scale_sep_files'] = "'placeholder_file'"
         namelist['lsso_param'] = ".TRUE."
     elif args['itopo_type'] == 3:
         namelist.update(
-            compute_merit_tiles(args["run_dir"], tg, args['lsgsl'], lradtopo))
+            compute_merit_tiles(lonmax=lonmax,
+                                lonmin=lonmin,
+                                latmax=latmax,
+                                latmin=latmin,
+                                lsgsl=args['lsgsl']))
         namelist['lscale_separation'] = ".FALSE."
         namelist['scale_sep_files'] = "'placeholder_file'"
         namelist['lsso_param'] = ".TRUE."
+
+    else:
+        logging.error(f'Unknown itopo_type {args["itopo_type"]}')
+        raise ValueError(f'Unknown itopo_type {args["itopo_type"]}')
 
     # &scale_separated_raw_data
     # other paramters of the namelist already set earlier
@@ -300,15 +325,7 @@ def setup_oro_namelist(args):
     else:
         namelist['lfilter_oro'] = ".FALSE."
 
-    namelist['ilow_pass_oro'] = 4
-    namelist['numfilt_oro'] = 1
-    namelist['ilow_pass_xso'] = 5
-    namelist['lxso_first'] = ".FALSE."
-    namelist['numfilt_xso'] = 1
-    namelist['rxso_mask'] = 750.0
-    namelist['eps_filter'] = 0.1
-    namelist['rfill_valley'] = 0.0
-    namelist['ifill_valley'] = 1
+    namelist.update(orography_smoothing_params())
 
     # &radtopo
     namelist['nhori'] = 24
@@ -322,6 +339,106 @@ def setup_oro_namelist(args):
     namelist['idem_type'] = args['itopo_type']
 
     return namelist
+
+
+def orography_smoothing_params():
+    namelist = {}
+    namelist['ilow_pass_oro'] = 4
+    namelist['numfilt_oro'] = 1
+    namelist['ilow_pass_xso'] = 5
+    namelist['lxso_first'] = ".FALSE."
+    namelist['numfilt_xso'] = 1
+    namelist['rxso_mask'] = 750.0
+    namelist['eps_filter'] = 0.1
+    namelist['rfill_valley'] = 0.0
+    namelist['ifill_valley'] = 1
+    return namelist
+
+
+def setup_oro_namelist_icon(args):
+
+    tg = IconGrid(args['input_grid'])
+    lonmax = np.amax(tg.lons)
+    lonmin = np.amin(tg.lons)
+    latmin = np.amin(tg.lats)
+    latmax = np.amax(tg.lats)
+    lradtopo = False
+
+    namelist = {}
+
+    # &orography_io_extpar
+    namelist['orography_buffer_file'] = 'oro_buffer.nc'
+    namelist['orography_output_file'] = 'oro_grid.nc'
+
+    namelist['lcompute_sgsl'] = ".FALSE."
+    namelist['sgsl_buffer_file'] = 'placeholder_file'
+
+    # &orography_raw_data
+    namelist['itopo_type'] = args['itopo_type']
+    namelist['raw_data_orography_path'] = args['raw_data_path']
+
+    if args['itopo_type'] == 1:
+        namelist['topo_files'] = generate_globe_filenames()
+        namelist['ntiles_column'] = 4
+        namelist['ntiles_row'] = 4
+
+        namelist['lscale_separation'] = ".FALSE."
+        namelist['lsso_param'] = ".FALSE."
+        namelist['scale_sep_files'] = "'placeholder_file'"
+        namelist['lsso_param'] = ".TRUE."
+
+    elif args['itopo_type'] == 2:
+        namelist.update(
+            compute_aster_tiles(lonmax=lonmax,
+                                lonmin=lonmin,
+                                latmax=latmax,
+                                latmin=latmin,
+                                lsgsl=False))
+        namelist['lscale_separation'] = ".FALSE."
+        namelist['scale_sep_files'] = "'placeholder_file'"
+        namelist['lsso_param'] = ".TRUE."
+    elif args['itopo_type'] == 3:
+        namelist.update(
+            compute_merit_tiles(lonmax=lonmax,
+                                lonmin=lonmin,
+                                latmax=latmax,
+                                latmin=latmin,
+                                lsgsl=False))
+        namelist['lscale_separation'] = ".FALSE."
+        namelist['scale_sep_files'] = "'placeholder_file'"
+        namelist['lsso_param'] = ".TRUE."
+
+    else:
+        logging.error(f'Unknown itopo_type {args["itopo_type"]}')
+        raise ValueError(f'Unknown itopo_type {args["itopo_type"]}')
+
+    # &scale_separated_raw_data
+    # other paramters of the namelist already set earlier
+    namelist['raw_data_scale_sep_path'] = args['raw_data_path']
+
+    # &orography_smoothing
+    namelist['lfilter_oro'] = ".FALSE."
+    # not relevant for ICON grid, but required for namelist
+    namelist.update(orography_smoothing_params())
+
+    # &radtopo
+    namelist['nhori'] = 24
+    if lradtopo:
+        namelist['lradtopo'] = ".TRUE."
+    else:
+        namelist['lradtopo'] = ".FALSE."
+
+    namelist['idem_type'] = args['itopo_type']
+
+    return namelist
+
+
+def generate_globe_filenames():
+    return [
+        f"'GLOBE_{letter.upper()}10.nc' "
+        for letter in list(map(chr, range(ord('a'),
+                                          ord('p') + 1)))
+    ]
 
 
 def setup_lu_namelist(args):
@@ -342,6 +459,10 @@ def setup_lu_namelist(args):
         # we need "" padding for correct replacement in Fortran namelist
         namelist['raw_data_lu_filename'] = "'GLC2000_byte.nc'"
 
+    else:
+        logging.error(f'Unknown ilu_type {args["ilu_type"]}')
+        raise ValueError(f'Unknown ilu_type {args["ilu_type"]}')
+
     return namelist
 
 
@@ -354,6 +475,11 @@ def setup_aot_namelist(args):
         namelist['raw_data_aot_filename'] = 'aot_GACP.nc'
     elif args['iaot_type'] == 2:
         namelist['raw_data_aot_filename'] = 'aod_AeroCom1.nc'
+    elif args['iaot_type'] == 5:
+        namelist['raw_data_aot_filename'] = 'aot_CAMS_2003-2013.nc'
+    else:
+        logging.error(f'Unknown iaot_type {args["iaot_type"]}')
+        raise ValueError(f'Unknown iaot_type {args["iaot_type"]}')
 
     return namelist
 
@@ -376,6 +502,10 @@ def setup_soil_namelist(args):
         namelist['raw_data_soil_filename'] = 'HWSD0_30_topsoil.nc'
         namelist['raw_data_deep_soil_filename'] = 'HWSD30_100_subsoil.nc'
         namelist['ldeep_soil'] = ".FALSE"
+
+    else:
+        logging.error(f'Unknown isoil_type {args["isoil_type"]}')
+        raise ValueError(f'Unknown isoil_type {args["isoil_type"]}')
 
     # &soil_io_extpar
     namelist['soil_buffer_file'] = 'soil_buffer.nc'
@@ -429,6 +559,9 @@ def setup_albedo_namelist(args):
         namelist['raw_data_alb_filename'] = 'global_soil_albedo.nc'
     elif args['ialb_type'] == 3:
         namelist['raw_data_alb_filename'] = 'alb_new.nc'
+    else:
+        logging.error(f'Unknown ialb_type {args["ialb_type"]}')
+        raise ValueError(f'Unknown ialb_type {args["ialb_type"]}')
 
     return namelist
 
@@ -439,6 +572,20 @@ def setup_ndvi_namelist(args):
     namelist['raw_data_ndvi_path'] = args['raw_data_path']
     namelist['raw_data_ndvi_filename'] = 'NDVI_1998_2003.nc'
     namelist['ndvi_buffer_file'] = 'ndvi_buffer.nc'
+
+    return namelist
+
+
+def setup_era_namelist(args):
+    namelist = {}
+
+    namelist['iera_type'] = 1
+    namelist['raw_data_era_path'] = args['raw_data_path']
+    namelist['raw_data_era_ORO'] = 'ERA5_ORO_1990.nc'
+    namelist['raw_data_era_SD'] = 'ERA5_SD_1990_2019.nc'
+    namelist['raw_data_era_T2M'] = 'ERA5_T2M_1990_2019.nc'
+    namelist['raw_data_era_SST'] = 'ERA5_SST_1990_2019.nc'
+    namelist['era_buffer_file'] = 'era_buffer.nc'
 
     return namelist
 
@@ -486,6 +633,7 @@ def setup_namelist(args) -> dict:
     namelist.update(setup_ndvi_namelist(args))
     namelist.update(setup_urban_namelist(args))
     namelist.update(setup_soil_namelist(args))
+    namelist.update(setup_era_namelist(args))
     namelist.update(setup_check_namelist(args))
 
     return namelist
@@ -507,6 +655,9 @@ def setup_runscript(args):
     if args['lurban']:
         executables.append('"extpar_ahf_to_buffer.py" ')
         executables.append('"extpar_isa_to_buffer.py" ')
+
+    if args['igrid_type'] == 1:
+        executables.append('"extpar_era_to_buffer.py" ')
 
     executables.append('"extpar_consistency_check.exe" ')
 
@@ -536,7 +687,11 @@ def replace_placeholders(args, templates, dir, actual_values):
 
     # write complete template to file
     for template in templates:
-        with open(os.path.join(args['run_dir'], template), 'w') as f:
+        # special case for namelist.py, which is a python file but not valid with placeholders
+        file = template
+        if template == 'namelist':
+            file = 'namelist.py'
+        with open(os.path.join(args['run_dir'], file), 'w') as f:
             f.write(all_templates[template])
         logging.info(f'{template} written to {args["run_dir"]}')
 
@@ -571,8 +726,8 @@ def extend_cosmo_grid_for_radtopo(run_dir: str, tg: CosmoGrid):
     return CosmoGrid(extended_grid)
 
 
-def compute_merit_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
-                        lradtopo: bool) -> dict:
+def compute_merit_tiles(lonmax: float, lonmin: float, latmax: float,
+                        latmin: float, lsgsl: bool) -> dict:
 
     name_lon = [
         'W180-W150', 'W150-W120', 'W120-W090', 'W090-W060', 'W060-W030',
@@ -584,14 +739,7 @@ def compute_merit_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
         'N90-N60', 'N60-N30', 'N30-N00', 'N00-S30', 'S30-S60', 'S60-S90'
     ]
 
-    prefix_lat = ['MERIT', 'MERIT', 'MERIT', 'MERIT', 'MERIT', 'REMA']
-    if lradtopo:
-        tg = extend_cosmo_grid_for_radtopo(run_dir, tg)
-
-    zlonmax = np.amax(tg.lons)
-    zlonmin = np.amin(tg.lons)
-    zlatmin = np.amin(tg.lats)
-    zlatmax = np.amax(tg.lats)
+    prefix_lat = ['MERIT', 'MERIT', 'MERIT', 'MERIT', 'MERIT', 'REMA_BKG']
 
     merit_tiles_lon = np.empty([12, 6])
     merit_tiles_lat = np.empty([12, 6])
@@ -610,19 +758,17 @@ def compute_merit_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
 
     for j in range(0, 6):
         for i in range(0, 12):
-            if merit_tiles_lon[i, j] < zlonmin:
+            if merit_tiles_lon[i, j] < lonmin:
                 ilon_min = i
-            if merit_tiles_lon[i, j] < zlonmax:
+            if merit_tiles_lon[i, j] < lonmax:
                 ilon_max = i
-            if merit_tiles_lat[i, j] > zlatmin:
+            if merit_tiles_lat[i, j] > latmin:
                 ilat_max = j
-            if merit_tiles_lat[i, j] > zlatmax:
+            if merit_tiles_lat[i, j] > latmax:
                 ilat_min = j
 
     ntiles_column = ilon_max - ilon_min + 1
     ntiles_row = ilat_max - ilat_min + 1
-
-    merit_files = np.empty(72, int)
 
     name_tiles = []
     for j in range(ilat_min, ilat_max + 1):
@@ -644,19 +790,11 @@ def compute_merit_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
     return namelist
 
 
-def compute_aster_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
-                        lradtopo: bool) -> dict:
-
-    if lradtopo:
-        tg = extend_cosmo_grid_for_radtopo(run_dir, tg)
-
-    zlonmax = np.amax(tg.lons)
-    zlonmin = np.amin(tg.lons)
-    zlatmin = np.amin(tg.lats)
-    zlatmax = np.amax(tg.lats)
+def compute_aster_tiles(lonmax: float, lonmin: float, latmax: float,
+                        latmin: float, lsgsl: bool) -> dict:
 
     # safety check
-    if zlatmax > 60.0 or zlatmax < -60.0:
+    if latmax > 60.0 or latmax < -60.0:
         logging.error('Domains using Aster cannot exceed 60 N or 60 S')
         raise ValueError('Domains using Aster cannot exceed 60 N or 60 S')
 
@@ -677,13 +815,13 @@ def compute_aster_tiles(run_dir: str, tg: CosmoGrid, lsgsl: bool,
 
     for j in range(0, 20):
         for i in range(0, 12):
-            if aster_tiles_lon[i, j] < zlonmin:
+            if aster_tiles_lon[i, j] < lonmin:
                 ilon_min = i
-            if aster_tiles_lon[i, j] < zlonmax:
+            if aster_tiles_lon[i, j] < lonmax:
                 ilon_max = i
-            if aster_tiles_lat[i, j] > zlatmin:
+            if aster_tiles_lat[i, j] > latmin:
                 ilat_max = j
-            if aster_tiles_lat[i, j] > zlatmax:
+            if aster_tiles_lat[i, j] > latmax:
                 ilat_min = j
 
     ntiles_column = ilon_max - ilon_min + 1
