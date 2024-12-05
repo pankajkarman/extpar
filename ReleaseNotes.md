@@ -1,4 +1,8 @@
 # Release notes
+Release notes moved to [GitHub webpage](https://github.com/C2SM-RCM/extpar/releases).
+
+**Please don't put any more content here!**
+
 ## 5.14
 * New buffer script `extpar_cdnc_to_buffer` for ICON
   - Cloud droplet number concentration from the cloud optical depth and effective radius
