@@ -1,6 +1,9 @@
 name: Build Docker Image and Upload as Release Asset
 
-on: [push]
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build_and_release:
@@ -21,7 +24,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build and Save Docker image
         id: build_docker_image
         uses: docker/build-push-action@v2
         with:
@@ -37,19 +40,19 @@ jobs:
           name: extpar.tar
           path: extpar.tar
 
-      #- name: Get release
-      #  id: get_release
-      #  uses: bruceadams/get-release@v1.3.2
-      #  env:
-      #    GITHUB_TOKEN: ${{ github.token }}
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      #- name: Upload Release Asset
-      #  id: upload-release-asset 
-      #  uses: actions/upload-release-asset@v1
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #  with:
-      #    upload_url: ${{ steps.get_release.outputs.upload_url }} 
-      #    asset_path: extpar.tar
-      #    asset_name: extpar_container.tar
-      #    asset_content_type: application/x-tar
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }} 
+          asset_path: extpar.tar
+          asset_name: extpar_container.tar
+          asset_content_type: application/x-tar
