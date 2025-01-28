@@ -32,8 +32,6 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: extpar:${{ github.ref_name }}
-          outputs:
-            image: extpar:${{ github.ref_name }}
 
       - name: Save Docker image to file
         run: docker save extpar:${{ github.ref_name }} -o extpar.tar
