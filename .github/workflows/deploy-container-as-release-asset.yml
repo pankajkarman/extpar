@@ -29,15 +29,13 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: extpar:${{ github.ref_name }}
+          outputs: type=docker,dest=extpar.tar
 
-      - name: Save Docker image to file
-        run: docker save extpar:${{github.ref_name }} -o extpar.tar
-
-      #- name: Upload Docker image as artifact
-      #  uses: actions/upload-artifact@v4
-      #  with:
-      #    name: extpar.tar
-      #    path: extpar.tar
+      - name: Upload Docker image as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extpar.tar
+          path: extpar.tar
 
       #- name: Get release
       #  id: get_release
