@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/SUMMARY/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/compile_run/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/dependencies/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/development/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/release_notes/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+    <url>
+         <loc>http://c2sm-rcm.github.io/extpar/testing/</loc>
+         <lastmod>2025-02-03</lastmod>
+    </url>
+</urlset>
