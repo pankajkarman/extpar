@@ -934,7 +934,7 @@ or even simpler via CLI <code>docker pull c2sm/extpar:tagname</code>.</p>
 <p>The image provides a wrapper that only requires to set basic options, all other details are handled by the wrapper.</p>
 <p>The wrapper needs two different kinds of input:</p>
 <p><em>1. Extpar settings as JSON, see official docs</em></p>
-<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;extpar&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;igrid_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;iaot_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
@@ -947,38 +947,34 @@ or even simpler via CLI <code>docker pull c2sm/extpar:tagname</code>.</p>
 <span class="w">    </span><span class="nt">&quot;lurban&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
-<span class="w">  </span><span class="err">```</span>
-
-<span class="err">_</span><span class="mf">2.</span><span class="w"> </span><span class="err">Execu</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="w"> </span><span class="err">op</span><span class="kc">t</span><span class="err">io</span><span class="kc">ns</span><span class="err">_</span>
-<span class="err">```co</span><span class="kc">ns</span><span class="err">ole</span>
-<span class="w">  </span><span class="mi">--</span><span class="err">i</span><span class="kc">n</span><span class="err">pu</span><span class="kc">t</span><span class="mi">-</span><span class="err">grid</span><span class="w"> </span><span class="err">INPUT_GRID</span>
-<span class="w">                        </span><span class="err">COSMO</span><span class="p">:</span><span class="w"> </span><span class="err">For</span><span class="kc">tran</span><span class="w"> </span><span class="err">Namelis</span><span class="kc">t</span><span class="w"> </span><span class="s2">&quot;INPUT_COSMO_GRID&quot;</span><span class="p">,</span><span class="w"> </span><span class="err">ICON</span><span class="p">:</span><span class="w"> </span><span class="err">Ico</span><span class="kc">n</span>
-<span class="w">                        </span><span class="err">grid</span><span class="w"> </span><span class="kc">f</span><span class="err">ile</span>
-<span class="w">  </span><span class="mi">--</span><span class="err">raw</span><span class="mi">-</span><span class="err">da</span><span class="kc">ta</span><span class="mi">-</span><span class="err">pa</span><span class="kc">t</span><span class="err">h</span><span class="w"> </span><span class="err">RAW_DATA_PATH</span>
-<span class="w">                        </span><span class="err">Pa</span><span class="kc">t</span><span class="err">h</span><span class="w"> </span><span class="kc">t</span><span class="err">o</span><span class="w"> </span><span class="kc">f</span><span class="err">older</span><span class="w"> </span><span class="s2">&quot;linked_data&quot;</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="err">exp</span><span class="kc">tar</span><span class="mi">-</span><span class="err">i</span><span class="kc">n</span><span class="err">pu</span><span class="kc">t</span><span class="mi">-</span><span class="err">da</span><span class="kc">ta</span>
-<span class="w">                        </span><span class="err">reposi</span><span class="kc">t</span><span class="err">ory</span>
-<span class="w">  </span><span class="mi">--</span><span class="err">ru</span><span class="kc">n</span><span class="mi">-</span><span class="err">dir</span><span class="w"> </span><span class="err">RUN_DIR</span><span class="w">     </span><span class="err">Folder</span><span class="w"> </span><span class="kc">f</span><span class="err">or</span><span class="w"> </span><span class="err">ru</span><span class="kc">nn</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w"> </span><span class="err">Ex</span><span class="kc">t</span><span class="err">par</span>
-<span class="w">  </span><span class="mi">--</span><span class="err">accou</span><span class="kc">nt</span><span class="w"> </span><span class="err">ACCOUNT</span><span class="w">     </span><span class="err">Accou</span><span class="kc">nt</span><span class="w"> </span><span class="kc">f</span><span class="err">or</span><span class="w"> </span><span class="err">slurm</span><span class="w"> </span><span class="err">job</span>
-<span class="w">  </span><span class="mi">--</span><span class="err">hos</span><span class="kc">t</span><span class="w"> </span><span class="err">HOST</span><span class="w">           </span><span class="err">Hos</span><span class="kc">t</span>
-<span class="w">  </span><span class="mi">--</span><span class="kc">n</span><span class="err">o</span><span class="mi">-</span><span class="err">ba</span><span class="kc">t</span><span class="err">ch</span><span class="mi">-</span><span class="err">job</span><span class="w">        </span><span class="err">Ru</span><span class="kc">n</span><span class="w"> </span><span class="err">jobscrip</span><span class="kc">t</span><span class="w"> </span><span class="kc">n</span><span class="err">o</span><span class="kc">t</span><span class="w"> </span><span class="err">as</span><span class="w"> </span><span class="err">ba</span><span class="kc">t</span><span class="err">ch</span><span class="w"> </span><span class="err">job</span>
-<span class="w">  </span><span class="err">```</span>
-
-<span class="err">A</span><span class="kc">n</span><span class="w"> </span><span class="err">example</span><span class="w"> </span><span class="err">call</span><span class="w"> </span><span class="err">could</span><span class="w"> </span><span class="err">look</span><span class="w"> </span><span class="err">like</span>
-<span class="err">```bash</span>
-<span class="err">docker</span><span class="w"> </span><span class="err">ru</span><span class="kc">n</span><span class="w"> </span><span class="mi">-</span><span class="err">v</span><span class="w"> </span><span class="err">/c</span><span class="mi">2</span><span class="err">sm</span><span class="mi">-</span><span class="err">da</span><span class="kc">ta</span><span class="err">/ex</span><span class="kc">t</span><span class="err">par</span><span class="mi">-</span><span class="err">i</span><span class="kc">n</span><span class="err">pu</span><span class="kc">t</span><span class="mi">-</span><span class="err">da</span><span class="kc">ta</span><span class="p">:</span><span class="err">/da</span><span class="kc">ta</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">-</span><span class="err">v</span><span class="w"> </span><span class="err">/ico</span><span class="kc">n</span><span class="mi">-</span><span class="err">grids</span><span class="p">:</span><span class="err">/grid</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">-</span><span class="err">v</span><span class="w"> </span><span class="err">/my_local_dir</span><span class="p">:</span><span class="err">/work</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="err">ex</span><span class="kc">t</span><span class="err">par</span><span class="w"> </span><span class="err">\</span><span class="w"> </span>
-<span class="w">           </span><span class="err">py</span><span class="kc">t</span><span class="err">ho</span><span class="kc">n</span><span class="mi">3</span><span class="w"> </span><span class="mi">-</span><span class="err">m</span><span class="w"> </span><span class="err">ex</span><span class="kc">t</span><span class="err">par.WrapEx</span><span class="kc">t</span><span class="err">par</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="err">ru</span><span class="kc">n</span><span class="mi">-</span><span class="err">dir</span><span class="w"> </span><span class="err">/work</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="err">raw</span><span class="mi">-</span><span class="err">da</span><span class="kc">ta</span><span class="mi">-</span><span class="err">pa</span><span class="kc">t</span><span class="err">h</span><span class="w"> </span><span class="err">/da</span><span class="kc">ta</span><span class="err">/li</span><span class="kc">n</span><span class="err">ked_da</span><span class="kc">ta</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="err">accou</span><span class="kc">nt</span><span class="w"> </span><span class="kc">n</span><span class="err">o</span><span class="kc">ne</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="kc">n</span><span class="err">o</span><span class="mi">-</span><span class="err">ba</span><span class="kc">t</span><span class="err">ch</span><span class="mi">-</span><span class="err">job</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="err">hos</span><span class="kc">t</span><span class="w"> </span><span class="err">docker</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mi">--</span><span class="err">i</span><span class="kc">n</span><span class="err">pu</span><span class="kc">t</span><span class="mi">-</span><span class="err">grid</span><span class="w"> </span><span class="err">/grid/ico</span><span class="kc">n</span><span class="err">_grid.</span><span class="kc">n</span><span class="err">c</span><span class="w"> </span><span class="err">\</span>
-<span class="w">           </span><span class="mf">--e</span><span class="err">x</span><span class="kc">t</span><span class="err">par</span><span class="mi">-</span><span class="err">co</span><span class="kc">nf</span><span class="err">ig</span><span class="w"> </span><span class="err">/work/co</span><span class="kc">nf</span><span class="err">ig.jso</span><span class="kc">n</span>
 </code></pre></div>
-Below is a more detailed explanation about the mounted volumes:</p>
+<p><em>2. Execution options</em></p>
+<div class="highlight"><pre><span></span><code><span class="go">  --input-grid INPUT_GRID</span>
+<span class="go">                        COSMO: Fortran Namelist &quot;INPUT_COSMO_GRID&quot;, ICON: Icon</span>
+<span class="go">                        grid file</span>
+<span class="go">  --raw-data-path RAW_DATA_PATH</span>
+<span class="go">                        Path to folder &quot;linked_data&quot; of exptar-input-data</span>
+<span class="go">                        repository</span>
+<span class="go">  --run-dir RUN_DIR     Folder for running Extpar</span>
+<span class="go">  --account ACCOUNT     Account for slurm job</span>
+<span class="go">  --host HOST           Host</span>
+<span class="go">  --no-batch-job        Run jobscript not as batch job</span>
+</code></pre></div>
+<p>An example call could look like</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/c2sm-data/extpar-input-data:/data<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>-v<span class="w"> </span>/icon-grids:/grid<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>-v<span class="w"> </span>/my_local_dir:/work<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>extpar<span class="w"> </span><span class="se">\ </span>
+<span class="w">           </span>python3<span class="w"> </span>-m<span class="w"> </span>extpar.WrapExtpar<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--run-dir<span class="w"> </span>/work<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--raw-data-path<span class="w"> </span>/data/linked_data<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--account<span class="w"> </span>none<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--no-batch-job<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--host<span class="w"> </span>docker<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--input-grid<span class="w"> </span>/grid/icon_grid.nc<span class="w"> </span><span class="se">\</span>
+<span class="w">           </span>--extpar-config<span class="w"> </span>/work/config.json
+</code></pre></div>
+<p>Below is a more detailed explanation about the mounted volumes:</p>
 <ul>
 <li><code>-v /c2sm-data/extpar-input-data:/data</code>: Mounts the input data at <code>/data</code> inside the container. This should be aligned with the <code>--raw-data-path</code> argument.</li>
 <li><code>-v /icon-grids:/grid</code>: Mounts a local folder with icon grids under <code>/grid</code> inside the container. This should be aligned with the <code>--input-grid</code> argument.</li>
@@ -1037,7 +1033,7 @@ system without the need to copy the executables themselves.</p>
 <p><strong>Note:</strong> If you do not have the permissions to install it into the system-wide python
 library, it will be installed for your user account only (you can also add the
 <code>--user</code> flag to <code>pip</code> to force this behaviour).</p>
-<p>If you did not install <code>extpar</code> into the system-libraries, make sure
+<p>If you did not install <code>extpar</code> into the system libraries, make sure
 that the <code>bin</code> folder of your local user is on your <code>PATH</code> variable to be able
 to run the extpar scripts. This is usually done via</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
@@ -1046,7 +1042,7 @@ to run the extpar scripts. This is usually done via</p>
 <p>You can then call the functionalities of <code>WrapExtpar.py</code> via</p>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>extpar.WrapExtpar
 </code></pre></div>
-<p>or import the script in python via</p>
+<p>or import the script in Python via</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">extpar.WrapExtpar</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_external_parameters</span>
 </code></pre></div>
 <p>Or you call the executable scripts in your run directory, e.g.</p>
@@ -1054,15 +1050,27 @@ to run the extpar scripts. This is usually done via</p>
 </code></pre></div>
 <h2 id="input-data">Input Data<a class="headerlink" href="#input-data" title="Permanent link">&para;</a></h2>
 <h3 id="data-location">Data Location<a class="headerlink" href="#data-location" title="Permanent link">&para;</a></h3>
-<p>In order to run Extpar, input data files for the external parameter variables are needed. The data is provided on all supported machines:
-*  Levante: <em>/work/pd1167/extpar-input-data/linked_data</em>
-*  CO2 (ETHZ): <em>/c2sm-data/extpar-input-data</em></p>
-<p>The input data files are also stored in a git-LFS data repository found at: https://gitlab.dkrz.de/extpar-data/extpar-input-data.
+<p>In order to run Extpar, input data files for the external parameter variables are needed. The data is provided on all supported machines:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Levante</label><label for="__tabbed_1_2">co2 (ETHZ)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="go">/work/pd1167/extpar-input-data/linked_data</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="go">/c2sm-data/extpar-input-data</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>The input data files are also stored in a git-LFS data repository found at: <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data">https://gitlab.dkrz.de/extpar-data/extpar-input-data</a>.
 Instructions to download or update the input data files can be found in this repository.
 To gain access to the git-LFS input data repository, contact the Extpar source code administrator.</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<p>The extpar code comes with a technical testsuite to ensure the accuracy of the results. Weekly tests run for compilers
-* GCC</p>
+<p>The extpar code comes with a technical testsuite to ensure the accuracy of the results. Weekly tests run for compilers:</p>
+<ul>
+<li>GCC</li>
+</ul>
 <p>For more information about how the testsuite can be run or new test added see <a href="doc/testing.md">testsuite-documentation</a></p>
 <h2 id="information-for-developers">Information for developers<a class="headerlink" href="#information-for-developers" title="Permanent link">&para;</a></h2>
 <p>In case you want to contribute to Extpar please have a look at our <a href="doc/development.md">coding rules and development workflow</a>.</p>
