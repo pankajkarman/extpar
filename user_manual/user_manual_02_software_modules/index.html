@@ -881,8 +881,8 @@ consistency check, is performed in the end. The executables are called
 (temperature climatology of the Climate Research Unit (CRU)), landuse,
 topo, ndvi (normalized difference vegetation index), soil, flake
 (fraction lake), isa (impervious surface area), albedo, emiss
-(emissivity) and era (ERA climatologies) respectively. In the figure
-below a schematic representation of EXTPAR is
+(emissivity) and era (ERA climatologies) respectively.
+In <a href="#fig:EXTPAR_Figure">Fig. 1</a> a schematic representation of EXTPAR is
 drawn. For the sake of clarity only the topography and land-use path is
 shown. The same can be applied for the other ten raw data sets. For all
 these programs there exist namelists. Most of the namelists only contain
@@ -906,8 +906,9 @@ output of the final external variables.</p>
 general information of the target grid to which the raw data should be
 aggregated. The namelist file <code>namelist.py</code> is read by all Python
 programmes.</p>
-<p><img alt="" src="../EXTPAR_Figure.png" />
-<em>Schematic illustration of the software EXTPAR.</em></p>
+<p><a name="fig:EXTPAR_Figure"></a></p>
+<p><img alt="" src="../EXTPAR_Figure.png" /> 
+<center><em>Figure 1: Schematic illustration of the software EXTPAR.</em></center></p>
 <h2 id="Python-CDO">Hybrid Python-CDO structure<a class="headerlink" href="#Python-CDO" title="Permanent link">&para;</a></h2>
 <p>For three of the external parameters calculated by EXTPAR, namely
 albedo, NDVI, and the Hadley CRU climatologies, problems appeared with
