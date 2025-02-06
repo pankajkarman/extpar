@@ -1036,6 +1036,10 @@ warning if the borders of the domain are exceeded. This is followed by
 an abortion of this program. As there is no need to calculate the
 subgrid scale parameters (SSO) for high resolution setups, there is the
 logical switch <em>lsso_parm</em> to turn off the calculation of the SSOs.</p>
+<p><img alt="" src="../ASTER_files.png" />
+<em>Illustration of the single domains of the 240 ASTER tiles. An example of how the three parameters ntiles_columns, ntiles_row and topo_files in the namelist could look like is given in red.</em></p>
+<p><img alt="" src="../map_merit_rema.png" />
+<em>Illustration of the single domains of the 60 MERIT and the 12 REMA tiles below 60 deg S latitude.</em></p>
 <p>Furthermore the variables of the namelist 'INPUT_ORO', which cover all
 the raw topographical data information, are fed into the program. In
 this namelist the path of the raw data is given as well as the names of
@@ -1141,7 +1145,8 @@ read step by step as suggested in Fig.
 <a href="#fig:grid_figure">[fig:grid_figure]</a>{reference-type="ref"
 reference="fig:grid_figure"}. If the scale separation is desired the
 same procedure is applied to the 3 km filtered topography.</p>
-<p>0cm0cm17.5cm8.5cm</p>
+<p><img alt="" src="../grid_figure.png" />
+<em>Schematic illustration of the filling of the raw data with a 500 grid points long band. The green crosses indicate the start end end latitudes and longitudes of each raw topography tile (light blue tiles), whereas the red circles show the indices inside the band, where the green indices of the tiles must be placed.</em></p>
 <p>After this step, a temporary variable of elevation values is filled.
 This variable consists of three rows, which comprises the whole
 longitude range of the raw topography data. This is used to deduce the
@@ -1163,6 +1168,8 @@ point. Only the green grid elements in Fig.
 <a href="#fig:aggregation_figure">[fig:aggregation_figure]</a>{reference-type="ref"
 reference="fig:aggregation_figure"} b) belong to a target grid element.
 The rest of the raw topography is unused.</p>
+<p><img alt="" src="../aggregation_figure.png" />
+<em>a) Illustration of the aggregation of the raw data to the target grid. The red circle indicates a target grid point, while the green rectangle represents the part of the raw data that is aggregated on the target grid point. b) Showing the target grid on top of the raw data set, where only the green grid points of the raw data are used for the target grid.</em></p>
 <p>The elevations of raw data pixels that belong to one target grid element
 are summed up, and the number of raw data pixels contributing to one
 target grid element is tracked. A summation of the raw data values for
@@ -2188,7 +2195,7 @@ detailed description of CDI look at\
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 5, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 6, 2025</span>
   </span>
 
     
@@ -2198,7 +2205,7 @@ detailed description of CDI look at\
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 5, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 6, 2025</span>
   </span>
 
     
