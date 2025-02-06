@@ -1949,29 +1949,29 @@ Finally the allocated memory can be released.</p>
 <h3 id="short-description-of-the-subprogram-extpar_hwsdart_to_buffer">Short description of the subprogram <em>extpar_hwsdART_to_buffer</em><a class="headerlink" href="#short-description-of-the-subprogram-extpar_hwsdart_to_buffer" title="Permanent link">&para;</a></h3>
 <p>This program processes HWSD (Harmonized World Soil Database) data and
 aggregates it onto a target grid.</p>
-<p>The code is a module named \"mo_agg_hwsdART\" that contains a
-subroutine called \"agg_hwsdART_data_to_target_grid\". This
+<p>The code is a module named "mo_agg_hwsdART" that contains a
+subroutine called "agg_hwsdART_data_to_target_grid". This
 subroutine is used to aggregate data from the HWSD dataset to a target
 grid. The HWSD dataset contains soil unit information classified
 according to the USDA soil classification system.</p>
-<p>The module uses several other modules, including \"mo_logging\" for
-logging purposes, \"mo_kind\" to define kind parameters,
-\"mo_hwsdART_data\" to define the different soil types according to
-the USDA classification, \"mo_hwsdART_tg_fields\" to define variables
-related to the target grid, and \"mo_grid_structures\" to define grid
+<p>The module uses several other modules, including "mo_logging" for
+logging purposes, "mo_kind" to define kind parameters,
+"mo_hwsdART_data" to define the different soil types according to
+the USDA classification, "mo_hwsdART_tg_fields" to define variables
+related to the target grid, and "mo_grid_structures" to define grid
 structures.</p>
 <p>The subroutine takes input parameters including the target grid
-structure (\"tg\"), the HWSDART soil unit data
-(\"hwsdART_soil_unit\"), the grid of HWSDART data (\"hwsdART_grid\"),
+structure ("tg"), the HWSDART soil unit data
+("hwsdART_soil_unit"), the grid of HWSDART data ("hwsdART_grid"),
 and the longitude and latitude coordinates of the HWSDART grid
-(\"lon_hwsdART\" and \"lat_hwsdART\").</p>
+("lon_hwsdART" and "lat_hwsdART").</p>
 <p>The subroutine initializes local variables and arrays to store the
 counts of different soil types in each grid element of the target grid.
 It also sets an undefined integer value and initializes the count of raw
 data pixels to zero.</p>
 <p>The subroutine then iterates over the HWSDART grid and finds the nearest
 target grid element for each raw data pixel using the
-\"find_nearest_target_grid_element\" function. If the raw data pixel
+"find_nearest_target_grid_element" function. If the raw data pixel
 is out of the range of the target domain, it is skipped.</p>
 <p>For each valid raw data pixel, the subroutine counts the number of raw
 data pixels in the target grid element and increments the count for the
