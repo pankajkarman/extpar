@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="http://c2sm-rcm.github.io/extpar/">
+        <link rel="canonical" href="http://c2sm.github.io/extpar/">
       
       
       
@@ -193,13 +193,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/C2SM-RCM/extpar" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/C2SM/extpar" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    C2SM-RCM/extpar
+    C2SM/extpar
   </div>
 </a>
       </div>
@@ -373,13 +373,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/C2SM-RCM/extpar" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/C2SM/extpar" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    C2SM-RCM/extpar
+    C2SM/extpar
   </div>
 </a>
     </div>
@@ -909,7 +909,7 @@
 
 
   
-    <a href="https://github.com/C2SM-RCM/extpar/edit/main/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/C2SM/extpar/edit/main/docs/index.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -920,20 +920,23 @@
 <h1 id="home">Home<a class="headerlink" href="#home" title="Permanent link">&para;</a></h1>
 <h2 id="general-information">General Information<a class="headerlink" href="#general-information" title="Permanent link">&para;</a></h2>
 <p>EXTPAR (<strong>Ext</strong>ernal <strong>Par</strong>ameters for Numerical Weather Prediction and Climate Application) is an official software of the <a href="http://www.cosmo-model.org/content/default.htm">COSMO Consortium</a>.  It is used to prepare the external parameter data files that are used as input for the COSMO and the ICON model.</p>
-<p>The code is written in Fortran 90 and in Python. The Python scripts use CDO for the most compute-intensive parts. The code is also accelerated in some places with OpenMP parallelization.</p>
-<p>The code once compiled generates 6 Fortran executables and 9 Python scripts, which can be run simultaneously except for the final extpar_consistency_check.exe, which is used to tie together all the external parameter results into one output file.</p>
-<p>Information about the latest changes can be found in the <a href="https://github.com/C2SM-RCM/extpar/releases">Release Notes</a>.</p>
-<p>A full documentation of the code can be found as an <a href="https://github.com/C2SM-RCM/extpar/releases">assets of each release</a>.</p>
+<p>The code is written in Fortran 90 and in Python. The Python scripts use <a href="https://code.mpimet.mpg.de/projects/cdo">CDO</a> (Climate Data Operators) 
+for the most compute-intensive parts. The code is also accelerated in some places with OpenMP parallelization.</p>
+<p>Once compiled, the code generates 6 Fortran executables and 9 Python scripts, which can be run simultaneously except for the final extpar_consistency_check.exe, which is used to tie together all the external parameter results into one output file.</p>
+<p>Information about the latest changes can be found in the <a href="https://github.com/C2SM/extpar/releases">Release Notes on GitHub</a>.</p>
+<p>The technical and scientific documentation can be found in the <a href="user_manual.md">User and Implementation Guide</a>.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <h3 id="container">Container<a class="headerlink" href="#container" title="Permanent link">&para;</a></h3>
-<p>The easiest way to use extpar is through the container provided with <a href="Dockerfile">Dockerfile</a>. 
+<p>The easiest way to use EXTPAR is through the container provided with <a href="https://github.com/C2SM/extpar/blob/master/Dockerfile">Dockerfile</a>. 
 A ready-to-use image can be downloaded from <a href="https://hub.docker.com/repository/docker/c2sm/extpar/general">C2SM docker hub</a> 
-or even simpler via CLI <code>docker pull c2sm/extpar:tagname</code>.</p>
-<p>Alternatively an image is provided as an <a href="https://github.com/C2SM-RCM/extpar/releases">asset of each release</a></p>
+or even simpler via CLI:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>pull<span class="w"> </span>c2sm/extpar:tagname
+</code></pre></div>
+<p>Alternatively, an image is provided as an <a href="https://github.com/C2SM/extpar/releases">asset of each release</a></p>
 <h4 id="wrapextpar">WrapExtpar<a class="headerlink" href="#wrapextpar" title="Permanent link">&para;</a></h4>
 <p>The image provides a wrapper that only requires to set basic options, all other details are handled by the wrapper.</p>
 <p>The wrapper needs two different kinds of input:</p>
-<p><em>1. Extpar settings as JSON, see official docs</em></p>
+<p><em>1. EXTPAR settings as JSON, see official docs</em></p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;extpar&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;igrid_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
@@ -955,7 +958,7 @@ or even simpler via CLI <code>docker pull c2sm/extpar:tagname</code>.</p>
 <span class="go">  --raw-data-path RAW_DATA_PATH</span>
 <span class="go">                        Path to folder &quot;linked_data&quot; of exptar-input-data</span>
 <span class="go">                        repository</span>
-<span class="go">  --run-dir RUN_DIR     Folder for running Extpar</span>
+<span class="go">  --run-dir RUN_DIR     Folder for running EXTPAR</span>
 <span class="go">  --account ACCOUNT     Account for slurm job</span>
 <span class="go">  --host HOST           Host</span>
 <span class="go">  --no-batch-job        Run jobscript not as batch job</span>
@@ -978,42 +981,39 @@ or even simpler via CLI <code>docker pull c2sm/extpar:tagname</code>.</p>
 <ul>
 <li><code>-v /c2sm-data/extpar-input-data:/data</code>: Mounts the input data at <code>/data</code> inside the container. This should be aligned with the <code>--raw-data-path</code> argument.</li>
 <li><code>-v /icon-grids:/grid</code>: Mounts a local folder with icon grids under <code>/grid</code> inside the container. This should be aligned with the <code>--input-grid</code> argument.</li>
-<li><code>-v /my_local_dir:/work</code>: Mounts a local folder for extpar output at <code>/work</code> inside the container. This should be aligned with the <code>--run-dir</code> argument.</li>
+<li><code>-v /my_local_dir:/work</code>: Mounts a local folder for EXTPAR output at <code>/work</code> inside the container. This should be aligned with the <code>--run-dir</code> argument.</li>
 </ul>
-<h3 id="individual-executables">Individual executables<a class="headerlink" href="#individual-executables" title="Permanent link">&para;</a></h3>
-<p>For those who require a more custom setup of Extpar or need settings that are not possible to specify through the wrapper, you can run each executable within the image too. For example:</p>
+<h3 id="individual-executables">Individual Executables<a class="headerlink" href="#individual-executables" title="Permanent link">&para;</a></h3>
+<p>For those who require a more custom setup of EXTPAR or need settings that are not possible to specify through the wrapper, you can run each executable within the image too. For example:</p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>extpar<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;extpar_topo_to_buffer&quot;</span>
-
-<span class="c1">## Bare metal build on Levante</span>
-
-The<span class="w"> </span>installation<span class="w"> </span>steps<span class="w"> </span>are
-
-<span class="sb">```</span>bash
-git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>git@github.com:C2SM-RCM/extpar.git
+</code></pre></div>
+<h3 id="bare-metal-build-on-levante">Bare Metal Build on Levante<a class="headerlink" href="#bare-metal-build-on-levante" title="Permanent link">&para;</a></h3>
+<p>The installation steps are</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>git@github.com:C2SM/extpar.git
 <span class="nb">cd</span><span class="w"> </span>extpar
 git<span class="w"> </span>submodule<span class="w"> </span>update
 ./configure.levante.gcc
 <span class="nb">source</span><span class="w"> </span>modules.env
 make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
 </code></pre></div>
-<p>Furthermore copy all the .exe and .py files from <a href="bin">bin</a> to the directory 
+<p>Furthermore copy all the <code>.exe</code> and <code>.py</code> files from <code>bin</code> to the directory 
 in which the namelist and all required input-data is present.</p>
-<p>You do then have two choices to run extpar:</p>
+<p>You do then have two choices to run EXTPAR:</p>
 <ol>
 <li>configure the <code>PYTHONPATH</code> variable such that it includes to the <code>python/lib</code>
    folder of the source repository</li>
 <li>build and install a python package for your user account</li>
 </ol>
-<h4 id="installing-extpar">Installing extpar<a class="headerlink" href="#installing-extpar" title="Permanent link">&para;</a></h4>
-<p>After you prepared extpar (see above), you have to options to install and run
+<h4 id="installing-extpar">Installing EXTPAR<a class="headerlink" href="#installing-extpar" title="Permanent link">&para;</a></h4>
+<p>After you prepared EXTPAR (see above), you have two options to install and run
 the software.</p>
 <h5 id="option-1-pythonpath">Option 1: PYTHONPATH<a class="headerlink" href="#option-1-pythonpath" title="Permanent link">&para;</a></h5>
-<p>If you like to run the extpar scripts without installing a package, make sure
+<p>If you like to run the EXTPAR scripts without installing a package, make sure
 to have the <code>python/lib</code> folder in your <code>PYTHONPATH</code> variable. You can do this
 via</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:<span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/python/lib
 </code></pre></div>
-<p>Afterwards you can <code>cd</code> into the <a href="bin"><code>bin/</code></a> directory and run the
+<p>Afterwards you can <code>cd</code> into the <code>bin/</code> directory and run the
 corresponding executables, e.g.</p>
 <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>bin
 ./extpar_aot_to_buffer.exe
@@ -1035,7 +1035,7 @@ library, it will be installed for your user account only (you can also add the
 <code>--user</code> flag to <code>pip</code> to force this behaviour).</p>
 <p>If you did not install <code>extpar</code> into the system libraries, make sure
 that the <code>bin</code> folder of your local user is on your <code>PATH</code> variable to be able
-to run the extpar scripts. This is usually done via</p>
+to run the EXTPAR scripts. This is usually done via</p>
 <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.local/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
 </code></pre></div>
 <hr />
@@ -1050,8 +1050,8 @@ to run the extpar scripts. This is usually done via</p>
 </code></pre></div>
 <h2 id="input-data">Input Data<a class="headerlink" href="#input-data" title="Permanent link">&para;</a></h2>
 <h3 id="data-location">Data Location<a class="headerlink" href="#data-location" title="Permanent link">&para;</a></h3>
-<p>In order to run Extpar, input data files for the external parameter variables are needed. The data is provided on all supported machines:</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Levante</label><label for="__tabbed_1_2">co2 (ETHZ)</label></div>
+<p>In order to run EXTPAR, input data files for the external parameter variables are needed. The data is provided on all supported machines:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Levante (DKRZ)</label><label for="__tabbed_1_2">co2 (ETHZ)</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><span class="go">/work/pd1167/extpar-input-data/linked_data</span>
@@ -1065,17 +1065,17 @@ to run the extpar scripts. This is usually done via</p>
 </div>
 <p>The input data files are also stored in a git-LFS data repository found at: <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data">https://gitlab.dkrz.de/extpar-data/extpar-input-data</a>.
 Instructions to download or update the input data files can be found in this repository.
-To gain access to the git-LFS input data repository, contact the Extpar source code administrator.</p>
+To gain access to the git-LFS input data repository, contact the EXTPAR source code administrator.</p>
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<p>The extpar code comes with a technical testsuite to ensure the accuracy of the results. Weekly tests run for compilers:</p>
+<p>The EXTPAR code comes with a technical testsuite to ensure the accuracy of the results. Weekly tests run for compilers:</p>
 <ul>
 <li>GCC</li>
 </ul>
 <p>For more information about how the testsuite can be run or new test added see <a href="doc/testing.md">testsuite-documentation</a></p>
 <h2 id="information-for-developers">Information for developers<a class="headerlink" href="#information-for-developers" title="Permanent link">&para;</a></h2>
-<p>In case you want to contribute to Extpar please have a look at our <a href="doc/development.md">coding rules and development workflow</a>.</p>
+<p>In case you want to contribute to EXTPAR please have a look at our <a href="doc/development.md">coding rules and development workflow</a>.</p>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
-<p>In the case of issues or questions, please contact the current source code administrator (Jonas Jucker) at jonas.jucker@c2sm.ethz.ch.</p>
+<p>In the case of issues or questions, please create an <a href="https://github.com/C2SM/extpar/issues">issue on GitHub</a>.</p>
 
 
 

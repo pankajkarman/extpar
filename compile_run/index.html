@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="http://c2sm-rcm.github.io/extpar/compile_run/">
+        <link rel="canonical" href="http://c2sm.github.io/extpar/compile_run/">
       
       
         <link rel="prev" href="..">
@@ -195,13 +195,13 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/C2SM-RCM/extpar" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/C2SM/extpar" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    C2SM-RCM/extpar
+    C2SM/extpar
   </div>
 </a>
       </div>
@@ -375,13 +375,13 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/C2SM-RCM/extpar" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/C2SM/extpar" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
   </div>
   <div class="md-source__repository">
-    C2SM-RCM/extpar
+    C2SM/extpar
   </div>
 </a>
     </div>
@@ -839,7 +839,7 @@
 
 
   
-    <a href="https://github.com/C2SM-RCM/extpar/edit/main/docs/compile_run.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/C2SM/extpar/edit/main/docs/compile_run.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -849,56 +849,66 @@
 
 <h1 id="compile-and-run">Compile and Run<a class="headerlink" href="#compile-and-run" title="Permanent link">&para;</a></h1>
 <h2 id="compilation">Compilation<a class="headerlink" href="#compilation" title="Permanent link">&para;</a></h2>
-<p>Since Version 5.4, Extpar is built with an autotool based build-system. This has been necessary to accomodate for the additional C source code files and newly required libraries.</p>
+<p>Since Version 5.4, EXTPAR is built with an autotools based build-system. This has been necessary to accomodate for the additional C source code files and newly required libraries.</p>
 <p>There are three options to compile Extpar: </p>
 <h3 id="in-source-build">In-source build<a class="headerlink" href="#in-source-build" title="Permanent link">&para;</a></h3>
-<p>./configure.<em>hostname.compiler</em><br />
-source modules.env<br />
-make   </p>
+<div class="highlight"><pre><span></span><code>./configure.&lt;hostname&gt;.&lt;compiler&gt;
+<span class="nb">source</span><span class="w"> </span>modules.env<span class="w">  </span>
+make<span class="w">   </span>
+</code></pre></div>
 <h3 id="out-of-source-build">Out-of-source build<a class="headerlink" href="#out-of-source-build" title="Permanent link">&para;</a></h3>
-<p>mkdir build-<em>my_self_defined_note</em><br />
-cd build-<em>my_self_defined_note</em><br />
-<em>path_to_the_extpar_installation</em>/configure.<em>hostname.compiler</em><br />
-source modules.env<br />
-make  </p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>build-&lt;my_self_defined_note&gt;
+<span class="nb">cd</span><span class="w"> </span>build-&lt;my_self_defined_note&gt;
+path/to/extpar/installation/configure.&lt;hostname&gt;.&lt;compiler&gt;
+<span class="nb">source</span><span class="w"> </span>modules.env<span class="w">  </span>
+make<span class="w">  </span>
+</code></pre></div>
 <h3 id="install-binaries-only-in-external-directory">Install binaries only in external directory<a class="headerlink" href="#install-binaries-only-in-external-directory" title="Permanent link">&para;</a></h3>
-<p>./configure.<em>hostname.compiler</em> --prefix=<em>my_external_directory</em><br />
-source modules.env<br />
-make install<br />
-The binaries will be installed in  <em>my_external_directory/bin</em></p>
+<div class="highlight"><pre><span></span><code>./configure.&lt;hostname&gt;.&lt;compiler&gt;<span class="w"> </span>--prefix<span class="o">=</span>&lt;my_external_directory&gt;
+<span class="nb">source</span><span class="w"> </span>modules.env<span class="w">  </span>
+make<span class="w"> </span>install<span class="w">  </span>
+</code></pre></div>
+<p>The binaries will be installed in <code>my_external_directory/bin</code>.</p>
 <h3 id="restart-build-from-scratch">Restart build from scratch<a class="headerlink" href="#restart-build-from-scratch" title="Permanent link">&para;</a></h3>
-<p>make distclean </p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>distclean<span class="w"> </span>
+</code></pre></div>
 <h3 id="configure-for-new-machines">Configure for new machines<a class="headerlink" href="#configure-for-new-machines" title="Permanent link">&para;</a></h3>
 <p>The first step in creating a new machine setup is to take one of
 the existing configure wrapper scripts and adapt it to your local
-environment. The scripts are called configure.<em>hostname.compiler</em>.</p>
+environment. The scripts are called <code>configure.&lt;hostname&gt;.&lt;compiler&gt;</code>.</p>
 <h2 id="running">Running<a class="headerlink" href="#running" title="Permanent link">&para;</a></h2>
-<p>The Fortran executables 
-*   <em>extpar_aot_to_buffer.exe</em>
-*   <em>extpar_landuse_to_buffer.exe</em>
-*   <em>exptar_soil_to_buffer.exe</em>
-*   <em>extpar_topo_to_buffer.exe</em>
-*   <em>extpar_flake_to_buffer.exe</em> 
-*   <em>extpar_consistency_check.exe</em> </p>
-<p>can simply be copied to the run-directory.</p>
-<p>The main python scripts 
-*   <em>extpar_alb_to_buffer.py</em>
-*   <em>extpar_cru_to_buffer.py</em>
-*   <em>extpar_ndvi_to_buffer.py</em>
-*   <em>extpar_emiss_to_buffer.py</em>
-*   <em>exptar_era_to_buffer.py</em>
-*   <em>extpar_ahf_to_buffer.py</em>
-*   <em>extpar_isa_to_buffer.py</em>  </p>
-<p>can be treated like the Fortran binaries and copied to the run-directory. Make sure the <em>namelist.py</em> is also present at the run-directory.  </p>
-<p>All self-written Python-modules are stored in <a href="../python/lib">lib</a> and do not need to be copied to the respective run-directory, rather the environment variable <strong>PYTHONPATH</strong> needs to be set to the following:  </p>
-<p>export PYTHONPATH=$PYTHONPATH:<em>absolute_path_to_python/lib</em></p>
-<p>Some runscript examples are available under /run_scripts.
+<p>The Fortran executables </p>
+<ul>
+<li><em>extpar_aot_to_buffer.exe</em></li>
+<li><em>extpar_landuse_to_buffer.exe</em></li>
+<li><em>exptar_soil_to_buffer.exe</em></li>
+<li><em>extpar_topo_to_buffer.exe</em></li>
+<li><em>extpar_flake_to_buffer.exe</em> </li>
+<li><em>extpar_consistency_check.exe</em> </li>
+</ul>
+<p>can simply be copied to the <code>run/</code> directory.</p>
+<p>The main python scripts </p>
+<ul>
+<li><em>extpar_alb_to_buffer.py</em></li>
+<li><em>extpar_cru_to_buffer.py</em></li>
+<li><em>extpar_ndvi_to_buffer.py</em></li>
+<li><em>extpar_emiss_to_buffer.py</em></li>
+<li><em>exptar_era_to_buffer.py</em></li>
+<li><em>extpar_ahf_to_buffer.py</em></li>
+<li><em>extpar_isa_to_buffer.py</em>  </li>
+</ul>
+<p>can be treated like the Fortran binaries and copied to the <code>run/</code> directory. Make sure the <em>namelist.py</em> is also present in the <code>run/</code> directory.  </p>
+<p>All self-written Python modules are stored in <a href="https://github.com/C2SM/extpar/tree/master/python/lib"><code>python/lib</code></a>
+and do not need to be copied to the respective run directory, but the environment variable <code>PYTHONPATH</code> needs to be set to the following:  </p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span><span class="nv">$PYTHONPATH</span>:&lt;absolute_path_to_python&gt;/lib
+</code></pre></div>
+<p>Some runscript examples are available under <a href="https://github.com/C2SM/extpar/tree/master/run_scripts"><code>run_scripts</code></a>.
 Just adapt them to your needs!</p>
 <h3 id="check">Check<a class="headerlink" href="#check" title="Permanent link">&para;</a></h3>
 <ol>
 <li>that you haven't got any error message at runtime,</li>
 <li>that you got a file in NetCDF format (.nc), and</li>
-<li>in case of use with cosmo that Int2lm is able to read these 2 files </li>
+<li>in case of use with COSMO that Int2lm is able to read these 2 files </li>
 </ol>
 
 
