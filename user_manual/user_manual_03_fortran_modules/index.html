@@ -1333,7 +1333,7 @@ for more information on the run
 scripts). The first routine (init_target_grid) collects all the
 information needed to define the target grid with an integrated routine
 that gathers the variables given in the namelist <code>INPUT_grid_org</code>. The
-variable igrid_type, which can either be 1 (`ICON') or 2 ('COSMO'), is
+variable igrid_type, which can either be 1 ('ICON') or 2 ('COSMO'), is
 an integer switch to define the target grid.</p>
 <p>Then a routine reads the namelist of the corresponding grid, which is
 either <code>INPUT_ICON_GRID</code> or <code>INPUT_COSMO_GRID</code>, depending on the
@@ -1351,7 +1351,7 @@ determine whether SGSL should be calculated from the respective raw
 topography data. Formerly this was done in a separate executable
 extpar_sgsl_to_buffer.exe. From Release 5.3 onwards, the SGSL
 calculation was incorporated into the execututable
-'extpar_topo_to_buffer. As an intermediate step, the SGSL is written
+'extpar_topo_to_buffer`. As an intermediate step, the SGSL is written
 out to NetCDF, one separate file for each raw topography tile is
 required. In case the preprocessed SGSL NetCDF are already available,
 setting the parameter lpreproc oro= .false., deactivates the
@@ -1863,7 +1863,7 @@ three raw data sets and are described in more detail in
 <tr>
 <td>(CLC: 2.4.2, 2.4.3)</td>
 <td>20</td>
-<td>'mosaic cropland (50-70%) - vegetation (20-50%)</td>
+<td>mosaic cropland (50-70%) - vegetation (20-50%)</td>
 </tr>
 <tr>
 <td>(CLC: 2.4.4)</td>
@@ -2975,7 +2975,7 @@ data, the nearest neighbor in the raw data is defined.</p>
 <p>The resulting soiltype is not yet usable, as it contains numbers coded
 in a world code and not in TERRA soiltypes. This transformation is done
 in the consistency check, where the special soiltypes of the HWSD data,
-specified in <a href="#tab:soil_types_HWSD">Table 10</a>, are packed in the variable `SOILTYP'
+specified in <a href="#tab:soil_types_HWSD">Table 10</a>, are packed in the variable <code>SOILTYP</code>
 the normal soiltypes are given in fractions of sand, silt, clay and
 organic carbon, and the bulk density is also given.</p>
 <p><center>

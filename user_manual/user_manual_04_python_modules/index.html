@@ -1489,10 +1489,10 @@ workflow of the Python modules is described below:</p>
 <p>At the beginning of the program information about the environment on
 which EXTPAR is running is written to the logfile and all left-overs
 from prior executions of the same EXTPAR module are deleted. In a next
-step each parameter from the namelist 'namelist.py' is checked for
+step each parameter from the namelist <code>namelist.py</code> is checked for
 correctness as well as assigned to an internal variable for later use in
 the program. The specifaction about the target grid is directly read
-from the Fortan namelist-files 'INPUT_grid_org. The next step in the
+from the Fortan namelist-files <code>INPUT_grid_org</code>. The next step in the
 modules involves the generation of all necessary meta-data for the
 buffer files and the write of a namelist files in the style of a Fortran
 namelist, containing all information needed for the consistency_check
@@ -1509,28 +1509,28 @@ that do not serve any purpose.</p>
 <p>Module-specific modifications or additional computations are described
 in the paragraph <em>Data processing</em> of each Python module.</p>
 <h3 id="namelist">Namelist<a class="headerlink" href="#namelist" title="Permanent link">&para;</a></h3>
-<p>The namelist 'namelist.py' contains the Python dictionaries
-'input_alb<code>, 'input_tclim</code>, 'input_emiss<code>, 'input_ndvi</code>,
-'input_ahf<code>, 'input_isa' and 'input_edgar</code>. These dictionaries
-replace their corresponding Fortran namelist files 'INPUT_`.</p>
-<p>'input_alb' provides information about the albedo data type and the
+<p>The namelist <code>namelist.py</code> contains the Python dictionaries
+<code>input_alb</code>, <code>input_tclim</code>, <code>input_emiss</code>, <code>input_ndvi</code>,
+<code>input_ahf</code>, <code>input_isa</code> and <code>input_edgar</code>. These dictionaries
+replace their corresponding Fortran namelist files <code>INPUT_</code>.</p>
+<p><code>input_alb</code> provides information about the albedo data type and the
 paths and filenames of the input/output data.</p>
-<p>'input_tclim' contains a switch to determine the type of data (coarse
+<p><code>input_tclim</code> contains a switch to determine the type of data (coarse
 or fine) as well as the paths and filenames of the input/output data.</p>
-<p>'input_emiss' contains a switch to determine the type of emissivity
+<p><code>input_emiss</code> contains a switch to determine the type of emissivity
 data (full range or long-wave) and the filename and paths of the
 input/output data.</p>
-<p>'input_ndvi only provides information about the the path and the
+<p><code>input_ndvi</code> only provides information about the the path and the
 filenames of the input/output data.</p>
-<p>'input_era only provides information about the the path and the
+<p><code>input_era</code> only provides information about the the path and the
 filenames of the input/output data.</p>
-<p>'input_isa contains a switch determine the type of ISA data and
+<p><code>input_isa</code> contains a switch determine the type of ISA data and
 provides information about the the path and the filenames of the
 input/output data.</p>
-<p>'input_ahf contains a switch determine the type of AHF data and
+<p><code>input_ahf</code> contains a switch determine the type of AHF data and
 provides information about the the path and the filenames of the
 input/output data.</p>
-<p>'input_edgar only provides information about the the path and the
+<p><code>input_edgar</code> only provides information about the the path and the
 filenames of the input/output data.</p>
 <h2 id="extpar_alb_to_buffer">extpar_alb_to_buffer<a class="headerlink" href="#extpar_alb_to_buffer" title="Permanent link">&para;</a></h2>
 <hr />
@@ -1573,7 +1573,7 @@ the general workflow of the Python scrips.</p>
 <h3 id="short-description-of-the-subprogram-extpar_cru_to_buffer">Short description of the subprogram <em>extpar_cru_to_buffer</em><a class="headerlink" href="#short-description-of-the-subprogram-extpar_cru_to_buffer" title="Permanent link">&para;</a></h3>
 <p>The executable <em>extpar_cru_to_buffer</em> aggregates the temperature
 climatology of the Climate Research Unit (CRU) to the target grid. The
-namelist 'namelist.py' gives the information of the path and the name of
+namelist <code>namelist.py</code> gives the information of the path and the name of
 the raw temperature climatology data file. Additionally, the filename
 for the buffer is provided. There is an integer switch (it_cl_type),
 which allows the choice between a newer higher resolved data set for
@@ -1588,7 +1588,7 @@ supported since EXTPAR Version 5.4.</p>
 <p>Set seapoints in the data to missing value.</p>
 </li>
 <li>
-<p>Extract the fields 'HSURF' from the fine data set.</p>
+<p>Extract the fields <code>HSURF</code> from the fine data set.</p>
 </li>
 <li>
 <p>Merge the fields from step 1 and step 2.</p>
@@ -1648,7 +1648,7 @@ the Python scripts.</p>
 <h3 id="short-description-of-the-subprogram-extpar_emiss_to_buffer">Short description of the subprogram <em>extpar_emiss_to_buffer</em><a class="headerlink" href="#short-description-of-the-subprogram-extpar_emiss_to_buffer" title="Permanent link">&para;</a></h3>
 <p>The executable <em>extpar_emiss_to_buffer</em> aggregates CAMEL (Combined
 ASTER and MODIS Emissivity for Land) data to the target grid. For the
-aggregation of the emissivity the namelist 'namelist.py' provides the
+aggregation of the emissivity the namelist <code>namelist.py</code> provides the
 path and the file name of the input data. The buffer file name is
 defined as well. There exists the integer switch (iemiss_type) to
 determine whether one wants to use the broad band emissivity for the 3.6
@@ -1692,10 +1692,10 @@ additional fields are computed:</p>
 <h3 id="short-description-of-the-subprogram-extpar_ndvi_to_buffer">Short description of the subprogram <em>extpar_ndvi_to_buffer</em><a class="headerlink" href="#short-description-of-the-subprogram-extpar_ndvi_to_buffer" title="Permanent link">&para;</a></h3>
 <p>The executable <em>extpar_ndvi_to_buffer</em> aggregates NDVI data
 (Normalized Differential Vegetation Index) to the target grid. The
-namelist 'namelist.py' only contains the path and the file name of the
+namelist <code>namelist.py</code> only contains the path and the file name of the
 raw NDVI data. No other parameters can be set.</p>
 <p>For the aggregation of the normalized differential vegetation index the
-namelist 'namelist.py' is simple. It contains the path and the filename
+namelist <code>namelist.py</code> is simple. It contains the path and the filename
 of the raw data set, as well as the names of the buffer. No other
 parameters can be set.</p>
 <h4 id="data-processing_3">Data processing<a class="headerlink" href="#data-processing_3" title="Permanent link">&para;</a></h4>
@@ -1733,7 +1733,7 @@ computed:</p>
 W_SNOW and ORO) to the target grid. It replaces the two NetCDF-Files
 generated by ICON-REMAP at DWD. Note that this executable is for
 Icon-grids only.</p>
-<p>For the aggregation of the ERA climatologies the namelist 'namelist.py'
+<p>For the aggregation of the ERA climatologies the namelist <code>namelist.py</code>
 is simple again. It contains the type of ERA climatology (ERA5 (1) or
 ERA-I (2)) the path and the filenames of the raw data sets, as well as
 the names of the buffer. No other parameters can be set.</p>
@@ -1766,7 +1766,7 @@ scaled by a factor 1000. No other processing steps take place.</p>
 <p>The executable <em>extpar_isa_to_buffer</em> allows the aggregation or
 interpolation of data on the fraction of impervious surface area needed
 by TERRA_URB to the target grid.</p>
-<p>For the aggregation of the ISA the namelist 'namelist.py' is simple
+<p>For the aggregation of the ISA the namelist <code>namelist.py</code> is simple
 again. It contains the type of ISA (NOAA (1) or EEA (2)) the path and
 the filenames of the raw data sets, as well as the names of the buffer.
 No other parameters can be set. Note that the underlying processing does
@@ -1796,7 +1796,7 @@ other processing steps take place.</p>
 <p>The executable <em>extpar_ahf_to_buffer</em> allows the aggregation or
 interpolation of data on the anthropogenic heat flux needed by
 TERRA_URB to the target grid.</p>
-<p>For the aggregation of the AHF the namelist 'namelist.py' is simple
+<p>For the aggregation of the AHF the namelist <code>namelist.py</code> is simple
 again. It contains the type of AHF (2.5min (1) or 30sec (2)) the path
 and the filenames of the raw data sets, as well as the names of the
 buffer. No other parameters can be set. Note that the underlying
