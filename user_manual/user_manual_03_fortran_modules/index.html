@@ -1622,7 +1622,7 @@ before writing it to the NetCDF file.</p>
 <ul>
 <li>
 <p>namelist files: INPUT_grid_org, INPUT_COSMO_GRID,
-    INPUT_ICON_GRID,\
+    INPUT_ICON_GRID,
     INPUT_ORO, INPUT_OROSMOOTH, INPUT_RADTOPO</p>
 </li>
 <li>
@@ -1637,14 +1637,14 @@ before writing it to the NetCDF file.</p>
 </li>
 <li>
 <p>data input (filtered): GLOBE_A_filt_lanczos_window.nc -
-    GLOBE_P_filt_lanczos_window.nc,\
+    GLOBE_P_filt_lanczos_window.nc,
     GLOBE_A_filt_tukey_0.75_3.0_it4.nc -
     GLOBE_P_filt_tukey_0.75_3.0_it4.nc</p>
 </li>
 <li>
 <p>Output: buffer file with orography data (/orography_io_extpar/
-    orography_buffer_file)\
-    output file with orography data (used in extpar_cru_to_buffer)\
+    orography_buffer_file)
+    output file with orography data (used in extpar_cru_to_buffer)
     (/orography_io_extpar/ orography_output_file)</p>
 </li>
 </ul>
@@ -1686,7 +1686,7 @@ user must adjust the filename and path manually according to the chosen
 raw data in <em>i_landuse_data</em>. In addition the name of the desired
 lookup table is read, which again can be chosen by the user using an
 integer switch <em>ilookup_table_lu</em>. The lookup tables are described in
-more detail in <a href="#tab:look_up_table">table 5</a>. The names of the buffer files for the
+more detail in <a href="#tab:look_up_table">Table 5</a>. The names of the buffer files for the
 target landuse fields and for the target GLCC fields are also specified
 in this namelist. Finally, the aforementioned <em>l_terra_urb</em> logical
 switch can be specified (the default value is .FALSE.).</p>
@@ -1704,7 +1704,7 @@ the latitudinal and longitudinal direction. Furthermore the land-use
 target fields are allocated using the target grid for the dimension size
 and the number of land-use classes. The land-use classes differ for the
 three raw data sets and are described in more detail in
-<a href="#tab:land_use_classes">table 4</a>.</p>
+<a href="#tab:land_use_classes">Table 4</a>.</p>
 <p><a name="#tab:land_use_classes"></a></p>
 <table>
 <thead>
@@ -1738,12 +1738,12 @@ three raw data sets and are described in more detail in
 <tr>
 <td></td>
 <td>03</td>
-<td>mosaic cropland (50-70\%) - vegetation (20-50\%)</td>
+<td>mosaic cropland (50-70%) - vegetation (20-50%)</td>
 </tr>
 <tr>
 <td></td>
 <td>04</td>
-<td>mosaic vegetation (50-70\%) - cropland (20-50\%)</td>
+<td>mosaic vegetation (50-70%) - cropland (20-50%)</td>
 </tr>
 <tr>
 <td></td>
@@ -1778,12 +1778,12 @@ three raw data sets and are described in more detail in
 <tr>
 <td></td>
 <td>11</td>
-<td>mosaic shrubland (50-70\%) - grassland (20-50\%)</td>
+<td>mosaic shrubland (50-70%) - grassland (20-50%)</td>
 </tr>
 <tr>
 <td></td>
 <td>12</td>
-<td>mosaic grassland (50-70\%) - shrubland (20-50\%)</td>
+<td>mosaic grassland (50-70%) - shrubland (20-50%)</td>
 </tr>
 <tr>
 <td></td>
@@ -1863,12 +1863,12 @@ three raw data sets and are described in more detail in
 <tr>
 <td>(CLC: 2.4.2, 2.4.3)</td>
 <td>20</td>
-<td>'mosaic cropland (50-70\%) - vegetation (20-50\%)</td>
+<td>'mosaic cropland (50-70%) - vegetation (20-50%)</td>
 </tr>
 <tr>
 <td>(CLC: 2.4.4)</td>
 <td>30</td>
-<td>mosaic vegetation (50-70\%) - cropland (20-50\%)</td>
+<td>mosaic vegetation (50-70%) - cropland (20-50%)</td>
 </tr>
 <tr>
 <td></td>
@@ -1903,12 +1903,12 @@ three raw data sets and are described in more detail in
 <tr>
 <td>(CLC: 2.2.3, 3.2.4)</td>
 <td>110</td>
-<td>mosaic shrubland (50-70\%) - grassland (20-50\%)</td>
+<td>mosaic shrubland (50-70%) - grassland (20-50%)</td>
 </tr>
 <tr>
 <td>(CLC: 2.2.2, 3.2.2)</td>
 <td>120</td>
-<td>mosaic grassland (50-70\%) - shrubland (20-50\%)</td>
+<td>mosaic grassland (50-70%) - shrubland (20-50%)</td>
 </tr>
 <tr>
 <td>(CLC: 2.2.1)</td>
@@ -2308,7 +2308,7 @@ three raw data sets and are described in more detail in
 <tr>
 <td></td>
 <td>19</td>
-<td>winter C3 crops (lower T \</td>
+<td>winter C3 crops (lower T)</td>
 </tr>
 <tr>
 <td></td>
@@ -2397,7 +2397,7 @@ defined as well.</p>
 the aggregation of the raw data to the target grid can be performed. In
 order to be able to aggregate the data, the lookup table must first be
 initialized. The initial values differ for the various settings listed
-in <a href="#tab:look_up_table">table 5</a>. Also the name of the lookup table must
+in <a href="#tab:look_up_table">Table 5</a>. Also the name of the lookup table must
 be defined using the integer numbers specified in the namelist
 <code>INPUT_LU</code>. The integer number are listed together with their
 associated lookup table names in
@@ -2502,7 +2502,7 @@ gradients for the land use, the corresponding variable, which contains
 three lines of raw data, is not used.</p>
 <p>The lookup table is then fed with the land use class, which gives a
 value for all the target fields listed in
-<a href="#tab:target_fields_lu">table 6</a>.</p>
+<a href="#tab:target_fields_lu">Table 6</a>.</p>
 <p><center>
 <a name="#tab:target_fields_lu"></a></p>
 <table>
@@ -2606,7 +2606,7 @@ extpar with an LCZ map.</p>
 module, controlled by the logical switch <em>l_terra_urb</em>. This module
 uses a 2D map of local climate zones (LCZ) to determine a set of urban
 canopy variables used by TERRA-URB in COSMO/ICON, see 
-<a href="#tab:terra_urb">table 7</a>. The
+<a href="#tab:terra_urb">Table 7</a>. The
 module aggregates the variables and outputs them to the
 lu_buffer_file. The aggregation procedure follows that of the other
 land use variables described in the previous sections. The TERRA-URB
@@ -2756,7 +2756,7 @@ MACC-II[^3] whereas the fourth data-set is derived from MACv2[^4] and
 the fifth data-set is derived from CAMS[^5].</p>
 <p>In a next step, the complete raw data is read into memory; this is
 possible since the aerosol optical depth raw data is of rather coarse
-resolution (see <a href="#tab:aerosol">table 8</a>). Also, the grid of the raw data is determined
+resolution (see <a href="#tab:aerosol">Table 8</a>). Also, the grid of the raw data is determined
 from NetCDF meta data. Before the aggregation to the target grid can
 start, the target grid fields must be allocated, using the target grid,
 the number of months and aerosol types or spectral bands.</p>
@@ -2816,7 +2816,7 @@ allocated variables are deallocated.</p>
 </li>
 <li>
 <p>data input: aot_GACP.nc, aod_AeroCom1.nc,
-    aod_MACC_2003-2012.nc,\
+    aod_MACC_2003-2012.nc,
     aod_MACC_2003-2012_proc.nc, aot_MACv2.nc,
     aot_CAMS_2003-2013.nc</p>
 </li>
@@ -2975,7 +2975,7 @@ data, the nearest neighbor in the raw data is defined.</p>
 <p>The resulting soiltype is not yet usable, as it contains numbers coded
 in a world code and not in TERRA soiltypes. This transformation is done
 in the consistency check, where the special soiltypes of the HWSD data,
-specified in <a href="#tab:soil_types_HWSD">table 10</a>, are packed in the variable `SOILTYP'
+specified in <a href="#tab:soil_types_HWSD">Table 10</a>, are packed in the variable `SOILTYP'
 the normal soiltypes are given in fractions of sand, silt, clay and
 organic carbon, and the bulk density is also given.</p>
 <p><center>
@@ -3049,12 +3049,12 @@ takes place there.</p>
     INPUT_ICON_GRID, INPUT_SOIL</p>
 </li>
 <li>
-<p>data input: FAO_DSMW_double.nc, FAO_DSMW_float.nc,\
+<p>data input: FAO_DSMW_double.nc, FAO_DSMW_float.nc,
     HWSD0_30_topsoil.nc, HWSD30_100_subsoil.nc</p>
 </li>
 <li>
 <p>Lookup tables for HWSD: LU_TAB_HWSD_UF.data,
-    HWSD_DATA_COSMO.data,\
+    HWSD_DATA_COSMO.data,
     HWSD_DATA_COSMO_S.data</p>
 </li>
 <li>
@@ -3212,7 +3212,7 @@ vegetation of these pixels is set to zero.</p>
 the TERRA code, which is performed here. The world code is decoded with
 the TERRA HWSD lookup table, to define the regions that contain a
 special soiltype (see the special soiltypes in
-<a href="#tab:soil_types_HWSD">table 10</a>). For each grid point the world code is
+<a href="#tab:soil_types_HWSD">Table 10</a>). For each grid point the world code is
 associated to the single fractions of the soil composition, using an
 other lookup table. If there is a point that does not contain a bulk
 density it is calculated using the formula of the cultivated topsoil or
@@ -3281,7 +3281,7 @@ soiltype_sp, z0_sp, rootdp_sp, plcovmn_sp, plcovmx_sp, laimn_sp,
 laimx_sp can be explicitly set by the user. The coordinates of the
 special point are also user specified. If no special treatment at these
 points is desired the number_special_points must be set to zero (see
-<a href="#tab:number_special_points">table 11</a>). If no special treatment is
+<a href="#tab:number_special_points">Table 11</a>). If no special treatment is
 desired at all, the integer switch i_lsm_treatment can be set to 1
 instead of 2.</p>
 <p><center>
@@ -3326,9 +3326,9 @@ memory use. With this technique we could process a global R2B11 ICON
 grid (around 1.25 <em>km</em> grid resolution) on a server with 256 GB main
 memory. Of course processing gets quite slow, but is still in the order
 of a couple of cups of coffee.</p>
-<p>The feature can be enabled with the namelist variable\
+<p>The feature can be enabled with the namelist variable
 <em>l_use_array_cache = .TRUE.</em> in namelist
-<em>extpar_consistency_check_io</em>. The namelist variable default is\
+<em>extpar_consistency_check_io</em>. The namelist variable default is
 <em>l_use_array_cache =.FALSE.</em>, which is selecting the standard heap
 allocation by Fortran's <em>ALLOCATE</em> statement.</p>
 <h4 id="writing-output">Writing output<a class="headerlink" href="#writing-output" title="Permanent link">&para;</a></h4>
