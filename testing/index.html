@@ -884,7 +884,7 @@
 
 
 <h1 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h1>
-<p>EXTPAR is tested with an adapted version of the <a href="https://github.com/C2SM-RCM/testsuite">COSMO technical testsuite</a>.</p>
+<p>EXTPAR is tested with an adapted version of the <a href="https://github.com/C2SM-RCM/testsuite" target="_blank">COSMO technical testsuite <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>.</p>
 <h2 id="run-tests">Run Tests<a class="headerlink" href="#run-tests" title="Permanent link">&para;</a></h2>
 <p>First step is to compile the code following the instructions in <a href="../compile_run/">Compile and Run</a>.</p>
 <h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
@@ -903,13 +903,13 @@ sbatch<span class="w"> </span>submit.levante.sh
 <p>There are many different testlist, each containing a set of tests for different setups, compiler or models:</p>
 <h3 id="gcc">GCC<a class="headerlink" href="#gcc" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_cosmo.xml">COSMO</a></li>
-<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_icon.xml">ICON</a></li>
-<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_landuse.xml">Landuse</a></li>
+<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_cosmo.xml" target="_blank">COSMO <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a></li>
+<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_icon.xml" target="_blank">ICON <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a></li>
+<li><a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/testlist_landuse.xml" target="_blank">Landuse <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a></li>
 </ul>
 <h2 id="tolerances">Tolerances<a class="headerlink" href="#tolerances" title="Permanent link">&para;</a></h2>
 <p>It is possible to define an optional tolerance threshold for each test and each field.
-To allow deviations for the test <em>icon_d2</em> for example, just dit the the <a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/data/dwd/icon_d2/tolerances">tolerances file</a>.</p>
+To allow deviations for the test <em>icon_d2</em> for example, just dit the the <a href="https://github.com/C2SM/extpar/tree/master/test/testsuite/data/dwd/icon_d2/tolerances" target="_blank">tolerances file <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>.</p>
 <p>The syntax is as follows:</p>
 <div class="highlight"><pre><span></span><code>PARAMETER, abs_diff
 NDVI, 9.0e-08
@@ -918,7 +918,7 @@ W_SNOW, 5.0e-05
 <h2 id="add-a-new-test">Add a New Test<a class="headerlink" href="#add-a-new-test" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
-<p>Modify the testlist.xml file to add the new test.  Alternatively, you could also add a new 
+<p>Modify the <code>testlist.xml</code> file to add the new test. Alternatively, you could also add a new 
     testlist XML file (with a new name).  The testlist which is run can be chosen from the testsuite
     command line.  </p>
 </li>

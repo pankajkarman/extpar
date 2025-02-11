@@ -867,8 +867,8 @@
 
 <h1 id="information-for-extpar-developers">Information for EXTPAR Developers<a class="headerlink" href="#information-for-extpar-developers" title="Permanent link">&para;</a></h1>
 <h2 id="git-and-github">Git and Github<a class="headerlink" href="#git-and-github" title="Permanent link">&para;</a></h2>
-<p>The EXTPAR code is developed using the Git version control system and the <a href="https://github.com/C2SM/EXTPAR">Github web interface</a>. 
-Outstanding bugs and requested features are tracked using the <a href="https://github.com/C2SM/EXTPAR/issues">Issues</a> section of the Github repository.  Additionally, automated testing of newly developed features is integrated into the Github interface using the Jenkins CI tool.  </p>
+<p>The EXTPAR code is developed using the Git version control system and the <a href="https://github.com/C2SM/EXTPAR" target="_blank">Github web interface <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>. 
+Outstanding bugs and requested features are tracked using the <a href="https://github.com/C2SM/EXTPAR/issues" target="_blank">Issues <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> section of the Github repository.  Additionally, automated testing of newly developed features is integrated into the Github interface using the Jenkins CI tool.  </p>
 <h3 id="main-branches">Main branches<a class="headerlink" href="#main-branches" title="Permanent link">&para;</a></h3>
 <p>The <strong>master</strong> branch only contains code which are released versions. 
 All commits on the master branch are tagged (<code>git tag -a vX.Y.Z</code>).
@@ -880,7 +880,7 @@ source code administrator.</p>
 <p>Supporting branches are removed once successfully merged in one of the master branch.</p>
 <h3 id="developments-with-new-input-data-sets">Developments with new input data sets<a class="headerlink" href="#developments-with-new-input-data-sets" title="Permanent link">&para;</a></h3>
 <p>Any new EXTPAR code that is accompanied by a new input data file or files should be added with a simultaneous pull request
-in both this code repository (for the code changes) and in the <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data">extpar-input-data repository</a>
+in both this code repository (for the code changes) and in the <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data" target="_blank">extpar-input-data repository <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>
 (for the addition of the input data files). The <strong>topic</strong> branch for both pull requests should have the same name, in order to enable
 the synchronization of the code and input-data repositories.</p>
 <h3 id="testing-new-developments">Testing new developments<a class="headerlink" href="#testing-new-developments" title="Permanent link">&para;</a></h3>
@@ -1005,7 +1005,7 @@ The logger has 4 different levels of messages to print:</p>
 </ol>
 <p>Default logging level is info, so only messages from <code>logging.info()</code>, <code>logging.warning()</code> and <code>logging.error()</code> are written to the logfile. Adjust the level of the logger right at the beginning of each Python executable to <code>level=logging.DEBUG</code> to also print <code>logging.debug()</code>.</p>
 <h3 id="coding-rules-and-best-practices_1">Coding rules and best practices<a class="headerlink" href="#coding-rules-and-best-practices_1" title="Permanent link">&para;</a></h3>
-<p>The Python code needs to fulfill the <a href="https://www.python.org/dev/peps/pep-0008/">Pep8 coding standard</a>.
+<p>The Python code needs to fulfill the <a href="https://www.python.org/dev/peps/pep-0008/" target="_blank">Pep8 coding standard <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>.
 A GitHub action automatically formats Python code for you.</p>
 
 

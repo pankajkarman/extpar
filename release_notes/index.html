@@ -1352,7 +1352,7 @@
 
 
 <h1 id="release-notes">Release notes<a class="headerlink" href="#release-notes" title="Permanent link">&para;</a></h1>
-<p>For the latest release notes, please see our <a href="https://github.com/C2SM-RCM/extpar/releases">GitHub webpage</a>.</p>
+<p>For the latest release notes, please see our <a href="https://github.com/C2SM-RCM/extpar/releases" target="_blank">GitHub webpage <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>.</p>
 <h2 id="514">5.14<a class="headerlink" href="#514" title="Permanent link">&para;</a></h2>
 <ul>
 <li>New buffer script <code>extpar_cdnc_to_buffer</code> for ICON</li>
@@ -1509,11 +1509,11 @@
    - Testing performed by Christian Steger from Hymet-group at ETH-IAC
 * Revised algorithm for SGSL preprocessing
    - Infer values of boundary points for SGSL
-   - Deactivate SGSL for ASTER due to inconsistencies. For detailed information see the <a href="https://github.com/C2SM-RCM/extpar/pull/278">PR</a>.</p>
+   - Deactivate SGSL for ASTER due to inconsistencies. For detailed information see the <a href="https://github.com/C2SM-RCM/extpar/pull/278" target="_blank">PR <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>.</p>
 <h2 id="574">5.7.4<a class="headerlink" href="#574" title="Permanent link">&para;</a></h2>
 <p>This is a minor release with an adaption in the SSO-computation and replacement of ksh with bash
 * Revised SSO for ICON
-   - Experiments at DWD showed an improvement of model results with different SSO-thresholds, see this <a href="https://github.com/C2SM-RCM/extpar/wiki/Reducing-SSO-STDH-limit">wiki entry</a> for more information.
+   - Experiments at DWD showed an improvement of model results with different SSO-thresholds, see this <a href="https://github.com/C2SM-RCM/extpar/wiki/Reducing-SSO-STDH-limit" target="_blank">wiki entry <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> for more information.
    - Lowering of threshold from 10.0 to 1.0 changes the following fields
       - SSO_GAMMA
       - SSO_OROMAX
@@ -1603,7 +1603,7 @@ the former way of remapping ERA-climatologies using Icontools, a more sophistica
       - Snow water equivalent (W_SNOW)
    - New namelist-parameter iera_type defines type of ERA input data used, either ERA-I or ERA-5
    - <em>extpar_consistency_check</em> checks for namelist <em>INPUT_ERA</em> to determine if ERA-climatologies come from Python-CDO or Icontools
-   - Using <em>extpar_era_to_buffer.py</em> changes fields, a detailed <a href="https://github.com/C2SM-RCM/extpar/wiki/Comparison-of-ERA-Interim-processing-using-ICON-REMAP-and-Python-CDO">review of changes</a> was performed by Jürgen Helmert from DWD
+   - Using <em>extpar_era_to_buffer.py</em> changes fields, a detailed <a href="https://github.com/C2SM-RCM/extpar/wiki/Comparison-of-ERA-Interim-processing-using-ICON-REMAP-and-Python-CDO" target="_blank">review of changes <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> was performed by Jürgen Helmert from DWD
       - W_SNOW
       - TOPO_CLIM
       - T_SEA
@@ -1651,7 +1651,7 @@ a new build-system, 2 additional landuse data sets, CDI-library for icon grids i
 <li>EMISS_RAD</li>
 </ul>
 </li>
-<li>A <a href="https://github.com/C2SM-RCM/extpar/wiki/Review-of-fields-for-Extpar-Version-5.4">review</a> involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed</li>
+<li>A <a href="https://github.com/C2SM-RCM/extpar/wiki/Review-of-fields-for-Extpar-Version-5.4" target="_blank">review <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> involving users from DWD, MCH, MPIM and ETH took place to ensure the correctness of all fields changed</li>
 <li>All Python programmes read from the same namelist file <em>namelist.py</em> containing Python dictionaries for each Extpar program.</li>
 <li>
 <p>Support of the old and coarse data (it_cl_type = 2) in extpar_cru_to_buffer expires and is replaced the following:</p>
@@ -1667,7 +1667,7 @@ a new build-system, 2 additional landuse data sets, CDI-library for icon grids i
 <li>
 <p>git-LFS input data repository</p>
 </li>
-<li>All input data that can be processed with Extpar is stored in a unified data repository <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data">extpar-input-data</a></li>
+<li>All input data that can be processed with Extpar is stored in a unified data repository <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data" target="_blank">extpar-input-data <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a></li>
 <li>Move all useful scripts and informations from raw_data_tools to the data repository hosted at DKRZ.</li>
 <li>Remove folder raw_data_tools from Extpar repository</li>
 <li>Some fields are renamed for better understanding, so please check your runscripts to adapt the new names.</li>
@@ -1716,7 +1716,7 @@ a new build-system, 2 additional landuse data sets, CDI-library for icon grids i
 <li>
 <p>CDI library for icon grids</p>
 </li>
-<li><a href="https://code.mpimet.mpg.de/projects/cdi">CDI</a> write routine replaces write_netcdf_icon_grid routine</li>
+<li><a href="https://code.mpimet.mpg.de/projects/cdi" target="_blank">CDI <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> write routine replaces write_netcdf_icon_grid routine</li>
 <li>Output of icon grids <strong>always</strong> involves CDI, output without CDI no longer supported</li>
 <li>CDI contained as a git submodule inside the Extpar repository</li>
 <li>
