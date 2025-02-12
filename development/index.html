@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/favicons/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.3">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.4">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.d7758b05.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.8608ea7d.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -870,14 +870,13 @@
 <p>The EXTPAR code is developed using the Git version control system and the <a href="https://github.com/C2SM/EXTPAR" target="_blank">Github web interface <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>. 
 Outstanding bugs and requested features are tracked using the <a href="https://github.com/C2SM/EXTPAR/issues" target="_blank">Issues <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a> section of the Github repository.  Additionally, automated testing of newly developed features is integrated into the Github interface using the Jenkins CI tool.  </p>
 <h3 id="main-branches">Main branches<a class="headerlink" href="#main-branches" title="Permanent link">&para;</a></h3>
-<p>The <strong>master</strong> branch only contains code which are released versions. 
-All commits on the master branch are tagged (<code>git tag -a vX.Y.Z</code>).
-Only the core development team is allowed to modify the master branch.</p>
+<p>The <strong>master</strong> branch is protected and only the core development team is allowed to modify the master branch.
+All tags and releases are based on this branch.</p>
 <h3 id="supporting-branches">Supporting branches<a class="headerlink" href="#supporting-branches" title="Permanent link">&para;</a></h3>
 <p>Any new code development should be done in a <strong>topic</strong> branch. Topic branches are merged
 back into master by opening a pull request. Code must be peer reviewed by the
 source code administrator.</p>
-<p>Supporting branches are removed once successfully merged in one of the master branch.</p>
+<p>Supporting branches are removed once successfully merged in the master branch.</p>
 <h3 id="developments-with-new-input-data-sets">Developments with new input data sets<a class="headerlink" href="#developments-with-new-input-data-sets" title="Permanent link">&para;</a></h3>
 <p>Any new EXTPAR code that is accompanied by a new input data file or files should be added with a simultaneous pull request
 in both this code repository (for the code changes) and in the <a href="https://gitlab.dkrz.de/extpar-data/extpar-input-data" target="_blank">extpar-input-data repository <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2z"/></svg></span></a>
@@ -885,14 +884,14 @@ in both this code repository (for the code changes) and in the <a href="https://
 the synchronization of the code and input-data repositories.</p>
 <h3 id="testing-new-developments">Testing new developments<a class="headerlink" href="#testing-new-developments" title="Permanent link">&para;</a></h3>
 <p>Once a developer has finished developing a new feature or bug fix, they should make a 
-pull request on the Github repository from their topic branch into the rc-branch.<br />
+pull request on the Github repository from their topic branch into the master-branch.<br />
 Then, they should write the following comment into the pull request conversation: </p>
 <div class="highlight"><pre><span></span><code>launch jenkins
 </code></pre></div>
 <p>This will start the automated testing, and the code will be compiled and tested on co2 (ETH) and Levante (DKRZ).</p>
 <p>If the tests fail, then the developer should fix the issues and resubmit the testing on Jenkins.<br />
 Once all of the tests are passing, then they should notify the source code administrator that the pull
-request is ready for review and merging into the rc-branch.  </p>
+request is ready for review and merging into the master-branch.  </p>
 <h2 id="fortran-code">Fortran Code<a class="headerlink" href="#fortran-code" title="Permanent link">&para;</a></h2>
 <h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
 <p>In case you want to add some additional prints in EXTPAR, please use the logger described below.</p>
@@ -1029,7 +1028,7 @@ A GitHub action automatically formats Python code for you.</p>
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 11, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 12, 2025</span>
   </span>
 
     
@@ -1039,7 +1038,7 @@ A GitHub action automatically formats Python code for you.</p>
     <span class="md-icon" title="Created">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 11, 2025</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">February 12, 2025</span>
   </span>
 
     
