@@ -16,8 +16,11 @@ def test_setup_flake_namelist():
     assert result == expected_namelist
 
 
-def test_setup_tclim_namelist():
-    args = {'raw_data_path': '/path/to/raw/data'}
+def test_setup_tclim_1_namelist():
+    args = {
+        'raw_data_path': '/path/to/raw/data',
+        'it_cl_type': 1,
+    }
     expected_output = {
         'it_cl_type': 1,
         'raw_data_t_clim_path': '/path/to/raw/data',
@@ -28,6 +31,32 @@ def test_setup_tclim_namelist():
 
     result = setup_tclim_namelist(args)
     assert result == expected_output
+
+
+def test_setup_tclim_2_namelist():
+    args = {
+        'raw_data_path': '/path/to/raw/data',
+        'it_cl_type': 2,
+    }
+    expected_output = {
+        'it_cl_type': 2,
+        'raw_data_t_clim_path': '/path/to/raw/data',
+        'raw_data_tclim_coarse': 'absolute_hadcrut3.nc',
+        'raw_data_tclim_fine': 'CRU_T_SOIL_clim.nc',
+        't_clim_buffer_file': 'tclim_buffer.nc'
+    }
+
+    result = setup_tclim_namelist(args)
+    assert result == expected_output
+
+
+def test_setup_tclim_unknown_type():
+    args = {
+        'raw_data_path': '/path/to/raw/data',
+        'it_cl_type': 9,
+    }
+    with pytest.raises(ValueError, match='Unknown it_cl_type 9'):
+        setup_tclim_namelist(args)
 
 
 def test_setup_albedo_namelist_type_1():
@@ -192,7 +221,13 @@ def test_generate_globe_filenames():
 
 
 def test_setup_runscript_with_urban_cosmo():
-    args = {'account': 'test_account', 'lurban': True, 'igrid_type': 2}
+    args = {
+        'account': 'test_account',
+        'lurban': True,
+        'igrid_type': 2,
+        'enable_cdnc': False,
+        'enable_edgar': False
+    }
     expected_runscript = {
         'account':
         'test_account',
@@ -211,7 +246,13 @@ def test_setup_runscript_with_urban_cosmo():
 
 
 def test_setup_runscript_without_urban_icon():
-    args = {'account': 'test_account', 'lurban': False, 'igrid_type': 1}
+    args = {
+        'account': 'test_account',
+        'lurban': False,
+        'igrid_type': 1,
+        'enable_cdnc': False,
+        'enable_edgar': False
+    }
     expected_runscript = {
         'account':
         'test_account',
@@ -222,7 +263,34 @@ def test_setup_runscript_without_urban_icon():
             '"extpar_cru_to_buffer.py" ', '"extpar_aot_to_buffer.exe" ',
             '"extpar_flake_to_buffer.exe" ', '"extpar_soil_to_buffer.exe" ',
             '"extpar_alb_to_buffer.py" ', '"extpar_ndvi_to_buffer.py" ',
-            '"extpar_era_to_buffer.py" ', '"extpar_consistency_check.exe" '
+            '"extpar_era_to_buffer.py" ', '"extpar_emiss_to_buffer.py" ',
+            '"extpar_consistency_check.exe" '
+        ]
+    }
+    assert setup_runscript(args) == expected_runscript
+
+
+def test_setup_runscript_without_urban_with_edgar_and_cdnc_icon():
+    args = {
+        'account': 'test_account',
+        'lurban': False,
+        'igrid_type': 1,
+        'enable_cdnc': True,
+        'enable_edgar': True
+    }
+    expected_runscript = {
+        'account':
+        'test_account',
+        'pythonpath':
+        os.path.join(os.getcwd(), 'lib'),
+        'extpar_executables': [
+            '"extpar_landuse_to_buffer.exe" ', '"extpar_topo_to_buffer.exe" ',
+            '"extpar_cru_to_buffer.py" ', '"extpar_aot_to_buffer.exe" ',
+            '"extpar_flake_to_buffer.exe" ', '"extpar_soil_to_buffer.exe" ',
+            '"extpar_alb_to_buffer.py" ', '"extpar_ndvi_to_buffer.py" ',
+            '"extpar_era_to_buffer.py" ', '"extpar_emiss_to_buffer.py" ',
+            '"extpar_cdnc_to_buffer.py" ', '"extpar_edgar_to_buffer.py" ',
+            '"extpar_consistency_check.exe" '
         ]
     }
     assert setup_runscript(args) == expected_runscript
@@ -450,3 +518,256 @@ def test_setup_soil_namelist_unknown_type():
     args = {'isoil_type': 99, 'raw_data_path': '/path/to/raw_data'}
     with pytest.raises(ValueError, match='Unknown isoil_type 99'):
         setup_soil_namelist(args)
+
+
+def test_setup_era_namelist_era5():
+    args = {'iera_type': 1, 'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'iera_type': 1,
+        'era_buffer_file': 'era_buffer.nc',
+        'raw_data_era_path': '/path/to/raw/data',
+        'raw_data_era_ORO': 'ERA5_ORO_1990.nc',
+        'raw_data_era_SD': 'ERA5_SD_1990_2019.nc',
+        'raw_data_era_T2M': 'ERA5_T2M_1990_2019.nc',
+        'raw_data_era_SST': 'ERA5_SST_1990_2019.nc'
+    }
+    assert setup_era_namelist(args) == expected_namelist
+
+
+def test_setup_era_namelist_erai():
+    args = {'iera_type': 2, 'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'iera_type': 2,
+        'era_buffer_file': 'era_buffer.nc',
+        'raw_data_era_path': '/path/to/raw/data',
+        'raw_data_era_ORO': 'ERA-I_ORO_1986.nc',
+        'raw_data_era_SD': 'ERA-I_SD_1986_2015.nc',
+        'raw_data_era_T2M': 'ERA-I_T2M_1986_2015.nc',
+        'raw_data_era_SST': 'ERA-I_SST_1986_2015.nc'
+    }
+    assert setup_era_namelist(args) == expected_namelist
+
+
+def test_setup_era_namelist_invalid():
+    args = {'iera_type': 99, 'raw_data_path': '/path/to/raw/data'}
+    with pytest.raises(ValueError, match='Unknown iera_type 99'):
+        setup_era_namelist(args)
+
+
+def test_setup_emiss_namelist_type_1():
+    args = {'iemiss_type': 1, 'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'iemiss_type': 1,
+        'emiss_buffer_file': 'emiss_buffer.nc',
+        'raw_data_emiss_path': '/path/to/raw/data',
+        'raw_data_emiss_filename': 'CAMEL_bbe_full_2010-2015.nc'
+    }
+    assert setup_emiss_namelist(args) == expected_namelist
+
+
+def test_setup_emiss_namelist_type_2():
+    args = {'iemiss_type': 2, 'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'iemiss_type': 2,
+        'emiss_buffer_file': 'emiss_buffer.nc',
+        'raw_data_emiss_path': '/path/to/raw/data',
+        'raw_data_emiss_filename': 'CAMEL_bbe_lw_2010-2015.nc'
+    }
+    assert setup_emiss_namelist(args) == expected_namelist
+
+
+def test_setup_emiss_namelist_invalid():
+    args = {'iemiss_type': 99, 'raw_data_path': '/path/to/raw/data'}
+    with pytest.raises(ValueError, match='Unknown iemiss_type 99'):
+        setup_emiss_namelist(args)
+
+
+def test_setup_oro_namelist_icon_globe():
+    args = {
+        'itopo_type': 1,
+        'raw_data_path': '/path/to/raw/data',
+        'lradtopo': False,
+        'radtopo_radius': 40000.0
+    }
+    lonmax, lonmin, latmax, latmin = 180.0, -180.0, 90.0, -90.0
+    expected_namelist = {
+        'orography_buffer_file':
+        'oro_buffer.nc',
+        'orography_output_file':
+        'oro_grid.nc',
+        'lcompute_sgsl':
+        ".FALSE.",
+        'sgsl_buffer_file':
+        'placeholder_file',
+        'itopo_type':
+        1,
+        'raw_data_orography_path':
+        '/path/to/raw/data',
+        'topo_files': [
+            "'GLOBE_A10.nc' ", "'GLOBE_B10.nc' ", "'GLOBE_C10.nc' ",
+            "'GLOBE_D10.nc' ", "'GLOBE_E10.nc' ", "'GLOBE_F10.nc' ",
+            "'GLOBE_G10.nc' ", "'GLOBE_H10.nc' ", "'GLOBE_I10.nc' ",
+            "'GLOBE_J10.nc' ", "'GLOBE_K10.nc' ", "'GLOBE_L10.nc' ",
+            "'GLOBE_M10.nc' ", "'GLOBE_N10.nc' ", "'GLOBE_O10.nc' ",
+            "'GLOBE_P10.nc' "
+        ],
+        'ntiles_column':
+        4,
+        'ntiles_row':
+        4,
+        'lscale_separation':
+        ".FALSE.",
+        'lsso_param':
+        ".TRUE.",
+        'scale_sep_files':
+        "'placeholder_file'",
+        'raw_data_scale_sep_path':
+        '/path/to/raw/data',
+        'lfilter_oro':
+        ".FALSE.",
+        'ilow_pass_oro':
+        4,
+        'numfilt_oro':
+        1,
+        'ilow_pass_xso':
+        5,
+        'lxso_first':
+        ".FALSE.",
+        'numfilt_xso':
+        1,
+        'rxso_mask':
+        750.0,
+        'eps_filter':
+        0.1,
+        'rfill_valley':
+        0.0,
+        'ifill_valley':
+        1,
+        'lradtopo':
+        ".FALSE.",
+        'itype_scaling':
+        0,
+        'max_missing':
+        0.95,
+        'min_circ_cov':
+        1,
+        'nhori':
+        24,
+        'radius':
+        40000.0,
+    }
+    assert setup_oro_namelist_icon(args, lonmax, lonmin, latmax,
+                                   latmin) == expected_namelist
+
+
+def test_setup_oro_namelist_icon_merit_lradtopo():
+    args = {
+        'itopo_type': 3,
+        'raw_data_path': '/path/to/raw/data',
+        'lradtopo': True,
+        'radtopo_radius': 60000.0
+    }
+    lonmax = 30.0
+    lonmin = -10.0
+    latmax = 60.0
+    latmin = 31.0
+    expected_namelist = {
+        'orography_buffer_file':
+        'oro_buffer.nc',
+        'orography_output_file':
+        'oro_grid.nc',
+        'lcompute_sgsl':
+        ".FALSE.",
+        'sgsl_buffer_file':
+        'placeholder_file',
+        'itopo_type':
+        3,
+        'raw_data_orography_path':
+        '/path/to/raw/data',
+        'topo_files': [
+            "'MERIT_N90-N60_W030-E000.nc' ", "'MERIT_N90-N60_E000-E030.nc' ",
+            "'MERIT_N60-N30_W030-E000.nc' ", "'MERIT_N60-N30_E000-E030.nc' "
+        ],
+        'ntiles_column':
+        2,
+        'ntiles_row':
+        2,
+        'lscale_separation':
+        ".FALSE.",
+        'lsso_param':
+        ".TRUE.",
+        'scale_sep_files':
+        "'placeholder_file'",
+        'raw_data_scale_sep_path':
+        '/path/to/raw/data',
+        'lfilter_oro':
+        ".FALSE.",
+        'ilow_pass_oro':
+        4,
+        'numfilt_oro':
+        1,
+        'ilow_pass_xso':
+        5,
+        'lxso_first':
+        ".FALSE.",
+        'numfilt_xso':
+        1,
+        'rxso_mask':
+        750.0,
+        'eps_filter':
+        0.1,
+        'rfill_valley':
+        0.0,
+        'ifill_valley':
+        1,
+        'lradtopo':
+        ".TRUE.",
+        'radius':
+        60000.0,
+        'nhori':
+        24,
+        'max_missing':
+        0.95,
+        'min_circ_cov':
+        1,
+        'itype_scaling':
+        0,
+    }
+    assert setup_oro_namelist_icon(args, lonmax, lonmin, latmax,
+                                   latmin) == expected_namelist
+
+
+def test_setup_oro_namelist_icon_invalid():
+    args = {
+        'itopo_type': 4,
+        'raw_data_path': '/path/to/raw/data',
+        'lradtopo': False,
+        'radtopo_radius': 40000.0
+    }
+    lonmax, lonmin, latmax, latmin = 180.0, -180.0, 90.0, -90.0
+    with pytest.raises(ValueError, match='Unknown itopo_type 4'):
+        setup_oro_namelist_icon(args, lonmax, lonmin, latmax, latmin)
+
+
+def test_setup_cdnc_namelist():
+    args = {'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'raw_data_cdnc_path': '/path/to/raw/data',
+        'cdnc_buffer_file': 'cdnc_buffer.nc',
+        'raw_data_cdnc_filename': 'modis_cdnc_climatology_Q06.nc'
+    }
+    assert setup_cdnc_namelist(args) == expected_namelist
+
+
+def test_setup_edgar_namelist():
+    args = {'raw_data_path': '/path/to/raw/data'}
+    expected_namelist = {
+        'raw_data_edgar_path': '/path/to/raw/data',
+        'raw_data_edgar_filename_bc': 'v8.1_FT2022_AP_BC_2022_TOTALS_flx.nc',
+        'raw_data_edgar_filename_oc': 'v8.1_FT2022_AP_OC_2022_TOTALS_flx.nc',
+        'raw_data_edgar_filename_so2': 'v8.1_FT2022_AP_SO2_2022_TOTALS_flx.nc',
+        'raw_data_edgar_filename_nox': 'v8.1_FT2022_AP_NOx_2022_TOTALS_flx.nc',
+        'raw_data_edgar_filename_nh3': 'v8.1_FT2022_AP_NH3_2022_TOTALS_flx.nc',
+        'edgar_buffer_file': 'edgar_buffer.nc'
+    }
+    assert setup_edgar_namelist(args) == expected_namelist
