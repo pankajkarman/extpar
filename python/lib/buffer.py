@@ -80,6 +80,11 @@ def close_netcdf(buffer):
         logging.error('Could not close netCDF', exc_info=True)
         raise
 
+def write_attribute_to_buffer(buffer, attrs):
+    for attr_name, attr_value in attrs.items():
+        setattr(buffer, attr_name, attr_value)
+    logging.info('attribues written')
+
 
 def write_field_to_buffer(buffer, field, field_meta):
     '''

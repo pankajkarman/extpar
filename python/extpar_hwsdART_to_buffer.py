@@ -5,11 +5,9 @@ import subprocess
 import netCDF4 as nc
 import numpy as np
 
-# new imports 
 import joblib
 from joblib import Parallel, delayed
 from joblib import dump, load
-import xarray as xr
 from tqdm import tqdm
 from datetime import datetime
 from sklearn.neighbors import BallTree
@@ -24,6 +22,7 @@ try:
         utilities as utils,
         environment as env,
     )
+    from extpar.lib.namelist import input_hwsdART as ihwsdART
 except ImportError:
     import grid_def
     import buffer
@@ -31,77 +30,54 @@ except ImportError:
     import fortran_namelist
     import utilities as utils
     import environment as env
-from namelist import input_hwsdART as ihwsdART
+    from namelist import input_hwsdART as ihwsdART
 
-def index_from_latlon_new(lon_array, lat_array, lon_point, lat_point, metric='haversine'):
+def get_nearest_neighbors(lon_array, lat_array, lon_point, lat_point, metric='haversine'):
+    """
+    Find the indices of n closest cells in a grid, relative to a given latitude/longitude.    
+    The function builds a BallTree from the provided 1D or 2D array of latitude and longitude and queries it to find n nearest neghbors to a given point.
+    Borrowed from iconarray utilities    
+    """
     lon_array, lat_array, lon_point, lat_point = [np.deg2rad(arr) for arr in [lon_array, lat_array, lon_point, lat_point]]
     lon_lat_array = np.column_stack((lon_array.flatten(), lat_array.flatten()))
     points = np.column_stack((lon_point, lat_point))
     indices = BallTree(lon_lat_array, metric= metric, leaf_size=3).query(points, k=1)[1].squeeze()    
     return indices
 
-def get_index(index, lons, lats, hlon, hlat, idxs):
+def get_neighbor_index(index, lons, lats, hlon, hlat, idxs):
     xx = np.ones((hlon.size))
-    idxs[index, :] = index_from_latlon_new(lons, lats, hlon, hlat[index]*xx)
+    idxs[index, :] = get_nearest_neighbors(lons, lats, hlon, hlat[index] * xx)
     
-def get_mmap(mat, filename_mmap):
+def get_memory_map(mat, filename_mmap):
     dump(mat, filename_mmap)
     mat = load(filename_mmap, mmap_mode='r+')
-    return mat
+    return mat 
 
-def calculate_fraction(lons, lus, idxs):
+def generate_memory_map(raw_lus, soiltype_memmap_filename, nearest_neighbor_index_memmap_filename):   
+    idxs = -1 * np.ones(raw_lus.shape, int)
+    idxs = get_memory_map(idxs, nearest_neighbor_index_memmap_filename)    
+    lus = get_memory_map(raw_lus, soiltype_memmap_filename)
+    return lus, idxs
+
+def calculate_soil_fraction(tg, lus, idxs, ncpu=2):
     """
     lus: LU classes from HWSD data
     idxs: indices corrsponding to icon grid for each grid in HWSD data
     tg: ICON grid
-    """
-    luc = np.arange(-1, 14)
-    fracs = np.zeros((lons.size, 15))
-    unq, cnt = np.unique(idxs, return_counts=True)
-    for i, lu in tqdm(enumerate(luc)):
-        unq1, cnt1 = np.unique(np.where(lus==i, idxs, -1), return_counts=True)
-        for cm in np.arange(lons.size):
-            frac = np.array(cnt1[unq1==cm] / cnt[unq==cm]) 
-            if len(frac)!=0:
-                fracs[cm, i] = frac                 
+    """    
+    soil_types = np.arange(1, 14)
+    fracs = np.zeros((tg.lons.size, soil_types.size))
+    grid_ids, grid_counts = np.unique(idxs, return_counts=True)
+    
+    def get_fraction_per_soil_type(lu):
+        grid_class, grid_count = np.unique(np.where(lus==lu, idxs, -1), return_counts=True)
+        for grid_id in np.arange(tg.lons.size):
+            frac = np.array(grid_count[grid_class==grid_id] / grid_counts[grid_ids==grid_id]) 
+            if len(frac) != 0:
+                fracs[grid_id, lu-1] = frac
+                
+    Parallel(n_jobs=ncpu, max_nbytes='100M', mmap_mode='w+', backend='threading')(delayed(get_fraction_per_soil_type)(lu) for lu in tqdm(soil_types))               
     return fracs
-
-def write_data_to_buffer(fracs, tg):
-    fr_names = ['fr_hcla', 'fr0', 'fr_silc', 'fr_lcla', 'fr_sicl', 'fr_cloa', 'fr_silt', 'fr_silo', 
-                'fr_scla', 'fr_loam', 'fr_sclo', 'fr_sloa', 'fr_lsan', 'fr_sand', 'fr_udef']
-    
-    std_names = ['fr_hcla.st', '', 'fr_silc.st', 'fr_lcla.st', 'fr_sicl.st', 'fr_cloa.st', 'fr_silt.st', 'fr_silo.st', 
-                'fr_scla.st', 'fr_loam.st', 'fr_sclo.st', 'fr_sloa.st', 'fr_lsan.st', 'fr_sand.st', 'fr_udef.st'] 
-    
-    long_names = ['Fraction of Heavy Clay', '', 'Fraction of Silty Clay', 'Fraction of Light Clay', 
-                  'Fraction of Silty Clay Loam', 'Fraction of Clay Loam', 'Fraction of Silt', 'Fraction of Silty Loam', 
-                  'Fraction of Sandy Clay', 'Fraction of Loam', 'Fraction of Sandy Clay Loam', 'Fraction of Sandy Loam', 
-                  'Fraction of Loamy Sand', 'Fraction of Sand', 'Fraction of Undefined or Water']
-
-    xfr = xr.Dataset(attrs={'title':'Percentage of HWSD soil type', 'institution': 'KIT', 
-                            'source': 'HWSD Harmonized World Soil Database', 
-                            'history': '%s hwsdART_to_buffer'%(datetime.now().isoformat()),
-                            'references': 'HWSD Harmonized World Soil Database', 
-                            'comment': 'For generating mineral dust emissions in ICON-ART and COSMO-ART',
-                            'number_of_grid_used': '', 'uuidOfHGrid': ''})
-
-    for i, (name, std_name, long_name) in enumerate(zip(fr_names, std_names, long_names)):
-        xfr[name] = xr.DataArray(fracs[:, i], dims={'cell':np.arange(tg.lons.size)}, 
-                                 attrs={'standard_name':std_name, 'long_name':long_name, 'units':'1'})    
-    xfr = xfr.drop_vars("fr0")
-    
-    grd = xr.open_dataset(tg.gridfile)    
-    xfr['clon'] = xr.DataArray(tg.lons, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid longitude', 'long_name':'longitude of icon grid cell centre', 'units':'radians'})    
-    xfr['clat'] = xr.DataArray(tg.lats, dims={'cell':np.arange(tg.lons.size)},
-                               attrs={'standard_name':'grid latitude', 'long_name':'latitude of icon grid cell centre', 'units':'radians'})       
-    xfr['clon_vertices'] = xr.DataArray(grd.clon_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices longitude', 'long_name':'longitude of icon grid cell vertices', 'units':'radians'})
-    xfr['clat_vertices'] = xr.DataArray(grd.clat_vertices.values, dims={'cell':np.arange(tg.lons.size), 'nv':3},
-                               attrs={'standard_name':'vertices latitude', 'long_name':'latitude of icon grid cell vertices', 'units':'radians'})    
-    xfr.attrs['uuidOfHGrid'] = grd.attrs['uuidOfHGrid']
-    xfr.attrs['number_of_grid_used'] = grd.attrs['number_of_grid_used']
-    return xfr.astype('float32')
     
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -118,27 +94,25 @@ logging.basicConfig(
 logging.info("============= start extpar_hwsdART_to_buffer =======")
 logging.info("")
 
-# print a summary of the environment
-env.check_environment_for_extpar(__file__)
-
-# check HDF5
-lock = env.check_hdf5_threadsafe()
-
-# get number of OpenMP threads for CDO
-omp = env.get_omp_num_threads()
-
-# get total cores available on the node
 num_cores = joblib.cpu_count()
-n_jobs = 90
+num_cores
 
 logging.info("============= No. of CPU Cores Availabe: %d ======="%num_cores)
-logging.info("============= No. of CPU Cores to be used: %d ======="%n_jobs)
 logging.info("")
 
 # unique names for files written to system to allow parallel execution
-grid = "grid_description_hwsdART"  # name for grid description file
-reduced_grid = "reduced_icon_grid_hwsdART.nc"  # name for reduced icon grid
-weights = "weights_hwsdART"  # name for weights of spatial interpolation
+grid = 'grid_description_hwsdART'  # name for grid description file
+soiltype_memmap_filename = 'memmap_soiltype'
+nearest_neighbor_index_memmap_filename = 'memmap_index'
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= delete files from old runs =========================')
+logging.info('')
+
+utils.remove(soiltype_memmap_filename)
+utils.remove(nearest_neighbor_index_memmap_filename)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -146,50 +120,38 @@ logging.info("")
 logging.info("============= init variables from namelist =====")
 logging.info("")
 
-igrid_type, grid_namelist = utils.check_gridtype("INPUT_grid_org")
+igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
+raw_data_hwsdART = utils.clean_path(ihwsdART['raw_data_hwsdART_path'], ihwsdART['raw_data_hwsdART_filename'])
 
 if igrid_type == 1:
     path_to_grid = fortran_namelist.read_variable(grid_namelist, "icon_grid_dir", str)
     icon_grid = fortran_namelist.read_variable(grid_namelist, "icon_grid_nc_file", str)
     icon_grid = utils.clean_path(path_to_grid, icon_grid)
     tg = grid_def.IconGrid(icon_grid)
-    grid = tg.reduce_grid(reduced_grid)
 elif igrid_type == 2:
     tg = grid_def.CosmoGrid(grid_namelist)
     tg.create_grid_description(grid)
 
-ihwsdART['raw_data_hwsdART_path'] = fortran_namelist.read_variable('INPUT_hwsdART', 'raw_data_hwsdART_path', str)[:-1]
-ihwsdART['raw_data_hwsdART_filename'] = fortran_namelist.read_variable('INPUT_hwsdART', 'raw_data_hwsdART_filename', str)[:-1]
-ihwsdART['hwsdART_buffer_file'] = fortran_namelist.read_variable('INPUT_hwsdART', 'hwsdART_buffer_file', str)
-raw_data_hwsdART = utils.clean_path(ihwsdART['raw_data_hwsdART_path'], ihwsdART['raw_data_hwsdART_filename'])
-buffer_file = ihwsdART['hwsdART_buffer_file'].split('.')[0] + '.nc'
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= write FORTRAN namelist ===========')
+logging.info('')
 
 input_hwsdART = fortran_namelist.InputHwsdart()
 fortran_namelist.write_fortran_namelist("INPUT_hwsdART", ihwsdART, input_hwsdART)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-logging.info("")
-logging.info("============= delete files from old runs =======")
-logging.info("")
-
-utils.remove(grid)
-utils.remove(weights)
-utils.remove(reduced_grid)
-utils.remove(buffer_file)
-
 logging.info('')
-logging.info('raw hwsdART data used: %s'%raw_data_hwsdART)
-logging.info('Buffer file: %s'%buffer_file)
+logging.info('============= Reading Raw HWSD Land use data ===============')
 logging.info('')
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-logging.info("")
-logging.info("============= Open original HWSD dataset ========")
-logging.info("")
+hwsd_nc = nc.Dataset(raw_data_hwsdART, "r")
+raw_lon = hwsd_nc.variables['lon'][:]
+raw_lat = hwsd_nc.variables['lat'][:]
+raw_lus = hwsd_nc.variables['LU'][:]
 
-raw = xr.open_mfdataset(raw_data_hwsdART, chunks='auto')['LU']
 lons = np.array(tg.lons)
 lats = np.array(tg.lats)
 
@@ -199,27 +161,8 @@ logging.info("")
 logging.info("============= Mapping raw pixel data to memory map for efficient use ========")
 logging.info("")
 
-folder = '/tmp/joblib_memmap'
-try:
-    os.mkdir(folder)
-except FileExistsError:
-    pass
+soil_types, neighbor_ids = generate_memory_map(raw_lus, soiltype_memmap_filename, nearest_neighbor_index_memmap_filename)
 
-lus_filename_memmap = os.path.join(folder, 'lus_memmap')
-lus = get_mmap(raw.values, lus_filename_memmap)
-
-idxs = -1 * np.ones(raw.shape, int)
-data_filename_memmap = os.path.join(folder, 'data_memmap')
-idxs = get_mmap(idxs, data_filename_memmap)
-=======
-idxs = -1 * np.ones(raw.shape, int)
-ndi = np.arange(raw.lat.size)
-
-Parallel(n_jobs=45, max_nbytes='100M', mmap_mode='w+')(delayed(get_index)(i, lons, lats, hlon, hlat, idxs) for i in tqdm(ndi))
-idxs = -1 * np.ones(raw.shape, int)
-ndi = np.arange(raw.lat.size)
-
-Parallel(n_jobs=45, max_nbytes='100M', mmap_mode='w+')(delayed(get_index)(i, lons, lats, hlon, hlat, idxs) for i in tqdm(ndi))
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 logging.info("")
@@ -228,33 +171,98 @@ logging.info(
 )
 logging.info("")
 
-ndi = np.arange(raw.lat.size)   
-Parallel(n_jobs=n_jobs, max_nbytes='100M', mmap_mode='w+')(delayed(get_index)(i, lons, lats, raw.lon.values, raw.lat.values, idxs) for i in tqdm(ndi))
+nrows = np.arange(raw_lat.size)
+Parallel(n_jobs=num_cores, max_nbytes='100M', mmap_mode='w+')(delayed(get_neighbor_index)(i, lons, lats, raw_lon, raw_lat, neighbor_ids) for i in tqdm(nrows))
 
 # --------------------------------------------------------------------------
 logging.info("")
 logging.info("============= Calculate LU Fraction for target grid ========")
 logging.info("")
 
-fracs = calculate_fraction(lons, lus, idxs)
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-logging.info("")
-logging.info("============= write to buffer file =============")
-logging.info("")
+fracs = calculate_soil_fraction(tg, soil_types, neighbor_ids, ncpu=2)
 
-xfr = write_data_to_buffer(fracs, tg)
-xfr.to_netcdf(buffer_file)
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-logging.info("")
-logging.info("============= clean up =============")
-logging.info("")
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= initialize metadata ==============')
+logging.info('')
 
-utils.remove(weights)
-os.system('rm -rf %s'%folder)
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-logging.info("")
-logging.info("============= extpar_hwsdART_to_buffer done ========")
-logging.info("")
+if (igrid_type == 1):
+    # infer coordinates/dimensions form CDO file
+    ie_tot = len(tg.lons)
+    je_tot = 1
+    ke_tot = 1
+    lon = np.rad2deg(np.reshape(lons, (ke_tot, je_tot, ie_tot)))
+    lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
+else:
+    # infer coordinates/dimensions from tg
+    lat, lon = tg.latlon_cosmo_to_latlon_regular()
+    ie_tot = tg.ie_tot
+    je_tot = tg.je_tot
+    ke_tot = tg.ke_tot
+
+lat_meta = metadata.ART_clon()
+lon_meta = metadata.ART_clat()
+hcla_meta = metadata.ART_hcla()
+silc_meta = metadata.ART_silc()
+lcla_meta = metadata.ART_lcla()
+sicl_meta = metadata.ART_sicl()
+cloa_meta = metadata.ART_cloa()
+silt_meta = metadata.ART_silt()
+silo_meta = metadata.ART_silo()
+scla_meta = metadata.ART_scla()
+loam_meta = metadata.ART_loam()
+sclo_meta = metadata.ART_sclo()
+sloa_meta = metadata.ART_sloa()
+lsan_meta = metadata.ART_lsan()
+sand_meta = metadata.ART_sand()
+udef_meta = metadata.ART_udef()    
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= write to buffer file =============')
+logging.info('')
+
+global_attributes = {'title':'Percentage of HWSD soil type', 'institution': 'KIT', 
+                     'source': 'HWSD Harmonized World Soil Database', 
+                     'references': 'HWSD Harmonized World Soil Database', 
+                     'comment': 'For generating mineral dust emissions in ICON-ART and COSMO-ART',
+                     'history': '%s hwsdART_to_buffer'%(datetime.now().isoformat()),
+                     'number_of_grid_used': tg.grid.number_of_grid_used, 
+                     'uuidOfHGrid': tg.grid.uuidOfHGrid}
+
+buffer_file = buffer.init_netcdf(ihwsdART['hwsdART_buffer_file'], je_tot, ie_tot)
+buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
+buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  0], hcla_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  1], silc_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  2], lcla_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  3], sicl_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  4], cloa_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  5], silt_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  6], silo_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  7], scla_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  8], loam_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:,  9], sclo_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:, 10], sloa_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:, 11], lsan_meta)
+buffer.write_field_to_buffer(buffer_file, fracs[:, 12], sand_meta)
+buffer.write_field_to_buffer(buffer_file, 1 - fracs.sum(axis=1), udef_meta)
+buffer.write_attribute_to_buffer(buffer_file, global_attributes)    
+buffer.close_netcdf(buffer_file)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= clean up =========================')
+logging.info('')
+
+utils.remove(soiltype_memmap_filename)
+utils.remove(nearest_neighbor_index_memmap_filename)
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+logging.info('')
+logging.info('============= extpar_hwsdART_to_buffer done =======')
+logging.info('')
