@@ -81,6 +81,7 @@ script_files:=                                 \
     $(srcdir)/python/extpar_emiss_to_buffer.py \
     $(srcdir)/python/extpar_era_to_buffer.py   \
     $(srcdir)/python/extpar_ndvi_to_buffer.py  \
+    $(srcdir)/python/extpar_hwsdART_to_buffer.py  \
     $(srcdir)/python/extpar_ahf_to_buffer.py   \
     $(srcdir)/python/extpar_isa_to_buffer.py
 
@@ -114,8 +115,7 @@ prog_names:=                 \
     extpar_flake_to_buffer   \
     extpar_landuse_to_buffer \
     extpar_soil_to_buffer    \
-    extpar_topo_to_buffer    \
-    extpar_hwsdART_to_buffer
+    extpar_topo_to_buffer    
 
 # Another option is to use the value from the configure script
 # (i.e. EXEEXT surrounded with @):
@@ -291,3 +291,4 @@ endif
 ifneq (,$(filter-out $(NO_INC_TARGETS),$(current_targets)))
 include $(dep_files)
 endif
+
