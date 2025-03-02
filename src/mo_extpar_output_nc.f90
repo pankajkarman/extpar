@@ -1852,7 +1852,7 @@ MODULE mo_extpar_output_nc
 
     END DO
 
-    IF (l_use_hwsdART) THEN
+    IF (l_use_emiss) THEN
         CALL logging%info('hwsdART')
         CALL streamWriteVar(fileID, art_clon_ID,  art_clon(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_clat_ID,  art_clat(1:icon_grid%ncell,1,1),  0_i8)

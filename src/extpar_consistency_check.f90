@@ -384,6 +384,8 @@ PROGRAM extpar_consistency_check
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
        &                                           ndvi_output_file, &
   ! hwsdART
+       &                                           raw_data_hwsdART_path, &         !< path to raw data
+       &                                           raw_data_hwsdART_filename, &
        &                                           hwsdART_buffer_file, &
  ! EMISS
        &                                           emiss_buffer_file, & !< name for EMISS buffer file
@@ -1067,7 +1069,7 @@ PROGRAM extpar_consistency_check
   IF(l_use_hwsdART .and. igrid_type == igrid_icon) THEN
     CALL logging%info( '')
     CALL logging%info('hwsdART')
-    CALL read_netcdf_buffer_edgar(hwsdART_buffer_file,   &
+    CALL read_netcdf_buffer_hwsdART(hwsdART_buffer_file,   &
          &                                   tg,       &
          &                                   art_clon, &  
          &                                   art_clat, &  

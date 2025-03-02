@@ -46,7 +46,7 @@ MODULE mo_python_tg_fields
     &        ahf_field, &
   ! isa      
     &        allocate_isa_target_fields, &
-    &        isa_field
+    &        isa_field, &
   ! hswdART
     &        allocate_hwsdART_target_fields, &
     &        art_clon, &  
@@ -97,7 +97,7 @@ MODULE mo_python_tg_fields
   ! ahf
        &                    ahf_field(:,:,:), & !< fields for artifical heat flux (12 months)
   ! isa
-       &                    isa_field(:,:,:) !< fraction land due to land use raw data
+       &                    isa_field(:,:,:), & !< fraction land due to land use raw data
   ! hswdART
        &	            art_clon(:,:,:), &  
        &        	    art_clat(:,:,:), &  
