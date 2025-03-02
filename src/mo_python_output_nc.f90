@@ -44,7 +44,25 @@ MODULE mo_python_output_nc
   ! isa
        &                              def_isa_fields_meta, &
        &                              isa_field_meta, &
-       &                              isa_field_meta
+       &                              isa_field_meta, &
+  ! hwsdART
+       &                              art_clon_meta, &
+       &                              art_clat_meta, &
+       &                              art_hcla_meta, &
+       &                              art_silc_meta, &
+       &                              art_lcla_meta, &
+       &                              art_sicl_meta, &
+       &                              art_cloa_meta, &
+       &                              art_silt_meta, &
+       &                              art_silo_meta, &
+       &                              art_scla_meta, &
+       &                              art_loam_meta, &
+       &                              art_sclo_meta, &
+       &                              art_sloa_meta, &
+       &                              art_lsan_meta, &
+       &                              art_sand_meta, &
+       &                              art_udef_meta, &
+       &                              def_hwsd_art_meta
 
 
   IMPLICIT NONE
@@ -65,7 +83,9 @@ MODULE mo_python_output_nc
   ! ahf
        &    read_netcdf_buffer_ahf, &
   ! isa
-       &    read_netcdf_buffer_isa
+       &    read_netcdf_buffer_isa, &
+  ! hwsdART
+       &    read_netcdf_buffer_hwsdART
 
   CONTAINS
 
@@ -345,4 +365,79 @@ MODULE mo_python_output_nc
 
   END SUBROUTINE read_netcdf_buffer_isa
 
+  SUBROUTINE read_netcdf_buffer_hwsdART(netcdf_filename,  &
+         &                              tg,       &
+         &                              art_clon, &  
+         &                              art_clat, &  
+         &                              art_hcla, &  
+         &                              art_silc, &  
+         &                              art_lcla, &  
+         &                              art_sicl, &  
+         &                              art_cloa, &  
+         &                              art_silt, &  
+         &                              art_silo, &  
+         &                              art_scla, & 
+         &                              art_loam, & 
+         &                              art_sclo, &  
+         &                              art_sloa, &  
+         &                              art_lsan, &  
+         &                              art_sand, &  
+         &                              art_udef)
+
+
+    CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
+    TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
+    REAL (KIND=wp), INTENT(OUT)        :: art_clon(:,:,:),          &  !< field for central longitude from hwsd
+         &                                             art_clat(:,:,:),          &  !< field for central latitude from hwsd
+         &                                             art_hcla(:,:,:),          &  !< field for Fraction of Heavy Clay from hwsd
+         &                                             art_silc(:,:,:),          &  !< field for Fraction of Silty Clay from hwsd
+         &                                             art_lcla(:,:,:),          &  !< field for Fraction of Light Clay from hwsd
+         &                                             art_sicl(:,:,:),          &  !< field for Fraction of Silty Clay Loam from hwsd
+         &                                             art_cloa(:,:,:),          &  !< field for Fraction of Clay Loam from hwsd
+         &                                             art_silt(:,:,:),          &  !< field for Fraction of Silt from hwsd
+         &                                             art_silo(:,:,:),          &  !< field for Fraction of Silty Loam from hwsd
+         &                                             art_scla(:,:,:),          &  !< field for Fraction of Sandy Clay from hwsd
+         &                                             art_loam(:,:,:),          &  !< field for Fraction of Loam from hwsd
+         &                                             art_sclo(:,:,:),          &  !< field for Fraction of Sandy Clay Loam from hwsd
+         &                                             art_sloa(:,:,:),          &  !< field for Fraction of Sandy Loam from hwsd
+         &                                             art_lsan(:,:,:),          &  !< field for Fraction of Loamy Sand from hwsd
+         &                                             art_sand(:,:,:),          &  !< field for Fraction of Sand from hwsd
+         &                                             art_udef(:,:,:)              !< field for Fraction of Undefined or Water from hwsd
+
+
+    CALL logging%info('Enter routine: read_netcdf_buffer_hwsdART')
+
+    !set up dimensions for buffer
+    CALL  def_dimension_info_buffer(tg)
+    ! dim_3d_tg
+    ! define meta information for target field variables lon_geo, lat_geo 
+    CALL def_com_target_fields_meta(dim_3d_tg)
+    ! lon_geo_meta and lat_geo_meta
+    !define meta information for various EMISS data related variables for netcdf output
+    CALL def_hwsd_art_meta(dim_3d_tg)
+    ! dim_emiss_tg, emiss_max_meta, emiss_field_mom_meta, emiss_ratio_mom_meta
+
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_clon_meta,art_clon)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_clat_meta,art_clat)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_hcla_meta,art_hcla)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_silc_meta,art_silc)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_lcla_meta,art_lcla)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_sicl_meta,art_sicl)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_cloa_meta,art_cloa)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_silt_meta,art_silt)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_silo_meta,art_silo)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_scla_meta,art_scla)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_loam_meta,art_loam)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_sclo_meta,art_sclo)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_sloa_meta,art_sloa)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_lsan_meta,art_lsan)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_sand_meta,art_sand)
+    CALL netcdf_get_var(TRIM(netcdf_filename),art_udef_meta,art_udef)
+
+    CALL logging%info('Exit routine: read_netcdf_buffer_hwsdART')
+
+  END SUBROUTINE read_netcdf_buffer_hwsdART
+
+
 END MODULE mo_python_output_nc
+
