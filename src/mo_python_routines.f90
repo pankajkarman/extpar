@@ -45,11 +45,55 @@ MODULE mo_python_routines
   ! ahf
        &    read_namelists_extpar_ahf, &
   ! isa
-       &    read_namelists_extpar_isa
+       &    read_namelists_extpar_isa, &
+  ! hwsdART
+       &    read_namelists_extpar_hwsdART
 
   CONTAINS
 
   !---------------------------------------------------------------------------
+  !> subroutine to read namelist for hwsdART data settings for EXTPAR 
+  SUBROUTINE read_namelists_extpar_hwsdART(namelist_file, &
+       &                                 raw_data_hwsdART_path, &
+       &                                 raw_data_hwsdART_filename, &
+       &                                 hwsdART_buffer_file)
+
+    CHARACTER (len=*), INTENT(IN)            :: namelist_file !< filename with namelists for for EXTPAR settings
+
+    CHARACTER (len=filename_max),INTENT(OUT) :: raw_data_hwsdART_path, &         !< path to raw data
+         &                                      raw_data_hwsdART_filename, &  !< filename hwsdART raw data
+         &                                      hwsdART_buffer_file
+
+    INTEGER(KIND=i4)                         :: nuin, ierr
+
+    !> namelist with filenames for hwsdART data input
+    NAMELIST /hwsdART_raw_data/ raw_data_hwsdART_path, raw_data_hwsdART_filename
+    !> namelist with filenames for hwsdART data output
+    NAMELIST /hwsdART_io_extpar/ hwsdART_buffer_file
+
+    nuin = free_un()  ! functioin free_un returns free Fortran unit number
+    OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(message_text,*)'Cannot open ', TRIM(namelist_file)
+      CALL logging%error(message_text,__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=hwsdART_raw_data, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(message_text,*)'Cannot read in namelist hwsdART_raw_data - reason: ', ierr
+      CALL logging%error(message_text,__FILE__, __LINE__) 
+    ENDIF
+
+    READ(nuin, NML=hwsdART_io_extpar, IOSTAT=ierr)
+    IF (ierr /= 0) THEN
+      WRITE(message_text,*)'Cannot read in namelist hwsdART_io_extpar - reason: ', ierr
+      CALL logging%error(message_text,__FILE__, __LINE__) 
+    ENDIF
+
+    CLOSE(nuin)
+
+  END SUBROUTINE read_namelists_extpar_hwsdART
+
   !> subroutine to read namelist for EMISS data settings for EXTPAR 
   SUBROUTINE read_namelists_extpar_emiss(namelist_file, &
        &                                 raw_data_emiss_path, &
@@ -592,3 +636,4 @@ MODULE mo_python_routines
   END SUBROUTINE const_check_interpol_alb
 
 END MODULE mo_python_routines
+
