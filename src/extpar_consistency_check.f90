@@ -268,6 +268,7 @@ PROGRAM extpar_consistency_check
   USE mo_python_routines,       ONLY: read_namelists_extpar_emiss, &
        &                              read_namelists_extpar_t_clim, &
        &                              read_namelists_extpar_ndvi, &
+       &                              read_namelists_extpar_hwsdART, &
        &                              read_namelists_extpar_alb, &
        &                              open_netcdf_ALB_data, &
        &                              const_check_interpol_alb, &
@@ -286,9 +287,16 @@ PROGRAM extpar_consistency_check
        &                              ndvi_field_mom, &
        &                              ndvi_ratio_mom, &
        &                              allocate_ndvi_target_fields, &
+
+    ! hswdART
+       &                              allocate_hwsdART_target_fields, &
+       &                              art_clon, art_clat, art_hcla, art_silc, &  
+       &                              art_lcla, art_sicl, art_cloa, art_silt, &  
+       &                              art_silo, art_scla, art_sclo, art_sloa, 
+       &                              art_lsan, art_sand, art_udef, &
+
+      ! cru
        &                              allocate_cru_target_fields,   &
-  ! cru
-       &                              ndvi_max, &
        &                              crutemp, crutemp2, cruelev, &
   ! albedo
        &                              alb_dry, alb_sat, &
@@ -312,6 +320,7 @@ PROGRAM extpar_consistency_check
 
   USE mo_python_output_nc,      ONLY: read_netcdf_buffer_emiss, &
        &                              read_netcdf_buffer_ndvi, &
+       &                              read_netcdf_buffer_hwsdART, &
        &                              read_netcdf_buffer_cru, &
        &                              read_netcdf_buffer_alb, &
        &                              read_netcdf_buffer_era, &
@@ -374,6 +383,8 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_ndvi_filename, &
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
        &                                           ndvi_output_file, &
+  ! hwsdART
+       &                                           hwsdART_buffer_file, &
  ! EMISS
        &                                           emiss_buffer_file, & !< name for EMISS buffer file
        &                                           raw_data_emiss_path, & !< dummy var for routine read_namelist_extpar_emiss
@@ -464,6 +475,7 @@ PROGRAM extpar_consistency_check
        &                                           l_preproc_oro=.FALSE., &
        &                                           l_use_glcc=.FALSE., & !< flag if additional glcc data are present
        &                                           l_use_emiss=.FALSE., &!< flag if additional CAMEL emissivity data are present
+       &                                           l_use_hwsdART=.FALSE., &!< flag if hwsdART processing to be done
        &                                           l_unified_era_buffer=.FALSE., &!< flag if ERA-data from extpar_era_to_buffer.py is used
        &                                           lwrite_netcdf, &  !< flag to enable netcdf output for COSMO
        &                                           lwrite_grib, &    !< flag to enable GRIB output for COSMO
@@ -794,6 +806,16 @@ PROGRAM extpar_consistency_check
       &                               emiss_output_file)
   ENDIF
 
+  ! read namelist for hwsdART
+  namelist_file = 'INPUT_hwsdART'
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_hwsdART)
+  IF (l_use_hwsdART) THEN
+    CALL  read_namelists_extpar_hwsdART(namelist_file, &
+      &                               raw_data_hwsdART_path, &
+      &                               raw_data_hwsdART_filename, &
+      &                               hwsdART_buffer_file)
+  ENDIF
+
   ! determine type of ERA-climatologies to use
   IF (igrid_type == igrid_icon) THEN
 
@@ -857,6 +879,8 @@ PROGRAM extpar_consistency_check
   END IF
 
   CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_cache)
+
+  CALL allocate_hwsdART_target_fields(tg, l_use_array_cache)
 
   CALL allocate_emiss_target_fields(tg,ntime_emiss, l_use_array_cache)
 
@@ -1038,6 +1062,32 @@ PROGRAM extpar_consistency_check
        &                                     ndvi_max,  &
        &                                     ndvi_field_mom,&
        &                                     ndvi_ratio_mom)
+
+  !-------------------------------------------------------------------------
+  IF(l_use_hwsdART .and. igrid_type == igrid_icon) THEN
+    CALL logging%info( '')
+    CALL logging%info('hwsdART')
+    CALL read_netcdf_buffer_edgar(hwsdART_buffer_file,   &
+         &                                   tg,       &
+         &                                   art_clon, &  
+         &                                   art_clat, &  
+         &                                   art_hcla, &  
+         &                                   art_silc, &  
+         &                                   art_lcla, &  
+         &                                   art_sicl, &  
+         &                                   art_cloa, &  
+         &                                   art_silt, &  
+         &                                   art_silo, &  
+         &                                   art_scla, & 
+         &                                   art_loam, & 
+         &                                   art_sclo, &  
+         &                                   art_sloa, &  
+         &                                   art_lsan, &  
+         &                                   art_sand, &  
+         &                                   art_udef)
+
+
+  ENDIF
 
   !-------------------------------------------------------------------------
   IF (l_use_emiss) THEN
@@ -2474,6 +2524,22 @@ PROGRAM extpar_consistency_check
          &                                     ndvi_max,                      &
          &                                     ndvi_field_mom,                &
          &                                     ndvi_ratio_mom,                &
+         &                                     art_clon,                      &  
+         &                                     art_clat,                      &  
+         &                                     art_hcla,                      &  
+         &                                     art_silc,                      &  
+         &                                     art_lcla,                      &  
+         &                                     art_sicl,                      &  
+         &                                     art_cloa,                      &  
+         &                                     art_silt,                      &  
+         &                                     art_silo,                      &  
+         &                                     art_scla,                      & 
+         &                                     art_loam,                      & 
+         &                                     art_sclo,                      &  
+         &                                     art_sloa,                      &  
+         &                                     art_lsan,                      &  
+         &                                     art_sand,                      & 
+         &                                     art_udef,                      & 
          &                                     emiss_field_mom,               &
          &                                     hh_topo,                       &
          &                                     hh_topo_max,                   &
@@ -2666,3 +2732,4 @@ PROGRAM extpar_consistency_check
   WRITE(logging%fileunit,*)'============= consistency_check done ============'
 
 END PROGRAM
+
