@@ -95,7 +95,7 @@ logging.info("============= start extpar_hwsdART_to_buffer =======")
 logging.info("")
 
 # Use all available CPUs
-omp = env.get_omp_num_threads()
+omp = int(env.get_omp_num_threads())
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_hwsdART'  # name for grid description file
