@@ -94,6 +94,7 @@ logging.basicConfig(
 logging.info("============= start extpar_hwsdART_to_buffer =======")
 logging.info("")
 
+# Use all available CPUs
 num_cores = joblib.cpu_count()
 num_cores
 
