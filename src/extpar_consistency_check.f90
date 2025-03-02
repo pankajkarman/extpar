@@ -2498,6 +2498,7 @@ PROGRAM extpar_consistency_check
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
          &                                     l_use_emiss,                   &
+         &                                     l_use_hwsdART,                   &
          &                                     lradtopo,                      &
          &                                     nhori,                         &
          &                                     fill_value_real,               &

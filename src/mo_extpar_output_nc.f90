@@ -925,6 +925,7 @@ MODULE mo_extpar_output_nc
        &                                l_use_isa,            &
        &                                l_use_ahf,            &
        &                                l_use_emiss,          &
+       &                                l_use_hwsdART,          &
        &                                l_radtopo,            &
        &                                nhori,                &
        &                                undefined,            &
@@ -1012,6 +1013,7 @@ MODULE mo_extpar_output_nc
          &                                             l_use_isa, &
          &                                             l_use_ahf, &
          &                                             l_use_emiss, &
+         &                                             l_use_hwsdART, &
          &                                             l_radtopo, &
          &                                             lsso
     INTEGER (KIND=i4), INTENT(in)                   :: itopo_type
@@ -1852,7 +1854,7 @@ MODULE mo_extpar_output_nc
 
     END DO
 
-    IF (l_use_emiss) THEN
+    IF (l_use_hwsdART) THEN
         CALL logging%info('hwsdART')
         CALL streamWriteVar(fileID, art_clon_ID,  art_clon(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_clat_ID,  art_clat(1:icon_grid%ncell,1,1),  0_i8)
