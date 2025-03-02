@@ -95,11 +95,7 @@ logging.info("============= start extpar_hwsdART_to_buffer =======")
 logging.info("")
 
 # Use all available CPUs
-num_cores = joblib.cpu_count()
-num_cores
-
-logging.info("============= No. of CPU Cores Availabe: %d ======="%num_cores)
-logging.info("")
+omp = env.get_omp_num_threads()
 
 # unique names for files written to system to allow parallel execution
 grid = 'grid_description_hwsdART'  # name for grid description file
@@ -173,7 +169,7 @@ logging.info(
 logging.info("")
 
 nrows = np.arange(raw_lat.size)
-Parallel(n_jobs=num_cores, max_nbytes='100M', mmap_mode='w+')(delayed(get_neighbor_index)(i, lons, lats, raw_lon, raw_lat, neighbor_ids) for i in tqdm(nrows))
+Parallel(n_jobs=omp, max_nbytes='100M', mmap_mode='w+')(delayed(get_neighbor_index)(i, lons, lats, raw_lon, raw_lat, neighbor_ids) for i in tqdm(nrows))
 
 # --------------------------------------------------------------------------
 logging.info("")
