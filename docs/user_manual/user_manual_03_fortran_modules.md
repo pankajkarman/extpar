@@ -773,8 +773,8 @@ more detail.
 
 The namelist `INPUT_AOT` is kept very simple. It contains only the path
 and the name of the raw aerosol optical depth data. The integer switch
-(*iaot_type*) informs EXTPAR which of the 4 available datasets has been
-chosen: 1 (Tegen), 2 (AeroCom), 3 (MACC-II), 4 (MACv2) or 5 (CAMS) .
+(*iaot_type*) informs EXTPAR which of the 2 available datasets has been
+chosen: 1 (Tegen), 2 (AeroCom).
 Additionally, also the filenames of the buffer and output files for the
 aggregated data is specified.
 
@@ -783,21 +783,10 @@ dimensions of the raw data is defined. These dimensions include the
 number of rows and columns of the NetCDF raw data file, the number of
 months, which is equal to 12, as a full yearly cycle is described, and
 the number of types of aerosols contained in the raw data file. This
-number is 5 for iaot_type=1,2 or 3 , as the raw data file contains the
+number is 5 for iaot_type=1 or 2 , as the raw data file contains the
 aerosol optical thickness information of black carbon, dust, organic
-matter, sulfate and sea salt. iaot_type=4 is used for a new formulation
-of the radiation-aerosol interaction available only in version of COSMO
-later than 5.04. This provides data of the aerosol optical thickness,
-the single scattering albedo and the asymmetry factor for the 8 spectral
-bands defined in the RG92 radiation scheme. iaot_type=5 is used only
-for ICON model. The raw data file contains the layer-integrated mass
-information of 11 types of aerosols: Sea Salt (3 bin), Mineral Dust (3
-bin), hydrophilic and hydrophobic organic matter, hydrophilic and
-hydrophobic black carbon and sulfate. Also the raw data file contains
-the pressure for 60 vertical levels. The 3 first data-sets which provide
-raw data for different aerosol types refer to Tegen[^1], AeroCom[^2] and
-MACC-II[^3] whereas the fourth data-set is derived from MACv2[^4] and
-the fifth data-set is derived from CAMS[^5].
+matter, sulfate and sea salt. The 3 first data-sets which provide
+raw data for different aerosol types refer to Tegen[^1] and AeroCom[^2]. 
 
 In a next step, the complete raw data is read into memory; this is
 possible since the aerosol optical depth raw data is of rather coarse
@@ -813,9 +802,6 @@ the number of months and aerosol types or spectral bands.
 ------------------ | --------------------------
 Tegen              | 4 x 5 degree
 AeroCom            | 1 x 1 degree
-MACC-II            | 1.125 x 1.125 degree
-MACv2              | 1 x 1 degree
-CAMS               | 3 x 3 degree x 60 levels
 
 *Table 8: Resolution of raw data-sets for aerosol optical depths.*
 </center>
@@ -842,10 +828,7 @@ allocated variables are deallocated.
 -   namelists files: INPUT_grid_org, INPUT_COSMO_GRID,
     INPUT_ICON_GRID, INPUT_AOT
 
--   data input: aot_GACP.nc, aod_AeroCom1.nc,
-    aod_MACC_2003-2012.nc,
-    aod_MACC_2003-2012_proc.nc, aot_MACv2.nc,
-    aot_CAMS_2003-2013.nc
+-   data input: aot_GACP.nc, aod_AeroCom1.nc
 
 -   Output: buffer file with aerosol data (/aerosol_io_extpar/
     aot_buffer_file)
@@ -1360,23 +1343,6 @@ detailed description of CDI look at
     Ø. Seland, P. Stier, T. Takemura, and X. Tie: An AeroCom initial
     assessment optical properties in aerosol component modules of global
     models, Atmos. Chem. Phys., 6, 1815-1834, 2006.
-
-[^3]: Morcrette, J.-J., O. Boucher, L. Jones, D. Salmond, P. Bechtold,
-    A. Beljaars, A. Benedetti, A. Bonet, J. W. Kaiser, M. Razinger, M.
-    Schulz, S. Serrar, A. J. Simmons, M. Sofiev, M. Suttie, A. M.
-    Tompkins, and A. Untch, 2009: Aerosol analysis and forecast in the
-    ECMWF Integrated Forecast System. Part I: Forward modelling, J.
-    Geophys. Res., 114D, D06206,doi:10.1029/2008JD011235
-
-[^4]: Kinne, S., D. O'Donnel, P. Stier, S. Kloster, K. Zhang, H.
-    Schmidt, S. Rast, M. Giorgetta, T. F. Eck, and B. Stevens (2013),
-    MAC-v1: A new global aerosol climatology for climate studies, J.
-    Adv. Model. Earth Syst., 5, 704--740, doi:10.1002/jame.20035.
-
-[^5]: Bozzo, A., Benedetti, A., Flemming, J., Kipling, Z., Rémy, S.
-    (2020). An aerosol climatology for global models based on the
-    tropospheric aerosol scheme in the Integrated Forecasting System of
-    ECMWF. Geoscientific Model Development, 13(3), 1007-1034.
 
 [^6]: Release 5.0 of COSMO and 2.0 of INT2LM do not support HWSD data,
     as the representation of the soil associated with this new data set

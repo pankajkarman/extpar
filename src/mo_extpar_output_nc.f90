@@ -74,8 +74,7 @@ MODULE mo_extpar_output_nc
 
   USE mo_io_units,                 ONLY: filename_max
 
-  USE mo_aot_data,                 ONLY: ntype_aot, ntime_aot,n_spectr, &
-       &                                 iaot_type, nlevel_cams
+  USE mo_aot_data,                 ONLY: ntype_aot, ntime_aot
 
   USE mo_soil_data,                ONLY: HWSD_data
 
@@ -175,10 +174,6 @@ MODULE mo_extpar_output_nc
        &                                    hh_topo,             &
        &                                    stdh_topo,           &
        &                                    aot_tg,              &
-       &                                    MAC_aot_tg,          &
-       &                                    MAC_ssa_tg,          &
-       &                                    MAC_asy_tg,          &
-       &                                    CAMS_tg,             &
        &                                    crutemp,             &
        &                                    alb_field_mom,       &
        &                                    alnid_field_mom,     &
@@ -252,10 +247,6 @@ MODULE mo_extpar_output_nc
          &                                  hh_topo(:,:,:), &  !< mean height
          &                                  stdh_topo(:,:,:), & !< standard deviation of subgrid scale orographic height
          &                                  aot_tg(:,:,:,:,:), & !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-         &                                  MAC_aot_tg(:,:,:,:), &
-         &                                  MAC_ssa_tg(:,:,:,:), &
-         &                                  MAC_asy_tg(:,:,:,:), &
-         &                                  CAMS_tg(:,:,:,:,:), & !CAMS aerosol
          &                                  crutemp(:,:,:), &  !< cru climatological temperature , crutemp(ie,je,ke)
          &                                  theta_topo(:,:,:), & !< sso parameter, angle of principal axis
          &                                  aniso_topo(:,:,:), & !< sso parameter, anisotropie factor
@@ -281,8 +272,6 @@ MODULE mo_extpar_output_nc
     ! local variables
     REAL(KIND=wp), ALLOCATABLE          :: var_real_2d(:,:), &
          &                                 var_real_hor(:,:,:), &
-         &                                 var_real_MAC(:,:,:,:), &
-         &                                 var_real_CAMS(:,:,:,:), &
          &                                 time(:)
 
     INTEGER (KIND=i4)                   :: dataDate, &
@@ -711,87 +700,36 @@ MODULE mo_extpar_output_nc
   end if
     !-----------------------------------------------------------------
     ! aot
-    IF (iaot_type == 4) THEN
-      ALLOCATE(var_real_MAC(cosmo_grid%nlon_rot, cosmo_grid%nlat_rot,n_spectr,ntime_aot))
+    ALLOCATE(var_real_hor(cosmo_grid%nlon_rot,cosmo_grid%nlat_rot,ntime_aot))
+    n=1 ! aot_bc
+    var_real_hor(:,:,:)=aot_tg(:,:,1,1,:)
+    !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1,1:ntime_aot), &
+    !       &                 aer_bc_meta, undefined)
+    CALL netcdf_put_var(ncid,var_real_hor,aer_bc_meta, undefined)
 
-      var_real_MAC(:,:,:,:)=MAC_aot_tg(:,:,:,:)
-      CALL netcdf_put_var(ncid,var_real_MAC,aot_tg_MAC_meta,undefined)
+    n=2 ! aot_dust
+    var_real_hor(:,:,:)=aot_tg(:,:,1,2,:)
+    !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,2,1:ntime_aot), &
+    !       &                 aer_dust_meta, undefined)
+    CALL netcdf_put_var(ncid,var_real_hor,aer_dust_meta, undefined)
 
-      var_real_MAC(:,:,:,:)=MAC_ssa_tg(:,:,:,:)
-      CALL netcdf_put_var(ncid,var_real_MAC,ssa_tg_MAC_meta,undefined)
+    n=3 ! aot_org
+    var_real_hor(:,:,:)=aot_tg(:,:,1,3,:)
+    !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,3,1:ntime_aot), &
+    !       &                 aer_org_meta, undefined)
+    CALL netcdf_put_var(ncid,var_real_hor,aer_org_meta, undefined)
 
-      var_real_MAC(:,:,:,:)=MAC_asy_tg(:,:,:,:)
-      CALL netcdf_put_var(ncid,var_real_MAC,asy_tg_MAC_meta,undefined)
-    ELSEIF (iaot_type == 5) THEN
-         ALLOCATE(var_real_CAMS(cosmo_grid%nlon_rot, cosmo_grid%nlat_rot,nlevel_cams,ntime_aot))
+    n=4 ! aot_so4
+    var_real_hor(:,:,:)=aot_tg(:,:,1,4,:)
+    !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,4,1:ntime_aot), &
+    !       &                 aer_so4_meta, undefined)
+    CALL netcdf_put_var(ncid,var_real_hor,aer_so4_meta, undefined)
 
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,1,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_SS1_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,2,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_SS2_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,3,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_SS3_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,4,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_DUST1_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,5,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_DUST2_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,6,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_DUST3_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,7,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_OCphilic_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,8,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_OCphobic_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,9,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_BCphilic_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,10,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_BCphobic_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,11,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_SU_tg_meta,undefined)
-
-         var_real_CAMS(:,:,:,:)=CAMS_tg(:,:,:,12,:)
-         CALL netcdf_put_var(ncid,var_real_CAMS,CAMS_plev_tg_meta,undefined)
-    ELSE
-      ALLOCATE(var_real_hor(cosmo_grid%nlon_rot,cosmo_grid%nlat_rot,ntime_aot))
-      n=1 ! aot_bc
-      var_real_hor(:,:,:)=aot_tg(:,:,1,1,:)
-      !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,1,1:ntime_aot), &
-      !       &                 aer_bc_meta, undefined)
-      CALL netcdf_put_var(ncid,var_real_hor,aer_bc_meta, undefined)
-
-      n=2 ! aot_dust
-      var_real_hor(:,:,:)=aot_tg(:,:,1,2,:)
-      !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,2,1:ntime_aot), &
-      !       &                 aer_dust_meta, undefined)
-      CALL netcdf_put_var(ncid,var_real_hor,aer_dust_meta, undefined)
-
-      n=3 ! aot_org
-      var_real_hor(:,:,:)=aot_tg(:,:,1,3,:)
-      !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,3,1:ntime_aot), &
-      !       &                 aer_org_meta, undefined)
-      CALL netcdf_put_var(ncid,var_real_hor,aer_org_meta, undefined)
-
-      n=4 ! aot_so4
-      var_real_hor(:,:,:)=aot_tg(:,:,1,4,:)
-      !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,4,1:ntime_aot), &
-      !       &                 aer_so4_meta, undefined)
-      CALL netcdf_put_var(ncid,var_real_hor,aer_so4_meta, undefined)
-
-      n=5 ! aot_ss
-      var_real_hor(:,:,:)=aot_tg(:,:,1,5,:)
-      !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,5,1:ntime_aot), &
-      !       &                 aer_ss_meta, undefined)
-      CALL netcdf_put_var(ncid,var_real_hor,aer_ss_meta, undefined)
-    ENDIF
+    n=5 ! aot_ss
+    var_real_hor(:,:,:)=aot_tg(:,:,1,5,:)
+    !     CALL netcdf_put_var(ncid,aot_tg(1:cosmo_grid%nlon_rot,1:cosmo_grid%nlat_rot,1,5,1:ntime_aot), &
+    !       &                 aer_ss_meta, undefined)
+    CALL netcdf_put_var(ncid,var_real_hor,aer_ss_meta, undefined)
 
     !-----------------------------------------------------------------
     CALL netcdf_def_grid_mapping(ncid, nc_grid_def_cosmo, varid)
@@ -919,7 +857,6 @@ MODULE mo_extpar_output_nc
        &                                aniso_topo,           &
        &                                slope_topo,           &
        &                                aot_tg,               &
-       &                                CAMS_tg,              &
        &                                crutemp,              &
        &                                alb_field_mom,        &
        &                                alnid_field_mom,      &
@@ -1005,7 +942,6 @@ MODULE mo_extpar_output_nc
          &                                             hh_topo_min(:,:,:),       & !< min height on a gridpoint
          &                                             stdh_topo(:,:,:),         & !< standard deviation of subgrid scale orographic height
          &                                             aot_tg(:,:,:,:,:),        & !< aerosol optical thickness, aot_tg(ie,je,ke,ntype,ntime)
-         &                                             CAMS_tg(:,:,:,:,:),       & !< aerosol CAMS, CAMS_tg(ie,je,level,ntime, type)	 new
          &                                             crutemp(:,:,:)              !< cru climatological temperature , crutemp(ie,je,ke)
 
     REAL (KIND=wp), INTENT(in), OPTIONAL            :: fr_sand(:,:,:), &   !< sand fraction due to HWSD
@@ -1053,7 +989,6 @@ MODULE mo_extpar_output_nc
          &     surfaceID,  &
          &     class_luID, &
          &     nhoriID,    &
-         &     nlevel_camsID, &
          &     taxisID,    &
          &     vlistID,    &
          &     tsID,       &
@@ -1109,18 +1044,6 @@ MODULE mo_extpar_output_nc
          &     aot_org_ID,           &
          &     aot_so4_ID,           &
          &     aot_ss_ID,            &
-         &     CAMS_SS1_ID,          &
-         &     CAMS_SS2_ID,          &
-         &     CAMS_SS3_ID,          &
-         &     CAMS_DUST1_ID,        &
-         &     CAMS_DUST2_ID,        &
-         &     CAMS_DUST3_ID,        &
-         &     CAMS_OCphilic_ID,     &
-         &     CAMS_OCphobic_ID,     &
-         &     CAMS_BCphilic_ID,     &
-         &     CAMS_BCphobic_ID,     &
-         &     CAMS_SU_ID,           &
-         &     CAMS_p_lev_ID,        &
          &     alb_field_mom_ID,     &
          &     alnid_field_mom_ID,   &
          &     aluvd_field_mom_ID,   &
@@ -1273,20 +1196,6 @@ MODULE mo_extpar_output_nc
     CALL aer_so4_meta%overwrite_varname('AER_SO4')
     CALL aer_ss_meta%overwrite_varname('AER_SS')
 
-    CALL CAMS_SS1_tg_meta%overwrite_varname('AOT_SS1')
-    CALL CAMS_SS2_tg_meta%overwrite_varname('AOT_SS2')
-    CALL CAMS_SS3_tg_meta%overwrite_varname('AOT_SS3')
-    CALL CAMS_DUST1_tg_meta%overwrite_varname('AOT_DUST1')
-    CALL CAMS_DUST2_tg_meta%overwrite_varname('AOT_DUST2')
-    CALL CAMS_DUST3_tg_meta%overwrite_varname('AOT_DUST3')
-    CALL CAMS_OCphilic_tg_meta%overwrite_varname('AOT_OCphilic')
-    CALL CAMS_OCphobic_tg_meta%overwrite_varname('AOT_OCphobic')
-    CALL CAMS_BCphilic_tg_meta%overwrite_varname('AOT_BCphilic')
-    CALL CAMS_BCphobic_tg_meta%overwrite_varname('AOT_BCphobic')
-    CALL CAMS_SU_tg_meta%overwrite_varname('AOT_SU')
-    CALL CAMS_plev_tg_meta%overwrite_varname('p_lev_CAMS')
-    ! **
-
     !-----------------------------------------------------------------
     gridID = gridCreate(GRID_UNSTRUCTURED, INT(icon_grid%ncell, i8))
     stat = cdiGridDefKeyStr(gridID, CDI_KEY_XDIMNAME, 5, "cell")
@@ -1300,10 +1209,6 @@ MODULE mo_extpar_output_nc
     IF(l_radtopo)THEN
       nhoriID = zaxisCreate(ZAXIS_GENERIC, nhori)
       CALL zaxisDefName(nhoriID, "nhori");
-    ENDIF
-    IF(iaot_type == 5)THEN
-      nlevel_camsID = zaxisCreate(ZAXIS_GENERIC, nlevel_cams)
-      CALL zaxisDefName(nlevel_camsID, "nlevel_cams");
     ENDIF
 
     taxisID = taxisCreate(TAXIS_ABSOLUTE)
@@ -1400,26 +1305,12 @@ MODULE mo_extpar_output_nc
       cdnc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, cdnc_meta, undefined)
     ENDIF
 
-    IF (iaot_type == 5) THEN
-      CAMS_SS1_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS1_tg_meta     , undefined)
-      CAMS_SS2_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS2_tg_meta     , undefined)
-      CAMS_SS3_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS3_tg_meta     , undefined)
-      CAMS_DUST1_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST1_tg_meta   , undefined)
-      CAMS_DUST2_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST2_tg_meta   , undefined)
-      CAMS_DUST3_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST3_tg_meta   , undefined)
-      CAMS_OCphilic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_OCphilic_tg_meta, undefined)
-      CAMS_OCphobic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_OCphobic_tg_meta, undefined)
-      CAMS_BCphilic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_BCphilic_tg_meta, undefined)
-      CAMS_BCphobic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_BCphobic_tg_meta, undefined)
-      CAMS_SU_ID       = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SU_tg_meta      , undefined)
-      CAMS_p_lev_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_plev_tg_meta    , undefined)
-    ELSE
-      aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
-      aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
-      aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
-      aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
-      aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
-    ENDIF
+    aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
+    aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
+    aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
+    aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
+    aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
+
     alb_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, alb_field_mom_meta, undefined)
     alnid_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, alnid_field_mom_meta, undefined)
     aluvd_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aluvd_field_mom_meta, undefined)
@@ -1632,47 +1523,20 @@ MODULE mo_extpar_output_nc
       n=2 ! ndvi_ratio_mom
       CALL streamWriteVar(fileID, ndvi_ratio_mom_ID, ndvi_ratio_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
 
-      IF (iaot_type == 5) THEN
-        n=3 ! SS1
-        CALL streamWriteVar(fileID, CAMS_SS1_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,1,tsID), 0_i8)
-        n=4 ! SS2
-        CAlL streamWriteVar(fileID, CAMS_SS2_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,2,tsID), 0_i8)
-        n=5 ! SS3
-        CALL streamWriteVar(fileID, CAMS_SS3_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,3,tsID), 0_i8)
-        n=6 ! DUST1
-        CALL streamWriteVar(fileID, CAMS_DUST1_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,4,tsID), 0_i8)
-        n=7 ! DUST2
-        CALL streamWriteVar(fileID, CAMS_DUST2_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,5,tsID), 0_i8)
-        n=8 ! DUST3
-        CALL streamWriteVar(fileID, CAMS_DUST3_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,6,tsID), 0_i8)
-        n=9 ! OCphilic
-        CALL streamWriteVar(fileID, CAMS_OCphilic_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,7,tsID), 0_i8)
-        n=10 ! OCphobic
-        CALL streamWriteVar(fileID, CAMS_OCphobic_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,8,tsID), 0_i8)
-        n=11 ! BCphilic
-        CALL streamWriteVar(fileID, CAMS_BCphilic_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,9,tsID), 0_i8)
-        n=12 ! BCphobic
-        CALL streamWriteVar(fileID, CAMS_BCphobic_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,10,tsID), 0_i8)
-        n=13 ! SU
-        CALL streamWriteVar(fileID, CAMS_SU_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,11,tsID), 0_i8)
-        n=14 ! p_lev_CAMS
-        CALL streamWriteVar(fileID, CAMS_p_lev_ID, CAMS_tg(1:icon_grid%ncell,1,1:nlevel_cams,12,tsID), 0_i8)
-      ELSE
-        n=3 ! aot_bc
-        CALL streamWriteVar(fileID, aot_bc_ID, aot_tg(1:icon_grid%ncell,1,1,1,tsID), 0_i8)
+      n=3 ! aot_bc
+      CALL streamWriteVar(fileID, aot_bc_ID, aot_tg(1:icon_grid%ncell,1,1,1,tsID), 0_i8)
 
-        n=4 ! aot_dust
-        CALL streamWriteVar(fileID, aot_dust_ID, aot_tg(1:icon_grid%ncell,1,1,2,tsID), 0_i8)
+      n=4 ! aot_dust
+      CALL streamWriteVar(fileID, aot_dust_ID, aot_tg(1:icon_grid%ncell,1,1,2,tsID), 0_i8)
 
-        n=5 ! aot_org
-        CALL streamWriteVar(fileID, aot_org_ID, aot_tg(1:icon_grid%ncell,1,1,3,tsID), 0_i8)
+      n=5 ! aot_org
+      CALL streamWriteVar(fileID, aot_org_ID, aot_tg(1:icon_grid%ncell,1,1,3,tsID), 0_i8)
 
-        n=6 ! aot_so4
-        CALL streamWriteVar(fileID, aot_so4_ID, aot_tg(1:icon_grid%ncell,1,1,4,tsID), 0_i8)
+      n=6 ! aot_so4
+      CALL streamWriteVar(fileID, aot_so4_ID, aot_tg(1:icon_grid%ncell,1,1,4,tsID), 0_i8)
 
-        n=7 ! aot_ss
-        CALL streamWriteVar(fileID, aot_ss_ID, aot_tg(1:icon_grid%ncell,1,1,5,tsID), 0_i8)
-      ENDIF
+      n=7 ! aot_ss
+      CALL streamWriteVar(fileID, aot_ss_ID, aot_tg(1:icon_grid%ncell,1,1,5,tsID), 0_i8)
 
       n=15 ! alb_field_mom
       CALL streamWriteVar(fileID, alb_field_mom_ID, alb_field_mom(1:icon_grid%ncell,1,1,tsID), 0_i8)
@@ -1720,7 +1584,6 @@ MODULE mo_extpar_output_nc
     CALL zaxisDestroy(surfaceID)
     CALL zaxisDestroy(class_luID)
     IF(l_radtopo) CALL zaxisDestroy(nhoriID)
-    IF(iaot_type == 5) CALL zaxisDestroy(nlevel_camsID)
 
     !-----------------------------------------------------------------
     CALL streamClose(fileID)
