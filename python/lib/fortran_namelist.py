@@ -21,7 +21,7 @@ it contains:
         -InputEra
         -InputAhf
         -InputIsa
-        -InputHwsdart
+        -Inputart
         -InputCdnc
 '''
 
@@ -259,16 +259,16 @@ class InputIsa:
         self.variables.update({'&isa_io_extpar': {'isa_buffer_file'}})
 
 
-class InputHwsdart:
+class Inputart:
     '''
-    define structure of namelist "INPUT_hwsdART"
+    define structure of namelist "INPUT_art"
     '''
 
     def __init__(self):
 
         self.variables = {
-            '&hwsdART_nml':
-            {'raw_data_hwsdART_path', 'raw_data_hwsdART_filename'}
+            '&art_nml':
+            {'raw_data_art_path', 'raw_data_art_filename'}
         }
 
-        self.variables.update({'&hwsdART_io_extpar': {'hwsdART_buffer_file'}})
+        self.variables.update({'&art_io_extpar': {'art_buffer_file'}})

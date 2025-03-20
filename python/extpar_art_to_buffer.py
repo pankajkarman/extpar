@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 import logging
-import os
-import subprocess
 import netCDF4 as nc
 import numpy as np
 
-import joblib
-from joblib import Parallel, delayed
-from joblib import dump, load
+from joblib import Parallel, delayed, dump, load
 from tqdm import tqdm
 from datetime import datetime
 from sklearn.neighbors import BallTree
@@ -22,7 +18,7 @@ try:
         utilities as utils,
         environment as env,
     )
-    from extpar.lib.namelist import input_hwsdART as ihwsdART
+    from extpar.lib.namelist import input_art as iart
 except ImportError:
     import grid_def
     import buffer
@@ -30,7 +26,7 @@ except ImportError:
     import fortran_namelist
     import utilities as utils
     import environment as env
-    from namelist import input_hwsdART as ihwsdART
+    from namelist import input_art as iart
 
 
 def get_nearest_neighbors(lon_array,
@@ -104,7 +100,7 @@ def calculate_soil_fraction(tg, lus, idxs, ncpu=2):
 # --------------------------------------------------------------------------
 # initialize logger
 logging.basicConfig(
-    filename="extpar_hwsdART_to_buffer.log",
+    filename="extpar_art_to_buffer.log",
     level=logging.INFO,
     format="%(message)s",
     filemode="w",
@@ -112,14 +108,14 @@ logging.basicConfig(
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-logging.info("============= start extpar_hwsdART_to_buffer =======")
+logging.info("============= start extpar_art_to_buffer =======")
 logging.info("")
 
 # Use all available CPUs
 omp = int(env.get_omp_num_threads())
 
 # unique names for files written to system to allow parallel execution
-grid = 'grid_description_hwsdART'  # name for grid description file
+grid = 'grid_description_art'  # name for grid description file
 soiltype_memmap_filename = 'memmap_soiltype'
 nearest_neighbor_index_memmap_filename = 'memmap_index'
 
@@ -140,8 +136,8 @@ logging.info("============= init variables from namelist =====")
 logging.info("")
 
 igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
-raw_data_hwsdART = utils.clean_path(ihwsdART['raw_data_hwsdART_path'],
-                                    ihwsdART['raw_data_hwsdART_filename'])
+raw_data_art = utils.clean_path(iart['raw_data_art_path'],
+                                    iart['raw_data_art_filename'])
 
 if igrid_type == 1:
     path_to_grid = fortran_namelist.read_variable(grid_namelist,
@@ -160,9 +156,9 @@ logging.info('')
 logging.info('============= write FORTRAN namelist ===========')
 logging.info('')
 
-input_hwsdART = fortran_namelist.InputHwsdart()
-fortran_namelist.write_fortran_namelist("INPUT_hwsdART", ihwsdART,
-                                        input_hwsdART)
+input_art = fortran_namelist.Inputart()
+fortran_namelist.write_fortran_namelist("INPUT_ART", iart,
+                                        input_art)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -170,7 +166,7 @@ logging.info('')
 logging.info('============= Reading Raw HWSD Land use data ===============')
 logging.info('')
 
-hwsd_nc = nc.Dataset(raw_data_hwsdART, "r")
+hwsd_nc = nc.Dataset(raw_data_art, "r")
 raw_lon = hwsd_nc.variables['lon'][:]
 raw_lat = hwsd_nc.variables['lat'][:]
 raw_lus = hwsd_nc.variables['LU'][:]
@@ -216,18 +212,15 @@ logging.info('============= initialize metadata ==============')
 logging.info('')
 
 if (igrid_type == 1):
-    # infer coordinates/dimensions form CDO file
+    # infer coordinates/dimensions from CDO file
     ie_tot = len(tg.lons)
     je_tot = 1
     ke_tot = 1
     lon = np.rad2deg(np.reshape(lons, (ke_tot, je_tot, ie_tot)))
     lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
 else:
-    # infer coordinates/dimensions from tg
-    lat, lon = tg.latlon_cosmo_to_latlon_regular()
-    ie_tot = tg.ie_tot
-    je_tot = tg.je_tot
-    ke_tot = tg.ke_tot
+    logging.error('COSMO grid not supported')
+    raise 
 
 lat_meta = metadata.ART_clon()
 lon_meta = metadata.ART_clat()
@@ -252,19 +245,7 @@ logging.info('')
 logging.info('============= write to buffer file =============')
 logging.info('')
 
-global_attributes = {
-    'title': 'Percentage of HWSD soil type',
-    'institution': 'KIT',
-    'source': 'HWSD Harmonized World Soil Database',
-    'references': 'HWSD Harmonized World Soil Database',
-    'comment':
-    'For generating mineral dust emissions in ICON-ART and COSMO-ART',
-    'history': '%s hwsdART_to_buffer' % (datetime.now().isoformat()),
-    'number_of_grid_used': tg.grid.number_of_grid_used,
-    'uuidOfHGrid': tg.grid.uuidOfHGrid
-}
-
-buffer_file = buffer.init_netcdf(ihwsdART['hwsdART_buffer_file'], je_tot,
+buffer_file = buffer.init_netcdf(iart['art_buffer_file'], je_tot,
                                  ie_tot)
 buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
 buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
@@ -282,7 +263,6 @@ buffer.write_field_to_buffer(buffer_file, fracs[:, 10], sloa_meta)
 buffer.write_field_to_buffer(buffer_file, fracs[:, 11], lsan_meta)
 buffer.write_field_to_buffer(buffer_file, fracs[:, 12], sand_meta)
 buffer.write_field_to_buffer(buffer_file, 1 - fracs.sum(axis=1), udef_meta)
-buffer.write_attribute_to_buffer(buffer_file, global_attributes)
 buffer.close_netcdf(buffer_file)
 
 #--------------------------------------------------------------------------
@@ -297,5 +277,5 @@ utils.remove(nearest_neighbor_index_memmap_filename)
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 logging.info('')
-logging.info('============= extpar_hwsdART_to_buffer done =======')
+logging.info('============= extpar_art_to_buffer done =======')
 logging.info('')

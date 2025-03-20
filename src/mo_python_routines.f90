@@ -50,30 +50,30 @@ MODULE mo_python_routines
        &    read_namelists_extpar_ahf, &
   ! isa
        &    read_namelists_extpar_isa, &
-  ! hwsdART
-       &    read_namelists_extpar_hwsdART
+  ! art
+       &    read_namelists_extpar_art
 
   CONTAINS
 
   !---------------------------------------------------------------------------
-  !> subroutine to read namelist for hwsdART data settings for EXTPAR 
-  SUBROUTINE read_namelists_extpar_hwsdART(namelist_file, &
-       &                                 raw_data_hwsdART_path, &
-       &                                 raw_data_hwsdART_filename, &
-       &                                 hwsdART_buffer_file)
+  !> subroutine to read namelist for art data settings for EXTPAR 
+  SUBROUTINE read_namelists_extpar_art(namelist_file, &
+       &                                 raw_data_art_path, &
+       &                                 raw_data_art_filename, &
+       &                                 art_buffer_file)
 
     CHARACTER (len=*), INTENT(IN)            :: namelist_file !< filename with namelists for for EXTPAR settings
 
-    CHARACTER (len=filename_max),INTENT(OUT) :: raw_data_hwsdART_path, &         !< path to raw data
-         &                                      raw_data_hwsdART_filename, &  !< filename hwsdART raw data
-         &                                      hwsdART_buffer_file
+    CHARACTER (len=filename_max),INTENT(OUT) :: raw_data_art_path, &         !< path to raw data
+         &                                      raw_data_art_filename, &  !< filename art raw data
+         &                                      art_buffer_file
 
     INTEGER(KIND=i4)                         :: nuin, ierr
 
-    !> namelist with filenames for hwsdART data input
-    NAMELIST /hwsdART_raw_data/ raw_data_hwsdART_path, raw_data_hwsdART_filename
-    !> namelist with filenames for hwsdART data output
-    NAMELIST /hwsdART_io_extpar/ hwsdART_buffer_file
+    !> namelist with filenames for art data input
+    NAMELIST /art_raw_data/ raw_data_art_path, raw_data_art_filename
+    !> namelist with filenames for art data output
+    NAMELIST /art_io_extpar/ art_buffer_file
 
     nuin = free_un()  ! functioin free_un returns free Fortran unit number
     OPEN(nuin,FILE=TRIM(namelist_file), IOSTAT=ierr)
@@ -82,21 +82,21 @@ MODULE mo_python_routines
       CALL logging%error(message_text,__FILE__, __LINE__) 
     ENDIF
 
-    READ(nuin, NML=hwsdART_raw_data, IOSTAT=ierr)
+    READ(nuin, NML=art_raw_data, IOSTAT=ierr)
     IF (ierr /= 0) THEN
-      WRITE(message_text,*)'Cannot read in namelist hwsdART_raw_data - reason: ', ierr
+      WRITE(message_text,*)'Cannot read in namelist art_raw_data - reason: ', ierr
       CALL logging%error(message_text,__FILE__, __LINE__) 
     ENDIF
 
-    READ(nuin, NML=hwsdART_io_extpar, IOSTAT=ierr)
+    READ(nuin, NML=art_io_extpar, IOSTAT=ierr)
     IF (ierr /= 0) THEN
-      WRITE(message_text,*)'Cannot read in namelist hwsdART_io_extpar - reason: ', ierr
+      WRITE(message_text,*)'Cannot read in namelist art_io_extpar - reason: ', ierr
       CALL logging%error(message_text,__FILE__, __LINE__) 
     ENDIF
 
     CLOSE(nuin)
 
-  END SUBROUTINE read_namelists_extpar_hwsdART
+  END SUBROUTINE read_namelists_extpar_art
 
   !> subroutine to read namelist for EMISS data settings for EXTPAR 
   SUBROUTINE read_namelists_extpar_emiss(namelist_file, &

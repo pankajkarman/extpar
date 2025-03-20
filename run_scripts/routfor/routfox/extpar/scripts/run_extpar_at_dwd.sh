@@ -17,7 +17,7 @@
 #                -info_grid  - ICON grid base (e.g. 0026_R03B07_G)     #
 #                -work_dir   - working directory (optional)            #
 #  -m Use MERIT/REMA orography (default)                               #
-#  -x NoArt-Flag: hwsdART is processed                                 #
+#  -x NoArt-Flag: art is processed                                 #
 #  -q Queue-Version: Use BIG class with suffix _rh8                    #
 #                                                                      #
 #  example: run_extpar_at_dwd.sh -dir_grid=${filename}          \      #

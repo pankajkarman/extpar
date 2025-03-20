@@ -19,7 +19,7 @@ dictionaries:
 
     -extpar_isa_to_buffer.py:     input_isa  
     
-    -extpar_hwsdART_to_buffer.py: input_hwsdART  
+    -extpar_art_to_buffer.py: input_art  
 '''
 
 input_tclim = {
@@ -94,8 +94,8 @@ input_isa = {
     'isa_buffer_file': 'isa_buffer.nc',
 }
 
-input_hwsdART = {
-    'raw_data_hwsdART_path': '/work/bb1070/b380982/HWSD/',
-    'raw_data_hwsdART_filename': 'HWSD0_USDA.nc',
-    'hwsdART_buffer_file': 'hwsdART_extpar_BUFFER.nc',
+input_art = {
+    'raw_data_art_path': '/work/bb1070/b380982/HWSD/',
+    'raw_data_art_filename': 'HWSD0_USDA.nc',
+    'art_buffer_file': 'art_extpar_BUFFER.nc',
 }

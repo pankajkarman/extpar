@@ -58,7 +58,7 @@ MODULE mo_python_tg_fields
     &        allocate_isa_target_fields, &
     &        isa_field, &
   ! hswdART
-    &        allocate_hwsdART_target_fields, &
+    &        allocate_art_target_fields, &
     &        art_clon, &  
     &        art_clat, &  
     &        art_hcla, &  
@@ -571,7 +571,7 @@ MODULE mo_python_tg_fields
 
   END SUBROUTINE allocate_isa_target_fields
 
-  SUBROUTINE allocate_hwsdART_target_fields(tg, l_use_array_cache)
+  SUBROUTINE allocate_art_target_fields(tg, l_use_array_cache)
 
     TYPE(target_grid_def), INTENT(IN) :: tg  !< structure with target grid description
     LOGICAL, INTENT(in)               :: l_use_array_cache
@@ -587,7 +587,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_udef(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_udef = 0.0
 
     IF (l_use_array_cache) then
@@ -595,7 +595,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_sand(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_sand = 0.0
 
     IF (l_use_array_cache) then
@@ -603,7 +603,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_lsan(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_lsan = 0.0
 
     IF (l_use_array_cache) then
@@ -611,7 +611,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_sloa(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_sloa = 0.0
 
     IF (l_use_array_cache) then
@@ -619,7 +619,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_sclo(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_sclo = 0.0
 
     IF (l_use_array_cache) then
@@ -627,7 +627,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_scla(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_scla = 0.0
 
     IF (l_use_array_cache) then
@@ -635,7 +635,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_loam(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_loam = 0.0
 
     IF (l_use_array_cache) then
@@ -643,7 +643,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_silo(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_silo = 0.0
 
     IF (l_use_array_cache) then
@@ -651,7 +651,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_silt(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_silt = 0.0
 
     IF (l_use_array_cache) then
@@ -659,7 +659,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_cloa(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_cloa = 0.0
 
     IF (l_use_array_cache) then
@@ -667,7 +667,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_sicl(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_sicl = 0.0
 
     IF (l_use_array_cache) then
@@ -675,7 +675,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_lcla(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_lcla = 0.0
 
     IF (l_use_array_cache) then
@@ -683,7 +683,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_silc(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_silc = 0.0
 
     IF (l_use_array_cache) then
@@ -691,7 +691,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_hcla(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_hcla = 0.0
 
     IF (l_use_array_cache) then
@@ -699,7 +699,7 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_clat(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_clat = 0.0
 
     IF (l_use_array_cache) then
@@ -707,10 +707,10 @@ MODULE mo_python_tg_fields
     ELSE
       ALLOCATE(art_clon(tg%ie,tg%je,tg%ke), stat=errorcode)
     ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array hwsdART_field',__FILE__,__LINE__)
+    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_clon = 0.0
 
-  END SUBROUTINE allocate_hwsdART_target_fields
+  END SUBROUTINE allocate_art_target_fields
 
 END MODULE mo_python_tg_fields
 

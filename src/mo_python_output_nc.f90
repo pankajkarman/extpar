@@ -55,7 +55,7 @@ MODULE mo_python_output_nc
        &                              def_isa_fields_meta, &
        &                              isa_field_meta, &
        &                              isa_field_meta, &
-  ! hwsdART
+  ! art
        &                              art_clon_meta, &
        &                              art_clat_meta, &
        &                              art_hcla_meta, &
@@ -98,8 +98,8 @@ MODULE mo_python_output_nc
        &    read_netcdf_buffer_ahf, &
   ! isa
        &    read_netcdf_buffer_isa, &
-  ! hwsdART
-       &    read_netcdf_buffer_hwsdART
+  ! art
+       &    read_netcdf_buffer_art
 
   CONTAINS
 
@@ -451,7 +451,7 @@ MODULE mo_python_output_nc
 
   END SUBROUTINE read_netcdf_buffer_isa
 
-  SUBROUTINE read_netcdf_buffer_hwsdART(netcdf_filename,  &
+  SUBROUTINE read_netcdf_buffer_art(netcdf_filename,  &
          &                              tg,       &
          &                              art_clon, &  
          &                              art_clat, &  
@@ -491,7 +491,7 @@ MODULE mo_python_output_nc
          &                                             art_udef(:,:,:)              !< field for Fraction of Undefined or Water from hwsd
 
 
-    CALL logging%info('Enter routine: read_netcdf_buffer_hwsdART')
+    CALL logging%info('Enter routine: read_netcdf_buffer_art')
 
     !set up dimensions for buffer
     CALL  def_dimension_info_buffer(tg)
@@ -520,9 +520,9 @@ MODULE mo_python_output_nc
     CALL netcdf_get_var(TRIM(netcdf_filename),art_sand_meta,art_sand)
     CALL netcdf_get_var(TRIM(netcdf_filename),art_udef_meta,art_udef)
 
-    CALL logging%info('Exit routine: read_netcdf_buffer_hwsdART')
+    CALL logging%info('Exit routine: read_netcdf_buffer_art')
 
-  END SUBROUTINE read_netcdf_buffer_hwsdART
+  END SUBROUTINE read_netcdf_buffer_art
 
 
 END MODULE mo_python_output_nc

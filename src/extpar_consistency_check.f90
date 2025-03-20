@@ -257,7 +257,7 @@ PROGRAM extpar_consistency_check
        &                              read_namelists_extpar_t_clim,     &
        &                              read_namelists_extpar_ndvi,       &
        &                              read_namelists_extpar_edgar,      &
-       &                              read_namelists_extpar_hwsdART, &
+       &                              read_namelists_extpar_art, &
        &                              read_namelists_extpar_cdnc,       &
        &                              read_namelists_extpar_alb,        &
        &                              open_netcdf_ALB_data,             &
@@ -279,7 +279,7 @@ PROGRAM extpar_consistency_check
        &                              allocate_ndvi_target_fields, &
 
     ! hswdART
-       &                              allocate_hwsdART_target_fields,         &
+       &                              allocate_art_target_fields,         &
        &                              art_clon, art_clat, art_hcla, art_silc, &  
        &                              art_lcla, art_sicl, art_cloa, art_silt, &  
        &                              art_silo, art_scla, art_loam, art_sclo, & 
@@ -323,7 +323,7 @@ PROGRAM extpar_consistency_check
 
   USE mo_python_output_nc,      ONLY: read_netcdf_buffer_emiss, &
        &                              read_netcdf_buffer_ndvi, &
-       &                              read_netcdf_buffer_hwsdART, &
+       &                              read_netcdf_buffer_art, &
        &                              read_netcdf_buffer_edgar, &
        &                              read_netcdf_buffer_cdnc, &
        &                              read_netcdf_buffer_cru, &
@@ -385,10 +385,10 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_ndvi_filename, &
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
        &                                           ndvi_output_file, &
-  ! hwsdART
-       &                                           raw_data_hwsdART_path, &         !< path to raw data
-       &                                           raw_data_hwsdART_filename, &
-       &                                           hwsdART_buffer_file, &
+  ! art
+       &                                           raw_data_art_path, &         !< path to raw data
+       &                                           raw_data_art_filename, &
+       &                                           art_buffer_file, &
  ! EDGAR
        &                                           edgar_buffer_file, &
  ! CDNC
@@ -484,7 +484,7 @@ PROGRAM extpar_consistency_check
        &                                           l_preproc_oro=.FALSE., &
        &                                           l_use_glcc=.FALSE., & !< flag if additional glcc data are present
        &                                           l_use_emiss=.FALSE., &!< flag if additional CAMEL emissivity data are present
-       &                                           l_use_hwsdart=.FALSE., &!< flag if hwsdART processing to be done
+       &                                           l_use_art=.FALSE., &!< flag if art processing to be done
        &                                           l_use_edgar=.FALSE., &!< flag if additional EDGAR emission data are present
        &                                           l_use_cdnc=.FALSE.,  &!< flag if additional CDNC data are present
        &                                           l_unified_era_buffer=.FALSE., &!< flag if ERA-data from extpar_era_to_buffer.py is used
@@ -823,14 +823,14 @@ PROGRAM extpar_consistency_check
       &                               emiss_output_file)
   ENDIF
 
-  ! read namelist for hwsdART
-  namelist_file = 'INPUT_hwsdART'
-  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_hwsdart)
-  IF (l_use_hwsdart) THEN
-    CALL  read_namelists_extpar_hwsdART(namelist_file, &
-      &                               raw_data_hwsdART_path, &
-      &                               raw_data_hwsdART_filename, &
-      &                               hwsdART_buffer_file)
+  ! read namelist for art
+  namelist_file = 'INPUT_art'
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_art)
+  IF (l_use_art) THEN
+    CALL  read_namelists_extpar_art(namelist_file, &
+      &                               raw_data_art_path, &
+      &                               raw_data_art_filename, &
+      &                               art_buffer_file)
   ENDIF
 
   ! determine type of ERA-climatologies to use
@@ -897,7 +897,7 @@ PROGRAM extpar_consistency_check
 
   CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_cache)
 
-  CALL allocate_hwsdART_target_fields(tg, l_use_array_cache)
+  CALL allocate_art_target_fields(tg, l_use_array_cache)
   IF (igrid_type == igrid_icon .AND. l_use_edgar) THEN
     CALL allocate_edgar_target_fields(tg, l_use_array_cache)
   END IF
@@ -1100,10 +1100,10 @@ PROGRAM extpar_consistency_check
   ENDIF
 
   !-------------------------------------------------------------------------
-  IF(l_use_hwsdart .and. igrid_type == igrid_icon) THEN
+  IF(l_use_art .and. igrid_type == igrid_icon) THEN
     CALL logging%info( '')
-    CALL logging%info('hwsdART')
-    CALL read_netcdf_buffer_hwsdART(hwsdART_buffer_file,   &
+    CALL logging%info('art')
+    CALL read_netcdf_buffer_art(art_buffer_file,   &
          &                                   tg,       &
          &                                   art_clon, &  
          &                                   art_clat, &  
@@ -2480,7 +2480,7 @@ PROGRAM extpar_consistency_check
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
          &                                     l_use_emiss,                   &
-         &                                     l_use_hwsdart,                   &
+         &                                     l_use_art,                   &
          &                                     l_use_edgar,                   &
          &                                     l_use_cdnc,                    &
          &                                     lradtopo,                      &

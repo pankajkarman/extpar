@@ -812,7 +812,7 @@ MODULE mo_extpar_output_nc
        &                                l_use_isa,            &
        &                                l_use_ahf,            &
        &                                l_use_emiss,          &
-       &                                l_use_hwsdart,        &
+       &                                l_use_art,        &
        &                                l_use_edgar,          &
        &                                l_use_cdnc,           &
        &                                l_radtopo,            &
@@ -900,7 +900,7 @@ MODULE mo_extpar_output_nc
     LOGICAL, INTENT(in)                             :: l_use_isa, &
          &                                             l_use_ahf, &
          &                                             l_use_emiss, &
-         &                                             l_use_hwsdart, &
+         &                                             l_use_art, &
          &                                             l_use_edgar, &
          &                                             l_use_cdnc, &
          &                                             l_radtopo, &
@@ -1193,7 +1193,7 @@ MODULE mo_extpar_output_nc
     CALL def_ndvi_meta(ntime_ndvi,dim_1d_icon)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
-    IF (l_use_hwsdart) CALL def_hwsd_art_meta(dim_1d_icon)
+    IF (l_use_art) CALL def_hwsd_art_meta(dim_1d_icon)
 
     IF (l_use_edgar) CALL def_edgar_meta(dim_1d_icon)
 
@@ -1643,8 +1643,8 @@ MODULE mo_extpar_output_nc
 
     END DO
 
-    IF (l_use_hwsdart) THEN
-        CALL logging%info('hwsdART')
+    IF (l_use_art) THEN
+        CALL logging%info('art')
         CALL streamWriteVar(fileID, art_clon_ID,  art_clon(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_clat_ID,  art_clat(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_hcla_ID,  art_hcla(1:icon_grid%ncell,1,1),  0_i8)

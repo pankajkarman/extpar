@@ -62,6 +62,7 @@ binary_isa=extpar_isa_to_buffer.py
 binary_ahf=extpar_ahf_to_buffer.py
 binary_edgar=extpar_edgar_to_buffer.py
 binary_cdnc=extpar_cdnc_to_buffer.py
+binary_hwsd=extpar_art_to_buffer.py
 
 # fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
@@ -69,7 +70,6 @@ binary_topo=extpar_topo_to_buffer.exe
 binary_aot=extpar_aot_to_buffer.exe
 binary_soil=extpar_soil_to_buffer.exe
 binary_flake=extpar_flake_to_buffer.exe
-binary_hwsd=extpar_hwsdART_to_buffer.exe
 binary_consistency_check=extpar_consistency_check.exe
 
 # link raw data files to local workdir

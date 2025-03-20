@@ -171,8 +171,8 @@ MODULE mo_var_meta_data
        &    alb_interpol_meta, &
        &    alb_dry_meta, alb_sat_meta, &
 
-            ! hwsdART
-       &    dim_hwsdART_tg, def_hwsd_art_meta, art_clon_meta, art_clat_meta, &
+            ! art
+       &    dim_art_tg, def_hwsd_art_meta, art_clon_meta, art_clat_meta, &
        &    art_hcla_meta, art_silc_meta, art_lcla_meta,     &
        &    art_sicl_meta, art_cloa_meta, art_silt_meta,     &
        &    art_silo_meta, art_scla_meta, art_loam_meta,     &
@@ -201,7 +201,7 @@ MODULE mo_var_meta_data
        &                                      dim_isa_tg(:), &
        &                                      dim_ahf_tg(:), &
        &                                      dim_ndvi_tg(:), &
-       &                                      dim_hwsdART_tg(:), &
+       &                                      dim_art_tg(:), &
        &                                      dim_edgar_tg(:), &
        &                                      dim_cdnc_tg(:), &
        &                                      dim_emiss_tg(:), &
@@ -329,7 +329,7 @@ MODULE mo_var_meta_data
        &                                      lake_depth_meta , &
        &                                      fr_lake_meta , &
        &                                      flake_tot_npixel_meta, &
-         ! hwsdART
+         ! art
        &                                      art_clon_meta, &
        &                                      art_clat_meta, &
        &                                      art_hcla_meta, &
@@ -1007,25 +1007,25 @@ MODULE mo_var_meta_data
 
     n_dim = SIZE(diminfo)
 
-    ! set meta information for strucutre dim_hwsdART_tg
-    IF (ALLOCATED(dim_hwsdART_tg)) DEALLOCATE(dim_hwsdART_tg)
-    ALLOCATE(dim_hwsdART_tg(1:n_dim+1))
+    ! set meta information for strucutre dim_art_tg
+    IF (ALLOCATED(dim_art_tg)) DEALLOCATE(dim_art_tg)
+    ALLOCATE(dim_art_tg(1:n_dim+1))
     SELECT CASE(n_dim)
       CASE (1)
-      dim_hwsdART_tg(1)%dimname = diminfo(1)%dimname
-      dim_hwsdART_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_art_tg(1)%dimname = diminfo(1)%dimname
+      dim_art_tg(1)%dimsize = diminfo(1)%dimsize
     CASE (2)
-      dim_hwsdART_tg(1)%dimname = diminfo(1)%dimname
-      dim_hwsdART_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_hwsdART_tg(2)%dimname = diminfo(2)%dimname
-      dim_hwsdART_tg(2)%dimsize = diminfo(2)%dimsize
+      dim_art_tg(1)%dimname = diminfo(1)%dimname
+      dim_art_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_art_tg(2)%dimname = diminfo(2)%dimname
+      dim_art_tg(2)%dimsize = diminfo(2)%dimsize
     CASE (3)
-      dim_hwsdART_tg(1)%dimname = diminfo(1)%dimname
-      dim_hwsdART_tg(1)%dimsize = diminfo(1)%dimsize
-      dim_hwsdART_tg(2)%dimname = diminfo(2)%dimname
-      dim_hwsdART_tg(2)%dimsize = diminfo(2)%dimsize
-      dim_hwsdART_tg(3)%dimname = diminfo(3)%dimname
-      dim_hwsdART_tg(3)%dimsize = diminfo(3)%dimsize
+      dim_art_tg(1)%dimname = diminfo(1)%dimname
+      dim_art_tg(1)%dimsize = diminfo(1)%dimsize
+      dim_art_tg(2)%dimname = diminfo(2)%dimname
+      dim_art_tg(2)%dimsize = diminfo(2)%dimsize
+      dim_art_tg(3)%dimname = diminfo(3)%dimname
+      dim_art_tg(3)%dimsize = diminfo(3)%dimsize
     END SELECT
 
     art_udef_meta%varname = 'fr_udef'
