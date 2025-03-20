@@ -21,7 +21,7 @@ it contains:
         -InputEra
         -InputAhf
         -InputIsa
-        -Inputart
+        -InputArt
         -InputCdnc
 '''
 
@@ -259,9 +259,9 @@ class InputIsa:
         self.variables.update({'&isa_io_extpar': {'isa_buffer_file'}})
 
 
-class Inputart:
+class InputArt:
     '''
-    define structure of namelist "INPUT_art"
+    define structure of namelist "INPUT_ART"
     '''
 
     def __init__(self):

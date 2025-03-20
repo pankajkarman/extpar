@@ -386,8 +386,6 @@ PROGRAM extpar_consistency_check
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
        &                                           ndvi_output_file, &
   ! art
-       &                                           raw_data_art_path, &         !< path to raw data
-       &                                           raw_data_art_filename, &
        &                                           art_buffer_file, &
  ! EDGAR
        &                                           edgar_buffer_file, &
@@ -828,8 +826,6 @@ PROGRAM extpar_consistency_check
   INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_art)
   IF (l_use_art) THEN
     CALL  read_namelists_extpar_art(namelist_file, &
-      &                               raw_data_art_path, &
-      &                               raw_data_art_filename, &
       &                               art_buffer_file)
   ENDIF
 

@@ -154,7 +154,7 @@ logging.info('')
 logging.info('============= write FORTRAN namelist ===========')
 logging.info('')
 
-input_art = fortran_namelist.Inputart()
+input_art = fortran_namelist.InputArt()
 fortran_namelist.write_fortran_namelist("INPUT_ART", iart, input_art)
 
 # --------------------------------------------------------------------------
