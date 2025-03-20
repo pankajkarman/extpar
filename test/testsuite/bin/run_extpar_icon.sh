@@ -103,51 +103,48 @@ fi
 
 echo ">>>> Data will be processed and produced in `pwd` <<<<"
 
-if [[ $name_of_test != hwsd_art ]]; then
-    # 1) topography needs to be processed first - result is input for the
-    #    CRU data processing
+# 1) topography needs to be processed first - result is input for the
+#    CRU data processing
 
-    run_sequential ${binary_topo}
+run_sequential ${binary_topo}
 
-    #________________________________________________________________________________
-    # 2) all other executables
+#________________________________________________________________________________
+# 2) all other executables
 
-    run_sequential ${binary_alb}
+run_sequential ${binary_alb}
 
-    run_sequential ${binary_ndvi}
+run_sequential ${binary_ndvi}
 
-    run_sequential ${binary_tclim}
+run_sequential ${binary_tclim}
 
-    run_sequential ${binary_aot}
+run_sequential ${binary_aot}
 
-    run_sequential ${binary_lu}
+run_sequential ${binary_lu}
 
-    run_sequential ${binary_soil}
+run_sequential ${binary_soil}
 
-    run_sequential ${binary_flake}
+run_sequential ${binary_flake}
 
-    if [[ $type_of_test == mpim ]]; then
-        run_sequential ${binary_emiss}
-        run_sequential ${binary_edgar}
-    fi
+if [[ $type_of_test == mpim ]]; then
+    run_sequential ${binary_emiss}
+    run_sequential ${binary_edgar}
+fi
 
-    if [[ $name_of_test == icon_ecci ]]; then
-        run_sequential ${binary_cdnc}
-    fi
-
-    if [[ $name_of_test == icon_d2 || $name_of_test == icon_d2_caching || $name_of_test == ecoclimap_sg ]]; then
-        run_sequential ${binary_era}
-    fi
-
-    if [[ $type_of_test == ecmwf ]]; then
-        run_sequential ${binary_isa}
-        run_sequential ${binary_ahf}
-    fi
-
-    run_sequential ${binary_consistency_check}
-else
+if [[ $name_of_test == icon_ecci ]]; then
+    run_sequential ${binary_cdnc}
     run_sequential ${binary_art}
 fi
+
+if [[ $name_of_test == icon_d2 || $name_of_test == icon_d2_caching || $name_of_test == ecoclimap_sg ]]; then
+    run_sequential ${binary_era}
+fi
+
+if [[ $type_of_test == ecmwf ]]; then
+    run_sequential ${binary_isa}
+    run_sequential ${binary_ahf}
+fi
+
+run_sequential ${binary_consistency_check}
 #________________________________________________________________________________
 
 echo ">>>> External parameters for ICON model generated <<<<"
