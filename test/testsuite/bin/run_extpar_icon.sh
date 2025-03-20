@@ -62,7 +62,7 @@ binary_isa=extpar_isa_to_buffer.py
 binary_ahf=extpar_ahf_to_buffer.py
 binary_edgar=extpar_edgar_to_buffer.py
 binary_cdnc=extpar_cdnc_to_buffer.py
-binary_hwsd=extpar_art_to_buffer.py
+binary_art=extpar_art_to_buffer.py
 
 # fortran executables
 binary_lu=extpar_landuse_to_buffer.exe
@@ -146,7 +146,7 @@ if [[ $name_of_test != hwsd_art ]]; then
 
     run_sequential ${binary_consistency_check}
 else
-    run_sequential ${binary_hwsd}
+    run_sequential ${binary_art}
 fi
 #________________________________________________________________________________
 

@@ -220,7 +220,7 @@ binary_flake=extpar_flake_to_buffer.exe.new
 binary_lu=extpar_landuse_to_buffer.exe.new
 binary_topo=extpar_topo_to_buffer.exe.new
 binary_consistency_check=extpar_consistency_check.exe.new
-binary_art=extpar_art_to_buffer.exe.new
+binary_hwsdART=extpar_hwsdART_to_buffer.exe.new
 #________________________________________________________________________________
 
 # # cp $PROGDIR/$binary_alb $WORKDIR/
@@ -845,11 +845,11 @@ echo
 
 run_command ${binary_consistency_check}
 
-# runart only if NoArtFlag is empty, i.e. not activated by -x on command line
+# runhwsdART only if NoArtFlag is empty, i.e. not activated by -x on command line
 if [[ -n "${NoArtFlag}" ]] ; then
       if (( meshsize_km > 1.5 )) ; then
       print -- "Horizontal resolution of target grid is coarser than 1.5 km: Computation of HWSD-ART soil data"
-      run_command ${binary_art}
+      run_command ${binary_hwsdART}
       else
       print -- "Horizontal resolution of target grid is higher than 1.5 km: Computation of HWSD-ART soil data not feasible"
       fi

@@ -824,7 +824,7 @@ PROGRAM extpar_consistency_check
   ENDIF
 
   ! read namelist for art
-  namelist_file = 'INPUT_art'
+  namelist_file = 'INPUT_ART'
   INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_art)
   IF (l_use_art) THEN
     CALL  read_namelists_extpar_art(namelist_file, &

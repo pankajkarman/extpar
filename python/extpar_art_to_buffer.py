@@ -5,7 +5,6 @@ import numpy as np
 
 from joblib import Parallel, delayed, dump, load
 from tqdm import tqdm
-from datetime import datetime
 from sklearn.neighbors import BallTree
 
 # extpar modules from lib
@@ -115,7 +114,6 @@ logging.info("")
 omp = int(env.get_omp_num_threads())
 
 # unique names for files written to system to allow parallel execution
-grid = 'grid_description_art'  # name for grid description file
 soiltype_memmap_filename = 'memmap_soiltype'
 nearest_neighbor_index_memmap_filename = 'memmap_index'
 
@@ -146,9 +144,9 @@ if igrid_type == 1:
                                                "icon_grid_nc_file", str)
     icon_grid = utils.clean_path(path_to_grid, icon_grid)
     tg = grid_def.IconGrid(icon_grid)
-elif igrid_type == 2:
-    tg = grid_def.CosmoGrid(grid_namelist)
-    tg.create_grid_description(grid)
+else:
+    logging.error('COSMO grid not supported')
+    raise
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -210,16 +208,12 @@ logging.info('')
 logging.info('============= initialize metadata ==============')
 logging.info('')
 
-if (igrid_type == 1):
-    # infer coordinates/dimensions from CDO file
-    ie_tot = len(tg.lons)
-    je_tot = 1
-    ke_tot = 1
-    lon = np.rad2deg(np.reshape(lons, (ke_tot, je_tot, ie_tot)))
-    lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
-else:
-    logging.error('COSMO grid not supported')
-    raise
+# infer coordinates/dimensions from CDO file
+ie_tot = len(tg.lons)
+je_tot = 1
+ke_tot = 1
+lon = np.rad2deg(np.reshape(lons, (ke_tot, je_tot, ie_tot)))
+lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
 
 lat_meta = metadata.ART_clon()
 lon_meta = metadata.ART_clat()
