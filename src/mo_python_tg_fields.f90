@@ -59,8 +59,6 @@ MODULE mo_python_tg_fields
     &        isa_field, &
   ! hswdART
     &        allocate_art_target_fields, &
-    &        art_clon, &  
-    &        art_clat, &  
     &        art_hcla, &  
     &        art_silc, &  
     &        art_lcla, &  
@@ -117,8 +115,6 @@ MODULE mo_python_tg_fields
   ! isa
        &                    isa_field(:,:,:), & !< fraction land due to land use raw data
   ! hswdART
-       &	            art_clon(:,:,:), &  
-       &        	    art_clat(:,:,:), &  
        &        	    art_hcla(:,:,:), &  
        &        	    art_silc(:,:,:), &  
        &        	    art_lcla(:,:,:), &  
@@ -693,22 +689,6 @@ MODULE mo_python_tg_fields
     ENDIF
     IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
     art_hcla = 0.0
-
-    IF (l_use_array_cache) then
-     CALL allocate_cached('art_clat', art_clat, [tg%ie,tg%je,tg%ke])
-    ELSE
-      ALLOCATE(art_clat(tg%ie,tg%je,tg%ke), stat=errorcode)
-    ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
-    art_clat = 0.0
-
-    IF (l_use_array_cache) then
-     CALL allocate_cached('art_clon', art_clon, [tg%ie,tg%je,tg%ke])
-    ELSE
-      ALLOCATE(art_clon(tg%ie,tg%je,tg%ke), stat=errorcode)
-    ENDIF
-    IF(errorcode.NE.0) CALL logging%error('Cant allocate the array art_field',__FILE__,__LINE__)
-    art_clon = 0.0
 
   END SUBROUTINE allocate_art_target_fields
 

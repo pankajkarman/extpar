@@ -556,22 +556,6 @@ class ArtMeta:
         self.dim = {0: 'ke', 1: 'je', 2: 'ie'}
 
 
-class ART_clon(Lon):
-
-    def __init__(self):
-        super().__init__()
-        self.name = 'clon'
-        self.long = 'longitude of icon grid cell centre'
-
-
-class ART_clat(Lat):
-
-    def __init__(self):
-        super().__init__()
-        self.name = 'clat'
-        self.long = 'latitude of icon grid cell centre'
-
-
 class ART_hcla(ArtMeta):
 
     def __init__(self):

@@ -843,8 +843,6 @@ MODULE mo_extpar_output_nc
        &                                ndvi_max,             &
        &                                ndvi_field_mom,       &
        &                                ndvi_ratio_mom,       &
-       &                                art_clon,             &  
-       &                                art_clat,             &  
        &                                art_hcla,             &  
        &                                art_silc,             &  
        &                                art_lcla,             &  
@@ -944,8 +942,6 @@ MODULE mo_extpar_output_nc
          &                                             ndvi_max(:,:,:),          & !< field for ndvi maximum
          &                                             ndvi_field_mom(:,:,:,:),  & !< field for monthly mean ndvi data (12 months)
          &                                             ndvi_ratio_mom(:,:,:,:),  & !< field for monthly ndvi ratio (12 months)
-         &                                             art_clon(:,:,:),          &  !< field for central longitude from hwsd
-         &                                             art_clat(:,:,:),          &  !< field for central latitude from hwsd
          &                                             art_hcla(:,:,:),          &  !< field for Fraction of Heavy Clay from hwsd
          &                                             art_silc(:,:,:),          &  !< field for Fraction of Silty Clay from hwsd
          &                                             art_lcla(:,:,:),          &  !< field for Fraction of Light Clay from hwsd
@@ -1066,8 +1062,6 @@ MODULE mo_extpar_output_nc
          &     lu_class_fraction_ID, &
          &     ndvi_field_mom_ID,    &
          &     ndvi_ratio_mom_ID,    &
-         &     art_clon_ID,          &  
-         &     art_clat_ID,          &  
          &     art_hcla_ID,          &  
          &     art_silc_ID,          &  
          &     art_lcla_ID,          &  
@@ -1346,28 +1340,28 @@ MODULE mo_extpar_output_nc
     ndvi_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_field_mom_meta, undefined)
     ndvi_ratio_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_ratio_mom_meta, undefined)
 
-    art_clon_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_clon_meta, undefined)
-    art_clat_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_clat_meta, undefined)
-    art_hcla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_hcla_meta, undefined)
-    art_silc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sicl_meta, undefined)    
-    art_lcla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_lcla_meta, undefined)
-    art_sicl_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sicl_meta, undefined)
-    art_cloa_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_cloa_meta, undefined)
-    art_silt_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_silt_meta, undefined)    
-    art_silo_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_silo_meta, undefined)
-    art_scla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_scla_meta, undefined)
-    art_loam_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_loam_meta, undefined)
-    art_sclo_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sclo_meta, undefined)
-    art_sloa_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sloa_meta, undefined)    
-    art_lsan_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_lsan_meta, undefined)
-    art_sand_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sand_meta, undefined)
-    art_udef_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_udef_meta, undefined)
+    IF (l_use_art) THEN
+      art_hcla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_hcla_meta, undefined)
+      art_lcla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_lcla_meta, undefined)
+      art_sicl_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sicl_meta, undefined)
+      art_cloa_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_cloa_meta, undefined)
+      art_silt_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_silt_meta, undefined)    
+      art_silo_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_silo_meta, undefined)
+      art_scla_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_scla_meta, undefined)
+      art_loam_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_loam_meta, undefined)
+      art_sclo_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sclo_meta, undefined)
+      art_sloa_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sloa_meta, undefined)    
+      art_lsan_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_lsan_meta, undefined)
+      art_sand_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sand_meta, undefined)
+      art_udef_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_udef_meta, undefined)
+    ENDIF
 
     aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
     aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
     aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
     aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
     aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
+    
     IF (l_use_edgar) THEN
       edgar_emi_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_bc_meta, undefined)
       edgar_emi_oc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_oc_meta, undefined)
@@ -1379,12 +1373,6 @@ MODULE mo_extpar_output_nc
     IF (l_use_cdnc) THEN
       cdnc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, cdnc_meta, undefined)
     ENDIF
-
-    aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
-    aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
-    aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
-    aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
-    aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
 
     alb_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, alb_field_mom_meta, undefined)
     alnid_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, alnid_field_mom_meta, undefined)
@@ -1645,8 +1633,6 @@ MODULE mo_extpar_output_nc
 
     IF (l_use_art) THEN
         CALL logging%info('art')
-        CALL streamWriteVar(fileID, art_clon_ID,  art_clon(1:icon_grid%ncell,1,1),  0_i8)
-        CALL streamWriteVar(fileID, art_clat_ID,  art_clat(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_hcla_ID,  art_hcla(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_silc_ID,  art_silc(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_lcla_ID,  art_lcla(1:icon_grid%ncell,1,1),  0_i8)

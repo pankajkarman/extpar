@@ -280,7 +280,7 @@ PROGRAM extpar_consistency_check
 
     ! hswdART
        &                              allocate_art_target_fields,         &
-       &                              art_clon, art_clat, art_hcla, art_silc, &  
+       &                              art_hcla, art_silc, &  
        &                              art_lcla, art_sicl, art_cloa, art_silt, &  
        &                              art_silo, art_scla, art_loam, art_sclo, & 
        &                              art_sloa, art_lsan, art_sand, art_udef, &
@@ -1101,8 +1101,6 @@ PROGRAM extpar_consistency_check
     CALL logging%info('art')
     CALL read_netcdf_buffer_art(art_buffer_file,   &
          &                                   tg,       &
-         &                                   art_clon, &  
-         &                                   art_clat, &  
          &                                   art_hcla, &  
          &                                   art_silc, &  
          &                                   art_lcla, &  
@@ -2507,8 +2505,6 @@ PROGRAM extpar_consistency_check
          &                                     ndvi_max,                      &
          &                                     ndvi_field_mom,                &
          &                                     ndvi_ratio_mom,                &
-         &                                     art_clon,                      &  
-         &                                     art_clat,                      &  
          &                                     art_hcla,                      &  
          &                                     art_silc,                      &  
          &                                     art_lcla,                      &  

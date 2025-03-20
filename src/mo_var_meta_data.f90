@@ -1212,31 +1212,6 @@ MODULE mo_var_meta_data
     art_hcla_meta%coordinates = coord
     art_hcla_meta%data_set = 'HWSD Digital Soil Map of the World'
 
-    art_clat_meta%varname = 'clat'
-    art_clat_meta%n_dim = 1
-    art_clat_meta%diminfo => diminfo
-    art_clat_meta%vartype = vartype_real !REAL variable
-    art_clat_meta%standard_name = 'grid_latitude' !_br 08.04.14
-    art_clat_meta%long_name =  'latitude of icon grid cell centre'
-    art_clat_meta%shortName = c_undef
-    art_clat_meta%stepType = 'instant'
-    art_clat_meta%units = 'radians'
-    art_clat_meta%grid_mapping = c_undef
-    art_clat_meta%coordinates = c_undef
-    art_clat_meta%data_set = c_undef
-
-    art_clon_meta%varname = 'clon'
-    art_clon_meta%n_dim = 1
-    art_clon_meta%diminfo => diminfo
-    art_clon_meta%vartype = vartype_real !REAL variable
-    art_clon_meta%standard_name = 'grid_longitude' !_br 08.04.14
-    art_clon_meta%long_name =  'longitude of icon grid cell centre'
-    art_clon_meta%shortName = c_undef
-    art_clon_meta%stepType = 'instant'
-    art_clon_meta%units = 'radians'
-    art_clon_meta%grid_mapping = c_undef
-    art_clon_meta%coordinates = c_undef
-    art_clon_meta%data_set = c_undef
   END SUBROUTINE def_hwsd_art_meta
 
   !> define meta information for NDVI data for netcdf output

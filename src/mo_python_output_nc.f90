@@ -453,8 +453,6 @@ MODULE mo_python_output_nc
 
   SUBROUTINE read_netcdf_buffer_art(netcdf_filename,  &
          &                              tg,       &
-         &                              art_clon, &  
-         &                              art_clat, &  
          &                              art_hcla, &  
          &                              art_silc, &  
          &                              art_lcla, &  
@@ -473,9 +471,7 @@ MODULE mo_python_output_nc
 
     CHARACTER (len=*), INTENT(IN)      :: netcdf_filename !< filename for the netcdf file
     TYPE(target_grid_def), INTENT(IN)  :: tg !< structure with target grid description
-    REAL (KIND=wp), INTENT(OUT)        :: art_clon(:,:,:),          &  !< field for central longitude from hwsd
-         &                                             art_clat(:,:,:),          &  !< field for central latitude from hwsd
-         &                                             art_hcla(:,:,:),          &  !< field for Fraction of Heavy Clay from hwsd
+    REAL (KIND=wp), INTENT(OUT)        ::              art_hcla(:,:,:),          &  !< field for Fraction of Heavy Clay from hwsd
          &                                             art_silc(:,:,:),          &  !< field for Fraction of Silty Clay from hwsd
          &                                             art_lcla(:,:,:),          &  !< field for Fraction of Light Clay from hwsd
          &                                             art_sicl(:,:,:),          &  !< field for Fraction of Silty Clay Loam from hwsd
@@ -503,8 +499,6 @@ MODULE mo_python_output_nc
     CALL def_hwsd_art_meta(dim_3d_tg)
     ! dim_emiss_tg, emiss_max_meta, emiss_field_mom_meta, emiss_ratio_mom_meta
 
-    CALL netcdf_get_var(TRIM(netcdf_filename),art_clon_meta,art_clon)
-    CALL netcdf_get_var(TRIM(netcdf_filename),art_clat_meta,art_clat)
     CALL netcdf_get_var(TRIM(netcdf_filename),art_hcla_meta,art_hcla)
     CALL netcdf_get_var(TRIM(netcdf_filename),art_silc_meta,art_silc)
     CALL netcdf_get_var(TRIM(netcdf_filename),art_lcla_meta,art_lcla)

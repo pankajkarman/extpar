@@ -215,8 +215,8 @@ ke_tot = 1
 lon = np.rad2deg(np.reshape(lons, (ke_tot, je_tot, ie_tot)))
 lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
 
-lat_meta = metadata.ART_clon()
-lon_meta = metadata.ART_clat()
+lat_meta = metadata.Lat()
+lon_meta = metadata.Lon()
 hcla_meta = metadata.ART_hcla()
 silc_meta = metadata.ART_silc()
 lcla_meta = metadata.ART_lcla()
