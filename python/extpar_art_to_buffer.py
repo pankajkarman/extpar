@@ -137,7 +137,7 @@ logging.info("")
 
 igrid_type, grid_namelist = utils.check_gridtype('INPUT_grid_org')
 raw_data_art = utils.clean_path(iart['raw_data_art_path'],
-                                    iart['raw_data_art_filename'])
+                                iart['raw_data_art_filename'])
 
 if igrid_type == 1:
     path_to_grid = fortran_namelist.read_variable(grid_namelist,
@@ -157,8 +157,7 @@ logging.info('============= write FORTRAN namelist ===========')
 logging.info('')
 
 input_art = fortran_namelist.Inputart()
-fortran_namelist.write_fortran_namelist("INPUT_ART", iart,
-                                        input_art)
+fortran_namelist.write_fortran_namelist("INPUT_ART", iart, input_art)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -220,7 +219,7 @@ if (igrid_type == 1):
     lat = np.rad2deg(np.reshape(lats, (ke_tot, je_tot, ie_tot)))
 else:
     logging.error('COSMO grid not supported')
-    raise 
+    raise
 
 lat_meta = metadata.ART_clon()
 lon_meta = metadata.ART_clat()
@@ -245,8 +244,7 @@ logging.info('')
 logging.info('============= write to buffer file =============')
 logging.info('')
 
-buffer_file = buffer.init_netcdf(iart['art_buffer_file'], je_tot,
-                                 ie_tot)
+buffer_file = buffer.init_netcdf(iart['art_buffer_file'], je_tot, ie_tot)
 buffer.write_field_to_buffer(buffer_file, lon, lon_meta)
 buffer.write_field_to_buffer(buffer_file, lat, lat_meta)
 buffer.write_field_to_buffer(buffer_file, fracs[:, 0], hcla_meta)

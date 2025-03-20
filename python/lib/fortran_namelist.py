@@ -267,8 +267,7 @@ class Inputart:
     def __init__(self):
 
         self.variables = {
-            '&art_nml':
-            {'raw_data_art_path', 'raw_data_art_filename'}
+            '&art_nml': {'raw_data_art_path', 'raw_data_art_filename'}
         }
 
         self.variables.update({'&art_io_extpar': {'art_buffer_file'}})
