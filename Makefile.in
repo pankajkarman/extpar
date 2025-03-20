@@ -84,7 +84,7 @@ script_files:=                                     \
     $(srcdir)/python/extpar_edgar_to_buffer.py     \
     $(srcdir)/python/extpar_cdnc_to_buffer.py      \
     $(srcdir)/python/extpar_ahf_to_buffer.py       \
-    $(srcdir)/python/extpar_hwsdart_to_buffer.py  \
+    $(srcdir)/python/extpar_art_to_buffer.py       \
     $(srcdir)/python/extpar_isa_to_buffer.py
 
 # Dependency files:
@@ -293,4 +293,3 @@ endif
 ifneq (,$(filter-out $(NO_INC_TARGETS),$(current_targets)))
 include $(dep_files)
 endif
-
