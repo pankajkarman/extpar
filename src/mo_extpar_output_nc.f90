@@ -812,12 +812,9 @@ MODULE mo_extpar_output_nc
        &                                l_use_isa,            &
        &                                l_use_ahf,            &
        &                                l_use_emiss,          &
-<<<<<<< HEAD
        &                                l_use_hwsdART,          &
-=======
        &                                l_use_edgar,          &
        &                                l_use_cdnc,           &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                                l_radtopo,            &
        &                                nhori,                &
        &                                undefined,            &
@@ -846,7 +843,6 @@ MODULE mo_extpar_output_nc
        &                                ndvi_max,             &
        &                                ndvi_field_mom,       &
        &                                ndvi_ratio_mom,       &
-<<<<<<< HEAD
        &                                art_clon,             &  
        &                                art_clat,             &  
        &                                art_hcla,             &  
@@ -863,14 +859,12 @@ MODULE mo_extpar_output_nc
        &                                art_lsan,             &  
        &                                art_sand,             & 
        &                                art_udef,             & 
-=======
        &                                edgar_emi_bc,         &
        &                                edgar_emi_oc,         &
        &                                edgar_emi_so2,        &
        &                                edgar_emi_nox,        &
        &                                edgar_emi_nh3,        &
        &                                cdnc,                 &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                                emiss_field_mom,      &
        &                                hh_topo,              &
        &                                hh_topo_max,          &
@@ -906,12 +900,9 @@ MODULE mo_extpar_output_nc
     LOGICAL, INTENT(in)                             :: l_use_isa, &
          &                                             l_use_ahf, &
          &                                             l_use_emiss, &
-<<<<<<< HEAD
          &                                             l_use_hwsdART, &
-=======
          &                                             l_use_edgar, &
          &                                             l_use_cdnc, &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
          &                                             l_radtopo, &
          &                                             lsso
     INTEGER (KIND=i4), INTENT(in)                   :: itopo_type
@@ -953,7 +944,6 @@ MODULE mo_extpar_output_nc
          &                                             ndvi_max(:,:,:),          & !< field for ndvi maximum
          &                                             ndvi_field_mom(:,:,:,:),  & !< field for monthly mean ndvi data (12 months)
          &                                             ndvi_ratio_mom(:,:,:,:),  & !< field for monthly ndvi ratio (12 months)
-<<<<<<< HEAD
          &                                             art_clon(:,:,:),          &  !< field for central longitude from hwsd
          &                                             art_clat(:,:,:),          &  !< field for central latitude from hwsd
          &                                             art_hcla(:,:,:),          &  !< field for Fraction of Heavy Clay from hwsd
@@ -970,14 +960,12 @@ MODULE mo_extpar_output_nc
          &                                             art_lsan(:,:,:),          &  !< field for Fraction of Loamy Sand from hwsd
          &                                             art_sand(:,:,:),          &  !< field for Fraction of Sand from hwsd
          &                                             art_udef(:,:,:),          &  !< field for Fraction of Undefined or Water from hwsd
-=======
          &                                             edgar_emi_bc(:,:,:),      & !< field for black carbon emission from edgar
          &                                             edgar_emi_oc(:,:,:),      & !< field for organic carbon emission from edgar
          &                                             edgar_emi_so2(:,:,:),     & !< field for sulfur dioxide emission from edgar
          &                                             edgar_emi_nox(:,:,:),     & !< field for nitrogen oxides emission from edgar
          &                                             edgar_emi_nh3(:,:,:),     & !< field for ammonia emission from edgar
          &                                             cdnc(:,:,:,:),            & !< field for cdnc climatology (12 months)
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
          &                                             emiss_field_mom(:,:,:,:), & !< field for monthly mean emiss data (12 months)
          &                                             sst_field(:,:,:,:),       & !< field for monthly mean sst data (12 months)
          &                                             wsnow_field(:,:,:,:),     & !< field for monthly mean wsnow data (12 months)
@@ -1078,7 +1066,6 @@ MODULE mo_extpar_output_nc
          &     lu_class_fraction_ID, &
          &     ndvi_field_mom_ID,    &
          &     ndvi_ratio_mom_ID,    &
-<<<<<<< HEAD
          &     art_clon_ID,          &  
          &     art_clat_ID,          &  
          &     art_hcla_ID,          &  
@@ -1095,14 +1082,12 @@ MODULE mo_extpar_output_nc
          &     art_lsan_ID,          &  
          &     art_sand_ID,          &  
          &     art_udef_ID,          &
-=======
          &     edgar_emi_bc_ID,      &
          &     edgar_emi_oc_ID,      &
          &     edgar_emi_so2_ID,     &
          &     edgar_emi_nox_ID,     &
          &     edgar_emi_nh3_ID,     &
          &     cdnc_ID,              &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
          &     emiss_field_mom_ID,   &
          &     aot_bc_ID,            &
          &     aot_dust_ID,          &
@@ -1208,13 +1193,10 @@ MODULE mo_extpar_output_nc
     CALL def_ndvi_meta(ntime_ndvi,dim_1d_icon)
     ! dim_ndvi_tg, ndvi_max_meta, ndvi_field_mom_meta, ndvi_ratio_mom_meta
 
-<<<<<<< HEAD
     CALL def_hwsd_art_meta(dim_1d_icon)
-=======
     IF (l_use_edgar) CALL def_edgar_meta(dim_1d_icon)
 
     IF (l_use_cdnc) CALL def_cdnc_meta(ntime_cdnc, dim_1d_icon)
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
 
     CALL def_era_meta(ntime_ndvi,dim_1d_icon)
 
@@ -1362,7 +1344,6 @@ MODULE mo_extpar_output_nc
     lu_class_fraction_ID = defineVariable(vlistID, gridID, class_luID, TIME_CONSTANT, lu_class_fraction_meta, undefined)
     ndvi_field_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_field_mom_meta, undefined)
     ndvi_ratio_mom_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, ndvi_ratio_mom_meta, undefined)
-<<<<<<< HEAD
 
     art_clon_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_clon_meta, undefined)
     art_clat_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_clat_meta, undefined)
@@ -1381,26 +1362,11 @@ MODULE mo_extpar_output_nc
     art_sand_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_sand_meta, undefined)
     art_udef_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, art_udef_meta, undefined)
 
-    IF (iaot_type == 5) THEN
-      CAMS_SS1_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS1_tg_meta     , undefined)
-      CAMS_SS2_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS2_tg_meta     , undefined)
-      CAMS_SS3_ID      = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SS3_tg_meta     , undefined)
-      CAMS_DUST1_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST1_tg_meta   , undefined)
-      CAMS_DUST2_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST2_tg_meta   , undefined)
-      CAMS_DUST3_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_DUST3_tg_meta   , undefined)
-      CAMS_OCphilic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_OCphilic_tg_meta, undefined)
-      CAMS_OCphobic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_OCphobic_tg_meta, undefined)
-      CAMS_BCphilic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_BCphilic_tg_meta, undefined)
-      CAMS_BCphobic_ID = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_BCphobic_tg_meta, undefined)
-      CAMS_SU_ID       = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_SU_tg_meta      , undefined)
-      CAMS_p_lev_ID    = defineVariable(vlistID, gridID, nlevel_camsID, TIME_VARYING, CAMS_plev_tg_meta    , undefined)
-    ELSE
-      aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
-      aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
-      aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
-      aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
-      aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
-=======
+    aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
+    aot_dust_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_dust_meta, undefined)
+    aot_org_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_org_meta, undefined)
+    aot_so4_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_so4_meta, undefined)
+    aot_ss_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_ss_meta, undefined)
     IF (l_use_edgar) THEN
       edgar_emi_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_bc_meta, undefined)
       edgar_emi_oc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_CONSTANT, edgar_emi_oc_meta, undefined)
@@ -1411,7 +1377,6 @@ MODULE mo_extpar_output_nc
 
     IF (l_use_cdnc) THEN
       cdnc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, cdnc_meta, undefined)
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
     ENDIF
 
     aot_bc_ID = defineVariable(vlistID, gridID, surfaceID, TIME_VARYING, aer_bc_meta, undefined)
@@ -1677,7 +1642,6 @@ MODULE mo_extpar_output_nc
 
     END DO
 
-<<<<<<< HEAD
     IF (l_use_hwsdART) THEN
         CALL logging%info('hwsdART')
         CALL streamWriteVar(fileID, art_clon_ID,  art_clon(1:icon_grid%ncell,1,1),  0_i8)
@@ -1696,14 +1660,12 @@ MODULE mo_extpar_output_nc
         CALL streamWriteVar(fileID, art_lsan_ID,  art_lsan(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_sand_ID,  art_sand(1:icon_grid%ncell,1,1),  0_i8)
         CALL streamWriteVar(fileID, art_udef_ID,  art_udef(1:icon_grid%ncell,1,1),  0_i8)
-=======
     IF (l_use_edgar) THEN
       CALL streamWriteVar(fileID, edgar_emi_bc_ID,  edgar_emi_bc(1:icon_grid%ncell,1,1),  0_i8)
       CALL streamWriteVar(fileID, edgar_emi_oc_ID,  edgar_emi_oc(1:icon_grid%ncell,1,1),  0_i8)
       CALL streamWriteVar(fileID, edgar_emi_so2_ID, edgar_emi_so2(1:icon_grid%ncell,1,1), 0_i8)
       CALL streamWriteVar(fileID, edgar_emi_nox_ID, edgar_emi_nox(1:icon_grid%ncell,1,1), 0_i8)
       CALL streamWriteVar(fileID, edgar_emi_nh3_ID, edgar_emi_nh3(1:icon_grid%ncell,1,1), 0_i8)
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
     ENDIF
 
     !-----------------------------------------------------------------

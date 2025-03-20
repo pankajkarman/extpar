@@ -201,12 +201,9 @@ MODULE mo_var_meta_data
        &                                      dim_isa_tg(:), &
        &                                      dim_ahf_tg(:), &
        &                                      dim_ndvi_tg(:), &
-<<<<<<< HEAD
        &                                      dim_hwsdART_tg(:), &
-=======
        &                                      dim_edgar_tg(:), &
        &                                      dim_cdnc_tg(:), &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                                      dim_emiss_tg(:), &
        &                                      dim_era_tg(:), &
        &                                      dim_alb_tg(:)

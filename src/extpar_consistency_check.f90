@@ -254,7 +254,6 @@ PROGRAM extpar_consistency_check
        &                              isa_type
 
 
-<<<<<<< HEAD
   USE mo_python_routines,       ONLY: read_namelists_extpar_emiss, &
        &                              read_namelists_extpar_t_clim, &
        &                              read_namelists_extpar_ndvi, &
@@ -264,7 +263,6 @@ PROGRAM extpar_consistency_check
        &                              const_check_interpol_alb, &
        &                              read_namelists_extpar_era, &
        &                              read_namelists_extpar_ahf, &
-=======
   USE mo_python_routines,       ONLY: read_namelists_extpar_emiss,      &
        &                              read_namelists_extpar_t_clim,     &
        &                              read_namelists_extpar_ndvi,       &
@@ -275,7 +273,6 @@ PROGRAM extpar_consistency_check
        &                              const_check_interpol_alb,         &
        &                              read_namelists_extpar_era,        &
        &                              read_namelists_extpar_ahf,        &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                              read_namelists_extpar_isa
 
   USE mo_python_tg_fields,      ONLY: &
@@ -289,7 +286,6 @@ PROGRAM extpar_consistency_check
        &                              ndvi_field_mom, &
        &                              ndvi_ratio_mom, &
        &                              allocate_ndvi_target_fields, &
-<<<<<<< HEAD
 
     ! hswdART
        &                              allocate_hwsdART_target_fields,         &
@@ -300,7 +296,6 @@ PROGRAM extpar_consistency_check
 
       ! cru
        &                              allocate_cru_target_fields,   &
-=======
        &                              ndvi_max, &
   ! edgar
        &                              edgar_emi_bc, &
@@ -314,7 +309,6 @@ PROGRAM extpar_consistency_check
        &                              allocate_cdnc_target_fields, &
   ! cru
        &                              allocate_cru_target_fields, &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                              crutemp, crutemp2, cruelev, &
   ! albedo
        &                              alb_dry, alb_sat, &
@@ -338,12 +332,9 @@ PROGRAM extpar_consistency_check
 
   USE mo_python_output_nc,      ONLY: read_netcdf_buffer_emiss, &
        &                              read_netcdf_buffer_ndvi, &
-<<<<<<< HEAD
        &                              read_netcdf_buffer_hwsdART, &
-=======
        &                              read_netcdf_buffer_edgar, &
        &                              read_netcdf_buffer_cdnc, &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                              read_netcdf_buffer_cru, &
        &                              read_netcdf_buffer_alb, &
        &                              read_netcdf_buffer_era, &
@@ -403,18 +394,15 @@ PROGRAM extpar_consistency_check
        &                                           raw_data_ndvi_filename, &
        &                                           ndvi_buffer_file, & !< name for NDVI buffer file
        &                                           ndvi_output_file, &
-<<<<<<< HEAD
   ! hwsdART
        &                                           raw_data_hwsdART_path, &         !< path to raw data
        &                                           raw_data_hwsdART_filename, &
        &                                           hwsdART_buffer_file, &
-=======
  ! EDGAR
        &                                           edgar_buffer_file, &
  ! CDNC
        &                                           cdnc_buffer_file,       &
        &                                           cdnc_output_file,       &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
  ! EMISS
        &                                           emiss_buffer_file, & !< name for EMISS buffer file
        &                                           raw_data_emiss_path, & !< dummy var for routine read_namelist_extpar_emiss
@@ -505,12 +493,9 @@ PROGRAM extpar_consistency_check
        &                                           l_preproc_oro=.FALSE., &
        &                                           l_use_glcc=.FALSE., & !< flag if additional glcc data are present
        &                                           l_use_emiss=.FALSE., &!< flag if additional CAMEL emissivity data are present
-<<<<<<< HEAD
        &                                           l_use_hwsdART=.FALSE., &!< flag if hwsdART processing to be done
-=======
        &                                           l_use_edgar=.FALSE., &!< flag if additional EDGAR emission data are present
        &                                           l_use_cdnc=.FALSE.,  &!< flag if additional CDNC data are present
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
        &                                           l_unified_era_buffer=.FALSE., &!< flag if ERA-data from extpar_era_to_buffer.py is used
        &                                           lwrite_netcdf, &  !< flag to enable netcdf output for COSMO
        &                                           lwrite_grib, &    !< flag to enable GRIB output for COSMO
@@ -921,9 +906,7 @@ PROGRAM extpar_consistency_check
 
   CALL allocate_ndvi_target_fields(tg,ntime_ndvi, l_use_array_cache)
 
-<<<<<<< HEAD
   CALL allocate_hwsdART_target_fields(tg, l_use_array_cache)
-=======
   IF (igrid_type == igrid_icon .AND. l_use_edgar) THEN
     CALL allocate_edgar_target_fields(tg, l_use_array_cache)
   END IF
@@ -931,7 +914,6 @@ PROGRAM extpar_consistency_check
   IF (igrid_type == igrid_icon .AND. l_use_cdnc) THEN
     CALL allocate_cdnc_target_fields(tg, ntime_cdnc, l_use_array_cache)
   END IF
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
 
   CALL allocate_emiss_target_fields(tg,ntime_emiss, l_use_array_cache)
 
@@ -2507,12 +2489,9 @@ PROGRAM extpar_consistency_check
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
          &                                     l_use_emiss,                   &
-<<<<<<< HEAD
          &                                     l_use_hwsdART,                   &
-=======
          &                                     l_use_edgar,                   &
          &                                     l_use_cdnc,                    &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
          &                                     lradtopo,                      &
          &                                     nhori,                         &
          &                                     fill_value_real,               &
@@ -2541,7 +2520,6 @@ PROGRAM extpar_consistency_check
          &                                     ndvi_max,                      &
          &                                     ndvi_field_mom,                &
          &                                     ndvi_ratio_mom,                &
-<<<<<<< HEAD
          &                                     art_clon,                      &  
          &                                     art_clat,                      &  
          &                                     art_hcla,                      &  
@@ -2558,14 +2536,12 @@ PROGRAM extpar_consistency_check
          &                                     art_lsan,                      &  
          &                                     art_sand,                      & 
          &                                     art_udef,                      & 
-=======
          &                                     edgar_emi_bc,                  &
          &                                     edgar_emi_oc,                  &
          &                                     edgar_emi_so2,                 &
          &                                     edgar_emi_nox,                 &
          &                                     edgar_emi_nh3,                 &
          &                                     cdnc,                          &
->>>>>>> cfc7715e3c129e2976380443d115c101cffc0b93
          &                                     emiss_field_mom,               &
          &                                     hh_topo,                       &
          &                                     hh_topo_max,                   &
