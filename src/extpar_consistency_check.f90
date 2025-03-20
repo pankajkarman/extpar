@@ -253,20 +253,11 @@ PROGRAM extpar_consistency_check
        &                              minimal_isa, &
        &                              isa_type
 
-
-  USE mo_python_routines,       ONLY: read_namelists_extpar_emiss, &
-       &                              read_namelists_extpar_t_clim, &
-       &                              read_namelists_extpar_ndvi, &
-       &                              read_namelists_extpar_hwsdART, &
-       &                              read_namelists_extpar_alb, &
-       &                              open_netcdf_ALB_data, &
-       &                              const_check_interpol_alb, &
-       &                              read_namelists_extpar_era, &
-       &                              read_namelists_extpar_ahf, &
   USE mo_python_routines,       ONLY: read_namelists_extpar_emiss,      &
        &                              read_namelists_extpar_t_clim,     &
        &                              read_namelists_extpar_ndvi,       &
        &                              read_namelists_extpar_edgar,      &
+       &                              read_namelists_extpar_hwsdART, &
        &                              read_namelists_extpar_cdnc,       &
        &                              read_namelists_extpar_alb,        &
        &                              open_netcdf_ALB_data,             &
