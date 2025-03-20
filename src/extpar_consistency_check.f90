@@ -493,7 +493,7 @@ PROGRAM extpar_consistency_check
        &                                           l_preproc_oro=.FALSE., &
        &                                           l_use_glcc=.FALSE., & !< flag if additional glcc data are present
        &                                           l_use_emiss=.FALSE., &!< flag if additional CAMEL emissivity data are present
-       &                                           l_use_hwsdART=.FALSE., &!< flag if hwsdART processing to be done
+       &                                           l_use_hwsdart=.FALSE., &!< flag if hwsdART processing to be done
        &                                           l_use_edgar=.FALSE., &!< flag if additional EDGAR emission data are present
        &                                           l_use_cdnc=.FALSE.,  &!< flag if additional CDNC data are present
        &                                           l_unified_era_buffer=.FALSE., &!< flag if ERA-data from extpar_era_to_buffer.py is used
@@ -834,8 +834,8 @@ PROGRAM extpar_consistency_check
 
   ! read namelist for hwsdART
   namelist_file = 'INPUT_hwsdART'
-  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_hwsdART)
-  IF (l_use_hwsdART) THEN
+  INQUIRE(FILE=TRIM(namelist_file), EXIST=l_use_hwsdart)
+  IF (l_use_hwsdart) THEN
     CALL  read_namelists_extpar_hwsdART(namelist_file, &
       &                               raw_data_hwsdART_path, &
       &                               raw_data_hwsdART_filename, &
@@ -1109,7 +1109,7 @@ PROGRAM extpar_consistency_check
   ENDIF
 
   !-------------------------------------------------------------------------
-  IF(l_use_hwsdART .and. igrid_type == igrid_icon) THEN
+  IF(l_use_hwsdart .and. igrid_type == igrid_icon) THEN
     CALL logging%info( '')
     CALL logging%info('hwsdART')
     CALL read_netcdf_buffer_hwsdART(hwsdART_buffer_file,   &
@@ -2489,7 +2489,7 @@ PROGRAM extpar_consistency_check
          &                                     l_use_isa,                     &
          &                                     l_use_ahf,                     &
          &                                     l_use_emiss,                   &
-         &                                     l_use_hwsdART,                   &
+         &                                     l_use_hwsdart,                   &
          &                                     l_use_edgar,                   &
          &                                     l_use_cdnc,                    &
          &                                     lradtopo,                      &
