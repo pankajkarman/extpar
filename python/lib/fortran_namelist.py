@@ -1,5 +1,4 @@
 import logging
-import sys
 
 try:
     import extpar.lib.utilities as utils
@@ -23,6 +22,7 @@ it contains:
         -InputAhf
         -InputIsa
         -InputHwsdart
+        -InputCdnc
 '''
 
 
@@ -183,6 +183,26 @@ class InputNdvi:
         }
 
         self.variables.update({'&ndvi_io_extpar': {'ndvi_buffer_file'}})
+
+
+class InputEdgar:
+    '''
+    define structure of  namelist "INPUT_edgar"
+    '''
+
+    def __init__(self):
+
+        self.variables = {'&edgar_io_extpar': {'edgar_buffer_file'}}
+
+
+class InputCdnc:
+    '''
+    define structure of  namelist "INPUT_CDNC"
+    '''
+
+    def __init__(self):
+
+        self.variables = ({'&cdnc_io_extpar': {'cdnc_buffer_file'}})
 
 
 class InputEmiss:
