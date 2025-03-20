@@ -237,7 +237,8 @@ class InputIsa:
         self.variables = {'&isa_raw_data': {'isa_type'}}
 
         self.variables.update({'&isa_io_extpar': {'isa_buffer_file'}})
-        
+
+
 class InputHwsdart:
     '''
     define structure of namelist "INPUT_hwsdART"
@@ -246,7 +247,8 @@ class InputHwsdart:
     def __init__(self):
 
         self.variables = {
-            '&hwsdART_nml': {'raw_data_hwsdART_path', 'raw_data_hwsdART_filename'}
+            '&hwsdART_nml':
+            {'raw_data_hwsdART_path', 'raw_data_hwsdART_filename'}
         }
 
         self.variables.update({'&hwsdART_io_extpar': {'hwsdART_buffer_file'}})
