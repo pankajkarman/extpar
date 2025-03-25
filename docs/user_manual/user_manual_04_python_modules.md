@@ -424,7 +424,7 @@ application in ICON-ART simulations.
 
 ### Used namelist files and data in-/output
 
--   namelists files: INPUT_grid_org, INPUT_ICON_GRID, INPUT_ART
+-   namelists files: INPUT_grid_org, INPUT_ICON_GRID, namelist.py
 
 -   data input: HWSD0_USDA.nc
 
