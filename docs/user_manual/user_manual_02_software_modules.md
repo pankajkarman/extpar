@@ -26,7 +26,6 @@ The software modules read from the following namelist files:
 -   INPUT_LU
 -   INPUT_ORO, INPUT_OROSMOOTH, INPUT_RADTOPO, INPUT_SCALE_SEP
 -   INPUT_SOIL
--   INPUT ART
 -   INPUT_ART
 -   INPUT_FLAKE
 -   INPUT_grid_org
