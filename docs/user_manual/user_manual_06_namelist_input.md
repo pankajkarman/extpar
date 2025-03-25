@@ -258,9 +258,9 @@ The COSMO grid is defined by a rotated latlon-grid.
 
 | Parameter | Type | Default | Unit | Description |
 |-----------|------|---------|------|-------------|
-| `raw_data_art_path` | character | | | Path to hwsdART raw data |
-| `raw_data_art_filename` | character | | | Filename of hwsdART raw data |
-| `art_buffer_file` | character | | | Name for hwsdART output file |
+| `raw_data_art_path` | character | | | path to raw hwsd data to be used for ICON-ART  |
+| `raw_data_art_filename` | character | | | filename of raw hwsd data |
+| `art_buffer_file` | character | | | name for art buffer file |
 
 ## Soil Data
 
